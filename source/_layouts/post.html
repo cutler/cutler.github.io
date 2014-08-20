@@ -3,7 +3,33 @@ layout: default
 single: true
 ---
 
-<article class="post">{% include article.html %}</article>
+<article class="post">
+	{% include article.html %}
+	<div class="meta">
+        <div class="date">{% include post/date.html %}{{ time }}</div>
+        <div class="tags">{% include post/categories.html %}</div>
+        <div class="comments"><a href="{{ root_url }}{{ post.url }}#comments" id="uyan_count_unit" du="" su="">0条评论</a>
+            <script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1850190"></script>
+        </div>
+        {% include post/taglist.html %}
+        <br />
+        <section>
+            <h2>相关文章：</h2>
+            <ul class="posts">
+                {% for post in site.related_posts limit:8 %}
+                <li class="related">
+                <a href="{{ root_url }}{{ post.url }}">{{ post.title }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+        <br />
+        {% include custom/asides/category_list.html %}
+        <br />
+        {% include asides/recent_posts.html %}
+        <br />
+    </div>
+</article>
 {% unless page.sharing == false %}
 	{% include post/sharing.html %}
 {% endunless %}
@@ -14,7 +40,8 @@ single: true
 </section>
 {% endif %}
 {% if site.duoshuo_short_name and site.duoshuo_comments == true and page.comments == true %}
-  <section>
-    <div id="comments" aria-live="polite">{% include post/duoshuo.html %}</div>
-  </section>
+	<br /><br /><br />
+  	<section>
+    	<div id="comments" aria-live="polite">{% include post/duoshuo.html %}</div>
+	</section>
 {% endif %}
