@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "江雪（唐代柳宗元五言绝句）"
-date: 2014-08-18 18:48:27 +0800
+date: 2014-08-18 18:48
 comments: true
 categories: 诗词歌赋
 ---
