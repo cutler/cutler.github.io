@@ -17,7 +17,8 @@ categories: quick-cocos2d-x
     人们就发现，这些命令行其实可以用更加聪明的方法构造，比如定义一些变量，或者根据系统类型的不同执行不同的命令。
     于是，人们为这脚本语言加入了变量，条件语句，数组，等等构造。“脚本语言”就这样产生了。
     　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　———— 摘自王垠《什么是“脚本语言”》
-　　<br>**Lua独有的特点**<br>
+<br>
+　　**Lua独有的特点**<br>
 　　除了 Lua 外，还有很多类似的脚本语言，例如：Perl、Tcl、Ruby、Forth、Python虽然其他语言在某些方面与 Lua 有着共同的特色，但下面这些特征是 Lua 特有的：
 
 - 可扩展性。Lua 的扩展性非常卓越，以至于很多人把 Lua 用作搭建领域语言的工具（注：比如游戏脚本）。Lua 被设计为易于扩展的，可以通过 Lua 代码或者C代码扩展， Lua的很多功能都是通过外部库来扩展的。 Lua很容易与C/C++、 java、fortran、Smalltalk、Ada，以及其他语言接口。
@@ -36,6 +37,43 @@ http://www.yinwang.org/blog-cn/2013/03/29/scripting-language/<br>
 http://www.zhihu.com/question/20898488<br>
 http://www.ibm.com/developerworks/cn/linux/l-lua.html <br><br>
 # 第二节 基础知识 #
+## 起点 ##
+范例1：hello world。
+```
+print("Hello World")
+```
 
+    语句解释：
+    - 创建a.lua文件，并输入本范例中的代码并保存，在cmd中通过执行“lua a.lua”即可运行程序。
+    - 注意：直接在Windows右键建立一个txt文件可能会有中文编码问题，可以通过专业的文本编辑软件创建，如EditPlus。
+<br>
+　　**Chunks**<br>
+　　Chunk 和 Java 中的代码块类似，它小到可以仅包含一行代码，大到可以是一系列语句的组合，还可以是函数，在 Lua 中几个 MByte的Chunk 是很常见的。交互模式下的每一行都是一个 Chunk。<br>
+　　每个语句结尾的分号（；）是可选的，通常不需要写，但如果同一行有多个语句最好用“；”分开，比如下面的写法是不推荐的，虽然它的语法是正确的：
+```
+a = 1   b = a*2
+```
 
+    语句解释：
+    - Lua和js一样，它们的变量是不需要指定数据类型的，你可以随便给变量a赋值数字、字符串、boolean类型的值。
+    - Lua代码保存的文件名后缀为.lua 。 
+<br>
+　　**交互模式**<br>
+　　直接在cmd命令行中执行“lua”命令即可进入到 **交互模式** 中。在交互模式下，Lua 通常把每一个行当作一个Chunk，但如果一行不是一个完整的Chunk时，它会等待继续输入直到得到一个完整的Chunk。在Lua等待续行时，显示不同的提示符（一般是>>）。<br>
+范例1：进入交互模式。
+```
+E:\luademo>lua
+Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
+> print("Hello World!!!!")
+Hello World!!!!
 
+```
+
+    语句解释：
+    - Lua语言是即时编译的，因此可以在交互模式中实现“一边编写，一边运行”。
+<br>
+　　可以通过指定参数让Lua执行一系列Chunk。例如：假定一个a.lua内有单个语句x=1；另一个b.lua中有语句 print(x)，然后执行下面语句：
+```
+lua -la -lb
+```
+　　命令首先在一个 Chunk 内先运行 a 然后运行 b 。（注意：-l 选项会调用 require函数，它会在指定的目录下搜索文件，如果环境变量没有设好，上面的命令可能不能正确运行。 具体后述。
