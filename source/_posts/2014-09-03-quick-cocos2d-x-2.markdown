@@ -39,7 +39,7 @@ http://www.ibm.com/developerworks/cn/linux/l-lua.html <br><br>
 # 第二节 基础知识 #
 ## 起点 ##
 范例1：hello world。
-```
+``` lua
 print("Hello World")
 ```
 
@@ -50,7 +50,7 @@ print("Hello World")
 　　**Chunks**<br>
 　　Chunk 和 Java 中的代码块类似，它小到可以仅包含一行代码，大到可以是一系列语句的组合，还可以是函数，在 Lua 中几个 MByte的Chunk 是很常见的。交互模式下的每一行都是一个 Chunk。<br>
 　　每个语句结尾的分号（；）是可选的，通常不需要写，但如果同一行有多个语句最好用“；”分开，比如下面的写法是不推荐的，虽然它的语法是正确的：
-```
+``` lua
 a = 1   b = a*2
 ```
 
@@ -61,7 +61,7 @@ a = 1   b = a*2
 　　**交互模式**<br>
 　　直接在cmd命令行中执行“lua”命令即可进入到 **交互模式** 中。在交互模式下，Lua 通常把每一个行当作一个Chunk，但如果一行不是一个完整的Chunk时，它会等待继续输入直到得到一个完整的Chunk。在Lua等待续行时，显示不同的提示符（一般是>>）。<br>
 范例1：进入交互模式。
-```
+``` 
 E:\luademo>lua
 Lua 5.1.4  Copyright (C) 1994-2008 Lua.org, PUC-Rio
 > print("Hello World!!!!")
@@ -77,3 +77,4 @@ Hello World!!!!
 lua -la -lb
 ```
 　　命令首先在一个 Chunk 内先运行 a 然后运行 b 。（注意：-l 选项会调用 require函数，它会在指定的目录下搜索文件，如果环境变量没有设好，上面的命令可能不能正确运行。 具体后述。
+
