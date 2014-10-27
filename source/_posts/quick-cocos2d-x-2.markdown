@@ -4,6 +4,8 @@ title: "第二章 Lua 程序设计"
 date: 2014-09-03 22:07:06 +0800
 comments: true
 categories: quick-cocos2d-x
+tags:
+- 脚本语言
 ---
 　　本章主要参考《Programming in Lua》中文版一书，并添加了书中未写到的细节知识。<br>
 # 第一节 概述 #
