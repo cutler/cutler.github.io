@@ -6,6 +6,7 @@ comments: true
 categories: quick-cocos2d-x
 tags:
 - 脚本语言
+- quick-cocos2d-x
 ---
 　　本章主要参考《Programming in Lua》中文版一书，并添加了书中未写到的细节知识。<br>
 # 第一节 概述 #
