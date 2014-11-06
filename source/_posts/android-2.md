@@ -448,3 +448,162 @@ this.startActivity(intent);
 
 　　　　　　　　　![Fragment](/img/android/android_2_3.png)
 　　将一个`Fragment`作为Activity布局的一部分添加进来时, `Fragment`处在Activity的`viewhierarchy`中的`ViewGroup`中,并且定义有它自己的view布局。
+
+## 基本应用 ##
+　　要创建一个Fragment,必须创建一个Fragment的子类 (或者继承自一个已存在的它的子类)。Fragment类的代码看上去有点象Activity，它包含了类似Activity的的回调方法，如`onCreate()`、`onStart()`、`onPause()`和`onStop()`方法。实际上，如果你正在把一个既存的Android应用程序转换成使用Fragment的应用程序，你只需简单的把Activity的回调方法的代码移到各自的Fragment的回调方法中。
+　　注：Fragment类是在Android3.0中提供的，若想在`Android2.x`平台上使用Fragment类则需要添加`android-support-v4.jar`库（后述）文件。
+
+<br>**Fragment的子类**
+
+	-  DialogFragment 用于显示一个浮动的对话框。
+	-  用这个类来创建一个对话框,是使用在Activity类的对话框工具方法之外的一个好的选择,因为你可以将一个fragment对话框合并到activity管理的fragment back stack中,允许用户返回到一个之前曾被摒弃的fragment。
+	-  ListFragment类似于ListActivity，它提供一些方法来管理ListView, 例如 onListItemClick()回调来处理点击事件。
+	-  PreferenceFragment是一个显示Preference对象的层次结构的列表, 类似于PreferenceActivity。这在为你的应用创建一个“设置”activity时有用处。
+
+<br>**创建Fragment**
+<br>　　范例1：MyFragment。
+``` android
+public class MyFragment extends Fragment{
+	//TODO method and field
+}
+```
+
+　　由于3.0版本之前的Activity类不支持Fragment这个类，因此在`android-support-v4.jar`中Google使用`FragmentActivity`来对Activity的功能进行了增强。若你项目的SDK版本低于Android3.0，则需要添加android-support-v4.jar包，并且要让你的Activity继承`FragmentActivity`类。
+　　FragmentActivity的父类就是Activity。
+
+
+　　Fragment通常用来作为Activity的用户界面的一部分,其内封装的layout会被放入Activity中。
+　　那么应该如何给Fragment提供一个layout呢?
+　　实现Fragment类的`onCreateView()`回调方法即可，该方法是Fragment的生命周期方法之一，当Activity需要Fragment绘制它自己的layout的时候，就会调用它。此方法的实现代码必须返回Fragment的layout的根view。
+
+<br>　　范例2：返回View。
+``` android
+public static class MyFragment extends Fragment {
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.example_fragment, null);
+    }
+}
+```
+
+	语句解释：
+	-  如果你的Fragment是ListFragment的子类，它的默认实现是返回从onCreateView返回一个ListView，所以一般情况下不必实现它。
+	-  从onCreateView返回的View，也可以从一个xml layout资源文件中读取并生成。为了帮助你这么做，onCreateView提供了一个LayoutInflater对象。
+	-  传入onCreateView的container参数是你的fragment layout将被插入的父ViewGroup(来自activity的layout)，savedInstanceState参数是一个Bundle，如果fragment是被恢复的，它提供关于fragment的之前的实例的数据。
+
+<br>**添加入Activity中**
+　　通常地Fragment为宿主Activity提供UI的一部分，被作为Activity的整个`view hierarchy`的一部分被嵌入。创建完Fragment后，接下来就要将它添加到Activity中进行显示。
+　　但是由于Fragment本身并不是View的子类，我们无法通过`addView`等方法将其直接放入到Actvity中。
+　　虽然如此，但是还是有2种方法可以添加一个Fragment到activity layout。
+
+<br>　　第一种，在Activity的layout文件中声明<fragment>标签，可以像View一样指定layout属性。
+``` android
+<fragment
+    android:id="@+id/myFragment"
+    android:name="com.example.androidtest.MyFragment"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" />
+```
+　　`<fragment>`中的`android:name`属性指定了在layout中实例化的Fragment类。
+　　当系统创建这个activity layout时,它实例化每一个在layout中指定的`<fragment>`标签,并调用每一个Fragment的onCreateView()方法,来获取每一个Fragment的layout。系统将会把从Fragment返回的View直接插入到`<fragment>`元素所在的地方。
+　　另外，每一个Fragment都需要一个唯一的标识，以便在程序中方便的引用Fragment。有3种方法来为一个Fragment提供一个标识：
+
+	-  为android:id属性提供一个唯一ID。
+	-  为android:tag属性提供一个唯一字符串。
+	-  如果以上2个你都没有提供, 系统使用Fragment所在的容器view的ID。
+
+<br>　　第二种，在Activity运行的任何时候，都可以通过Google提供了另一个类`FragmentManager`来操作和管理Fragment。有两种方式可以获取到`FragmentManager`的实例：
+
+	-  若项目的SDK版本为3.0以上，则通过Activity的getFragmentManager()方法获取。
+	-  若项目的SDK版本低于3.0，则通过FragmentActivity的getSupportFragmentManager()方法获取。
+
+<br>　　范例3：FragmentManager类。
+``` android
+public abstract class FragmentManager extends Object {
+    // 开启一个事务，之后对Fragment的操作都是在这个事务对象进行的。
+    public abstract FragmentTransaction beginTransaction(){}
+
+    // 指定Fragment的id或tag，从当前FragmentManager对象中查找出Fragment对象。
+    public abstract Fragment findFragmentById(int id){}
+    public abstract Fragment findFragmentByTag(String tag){}
+}
+```
+　　FragmentManager对象是隶属于Activity的。
+
+	-  不论是Android3.0之后的Activity类还是FragmentActivity类，在它们的内部都定义了一个FragmentManager类型的属性，它管理着所有嵌入到其宿主Activity内的Fragment对象。
+	-  由于一个Activity中可以嵌入多个Fragment，为了方便高效的编辑这些Fragment对象，Android采用了“事务提交”的方式。
+	-  每当需要编辑Activity中的某个Fragment时，都要先开启一个事务。然后在事务对象上执行编辑操作(如add、remove、replace等)，执行完毕所有的编辑后再一次性的提交给Activity去更新界面。
+	-  我们也可以保存每一个事务到一个activity管理的backstack,允许用户经由Fragment的变化往回导航(类似于通过activity往后导航)。
+
+<br>　　范例4：FragmentTransaction类。
+``` android
+public abstract class FragmentTransaction extends Object {
+    // 将参数fragment对象添加到Activity的布局中containerViewId组件下。
+    // containerViewId所指向的组件必须是ViewGroup类型的，否则抛异常。
+    public abstract FragmentTransaction add(int containerViewId, Fragment fragment){}
+
+    // 删除containerViewId下面的fragment对象，然后将参数fragment对象放到containerViewId下面。
+    // 若containerViewId下面有多个fragment对象，则删除最先找到的那个。
+    // tag：为参数fragment指定的tag。
+    public abstract FragmentTransaction replace(int containerViewId, Fragment fragment, String tag){}
+
+    // 调用此方法相当于调用其重载方法replace(containerViewId, fragment,null) 即参数tag的值为null。
+    public abstract FragmentTransaction replace(int containerViewId, Fragment fragment){}
+
+    // 提交事务。
+    // 事务中包含的操作不会立刻生效，事务会被放入到创建当前事务对象的FragmentManager对象所在Activity类的mHandler
+    // 属性中，等待被主线程处理。但你可以从你的UI线程调用executePendingTransactions()来立即执行由commit()提交的事
+    // 务. 但这么做通常不必要,除非事务是其他线程中的job的一个从属。
+    public abstract int commit(){}
+}
+```
+
+<br>　　范例5：添加Fragment。
+``` android
+public class MyActivity extends FragmentActivity{
+    public void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        // 添加Fragment
+        MyFragment f = new MyFragment();
+        FragmentManager mgr = getSupportFragmentManager();
+        FragmentTransaction trans = mgr.beginTransaction();
+        trans.add(R.id.layout,f);
+        trans.commit();
+    }
+}
+```
+	语句解释：
+	-  本范例是通过继承FragmentActivity类来实现的。执行完毕编辑操作后，若不调用commit()方法则事务是永远不会生效的。
+　　`trans.add(R.id.layout,f)`将Fragment对象添加到Activity的组件下，此语句等价于：
+``` android
+		ViewGroup container = (ViewGroup)activity.findViewById(R.id.layout);
+		container.addView(f.mView);
+```
+　　其中`f.mView`就是Fragment内部所封装的View。
+
+<br>**事务回滚**
+　　事务是支持回滚的，即撤销上一步操作。 
+　　在FragmentManager中维护了一个`事务栈`。我们可以在事务对象提交(`commit`)之前，设置是否要将该事务放在事务栈中。 当用户在Activity中按下`back`键时，会撤销栈顶的事务所做出的修改。
+
+<br>　　范例6：添加Fragment。
+``` android
+public class MyActivity extends FragmentActivity{
+    public void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        FragmentManager mgr = getSupportFragmentManager();
+        MyFragment f = new MyFragment();
+        FragmentTransaction trans = mgr.beginTransaction();
+        trans.add(R.id.layout, f);
+        trans.addToBackStack(null);
+        trans.commit();
+    }
+}
+```
+	语句解释：
+	-  本范例添加了一个Fragment，并调用addToBackStack()方法来标识事务对象需要被加入事务栈。
+	-  当BACK键被按下时Fragment就会被从Activity中移除，并将该事务从栈中移除。当事务栈为空时，Activity将不会再拦截BACK键事件。
+	-  如果添加多个变化到事务(例如add()或remove())并调用addToBackStack(),然后在你调用commit()之前的所有应用的变化会被作为一个单个事务添加到后台堆栈, BACK按键会将它们一起回退。
