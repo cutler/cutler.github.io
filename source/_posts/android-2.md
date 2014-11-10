@@ -40,14 +40,6 @@ tags:
 	- 本范例只是列出了Activity的最常用的2个方法，稍后将会用到它们，而Activity类的其它常用方法将在后续慢慢列出。
 
 ## 实现一个用户界面 ##
-　　一个Activity的用户界面是通过View树来提供的（这些View对象派生自View类）。每个View在Activity的窗口中都控制一个特定的的矩形区域，并且能够响应用户的操作。例如，一个按钮在用户点击它时，可以启动一个动作。
-
-　　Android提供了很多已经准备好的View，你能够使用这些View来设计和组织到你的布局中。
-
-	“Widgets”是给屏幕提供的可见的并可交互的View元素。如按钮、文本域、检查框、或图片等。
-	“Layouts”是派生自ViewGroup的View，可以将它看成一个容器，其内部可以包含widgets或者嵌套另一个Layouts，它为它的子View提供了一个唯一的布局模式，如线性布局、网格布局、或相对布局等。
-　　你也能够通过继承`View`和`ViewGroup`来创建自己的`widgets`和`layouts`，并且把它们应用到Activity布局中。
-
 　　传统应用程序中，用户界面是在程序的内部进行构建。当需要修改界面时，就变的很困难、繁琐。目前比较流行的解决方案是将界面描述部份的代码，抽取到程序外部的 XML 描述文件中。Android就是采用此种方案。将应用程序的界面放到`/res/layout`目录下定义。
 　　然后你可以把布局文件的资源ID传给Activity类的`setContentView()`方法，用这个ID对应的布局来设置Activity界面的布局。但是，你也可以在你的Activity代码中创建新的View，并且通过把新的View插入到ViewGroup中的方法来构建View树，然后通过把根ViewGroup传递给Activity的setContentView()方法来实现窗口布局。
 
@@ -80,15 +72,25 @@ public class MainActivity extends Activity {
 	-  第10行，设置当前MainActivity要显示的内容。
 	-  此处就是调用 项目根目录/res/layout/main.xml 文件来设置主Activity中要显示的内容。
 
+<br>　　一个Activity的用户界面是通过View树来提供的（这些View对象派生自View类）。每个View在Activity的窗口中都控制一个特定的的矩形区域（你看到的所有圆角、形状等本质上都是在一个矩形内绘制的），并且能够响应用户的操作。例如，一个按钮在用户点击它时，可以启动一个动作。
+
+　　Android提供了很多已经准备好的View，你能够使用这些View来设计和组织到你的布局中。
+
+	“Widgets”是给屏幕提供的可见的并可交互的View元素。如按钮、文本框、单选/复选框、或图片等。
+	“Layouts”是派生自ViewGroup的View，可以将它看成一个容器，其内部可以包含widgets或者嵌套另一个Layouts，它为它的子View提供了一个唯一的布局模式，如线性布局、网格布局、或相对布局等。
+　　你也能够通过继承`View`和`ViewGroup`来创建自己的`widgets`和`layouts`，并且把它们应用到Activity布局中。
+
 ## 注册Activity ##
 　　为了让系统能够访问Activity，你必须在清单中声明你的Activity。要声明你Activity，请打开你的清单文件(manifest file)，在<application>元素中添加<activity>子元素。如：
 ``` android
-<manifest ...>
-<application ...>
-     <activity android:name=".MainActivity"/>
-     ...
-</application>
-...
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	package="org.cxy.tomcat" android:versionCode="1" android:versionName="1.0">
+    <application 
+        android:icon="@drawable/ic_launcher" 
+        android:label="@string/app_name">
+            <activity android:name="org.cxy.tomcat.MainActivity"/>
+    </application>
 </manifest>
 ```
 　　在这个`<activit>`中还包含几个其他的属性，如Activity的标签、Activity的图标、Activity界面的主题样式等。`android:name`属性是唯一个必须的属性（它指定Activity的类名）。一旦你发布了应用程序，就不应该改变这个名字，因为如果发生改变，就可能破坏某些功能，如应用的快捷方式等。
@@ -116,19 +118,35 @@ public class MainActivity extends Activity {
 　　这些元素指定了你的Activity能够响应那种类型的Intent。关于Intent的更详细内容将在Intent一节中讲解。
 
 ## 启动另一个Activity ##
-　　你可以通过调用Context类的startActivity()方法来启动另外一个Activity，在调用这个方法时要给它传递一个Intent对象，该Intent对象描述了你想要启动的Activity。这个Intent既可以确切的指定你想要启动的Activity，也可以是你想要执行的Action的类型的描述，系统会依据你指定的Action从操作系统内所有已注册的Activity中给你选择出匹配的Activity，并将它们列出来(如果有多个匹配的话)，甚至可以从不同的应用程序中选择。Intent也能够携带少量的数据给被启动的Activity。
+　　你可以通过调用Context类的`startActivity()`方法来启动另外一个Activity，在调用这个方法时要给它传递一个Intent对象，该Intent对象描述了你想要启动的Activity。这个Intent既可以确切的指定你想要启动的Activity，也可以是你想要执行的Action的类型的描述，系统会依据你指定的Action从操作系统内所有已注册的Activity中给你选择出匹配的Activity，并将它们列出来(如果有多个匹配的话)，甚至可以从不同的应用程序中选择。Intent也能够携带少量的数据给被启动的Activity。
 　　注：Activity类是Context类的子类，因此Activity的对象就可以使用startActivity()方法。
 
 <br>　　在你自己的应用程序中，你会经常的需要启动自己的Activity，你可以直接使用类名来启动它们。通过创建一个你想启动的明确定义的Activity的Intent来做这件事。例如，下面的例子说明了怎样启动一个名叫SignInActivity的Activity。
 ``` android
-Intent intent = new Intent（SignInActivity.this, SignInActivity.class）;
-startActivity(intent);
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+
+        // 启动一个名为ActivityB的界面
+        Intent intent = new Intent(this, ActivityB.class);
+        startActivity(intent);
+    } 
+}
 ```
 　　有时你的应用可能要执行诸如发送邮件、文本消息、打开网页等动作，并且你的应用程序中又没有可以执行这些动作的Activity，此时你可以使用设备上其他应用程序提供的Activity来替你执行这些动作，这是Intent的真正价值 -- 你能够创建一个描述你想执行的动作的Intent，这样操作系统就会从其他应用程序中加载相应的Activity。 如果有多个能够处理这个Intent的Activity，那么用户能够选择其中之一来使用。例如，如果你想允许用户发送一个邮件消息，你能够创建下面这样的Intent：
 ``` android
-Intent intent = new Intent(Intent.ACTION_SEND);
-Intent.putExtra(Intent.EXTRA_EMAIL, recipientArray);
-startActivity(intent);
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        Intent.putExtra(Intent.EXTRA_EMAIL, recipientArray);
+        startActivity(intent);
+    } 
+}
+
 ```
 
     语句解释：
@@ -174,45 +192,51 @@ startActivity(intent);
 
 <br>　　范例3：Activity_A类。
 ``` android
-public void onClick(View view){
-    Intent intent = new Intent(this,MyActivity.class);
-    intent.putExtra("name", "cxy_jay");
-    this.startActivityForResult(intent, 200); //设置请求码为200 。
-}  
+public class Activity_A extends Activity {
 
-protected void onActivityResult(int requestCode, int resultCode, Intent data){
-    if(data != null){
-        	if(requestCode==200&&resultCode==Activity.RESULT_OK) //若响应码为200 。
-        System.out.println("您是从MyActivity中回来的。");
-        System.out.println("calls -->"+data.getStringExtra("message"));
-    }else{
-        System.out.println("calls --> data is null");
+    // 当用户点击界面上的按钮时，程序会执行此方法。
+    public void onClick(View view){
+        Intent intent = new Intent(this, Activity_B.class);
+        intent.putExtra("name", "cxy_jay");
+        this.startActivityForResult(intent, 200); //设置请求码为200 。
+    }  
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        if(data != null){
+            	if(requestCode==200&&resultCode==Activity.RESULT_OK) //若响应码为200 。
+            System.out.println("您是从Activity_B中回来的。");
+            System.out.println("calls -->"+data.getStringExtra("message"));
+        }else{
+            System.out.println("calls --> data is null");
+        }
     }
 }
 ```
 
 	语句解释：
-	- 若Activity_B没有设置返回值，则data的值为null 。
+	-  若Activity_B没有设置返回值，则data的值为null 。
 
 <br>　　范例4：Activity_B。
 ``` android
-protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    this.setContentView(R.layout.emp_list);
+public class Activity_B extends Activity {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        this.setContentView(R.layout.activity_b);
 	
-    Intent intent = this.getIntent();
-    System.out.println(intent.getStringExtra("name"));
+        Intent intent = this.getIntent();
+        System.out.println(intent.getStringExtra("name"));
 	
-    Intent data = new Intent();
-    data.putExtra("message", "haha");
-    this.setResult(Activity.RESULT_OK, data);
-    this.finish();
+        Intent data = new Intent();
+        data.putExtra("message", "haha");
+        this.setResult(Activity.RESULT_OK, data);
+        this.finish();
+    }
 }
 ```
 
 	语句解释：
-	- setResult方法应该在finish方法之前调用，否则无法将返回值返回给Activity_A 。
-	- 本范例中的data对象仅用于数据传递，在其构造方法中指定参数是无效的。
+	-  setResult方法应该在finish方法之前调用，否则无法将返回值返回给Activity_A 。
+	-  本范例中的data对象仅用于数据传递，在其构造方法中指定参数是无效的。
 
 　　提示：当ActivityB向ActivityA返回值时：
 	-  首先执行Activity B的finish方法。
@@ -227,8 +251,8 @@ this.startActivity(intent);
 ```
 
 	语句解释：
-	- 指定目标应用的包名和Activity的名称，就可以在当前项目中完成跳转。
-	- 但是，目标Activity必须是目标应用程序的入口Activity ，否则通常会导致无法跳转。
+	-  指定目标应用的包名和Activity的名称，就可以在当前项目中完成跳转。
+	-  但是，目标Activity必须是目标应用程序的入口Activity ，否则通常会导致无法跳转。
 
 ## 通过Application传递参数 ##
 　　在Android中Activity之间进行数据传递时，有三种常见的方式：
@@ -385,7 +409,7 @@ this.startActivity(intent);
 
 　　注：在Activity被销毁之前不能保证`onSaveInstanceState()`方法被调用，因为有些场景中不需要保存状态（如用户使用`“回退”`键退出Activity时，因为用户明确的要关闭Activity就不需要保存状态了）。如果系统需要调用`onSaveInstanceState()`方法，则会在`onStop()`方法和`onPause()`方法之前调用，`onRestoreInstanceState()`方法会在`onResume()`之前被调用。
 
-　　但是，即使你什么也没做并且也没有实现`onSaveInstanceState()`方法，通过Activity类默认的`onSaveInstanceState()`方法也能恢复Activity的某些状态。特别是布局中的每个View默认的实现都会调用相应的`onSaveInstanceState()`方法，它允许每个View提供它自己的应该被保存的信息。在Android框架中几乎每个`Widget`都对这个方法做了适当的实现，如当Activity被重建时，UI的任何可见属性的改变都被自动的保存和恢复。例如，EditText控件保存用户输入的任何文本、CheckBox控件保存是否被Check。需要你做的工作只是给每个要保存状态的可视控件提供一个唯一的ID（使用android:id属性）即可。如果可视控件没有唯一ID，那么系统就不保存它们的状态。
+　　但是，即使你什么也没做并且也没有实现`onSaveInstanceState()`方法，通过Activity类默认的`onSaveInstanceState()`方法也能恢复Activity的某些状态。特别是布局中的每个View默认的实现都会调用相应的`onSaveInstanceState()`方法，它允许每个View提供它自己的应该被保存的信息。在Android框架中几乎每个`Widget`都对这个方法做了适当的实现，如当Activity被重建时，UI的任何可见属性的改变都被自动的保存和恢复。例如，EditText控件保存用户输入的任何文本、CheckBox控件保存是否被Check。需要你做的工作只是给每个要保存状态的可视控件提供一个唯一的ID（使用`android:id`属性）即可。如果可视控件没有唯一ID，那么系统就不保存它们的状态。
 　　尽管`onSaveInstanceState()`的默认实现保存了界面中有用的信息，但是你仍然可能需要重写这个方法来保存额外的信息，如，你可能需要在Activity生存期间改变的时候保存其内成员值（在UI控件中相关的值可能被恢复，但默认情况下，拥有这些UI值的成员变量不会被恢复）。
 　　因为`onSaveInstanceState()`方法的默认实现是帮助保存UI的状态，如果为保存额外的状态信息而重写这个方法，你应该在做任何工作之前首先调用其父类的`onSaveInstanceState()`方法实现。同样如果要重写`onRestoreInstanceState()`方法，你也应该首先调用这个方法的父类实现，以便默认的实现能够恢复View状态。
 
@@ -607,3 +631,492 @@ public class MyActivity extends FragmentActivity{
 	-  本范例添加了一个Fragment，并调用addToBackStack()方法来标识事务对象需要被加入事务栈。
 	-  当BACK键被按下时Fragment就会被从Activity中移除，并将该事务从栈中移除。当事务栈为空时，Activity将不会再拦截BACK键事件。
 	-  如果添加多个变化到事务(例如add()或remove())并调用addToBackStack(),然后在你调用commit()之前的所有应用的变化会被作为一个单个事务添加到后台堆栈, BACK按键会将它们一起回退。
+
+<br>　　范例7：替换Fragment。
+``` android
+public class MyActivity extends FragmentActivity{
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        FragmentManager mgr = getSupportFragmentManager();
+        // 第一个fragment。
+        MyFragment f = new MyFragment("AA");
+        FragmentTransaction trans = mgr.beginTransaction();
+        trans.add(R.id.layout, f);
+        trans.addToBackStack(null);
+        trans.commit();
+        // 第二个fragment。		
+        MyFragment f2 = new MyFragment("BB");
+        FragmentTransaction trans2 = mgr.beginTransaction();
+        trans2.add(R.id.layout, f2);
+        trans2.addToBackStack(null);
+        trans2.commit();
+        // 第三个fragment。
+        MyFragment f3 = new MyFragment("CC");
+        FragmentTransaction trans3 = mgr.beginTransaction();
+        trans3.replace(R.id.layout, f3);
+        trans3.addToBackStack(null);
+        trans3.commit();
+    }
+}
+```
+	语句解释：
+	-  如果添加多个Fragment到同一个容器, 那么添加的顺序决定了它们在view hierarchy中显示的顺序。 因此f会被放到f2的前面显示。
+	-  本范例使用replace方法会将f给删除，并将f3添加到R.id.layout的末尾位置。
+	-  本范例的三个事务都被加入到事务栈中，当第一次按下BACK键时，f3会被移除，f会被还原。 注意：f会被还原到f3的位置，而不是f2的前面。也就是说，对于addToBackStack()方法，它只会记录fragment的操作，而不会记录fragment当时的位置。当执行还原的时候，会将fragment放到containerView的末尾。
+
+<br>　　范例8：删除Fragment。
+``` android
+public class MyActivity extends FragmentActivity{
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        FragmentManager mgr = getSupportFragmentManager();
+
+        // ...  此处省略了范例7中的代码。
+
+        FragmentTransaction trans4 = mgr.beginTransaction();
+        trans4.remove(f);
+        trans4.addToBackStack(null);
+        trans4.commit();
+    }
+}
+```
+	语句解释：
+	-  当按下BACK键时，f会被还原。即f会被还原到f3的后面，而不是f2的前面。
+	-  对于每一个Fragment事务, 你可以应用一个事务动画,通过在提交事务之前调用setTransition()实现。
+
+<br>**为Activity创建事件回调方法**
+　　在一些情况下, 你可能需要一个Fragment与Activity分享事件。 一个好的方法是在Fragment中定义一个回调的`interface`, 并要求宿主Activity实现它。当Activity通过interface接收到一个回调, 必要时它可以和在layout中的其他Fragment分享信息。
+　　例如，如果一个新的应用在Activity中有2个Fragment，一个用来显示文章列表(framgent A)，另一个显示文章内容(fragment B)。 Framgent A必须告诉宿主Activity何时一个list item被选中，然后宿主Activity就可以转告诉FragmentB去显示文章。
+　　在这个例子中, OnArticleSelectedListener 接口在Fragment A中声明：
+
+<br>　　范例9：定义回调接口。
+``` android
+public class FragmentA extends ListFragment {
+    // Container Activity must implement this interface
+    public interface OnArticleSelectedListener {
+        public void onArticleSelected(int position);
+    }
+}
+```
+　　然后FragmentA的宿主Activity实现`OnArticleSelectedListener`接口，并覆写抽象方法。当`onArticleSelected()`被调用时，宿主Activity就可以通知FragmentB，并将FragmentA传来的数据转给FragmentB。
+　　为了确保宿主Activity实现这个接口, 当FragmentA的`onAttach()`方法被调用 (此方法是生命周期方法之一，后述) 时，可以将作为参数传入`onAttach()`的Activity做类型转换来实例化一个OnArticleSelectedListener实例。
+``` android
+public class FragmentA extends ListFragment {
+    // Container Activity must implement this interface
+    public interface OnArticleSelectedListener {
+        public void onArticleSelected(int position);
+    }
+
+    OnArticleSelectedListener mListener;
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (OnArticleSelectedListener) activity;
+         } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnArticleSelectedListener");
+        }
+    }
+}
+```
+　　若宿主Activity没有实现接口, 则Fragment就会抛出`ClassCastException`异常。
+　　正常情形下，mListener成员会保持一个到Activity的OnArticleSelectedListener实现的引用，因此FragmentA可以通过调用在OnArticleSelectedListener接口中定义的方法分享事件给宿主Activity。
+
+　　例如, 如果Fragment A是一个`ListFragment`的子类, 每次用户点击一个列表项, 系统调用在Fragment中的onListItemClick(),然后后者调用 onArticleSelected() 来分配事件给Activity。
+``` android
+public class FragmentA extends ListFragment {
+    // Container Activity must implement this interface
+    public interface OnArticleSelectedListener {
+        public void onArticleSelected(int position);
+    }
+
+    OnArticleSelectedListener mListener;
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (OnArticleSelectedListener) activity;
+         } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnArticleSelectedListener");
+        }
+    }
+
+    public void onListItemClick(ListView l,View v,int position,long id){
+        // Send the event and Uri to the host activity
+        mListener.onArticleSelected(position);
+    }
+}
+```
+
+## 生命周期 ##
+　　Fragment有自己的生命周期，并且生命周期直接被其所属的宿主Activity的生命周期影响。当Activity被暂停，那么在其中的所有Fragment也被暂停；当Activity被销毁，所有隶属于它的Fragment也被销毁。
+
+　　管理Fragment的生命周期，大多数地方和管理Activity生命周期很像，和Activity一样, Fragment可以处于3种状态：
+
+	-  Resumed：在运行中的Activity中Fragment可见。
+	-  Paused： 另一个Activity处于前台并拥有焦点, 但是当前Fragment所在的Activity仍然可见(前台activity局部透明或者没有覆盖整个屏幕)。
+	-  Stopped：要么是宿主activity已经被停止, 要么是Fragment从Activity被移除但被添加到后台堆栈中。 停止状态的Fragment仍然活着(所有状态和成员信息被系统保持着)。 然而,它对用户不再可见,并且如果Activity被干掉,它也会被干掉。
+
+　　Fragment生命周期各个阶段回调的方法如下图(左)，Fragment和Activity的生命周期方法对应关系图(右)：
+　　　　　　　![](/img/android/android_2_4.png)　　　　　![](/img/android/android_2_5.png)
+　　和Activity一样, 你可以使用Bundle保持Fragment的状态，万一Activity的进程被干掉，并且当Activity被重新创建的时候，你需要恢复Fragment的状态时就可以用到。
+　　在Fragment的`onSaveInstanceState()`期间保存状态，并可以在`onCreate()`，`onCreateView()`或`onActivityCreated()`期间恢复它。
+
+
+　　生命周期方面Activity和Fragment之间最重要的区别是各自如何在它的后台堆栈中储存。在默认情况下，Activity在停止后，它会被放到一个由系统管理的用于保存Activity的后台堆栈(因此用户可以使用`BACK`按键导航回退到它)。然而，仅当你在一个事务期间编辑Fragment时,显式调用`addToBackStack()`请求保存实例时，Fragment才被放到一个由宿主Activity管理的后台堆栈。
+　　管理Fragment的生命周期和管理Activity生命周期非常类似。
+　　因此，"Activity的生米周期"中的相同实践也同样适用于Fragment。你需要理解的是,  Activity的生命如何影响Fragment的生命。
+
+<br>**各声明周期方法的调用**
+　　Fragment所生存的Activity的生命周期，直接影响Fragment的生命周期，每一个Activity的生命周期的回调行为都会引起每一个fragment中类似的回调。
+　　例如，当Activity接收到onPause()时，Activity中的每一个Fragment都会接收到onPause()。
+　　Fragment 有一些额外的生命周期回调方法, 那些是处理与Activity的唯一的交互,为了执行。
+
+<br>　　**onAttach()**
+　　当Fragment通过事务对象被绑定到Activity时被调用(宿主Activity的引用会被传入)。在onAttach()方法被调用后，其宿主Activity的onAttachFragment()方法将被调用。
+
+<br>　　**onCreate()**
+　　通常情况下，在宿主Activity的onAttachFragment()方法将被调用后，会调用Fragment的onCreate方法。
+
+<br>　　**onCreateView()**
+　　不论Fragment的onCreate是否调用，都将继续调用onCreateView()方法，在此方法中需要返回Fragment内封装的view的根节点。
+　　若onCreateView()方法返回值不为null，则还会导致Fragment的onViewCreated()方法被调用。
+
+<br>　　**onActivityCreated()**
+　　若Activity的onCreate()方法已经返回，则此方法将会在onCreateView()方法被调用后而总被调用。
+
+<br>　　**onViewStateRestored()**
+　　当Fragment所有保存的状态已经还原完成时，调用此方法。
+
+<br>　　**onStart()、onResume()、onPause()、onStop()**
+　　这四个方法的调用情形与Activity一样。
+
+<br>　　**onDestroyView()**
+　　当和Fragment关联的view hierarchy被移除之前会调用此方法，此方法返回后就会执行移除操作。
+
+<br>　　**onDestroy()**
+　　当Fragment被销毁时被调用。
+
+<br>　　**onDetach()**
+　　当Fragment从Activity解除关联时被调用。
+
+## 销毁重建 ##
+　　Fragment的生命周期受其宿主Activity的影响。当宿主Activity因为某种原因被摧毁(如手机横竖屏切换、内存不足导致后台Activity被回收等)，但用户再次导航回来时，接着宿主Activity就会执行重建操作，并将自身还原到摧毁之前状态。 在其内部存在的各个Fragment自然也是如此，也会跟随着它执行重建。
+　　Activity的重建，简单的说就是重新实例化一个对象，并将之前被摧毁的对象的各种状态设置到新的对象上。 关于重建这一点Fragment和其宿主Activity的操作是一样的。
+　　此时就存在一个问题，重建的操作是操作系统来完成的，而重建又需要创建新的对象，那么操作系统是如何实例化我们自己定义的Fragment类的呢?
+　　答案就是：通过`反射机制`，并调用无参构造方法。
+　　由于通常我们创建自己的类时会依据需要自定义若干个构造方法，而操作系统在重建时只会调用无参的构造器(因为有参的构造器所需要的参数，操作系统是不可以自主的随便提供的，否则程序就乱套了。)
+　　因此我们要保证自定义的Fragment类必须要有一个无参的构造方法，以便系统对其重建时调用。
+<br>　　那么是系统是如何创建Fragment对象的呢？ 找到Fragment类看到如下代码：
+　　　　　![Fragment类代码片段](/img/android/android_2_6.png)
+　　通过查看源码（此处省略具体步骤）得知，当Activity被重建时会同时重建其内的每一个Fragment对象。因此必须要为Fragment提供一个无参的构造方法。其实Activity也必须要定义一个无参的构造方法，只是由于Activity的实例通常由操作系统来创建，所以我们以前并没有涉及到此问题。
+
+<br>**实例化的方法**
+　　现在我们又遇到一个问题： 很多时候我们需要在实例化Fragment的同时为其传递一些参数，而系统在重建Fragment时只会调用无参的构造方法，也就跳过传参的这一步骤，这必然会导致程序出问题。
+　　这该怎么解决呢?  
+　　做为一个应用程序员，首先可以确定是我们是不会去改变Fragment类的，因此解决的方法就是，我们也通过Fragment的无参构造方法来实例化Fragment。 然后再想其它办法将参数设置到Fragment中。
+　　为了传递参数给Fragment，我们必须要找一个对系统和我们来说都可以执行方法。比如我们虽然可以通过getter、setter方法，在Fragment对象创建完毕后，将参数设置到Fragment中，但是系统在重建Fragment的时候，却不可能去调用getter、setter方法，因此通过getter、setter设置参数的方法是行不通的。
+<br>　　这个问题Fragment已经替我们解决了，Fragment类有一个属性名为`mArguments`，它是Bundle类型的。
+``` android
+// Construction arguments;
+Bundle mArguments;
+```
+　　当我们构造完Fragment对象后，可以将需要传递给Fragment的参数放到这个`Bundle`对象中。这样即便是随后Fragment对象被摧毁了也没关系，因为系统会将Fragment的`mArguments`属性的值保存起来，当重建的时候也会将mArguments属性的值给还原。
+<br>　　因此对于Fragment的初始化操作，我们通常的写法是这样的：
+``` android
+public class MainActivity extends FragmentActivity {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
+        trans.add(R.id.rootView, MyFragment.getInstance("Hi World"));
+        trans.commit();
+    }
+}
+```
+	语句解释：
+	-  当按下BACK键时，f会被还原。即f会被还原到f3的后面，而不是f2的前面。
+
+<br>　　范例2：MyFragment。
+``` android
+public class MyFragment extends Fragment {
+    private String property;
+    public static MyFragment getInstance(String property) {
+        MyFragment f = new MyFragment();
+        Bundle data = new Bundle();
+        data.putString("property", property);
+        f.setArguments(data);
+        return f;
+    }
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        property = getArguments().getString("property");
+    }
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        TextView text = new TextView(inflater.getContext());
+        text.setText(property);
+        return text;
+    }
+}
+```
+	语句解释：
+	-  前面说了Activity重建的时候是通过反射机制来实例化每个Fragment的。因此我们自定义的Fragment类必须是public修饰的。并且若Fragment是某个类的内部类，则其还必须是static的。
+
+<br>**重写方法**
+　　让Fragment重写`onSaveInstanceState(Bundle outState)`方法，并将需要保存的数据存入Bundle对象中即可。该方法将在Fragment的onPause()方法之前被调用。
+　　在onCreate方法中有一个Bundle类型的参数，若之前保存了数据，则该参数将不为null。
+　　在屏幕进行横竖屏切换保存Activity状态的时候，需要注意的是：
+　　在FragmentActivity或`SDK3.0`以后的Activity类中的`onSaveInstanceState(Bundle outState)`会同时保存`FragmentManager`管理的后台栈中的数据。也就是说，在还原数据的时候也会将之前Activity的栈中的数据还原到新`FragmentActivity`中。
+
+　　问题：fragment在viewpager中被切换走， stop方法会被调用吗？
+
+<br>
+**本节参考阅读：**
+- [Fragments (Android官方文档中文版)](http://www.eoeandroid.com/thread-71642-1-1.html)
+- [Android之Fragment（官网资料翻译）](http://blog.csdn.net/aomandeshangxiao/article/details/7671533)
+
+<br>
+# 第六节 Task #
+　　应用程序通常包含了多个Activity，每个Activity都会为用户提供不同功能，并且能够启动其他的Activity (甚至能够启动设备上其他应用程序中存在的Activity)，比如通过Intent来打开浏览器、短信等Activity。
+
+## 基础知识 ##
+　　在Android中，使用Task来组织应用程序的所有Activity。Task中的Activity被保存在一个回退栈(`back stack`)中。Back Stack中的各个Activity按照栈的特点`“后来居上、后进先出”`依次被被安排在栈中。
+　　默认情况下，一个应用程序中的所有Activity处于同一个Task中。
+　　当一个Activity被创建时，就会被压入到Task的栈顶，当其内销毁时，就会从栈顶移除。 应用程序启动的时候，Android系统会将程序的主Activity压入Task栈底。在用户点击了键盘上的`“Back”`按钮或手动调用finish()方法等情况导致Activity被销毁时，该Activity才会被从栈顶弹出。
+　　即通常一个应用程序对应一个Task ，在操作系统中同一时间上会存在多个Task。
+
+<br>　　范例1：图示。
+　　说明：在本图中，显示了如何把Task中的每个新的Activity添加到back stack中。在用户按下回退按钮时，当前Activity被销毁，并且前一个Activity被resume：
+　　　　　　　　![Task](/img/android/android_2_7.png)
+　　第四个图形描述的是Activity3从Task中被弹出。
+　　如果用户继续按回退按钮，那么堆栈中的每个Activity会被依次弹出，前一个Activity会被显示，直到用户返回主屏（或者返回到Task开始时运行的那个Activity）。当所有的Activity从堆栈中被删除时，这个Task就不再存在了。
+
+<br>　　范例2：前台与后台。
+　　Task有前台和后台之分，当某个应用程序被用户切换到前台时，该应用程序所对应的Task也将会被移动到前台。
+　　　　　　　　　　　　　　　　　　![前台与后台Task](/img/android/android_2_8.png)
+　　上图描述的内容为：TaskB处于前台、TaskA处于后台。
+
+	-  前台Task：当前正在前台执行的应用程序(正在和用户交互) ,其所拥有的Task也在前台。
+	-  后台Task：当前不再前台执行的应用程序。
+　　提示：虽然后台可以存在多个Task，但是当系统内存不足时，后台Task中的Activity所占据的内存可能被回收。 在系统中同一时间可能存在多个后台Task ，但只能有一个前台Task。
+
+<br>**多任务**
+　　一个Task能够返回到前台，以便用户能够取回他们离开时的状态。例如，假设当前Task A在它的堆栈中有三个Activity。用户按下主页(Home)按钮，然后从应用程序启动器中启动一个的新的应用。当这个新的应用在主屏中显示时，任务A就会被转移到后台。在新的应用启动时，系统会给这个应用启动一个带有自己的Activity堆栈的任务B。跟这个任务B的应用交互完毕后，用户再次返回到主页(Home)，并且选择了最初启动任务A的应用。现在，任务A会返回到前台---它的堆栈中所有的三个Activity是完整的，并且在堆栈顶部的Activity被恢复。在这个时点，用户也能够通过主页按钮和选择启动任务B的应用的图标返回到任务B（或者通过触屏和控制主页按钮来显示最近的任务，并选择其中之一）。这就是基于Android的多任务的例子。
+　　注意：后台中可以同时拥有多个任务，但是如果用户同时运行了很多后台任务，系统为了回收内存可能开始销毁一些后台的Activity，从而导致Activity的状态丢失。
+
+　　由于回退堆栈中的Activity不曾被重新排列，因此如果你的应用程序允许用户从多个其他Activity中启动一个的Activity，那么每次都会创建一个新的Activity实例，并且会被压入到栈顶（而不是把之前的Activity实例带到堆栈的顶端）。这样在你的应用程序中一个Activity就可能被实例化多次（甚至来自不同任务）。如图所示：
+　　　　　　　　　　　　　　　　　　　　　　　　![](/img/android/android_2_9.png)
+　　这样，如果用户使用回退按钮向后导航，那么Activity的每个实例就按照被打开顺序依次显示（每一个都带有自己的UI状态）。但是如果你不想让一个Activity被实例化多次，你可以编辑这个行为，如何编辑会在稍后的会讨论。
+
+<br>**Activity和task的默认行为的总结：**
+
+	1. 当Activity A启动Activity B时，ActivityA被stop，但是系统保留了它的状态（如滚动条的位置和录入表单的文本）。如果用户在Activity B中按回退按钮，Activity A会使用被保存的状态来进行恢复。
+	2. 当用户通过按主页(Home)按钮离开一个任务时，当前Task的栈顶Activity会被stop，并且Task会被放入后台，但系统会保留Task中每个Activity的状态。如果用户随后通过选择启动图标来恢复这个任务，那么任务会来到前台，并且恢复了堆栈顶部的Activity。
+	3. 如果用户按下回退按钮，当前的Activity会从堆栈中被弹出并且被销毁。堆栈中的前一个Activity会被恢复。Activity被销毁时，系统不会保留Activity的状态。
+	4. 默认情况下，Activity能够被实例化多次，甚至来自其他任务。
+
+<br>**保存Activity的状态：**
+　　在Activity被stop时保留Activity的状态是系统的默认行为。这样，当用户返回到之前的Activity时，用户界面会显示它们离开时的样子。但是在Activity被销毁和重建的场景中应该主动的使用回调方法保留Activity的状态。
+　　当系统stop一个Activity时（如一个新的Activity启动或这个任务被转移到后台），如果需要回收系统内存，那么系统可能完全的销毁这个Activity。当这种情况发生时，有关Activity状态的信息就会丢失。即使这种情况发生了，系统依然知道这个Activity在回退堆栈中位置，但是在Activity被带到堆栈的顶部时，系统必须重新创建它（而不是恢复它）。为了避免丢失用户的工作，你应该在Activity中通过实现onSaveInstanceState()回调方法主动的保留状态信息。
+
+## 管理Task ##
+　　Android通过把所有的已启动的Activity依次放到同一个后进先出的堆栈里来进行管理，对于大多数应用程序来说这种方法能够很好的工作，并且你不必担心Activity是如何跟任务关联的或者他们是如何存在回退堆栈中的。但是，你可能决定要打破这种通常的行为。或许你想要应用程序中的一个Activity在启动的时候开启一个新的Task（而不是放在当前的Task中）；或者当你启动一个Activity时，你想使用之前既存的实例（而不是在回退堆栈的顶部创建一个新的实例）；或者你想在用户离开这个Task时清除回退堆栈中根Activity以外的所有Activity。
+　　你能够使用`<Activity>`清单元素中的属性和传递给startActivity()方法的Intent中的标识来做这些事情，甚至更多。
+
+<br>**Activity元素的主要属性包括：**
+- taskAffinity
+- launchMode
+- allowTaskReparenting
+- clearTaskOnLaunch
+- alwaysRetainTaskState
+- finishOnTaskLaunch
+
+<br>**Intent的主要标识包括：**
+- FLAG_ACTIVITY_NEW_TASK
+- FLAG_ACTIVITY_CLEAR_TOP
+- FLAG_ACTIVITY_SINGLE_TOP
+
+　　在后面的章节中，你会看到怎样使用这些清单属性和Intent标识来定义Activity是如何跟Task关联的以及在回退堆栈中的行为。
+　　警告：大多数应用程序都不应该中断Activity和task的默认行为。如果你决定必须编辑Activity的默认行为，就要谨慎使用，并且确保启动期间和使用回退按钮从其他的Activity和任务中返回时这个Activity的可用性。同时确保导航的结果与用户的预期行为一致。
+
+<br>**设置启动模式：**
+　　启动模式允许你定义一个新的Activity实例如何跟当前的任务进行关联。使用以下两种方法可以定义启动模式：
+
+	1、 使用清单文件：当在清单文件中声明一个Activity时，你能够指定这个Activity在启动时应该如何跟任务进行关联。
+	2、 使用Intent标识：在调用startActivity方法时，你能够在Intent中包含一个标识(flag)，用来声明这个新的Activity应该如何跟当前的任务进行关联。
+
+　　因此，如果Activity A启动Activity B，Activity B能够在它的清单文件中定义它应该怎样跟当前的任务进行关联，并且Activity A也能够请求Activity B应该怎样跟当前的任务进行关联。如果这两个地方都定义了Activity B应该怎样跟当前任务关联，那么Activity A的请求（在Intent中定义的）的优先级要高于Activity B的请求（在清单文件中定义的）。
+　　注意：某些在清单文件中有效的启动模式对Intent标识是无效的，同样某些针对Intent标识有效的启动模式也不能在清单文件中定义。
+
+### 使用清单文件 ###
+　　在清单文件中声明一个Activity时，你能够使用<activity>元素的`launchMode`属性来指定这个Activity应该怎样跟一个任务关联。该属性会指定一个有关这个Activity应该如何被加载到一个任务中的指令。有四种不同的启动模式能够跟这个属性进行匹配：
+
+<br>　　**standard模式**
+
+	默认模式。
+	默认情况下，系统会在当前Task中启动一个新的Activity实例。使用此模式的Activity可以被实例化多次，每个实例可以属于不同的任务，并且一个任务中也可以有多个实例。
+
+<br>　　**singTop模式**
+
+	如果打算启动的Activity的实例在当前任务的顶部已经存在，那么系统就会通过调用onNewIntent方法把这个Intent传递给这个实例，而不是创建一个新的实例。这个Activity可以被实例化多次，每个实例属于不同的任务，并且一个任务可以有多个实例（只有回退堆栈顶部的Activity不是这个既存的Activity的实例时才会有多个实例存在）。
+<br>　　例如，假设一个Task的回退堆栈由跟Activity A和Activity B、Activity C以及在顶部的Activity D组成。一个针对D类型Activity的Intent访问，如果D有默认的`standard`启动模式，那么这个类就会有一个新的实例被启动，并且此时堆栈变成A-B-C-D-D的组合。但是如果D的启动模式是`singleTop`，那么既存的D的实例因为它在堆栈的顶部，所以它会接收通过onNewIntent()方法传递的Intent，堆栈仍然保持着A-B-C-D的组合。但是，如果针对访问B类型Activity的Intent，那么即使B类型Activity的启动模式是“singleTop”，也会有一个新的B的实例被添加到堆栈中。
+　　注意：当一个新的Activity实例被创建时，用户能够按回退按钮返回到前一个Activity。但是当一个既存的Activity实例处理了一个新的Intent，那么用户不能按回退按钮返回到接受新的Intent访问之前的Activity的状态。
+
+<br>　　在讲解`singleTask`启动模式之前，先说明一下什么是亲缘关系。
+<br>　　**亲缘关系(affinities)：**
+　　每个Task都有一个`affinity`属性，它相当于Task的唯一标识。如果某个Activity隶属于某个Task，那么我们就说该Activity与该Task具有亲缘关系，处于相同Task的Activity间也具有亲缘关系。默认情况下，来自同一个应用程序的所有的Activity具有相同的亲缘关系。即默认在同一个应用程序中的所有Activity都应该属于同一个Task。
+　　在`AndroidManifest.xml`文件中的`<activity>`标签有一个`taskAffinity`的属性，用来指出当前Activity的亲缘关系，取值是一个字符串。 即告诉系统该Activity希望被放到affinity属性的值与其taskAffinity属性相同的Task中。如果没有为此属性赋值，则当前Activity的亲缘关系就是`<application>`标签的taskAffinity属性的值，若`<application>`标签也没有指定taskAffinity属性的值，则就使用默认包名来作为整个程序的亲缘关系。
+
+　　那么亲缘关系在什么情况下会被用到呢?
+
+<br>　　**singleTask模式**
+　　当某个Activity启动了一个启动模式为singleTask的Activity时，系统会执行如下操作：
+
+    -  在整个操作系统中当前正在运行的所有Task中进行查找，查找affinity属性值等于启动模式为singleTask的Activity的taskAffinity属性值的任务是否存在。
+    -  若不存在，则系统会开启一个新的Task，并将该Activity作为根元素。
+    -  若存在，则系统会查看该Task中是否已经存在了该Activity。
+       -  若存在，则将该Activity上的所有Activity都给finish掉。并调用该Activity的onNewIntent()方法，将新的Intent传递过去。
+       -  若不存在，则在该Task顶部启动该Activity。
+　　提示：定义在不同的应用程序中的Activity能够共享一个亲缘关系，或者定义在同一个应用程序的Activity能够使用不同的亲缘关系。
+
+<br>　　范例1：查看所有Task。
+``` android
+adb shell dumpsys activity
+```
+　　使用adb命令可以查看当前操作系统中存在的所有Task。
+``` android
+Running activities (most recent first):
+   TaskRecord{44fbd658 #3 A com.example.androidtest}
+     Run #1: HistoryRecord{45032428 com.example.androidtest/.MainActivity}
+   TaskRecord{4502d408 #2 A com.android.launcher}
+     Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
+```
+　　此时系统中有两个Task，若在MainActivity中启动Activity1，在Activity1中启动Activity2，则Task中的情况如下：
+``` android
+Running activities (most recent first):
+  TaskRecord{4500ff48 #4 A com.example.androidtest}
+    Run #3: HistoryRecord{450ea0a8 com.example.androidtest/.Activity2}
+    Run #2: HistoryRecord{450268f8 com.example.androidtest/.Activity1}
+    Run #1: HistoryRecord{44eb1ea8 com.example.androidtest/.MainActivity}
+  TaskRecord{4502d408 #2 A com.android.launcher}
+    Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
+```
+　　若修改Activity1的启动模式为singleTask：
+``` android
+<activity android:name=".Activity1" android:launchMode="singleTask" >
+```
+　　则在MainAcitivity中启动它后，栈中的情况如下：
+``` android
+Running activities (most recent first):
+   TaskRecord{45008f00 #6 A com.example.androidtest}
+     Run #2: HistoryRecord{45040e18 com.example.androidtest/.Activity1}
+     Run #1: HistoryRecord{44f8eed0 com.example.androidtest/.MainActivity}
+   TaskRecord{4502d408 #2 A com.android.launcher}
+     Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
+```
+　　为什么没有新开启一个Task呢?
+
+<br>　　范例2：开启新Task。
+　　首先为Activity设置taskAffinity属性的值。
+``` android
+<activity android:name=".Activity1" android:launchMode="singleTask"
+    android:taskAffinity="ni.die" >
+```
+　　然后在MainAcitivity中启动它，此时系统中的Task情况如下：
+``` android
+Running activities (most recent first):
+   TaskRecord{44f1e948 #8 A ni.die}
+     Run #2: HistoryRecord{45028690 com.example.androidtest/.Activity1}
+   TaskRecord{4500b308 #7 A com.example.androidtest}
+     Run #1: HistoryRecord{44eb1ea8 com.example.androidtest/.MainActivity}
+   TaskRecord{4502d408 #2 A com.android.launcher}
+     Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
+```
+　　原因在于，范例1中Activity的taskAffinity属性的值没有设置，因此最终系统将它默认为包名了，这和MainAcitivity所处的Task的affinity属性的值一致，因此并没有新开Task。
+
+　　如果你启动了指定了singleTask启动模式的Activity，然后如果那个Activity的实例存在于一个后台任务中，那么整个任务就会被带到前台。在这个时点，在这个堆栈的顶部，回退堆栈包含了从这个任务中提取的所有的Activity。下图说明这种场景类型：
+　　　　　　　　　　　　　![](/img/android/android_2_10.png)
+　　本图显示了一个带有`singleTask`启动模式的Activity是怎样被添加到回退堆栈中，如果这个Activity是一个已经存在的拥有自己回退堆栈的后台任务的一部分，那么整个回退堆栈也会被带到前面来，放到当前任务堆栈的顶部。
+
+　　注意，当启动一个即存的具有singleTask模式的Activity时，该Activity所在的Task将会随着该Activity一起被调入到前台中。
+
+<br>　　**singleInstance模式**
+　　使用此启动模式的Activity总是单独的并且是它的Task的唯一成员，即若在该Activity中又启动了另外一个Activity，则新启动的Activity将不会和该Activity处于同一个Task中。
+　　例如，Android浏览器应用程序通过在<activity>元素中指定singleTask启动模式来声明这个浏览器Activity应该总是在它自己的任务中打开。这就意味着如果你的应用程序发布了一个打开Android浏览器的Intent，那么这个浏览器的Activity不会被放在与你的应用一样的任务中，相反，会启动一个新的浏览器任务，如果这个浏览器已经在后台运行，那么这个任务会被带到前台，以便处理新的Intent。
+
+### 使用Intent ###
+　　启动Activity时，你能够通过在传递给startActivity()方法的Intent中包含标识来修改Activity的默认启动模式，使用以下标识能够修改Activity的默认行为：
+
+<br>　　FLAG_ACTIVITY_NEW_TASK：
+
+	在一个新的任务中启动Activity，如果这个正在启动的Activity是一个已经运行的任务，那么这个任务连同最后被保存的状态一起被提取到前台，并且接受onNewIntent方法中的新的Intent。
+	这个过程与launchMode属性值等于singleTask时具有同样的行为。
+<br>　　FLAG_ACTIVITY_SINGLE_TOP:
+
+	如果正在启动的Activity是当前的Activity（在前台栈的顶部），那么这个既存的实例会接受一个对onNewIntent方法的调用，而不是创建一个新的Activity实例。
+	这个过程与launchMode属性值等于singleTop时具有同样的行为。
+
+<br>　　范例1：设置Intent的Flag。
+　　首先为Activity设置taskAffinity属性的值。
+``` android
+Intent intent = new Intent(this,SecondActivity.class);
+intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+this.startActivity(intent);
+```
+	语句解释：
+	-  在ActivityA启动ActivityB时 ，既可以在A中指定B的启动模式，也可以在B的<activity>标签中指定。若同时指定，则A中指定的启动模式的优先级更高。
+	-  在Intent中两种常见模式：
+	   -  FLAG_ACTIVITY_NEW_TASK   作用和singleTask相同。 
+	   -  FLAG_ACTIVITY_SINGLE_TOP 作用和singleTop相同。 
+	-  在非Activity中启动Activity时，必须为Intent设置FLAG_ACTIVITY_NEW_TASK 。如在“服务”中。
+　　注意：Intent类包含有很多有用的flag，这些flag的具体作用将在后面章节中专门介绍。
+
+<br>**清除回退堆栈：**
+　　如果用户长时间的离开一个任务，那么系统会清除这个任务根Activity以外的所有Activity。当用户再次返回这个任务时，只有根Activity被存储。这样的系统行为是因为经过长时间以后，用户在返回这个任务之前可能已经放弃它们的作业，而开始了某些新的任务。 你能够使用一些Activity属性来修改这种行为：
+
+　　alwaysRetainTaskState
+
+	如果这个属性在一个任务的根Activity中被设置为“true”，那么像上面描述的那样的默认行为就不会发生。即使是长时间之后，这个任务也会在它的堆栈中保留所有的Activity。
+　　clearTaskOnLaunch
+
+	如果这个属性在一个任务的根Activity中被设置为“true”，那么无论用户什么时候离开和返回这个任务，堆栈都会被清除到根Activity的位置。换句话说，它与alwaysRetainTaskState属性相反，用户总是返回到任务的初始状态，即使只离开这个任务一会儿。
+　　finishOnTaskLaunch
+
+	这个属性有点像clearTaskOnLaunch属性，但是它只操作单个Activity，而不是整个任务。它也能导致任何Activity离开后就会被finish掉，不包括根Activity。当这个属性设置为“true”时，这个Activity只保持着这个任务中当前会话那部分。如果用户离开了当前Task，然后再返回这个任务，那么它就不再存在了。
+
+<br>**启动任务：**
+　　你能够通过用`android.intent.action.MAIN`和`android.intent.category.LAUNCHER`分别给Intent过滤器指定行为和类别，从而创建一个Activity作为一个任务的入口。例如：
+``` android
+<activity
+    android:name="org.cxy.tomcat.MainActivity"
+    android:label="@string/app_name" >
+	<intent-filter>
+	       <action android:name="android.intent.action.MAIN" />
+	       <category android:name="android.intent.category.LAUNCHER" />
+	</intent-filter>
+</activity>
+```
+　　这种类型的Intent会让对应的Activity的图标和标签显示在应用程序启动器中，给用户提供一种启动这个Activity和返回它创建的这个任务（在它被启动的后的任何时候）的方法。
+<br>　　第二个能力是重要的，用户必须能够离开一个任务，并且稍后可以通过这个Activity返回这个任务。因此标记Activity始终作为启动一个任务入口的启动模式有两种：`singleTask`和`singleInstance`，它们只应该在Activity有`ACTION_MAIN`和`CATEGORY_LAUNCHER`过滤器时使用。例如，可以想象一下如果缺少了这个过滤器会发生什么情况：一个Intent启动了一个标有singleTask的Activity，初始化了一个新的任务，并且用户花费了一些时间在这个任务中进行工作。然后用户按下Home按钮，这个任务被转到后台并且不再显示。现在因为在应用程序启动器中没有图标展现，用户就没有办法在返回到这个任务中，除非你在主Activity中另外提供了返回的途径。
+
+<br>**提示**
+
+	-  用户能看见某个Activity并不代表该Activity一定获得焦点。 比如Activity_A中弹出了一个对话框风格的Activity_B时。由于对话框的Activity_B比较小，所以在用户屏幕中照样可以看到Activity_A，但是焦点却在对话框风格的Activity_B中。
+	-  当对话框风格的Activity_B 部分覆盖Activity_A时，用户执行弹栈操作将B弹出后，只会触发A 的resume方法。
+	-  点击键盘上的home键只会调用Activity的pause、stop方法，而不会调用destroy方法。点击回退键则会调用destroy方法。
+
+<br>**再提示**
+
+	-  新Activity出现时，旧Activity会被stop、且其状态将被保存。
+	-  当用户点击home键时，当前Task顶部的Activity会被stop，它的状态会被系统保存，Task被调入后台。 当用户通过点击菜单栏的图标再次启动程序时，程序的Task会被调入前台，Task栈顶activity会获得恢复并焦点。
+	-  用户按back键时 ，将当前Task栈顶Activity弹出，并释放其资源。前一个Activity将获得焦点。
+	-  当Activity被摧毁时，系统不会再保留其状态。 
+
+<br>**还提示**
+
+	-  一个Activity，在某个Task中可以被实例化多次，它也可以同时存在于不同的Task中。
+	-  当系统内存资源不足时，系统会回收后台Task中的Activity，此时Activity的状态会被销毁，但是，Activity仍然存在于Task中，当该Task被置为前台，且该Activity处于栈顶时，会执行创建操作，而不是恢复。 即程序将调用其onCreate方法。
+
+<br><br>

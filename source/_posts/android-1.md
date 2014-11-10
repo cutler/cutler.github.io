@@ -21,22 +21,22 @@ tags:
 　　目前，Android 系统中运行的应用程序都是使用`Java`程序语言来编写。Android SDK 工具把应用程序的代码、数据和资源文件一起编译到一个 Android 程序包中（这个程序包是以`.apk`为后缀的归档文件）。一个`.apk`文件就是一个 Android 应用程序，安装 Android 手机软件本质上就是将这个`.apk`文件解压到 Android 设备中。
 
 　　安装在设备上的每个 Android 应用程序都生存在它们自己的安全沙箱中：
-	- Android操作系统是一个多用户的Linux系统，在这个系统中每个应用程序都是一个不同的用户。
-	- 默认情况下，系统给每个应用程序分配一个唯一的Linux用户ID（这个ID只能被系统使用，并且对于应用程序是未知的）。系统给应用程序中的所有文件设置权限，以便只有跟用户ID匹配的应用程序能够访问他们。
-	- 默认情况下，每个应用程序运行在它们自己的Linux进程中，当任何应用程序的组件需要被执行时，Android会启动该组件所对应的进程，在不再需要的时候或系统必须为其他应用程序恢复内存时这个进程将被关闭。
-	- 每个进程都有它们自己的虚拟机，因此应用程序的运行是彼此隔离。
+	-  Android操作系统是一个多用户的Linux系统，在这个系统中每个应用程序都是一个不同的用户。
+	-  默认情况下，系统给每个应用程序分配一个唯一的Linux用户ID（这个ID只能被系统使用，并且对于应用程序是未知的）。系统给应用程序中的所有文件设置权限，以便只有跟用户ID匹配的应用程序能够访问他们。
+	-  默认情况下，每个应用程序运行在它们自己的Linux进程中，当任何应用程序的组件需要被执行时，Android会启动该组件所对应的进程，在不再需要的时候或系统必须为其他应用程序恢复内存时这个进程将被关闭。
+	-  每个进程都有它们自己的虚拟机，因此应用程序的运行是彼此隔离。
 
 　　通过这种方式，Android 系统实现了最小特权原则。也就是说，默认情况下，每个应用程序只能访问支持它工作的必须的组件。这样就创建了一个安全的环境，在这个环境中应用程序不能访问系统没有给它授权的部分。
 
 　　但是，还有一些应用程序间共享数据和应用程序访问系统服务的方法：
 
-	- 两个应用程序共享相同的Linux用户ID是可能的，这样它们就能够访问彼此的文件。为了节省系统资源，拥有相同用户ID的应用程序也可以运行在相同的Linux进程中，并且共享相同的虚拟机（应用程序必有拥有相同的数字签名证书）。
-	- 应用程序能够请求访问设备数据的权限（如用户的通讯录、短信、可安装的存储设备、照相机、蓝牙等等），所有的应用程序的权限都必须在安装时被用户授予。
+	-  两个应用程序共享相同的Linux用户ID是可能的，这样它们就能够访问彼此的文件。为了节省系统资源，拥有相同用户ID的应用程序也可以运行在相同的Linux进程中，并且共享相同的虚拟机（应用程序必有拥有相同的数字签名证书）。
+	-  应用程序能够请求访问设备数据的权限（如用户的通讯录、短信、可安装的存储设备、照相机、蓝牙等等），所有的应用程序的权限都必须在安装时被用户授予。
 
 <br>　　本章还会介绍Android应用程序是如何存在于系统中的基础知识，包括：
-	- 定义应用程序的核心框架组件。
-	- 在manifest文件中为应用程序声明组件、请求设备功能。
-	- 把应用程序的代码与资源分离，并且允许应用程序针对各种设备配置优化它们的行为。
+	-  定义应用程序的核心框架组件。
+	-  在manifest文件中为应用程序声明组件、请求设备功能。
+	-  把应用程序的代码与资源分离，并且允许应用程序针对各种设备配置优化它们的行为。
 <br>**应用程序组件**
 　　应用程序组件是 Android 应用程序的重要基石。
 　　Android中有四种不同类型的组件，每种类型服务一个不同的目的。每个组件都是系统进入应用程序的不同入口，对于用户来说，不是所有的组件都是实际的入口，并且有一些是彼此依赖的，但是每一个组件都存在它们自己的实体，并且扮演着特殊的角色--它们都是帮助定义应用程序整体行为的唯一的模块。
@@ -397,7 +397,7 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="org.cxy.tomcat"
-android:versionCode="1"
+	android:versionCode="1"
 	android:versionName="1.0">
 </manifest>
 ```
@@ -419,9 +419,9 @@ android:versionCode="1"
 ``` android
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="org.cxy.tomcat" android:versionCode="1"
-	android:versionName="1.0">
-    <application android:icon="@drawable/ic_launcher"
+	package="org.cxy.tomcat" android:versionCode="1" android:versionName="1.0">
+    <application 
+        android:icon="@drawable/ic_launcher"
         android:label="@string/app_name">
     </application>
 </manifest>
@@ -436,9 +436,9 @@ android:versionCode="1"
 
 <br>　　范例1-4：声明应用程序组件。
 ``` android
-<application ...>
-    <activity />
-    <service />
+<application android:icon="@drawable/ic_launcher" android:label="@string/app_name">
+    <activity/>
+    <service/>
     <receiver/>
     <provider/>
 </application>
@@ -453,7 +453,7 @@ android:versionCode="1"
 <br>　　范例1-5：<activity>标签。
 　　此标签代表一个Activity组件。任何一个派生自Activity类的类都是一个Activity组件 。
 ``` android
-<application ...>
+<application android:icon="@drawable/ic_launcher" android:label="@string/app_name">
     <activity
         android:name="com.example.androidtest.MainActivity"
         android:label="@string/app_name" >
