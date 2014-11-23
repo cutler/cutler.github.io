@@ -17,23 +17,22 @@ tags:
 正是出于节约成本、缩短周期和降低风险这三方面的考虑，越来越多的开发者倾向于使用第三方的现成引擎制作自己的游戏，一个庞大的引擎授权市场已经形成。
 ## 组成 ##
 　　市面上的每种引擎都有自己的特色，其所提供的功能也是不尽相同的，通常每一款游戏都会有自己的引擎，但真正能获得他人认可并成为标准的引擎并不多。以桌面游戏引擎来说，其主要包含以下系统：渲染引擎（即“渲染器”，含二维图像引擎和三维图像引擎）、物理引擎、碰撞检测系统、音效、脚本引擎、电脑动画、人工智能、网络引擎以及场景管理。<br>
-<br>**本节参考阅读：**<br>
-http://hp.dewen.org/?p=924 <br>
-http://job.17173.com/content/2008-10-15/20081015164759892,1.shtml <br><br>
+<br>**本节参考阅读：**
+- [Android游戏引擎分类汇总](http://hp.dewen.org/?p=924) 
+- [让你彻底明白什么叫游戏引擎](http://job.17173.com/content/2008-10-15/20081015164759892,1.shtml)  <br><br>
 # 第二节 Cocos2d #
 ## Cocos2d的前世今生 ##
 　　Cocos2d是一个开源的2D游戏框架，它可以让你在创建自己的多平台游戏时节省很多的时间。它有多种语言开发的版本，最初的Cocos2D框架是使用Python编写的，基于pyglet开发。目前Cocos2D框架已经被移植到了多种语言和平台上。<br><br>
 <div align="center">{% img /images/quick-cocos2d-x/a1.jpg %}<br>目前Cocos2D的各个版本示意图</div>
 ### 简介 ###
-　　Cocos2d-iphone是原框架在iOS和Mac上的Objective-C移植(即把python语言换成了Objective-C)，使用了一样的设计和概念。 Cocos2d-iphone该API集成了Box2d和Chipmunk物理引擎。 在App Store上面的很多游戏都是使用Cocos2d-iphone框架开发的。<br>
-　　Cocos2d-x是基于Cocos2d-iPhone的C++移植版，通过C++的重新编写，使得Cocos2d可以用在不同的平台上。它兼容iOS, Android, Windows, Marmalade, Linux, Bada, Blackberry-QNX等平台， 同时还有Lua和JavaScript脚本实现。简单的说就是使用C++（或lua、javascript）来开发游戏，可以达到一次编译，在各平台到处运行的效果。本r人将使用cocos2d-x讲解游戏开发。<br>
-　　Cocos2d-android同样基于Cocos2d-iPhone，它是Java实现的运行于Android平台的版本。<br>
-　　Cocos2d-android-1由国内自身开发者建立发展的，他认为Cocos2d-android发展太慢，所以创建了一个新的android实现，以实现最新的cocos2d-iphone的版本。<br>
-　　Cocos2d-javascript是Cocos2d-iPhone的JavaScript实现。<br>
-　　Cocos2d-html5是基于Cocos2d-X的运行于网页中的JavaScript实现。<br>
-　　Cocos2d-XNA是基于Cocos2d-X的运行于微软XNA平台上的C#实现。<br>
-<br>**本节参考阅读：**<br>
-http://www.cocoachina.com/gamedev/gameengine/2012/0629/4405.html。<br><br>
+　　Cocos2d-iphone是原框架在iOS和Mac上的Objective-C移植(即把python语言换成了Objective-C)，使用了一样的设计和概念。 Cocos2d-iphone该API集成了Box2d和Chipmunk物理引擎。 在App Store上面的很多游戏都是使用Cocos2d-iphone框架开发的。
+　　Cocos2d-x是基于Cocos2d-iPhone的C++移植版，通过C++的重新编写，使得Cocos2d可以用在不同的平台上。它兼容iOS, Android, Windows, Marmalade, Linux, Bada, Blackberry-QNX等平台， 同时还有Lua和JavaScript脚本实现。简单的说就是使用C++（或lua、javascript）来开发游戏，可以达到一次编译，在各平台到处运行的效果。本r人将使用cocos2d-x讲解游戏开发。
+　　Cocos2d-android同样基于Cocos2d-iPhone，它是Java实现的运行于Android平台的版本。
+　　Cocos2d-android-1由国内自身开发者建立发展的，他认为Cocos2d-android发展太慢，所以创建了一个新的android实现，以实现最新的cocos2d-iphone的版本。
+　　Cocos2d-javascript是Cocos2d-iPhone的JavaScript实现。
+　　Cocos2d-html5是基于Cocos2d-X的运行于网页中的JavaScript实现。
+　　Cocos2d-XNA是基于Cocos2d-X的运行于微软XNA平台上的C#实现。
+<br>
 # 第三节 quick-cocos2d-x #
 ## 什么是quick？ ##
 　　quick-cocos2d-x（后文简称quick）与 cocos2d-x 的关系，用一句话概括：**quick 是 cocos2d-x 针对 Lua 的豪华套装威力加强版**。<br>
