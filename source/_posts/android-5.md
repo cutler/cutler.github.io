@@ -286,11 +286,10 @@ public class MainActivity extends Activity {
         registerReceiver(myReceiver, filter);  
     }
 
-    @Override
     protected void onDestroy() {
         super.onDestroy();
         // 在Activity退出时解除注册。
-        unregisterReceiver(receiver);
+        unregisterReceiver(myReceiver);
     }
 }
 ```
