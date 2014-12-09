@@ -4,7 +4,7 @@ categories: maven
 tags:
 - Maven
 ---
-　　本章的目的是帮助你理解Maven的工作机制。因此教程主要关注Maven的核心概念。一旦你理解了这些核心概念，当你想了解更多的细节时，再取查看Maven文档，或者从网上搜索，就变得容易多了。
+　　本章的目的是帮助你理解Maven的工作机制。因此教程主要关注Maven的核心概念。一旦你理解了这些核心概念，当你想了解更多的细节时，再去查看Maven文档，或者从网上搜索，就变得容易多了。
 　　同时，在本章的末尾会有一个范例，使用Maven进行Android应用程序多渠道打包，以此来练习所学的知识。
 
 　　本教程基于Maven 3.2.3，你可以从[Maven官网](http://maven.apache.org)上下载最新版的Maven，并关注项目的进展。另外，推荐您看一下许晓斌作者的[《Maven实战》](http://wenku.baidu.com/view/80e4c3136edb6f1aff001fdd.html)一书，其中前三章是十分适合新手入门Maven，本章也摘取了其中部分内容。
@@ -225,7 +225,7 @@ hello-world
 	-  target目录是由Maven创建的，其中包含编译后的类文件、jar文件等。当执行maven clean命令后，target目录（如果该目录存在的话）的内容就会被清空。
 	-  pom.xml核心配置文件，后面会详细介绍它。
 
-　　知道了Maven的标准目录结构之后，我们开始按照这个接口来创建项目。首先创建一个名为hello-world的文件夹。
+　　知道了Maven的标准目录结构之后，我们开始按照这个结构来创建项目。首先创建一个名为hello-world的文件夹。
 
 ## 编写POM ##
 　　就像Make的`Makefile`，Ant的`build.xml`一样，Maven项目的核心是POM（Project Object Model，项目对象模型）文件，即`pom.xml`。
@@ -917,7 +917,7 @@ cd F:\workspace\maven\MavenBuild
 - [maven入门实战](http://my.oschina.net/morflameblog/blog/42493)
 - [理解maven的核心概念](http://www.cnblogs.com/holbrook/archive/2012/12/24/2830519.html)
 - [常用Maven插件介绍](http://www.infoq.com/cn/news/2011/04/xxb-maven-7-plugin)
-- [理解maven的核心概念](http://blog.csdn.net/ithomer/article/details/9332071)
+- [Maven pom.xml 配置详解](http://blog.csdn.net/ithomer/article/details/9332071)
 
 
 <br><br>
