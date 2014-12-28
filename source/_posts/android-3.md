@@ -80,7 +80,7 @@ public class MyService extends Service {
 
 	通常我们可以通过Context类的startService()方法来启动一个Service。
 	当程序调用startService()方法请求操作系统来启动Service时，操作系统会进行如下判断：
-	-  若该Service在操作系统中不存在，则系统会创建一个进程并在这个进程中启动该Service，同时调用onCreate()方法。
+	-  若该Service在内存中不存在，则系统会创建一个进程并在这个进程中启动该Service，同时调用onCreate()方法。
 	-  若操作系统检测到该Service正在运行，则不会调用它的onCreate()方法。 也就是说onCreate()只会在服务首次启动的时候被调用。
 	另外，onCreate方法通常用来编写一些初始化相关的代码（它在onStartCommand()或onBind()方法之前调用）。
 
@@ -94,7 +94,7 @@ public class MyService extends Service {
 	如果你实现了这个方法，当Service的工作结束时，你有责任通过调用stopSelf()方法或stopService()方法来终止Service。（如果你只想让Service提供绑定的能力，你不需要实现这个方法。）
 　　提示：如果你创建的应用是针对`Android1.6`或更早版本的，你需要实现onStart()而不是onStartCommand()(在`Android2.0`中，`onStart()被废弃代替之以onStartCommand()`)。
 
-<br>　　从onStartCommand()方法中返回的值必须是以下常量，这个常量是一个描述了在系统的杀死事件中，系统应该如何继续这个服务的值（虽然你能够修改这个值，但是IntentService处理还是为你提供了默认实现）：
+<br>　　从onStartCommand()方法中返回的值必须是以下常量，这个常量是一个描述了在系统的杀死事件中，系统应该如何继续这个服务的值：
 
 
 	- START_NOT_STICKY
@@ -116,7 +116,7 @@ public class MyService extends Service {
 <br>　　如果组件通过调用startService()方法启动Service，那么这个Service就会一直运行到它自己用stopSelf()方法终止Service，或另一个组件通过调用stopService()方法来终止它。
 　　如果一个组件调用bindService()方法来创建这个Service（并且不调用onStartCommand()方法），那么这个Service只跟绑定的组件运行同样长的时间。一旦这个Service从所有的客户端解绑，系统就会销毁它。
 
-　　Android系统只有在内存不足和必须给有用户焦点的Activity回收系统资源时，才会`强制终止一个Service`。如果Service是被一个有用户焦点的Activity绑定的，那么`它不可能被杀死`，并且如果这个Service被声明运行在前台（稍后讨论），那么它也几乎不能被杀死。否则如果这个Service被启动并且长时间运行，那么`随着时间的推移`系统会降低它在后台任务列表中位置，并且这个Service将很容易被杀死（如果你的Service被启动了，那么你必须把它设计成能够通过系统来进行妥善的重启）。如果系统杀死了你的Service，那么`一旦资源变为有效它就会重启`（虽然这也依赖从onStartCommand()方法返回的值，稍后讨论）。
+　　Android系统只有在内存不足和必须给有用户焦点的Activity回收系统资源时，才会`强制终止一个Service`。如果Service是被一个有用户焦点的Activity绑定的，那么`它不可能被杀死`，并且如果这个Service被声明运行在前台（稍后讨论），那么它也几乎不能被杀死。否则如果这个Service被启动并且长时间运行，那么`随着时间的推移`系统会降低它在后台任务列表中位置，并且这个Service将很容易被杀死（如果你的Service被启动了，那么你必须把它设计成能够通过系统来进行妥善的重启）。如果系统杀死了你的Service，那么`一旦资源变为有效它就会重启`（虽然这也依赖从onStartCommand()方法返回的值）。
 <br>
 ### 继承IntentService ###
 　　前面说到，创建服务可以通过继承Service类或IntentService类来实现，本节将详细介绍如何通过继承IntentService来创建服务。
@@ -1448,3 +1448,4 @@ public class MainActivity extends Activity {
     -  SensorEvent有一个常用字段float[] values，传感器监听到的数据都保存在此数组中。对于不同的传感器，此数组的长度是不同的。
        -  对于方向传感器来说，values[0]表示手机当前指向的方向相对于北方的偏移角度。0北方、90东方、180南方、270西方。
 
+<br><br>

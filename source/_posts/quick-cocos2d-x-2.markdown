@@ -3,11 +3,12 @@ layout: post
 title: "第二章 Lua 程序设计"
 date: 2014-09-03 22:07:06 +0800
 comments: true
-categories: quick-cocos2d-x
+categories: cocos2dx-lua
 tags:
 - 脚本语言
-- quick-cocos2d-x
+- cocos2dx-lua
 ---
+　　从上一章我们知道了学习Cocos2dx-lua之前要先学习Lua语言，本章就来介绍一下Lua的基本知识。
 　　本章主要参考《Programming in Lua》中文版一书，并添加了书中未写到的细节知识。<br>
 # 第一节 概述 #
 　　目前很多程序语言都专注于帮你编写成千上万行的代码，所以此类型的语言所提供的包、命名空间、复杂的类型系统及无数的结构，有上千页的文档需要操作者学习。 而 Lua 并不帮你编写大量的代码的程序，相反的，Lua 仅让你用少量的代码解决关键问题。为实现这个目标，像其他语言一样 Lua 依赖于其可扩展性。但是与其他语言不同的是，不仅用 Lua 编写的软件易于扩展，而且用其他语言比如 C/C++编写的软件也很容易使用 Lua 扩展其功能。

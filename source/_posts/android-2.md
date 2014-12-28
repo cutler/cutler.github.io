@@ -10,7 +10,7 @@ tags:
 
 　　当一个Activity因为一个新的Activity被启动而Stop时，它会通过Activity`生存周期的回调方法`通知你这种状态的改变。Activity在状态改变期间可以接受几种回调方法---系统是否正在`createing`、`stopping`、`resuming`或`destroying`它。并且每种回调都提供了在对应状态改变时执行特定工作的机会。例如：
 
-	当Activity被终止(stop)时，你的Activity应该释放任何大对象，如网络连接或数据库连接等。
+	当Activity被终止(stop)时，你的Activity应该释放任何大对象，如网络和数据库连接等。
 	当Activity被恢复(resume)时，你能够重新请求这些必须的资源，并且恢复被中断的行为。这些状态的变换是所有Activity生命周期的一部分。
 
 <br>

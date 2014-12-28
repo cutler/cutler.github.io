@@ -3,9 +3,9 @@ layout: post
 title: "第一章 概述"
 date: 2014-08-26 22:16:54 +0800
 comments: true
-categories: quick-cocos2d-x
+categories: cocos2dx-lua
 tags:
-- quick-cocos2d-x
+- cocos2dx-lua
 ---
 # 第一节 游戏引擎 #
 ## 起源 ##
@@ -39,7 +39,7 @@ tags:
 　　`Cocos2d`是一个开源的`2D`游戏引擎（目前也支持进行3D游戏开发了），它可以让你在创建自己的多平台游戏时节省很多的时间。它有多种语言开发的版本，最初的`Cocos2D`框架是使用`Python`编写的，基于`pyglet`开发。目前`Cocos2D`框架已经被移植到了多种语言和平台上。
 
 <center>
-![Cocos家族成员](/img/quick-cocos2d-x/quick_1_1.jpg)
+![Cocos家族成员](/img/quick-cocos2d-x/quick_1_1.png)
 </center>
 
 <br>**简介**
@@ -57,28 +57,28 @@ tags:
 
 　　`Cocos2d-XNA`是基于`Cocos2d-X`的运行于微软`XNA`平台上的`C#`实现。
 
+<br>　　从下表可知，不同分支引擎支持不同的目标平台并使用不同的编程语言。
+<center>
+![](/img/quick-cocos2d-x/quick_1_4.png)
+</center>
+
+
 <br>
-# 第三节 quick-cocos2d-x #
-## 什么是quick？ ##
-　　Cocos2d-x是一个用C++开发的游戏引擎，其架构设计和API基本上是照搬的Cocos2d-iphone（一个用 Objective-C 的 iOS 游戏开发引擎）。由于C++对开发人员要求较高，所以网龙科技利用`tolua++`这个工具，将Cocos2d-x的C++接口转为了Lua接口（这种将C++ 接口导出为Lua接口的库通常称为`luabinding`）。让开发者可以使用Lua这种简单易懂的脚本语言来编写游戏，从而大大提高开发效率。
+# 第三节 Cocos2dx-lua #
+　　Cocos2d-x是一个用C++开发的游戏引擎，其架构设计和API基本上是照搬的Cocos2d-iphone（一个用Objective-C的iOS游戏开发引擎），开发人员需要使用C++语言进行游戏开发。
+　　由于C++对开发人员要求较高，所以网龙科技利用`tolua++`这个工具，将Cocos2d-x的C++接口转为了Lua接口（这种将C++ 接口导出为Lua接口的库通常称为`luabinding`）。让开发者可以使用Lua这种简单易懂的脚本语言来编写游戏，从而大大提高开发效率。
 
-　　在`Cocos2d-x 2.0`发布后，luabinding又进行了不少改进和完善。截止到Cocos2d-x 2.1.4，整个luabinding已经可以说是相当稳定了。所以《我是 MT》、《大掌门》这些赚钱像印钱的游戏，就纷纷采用`Cocos2d-x + Lua`的解决方案了。可惜Cocos2d-x团队从 2012年以来一直在强力推广Cocos2d-x的`JavaScript`解决方案，所以在Lua支持上基本上就没有什么大动作了。而从使用Lua解决方案的开发商看来，需要luabinding具备更强大的功能，因此这就是开发`quick`的最初原因。
+　　在`Cocos2d-x 2.0`发布后，luabinding又进行了不少改进和完善。截止到Cocos2d-x 2.1.4，整个luabinding已经可以说是相当稳定了。所以《我是 MT》、《大掌门》这些赚钱像印钱的游戏，就纷纷采用`Cocos2d-x + Lua`的解决方案了。可惜Cocos2d-x团队从 2012年以来一直在强力推广Cocos2d-x的`JavaScript`解决方案，所以在Lua支持上基本上就没有什么大动作了。
 
-　　一言以蔽之：`quick是cocos2d-x针对Lua的豪华套装威力加强版`。
+　　因而后来廖宇雷开发了`quick-cocos2d-x`，它是Cocos2dx-lua的增强版，随着quick的发展越来越好，使用quick进行游戏开发的人越来越多，触控将quick收编到自己旗下。2015年廖大将会把原来的Cocos2dx-lua合并到quick中，统一称为Cocos2dx-lua。
 
-　　总结而言，quick和 cocos2d-x的主要区别有如下几点：　　
+　　值得一提的是，使用Lua可以在线更新代码和资源，这个特性对于网游来说是非常有吸引力的，它可以不经过审核就更新，就像页游可以热更新。
 
-    - 更完善的Lua支持，包括一个Lua框架对C++接口进行了二次封装。
-    - 补充了大量cocos2d-x没有提供，但游戏需要的功能。
-    - 为提高开发效率，提供了Objective-C和Java的桥接模块，以及强化的Windows/Mac模拟器。 
-
-<br>　　值得一提的是，使用Lua可以在线更新代码和资源，这个特性对于网游来说是非常有吸引力的，它可以不经过审核就更新，就像页游可以热更新。
-
-## Lua与JavaScript ##
-　　目前cocos2d-x支持两种脚本语言的binding，它们的区别主要在如下几个方面：
+<br>**Lua与JavaScript**
+　　目前Cocos2d-x除了支持用C++开发外，还支持Lua和JavaScript两种脚本语言的binding，它们的区别主要在如下几个方面：
 
 	1、运行效率。Lua在所有性能测试里，都比JavaScript快不少。特别是LuaJIT可以在运行时将Lua代码和字节码编译为机器指令，使得Lua代码的最终运行效率接近C的程度。
-	2、是否容易扩展。Lua从设计时就是作为嵌入式语言来设计的，所以需要将某个C/C++接口导出给Lua使用，那是相当轻松的事情。
+	2、是否容易扩展。Lua从设计时就是作为嵌入式语言来设计，所以需要将某个C/C++接口导出给Lua使用，那是相当轻松的事情。
 	3、源代码保护。LuaJIT编译的字节码目前是无法反编译的，因为LuaJIT在编译时不是1:1 直接转换源代码，而是对源代码做了相当多的深入优化。LuaJIT编译出的字节码体积是 Lua编译字节码的三分之一，由此可见优化程度。
 　　客观的说，`JavaScript binding`最大的优势是以前大量的`JS`前端开发人员可以很容易的上手，而且支持`HTML5`平台。但如果从手游体验来说，`Lua`的运行效率是很重要的优势。 
 
@@ -113,7 +113,7 @@ tags:
 <br>**本节参考阅读：**
 - [从Flash到Cocos2d-x](http://dualface.github.io/blog/2013/02/28/from-flash-to-quick/) 
 
-# 第五节 怎么入门 quick #
+# 第五节 怎么入门 Cocos2dx-lua #
 <br>** 第一步，学习Lua。** 
  　　Lua 是一种简单易用的语言。学习这种语言最好的方式就是花几天时间写代码，然后在命令行中运行。学习的重点：
 
