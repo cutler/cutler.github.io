@@ -12,7 +12,7 @@ tags:
 # 第一节 破解工具 #
 　　软件破解，本质上就是先把软件给拆开了，然后修改一下软件的内容（比如去掉收费相关的软件代码），接着在把软件给组装起来的过程。 
 　　因此，在进行软件破解时，第一步要做的就是把软件给拆开，而ApkTool就是用来将软件拆开的一个工具。
-　　工欲善其事必先利其器，因此在开始破解之前我们要先介绍一下ApkTool，以便后面顺利的开展破解工作。
+　　工欲善其事必先利其器，在开始破解之前我们要先介绍一下ApkTool，以便后面顺利的开展破解工作。
 
 <br>**ApkTool**
 　　ApkTool是Google提供的apk编译工具，它不仅可以用来反编译apk，还可以用来将反编译的apk重新编译回apk。反编译时我们需要使用`decode`命令，重新编译时则需要使用`build`命令，这两个命令的具体用法后面会有详细介绍。
@@ -64,10 +64,10 @@ apktool.bat d[ecode] [OPTS] <file.apk> [<dir>]
 	-  <file.apk>：要反编译的文件的名称。
 	-  [<dir>]：反编译的输出路径。如果不写则默认为当前目录，并且以apk的文件名做为目录名。
 
-　　5、接着修改`Decode\res\values\strings.xml`文件中的“`Hello world!`”为“`世界，你好!`”。
-　　6、接着删除`Decode\res\drawable-ldp`、`Decode\res\drawable-mdpi`、`Decode\res\drawable-xhdpi`三个目录。
-　　7、然后找一个`72*72`尺寸的`png`图来替换调`Decode\res\drawable-hdpi`目录中的“`ic_launcher.png`”。
-　　8、在`cmd`窗口中执行如下命令：
+　　4、接着修改`Decode\res\values\strings.xml`文件中的“`Hello world!`”为“`世界，你好!`”。
+　　5、接着删除`Decode\res\drawable-ldp`、`Decode\res\drawable-mdpi`、`Decode\res\drawable-xhdpi`三个目录。
+　　6、然后找一个`72*72`尺寸的`png`图来替换调`Decode\res\drawable-hdpi`目录中的“`ic_launcher.png`”。
+　　7、在`cmd`窗口中执行如下命令：
 ``` lua
 apktool.bat b Decode newDecode.apk
 ```
@@ -84,7 +84,7 @@ apktool.bat b[uild] [OPTS] [<app_path>] [<out_file>]
 
 　　值得注意的是，使用`apktool`的`build`命令生成的`apk`是一个未签名的文件，而未签名的文件是无法被安装的，因此接下来我们要对`apk`进行签名，并且为了能覆盖安装，我们将不再创建新的签名文件，而是使用`debug.keystore`进行签名。
 
-　　说到这里，我们就可以发现一件事：如果我们能得到软件作者的签名文件，那么我们破解后的包将完全可以覆盖安装掉原作者的包！ 妈的想想还挺激动呢。
+　　说到这里，我们就可以发现一件事：如果我们能得到软件作者的签名文件，那么我们破解后的包将完全可以覆盖安装掉原作者的包！！！
 
 　　我们需要使用下面的命令来对apk进行签名：
 ``` lua
@@ -388,18 +388,18 @@ Toast.makeText(this, "世界，你好！", Toast.LENGTH_SHORT).show();
 ## 《愚公移山》 ##
 　　《愚公移山》是由厦门青瓷开发，上海黑桃互动代理发行的手机休闲游戏，运用Unity3D技术实现游戏的多平台均可运行的游戏。
 
-　　[点击下载](http://zhushou.360.cn/detail/index/soft_id/2037801)
+　　[点击查看：《愚公移山》](http://zhushou.360.cn/detail/index/soft_id/2037801)
 
-　　将APK下载到本地后，为了避免中文文件名导致的各种问题，我们先把APK文件的名称为“ygys.apk”。
+　　将apk下载到本地后，为了避免中文文件名导致的各种问题，我们先把apk文件的名称为“ygys.apk”。
 
 <br>　　范例1：先把它反编译。
 ```
 apktool.bat d ygys.apk
 ```
 	语句解释：
-	-  我们都懂得！！！！
+	-  你懂得！！！！
 
-　　破解游戏的第一步要干什么？ 当然是先确定目标啊，我们的破解任务有两个：
+<br>　　破解游戏的第一步要干什么？ 当然是先确定目标啊，我们的破解任务有两个：
 
 	-  进入游戏后，点击“商店”，找到“微信分享”，让玩家可以在点击“一键分享朋友圈”时，直接获得“5000儿孙”!!!
 	-  在“商店”里，找到“花费：1200金币”，让玩家可以不花费金币就“儿孙数量翻倍”。
@@ -407,28 +407,33 @@ apktool.bat d ygys.apk
 　　确立了目标后，然后就该各个击破它们了。
 
 ### 破解分享功能 ###
-　　所谓知己知彼百战不殆，破解之前先打开游戏玩一下，看看它们用的是哪家的分享SDK，这样我们就可以也下载那个SDK，然后参考SDK的接入流程来进行破解了。  
-　　通过观察，从表面上只能看出愚公移山使用的是微信分享，但是没法确定是哪一家的，没办法只能进入到smali目录下，随便瞎看，结果没点几下就看到了smali\cn\sharesdk目录，看到这里我们就知道了，它使用的是[ShareSDK](http://sharesdk.mob.com/Download)。
+　　知己知彼百战不殆，破解之前先打开游戏玩一下，看看它们用的是哪家的分享SDK，这样我们就可以也下载那个SDK，然后参考SDK的接入流程来进行破解了。  
+
+　　通过观察，从表面上只能看出愚公移山使用的是微信分享，但是没法确定具体是哪一家的（有些第三方分享SDK将各大平台的分享SDK封装到一起了），没办法只能进入到smali目录下，随便瞎看，结果没点几下就看到了`smali\cn\sharesdk`目录，看到这里我们就知道了，它使用的是[ ShareSDK ](http://sharesdk.mob.com/Download)。
 　　然后，我们就可以去ShareSDK官网把Android端的分享SDK的接入Demo给下载下来，稍后会用到。
 
-　　为了方便代码定位，我们将反编译出来的ygys文件夹放入到Eclipe中，因为Eclipse有全文搜索的功能，快捷键是“ctrl+H”，打开搜索窗口后，找到“File Search”选项卡，如下图所示：
-
-
-　　现在我们来看看ShareSDK的demo项目中是如何进行微信分享的，找到 cn.sharesdk.demo.WechatPage类，发现有如下代码：
+　　现在我们来看看ShareSDK的demo项目中是如何进行微信分享的，找到`cn.sharesdk.demo.WechatPage`类，发现有如下代码：
 ``` android
 ShareSDK.setPlatformDevInfo("WechatMoments", map);
 ```
-　　这行代码的作用看起来像是为SDK指定分享的方式的，那么就用它作为我们的入口，因为不论是.java文件还是.smali文件，虽然它们的语法差别很大，但是方法的名称是不会被改变的，因此我们在Eclipse中搜索`setPlatformDevInfo`关键字，得到两个结果，如下图所示：
+　　这行代码的作用看起来像是为SDK指定分享的方式的，那么就用它作为我们的入口，因为不论是`.java`文件还是`.smali`文件，虽然它们的语法差别很大，但是方法的名称是不会被改变的。
 
+　　为了方便代码定位，我们将反编译出来的`ygys`文件夹放入到Eclipe中，因为Eclipse有全文搜索的功能，快捷键是“`ctrl+H`”，打开搜索窗口后，找到“`File Search`”选项卡，搜索`setPlatformDevInfo`关键字，如下图所示：
 
-　　通过观察发现，第一个结果是setPlatformDevInfo的定义，而第二个则是对setPlatformDevInfo的调用，我们打开smali\com\qcplay\www\wechat\wxapi\WXShare.smali，找到318行，发现它是属于“.method private _init()V”函数的，以我们以往接入SDK的经验来看，一般SDK都会存在一个“初始化”的步骤，只有初始化完毕后，SDK才能正常工作，所以_init应该不是用户点击按钮的时候方法，因为初始化通常是个耗时操作，放在点击按钮的时候明显不合适（用户等待的时间就变长了）。当然最重要的一点是，仔细看了一下这个方法里的代码，并没有调用分享，所以综合这些信息，我们要找的不是这个方法。
+<center>
+![Eclipse全文搜索](/img/android/android_26_1.png)
+</center>
 
-　　那么既然已经找到了setPlatformDevInfo方法的调用位置了，那么真正的分享代码也不会放太远了（除非那个狗日的程序员是个傻屌乱写代码），现在只有上下看看WXShare.smali里还有其他什么方法没有，结果看到了下面这八个方法：
+　　最终搜索出两个结果，通过观察发现，第一个结果是`setPlatformDevInfo`的定义，而第二个则是对`setPlatformDevInfo`的调用。
+　　我们打开`smali\com\qcplay\www\wechat\wxapi\WXShare.smali`，找到`318`行，发现它是属于“`.method private _init()V`”函数的，以我们以往接入SDK的经验来看，一般SDK都会存在一个“初始化”的步骤，只有初始化完毕后，SDK才能正常工作，所以`_init`方法应该不是用户点击按钮的时候调用的，因为初始化通常是个耗时操作，放在点击按钮的时候调用明显不合适（用户等待的时间就变长了）。
+　　当然最重要的一点是，仔细看了一下这个方法里的代码，并没有任何与分享有关的代码，所以综合这些信息，可以判定我们要找的不是这个方法。
+
+　　那么既然已经找到了`setPlatformDevInfo`方法的调用位置了，那么真正执行分享的代码应该也在附近（除非那个狗日的程序员是个傻屌乱写代码），现在只有上下看看`WXShare.smali`里还有其他什么方法没有，结果看到了下面这八个方法：
 
 	-  ShareImgBit、ShareImgPath、ShareText、ShareWebPage、_shareImgBit、_shareImgPath、_shareText、_shareWebPage
 
-　　其中后四个是private修饰的，外界没法直接调用它们，因此先将它们排除。
-　　现在只剩下四个方法了，但是当玩家在游戏中点击“一键分享朋友圈”按钮时，真正调用的是哪一个方法呢？ 没办法只有在这四个方法里都加入我们的代码，进行测试了，比如我们把ShareText方法的代码修改如下：
+　　其中后四个是`private`修饰的，外界没法直接调用它们，因此先将它们排除。
+　　现在只剩下四个方法了，但是当玩家在游戏中点击“`一键分享朋友圈`”按钮时，真正调用的是哪一个方法呢？ 没办法只有在这四个方法里都加入我们的代码，进行测试了，比如我们把`ShareText`方法的代码修改如下：
 ``` smali
 .method public static ShareText(ZLjava/lang/String;)V
     .locals 2
@@ -449,29 +454,29 @@ ShareSDK.setPlatformDevInfo("WechatMoments", map);
 ```
 	语句解释：
 	-  实际上就是加了一个System.out.println("*********************************** Hi ShareText");
-	-  注意还有修改一下 .locals 2，因为System.out语句使用到了2个寄存器。
+	-  注意还要修改一下 .locals 2，因为System.out语句使用到了2个寄存器。
 
-　　另外三个方法也是同样的道理，只是它们输出的内容各不相同罢了，然后重新打包、签名、安装、运行，当点击“一键分享朋友圈”时，发现输出的内容是我们在ShareWebPage方法里写的内容，至此我们就确定了Android端第一个被调用的方法了。
+　　相应的我们也在另外三个方法里加上不同的输出内容，然后重新打包、签名、安装、运行，当点击“一键分享朋友圈”时，发现输出的内容是我们在`ShareWebPage`方法里写的内容，至此我们就确定了，当用户点击分享按钮时Android端第一个被调用的方法了。
 
-　　查看ShareWebPage方法的内部，发现它又调用了_shareWebPage方法，我们接着跟进去，第一眼看到的就是我们熟悉的Handler的定义：
+　　查看`ShareWebPage`方法的内部，发现它又调用了`_shareWebPage`方法，我们接着跟进去，第一眼看到的就是我们熟悉的`Handler`的定义：
 ``` smali
 .prologue
     .line 127
     new-instance v6, Landroid/os/Handler;
 ```
-　　通过连猜带蒙的方式，得知它调用了Handler.post(Runnable)方法执行一个任务，这个Runnable对象就是WXShare$3.smali。由于在_shareWebPage方法中也发现那一行代码像是在调用分享SDK，所以我们只能硬着头皮继续看WXShare$3.smali了。
-　　提示：在Java中，一个内部类的类名的格式为：外部类名$内部类名，对于匿名内部类来说，内部类名用数字编号。
+　　通过连猜带蒙的方式，得知它调用了`Handler.post(Runnable)`方法执行一个任务，这个`Runnable`对象就是`WXShare$3.smali`。由于那一行代码看起来像是在调用分享SDK，所以我们只能硬着头皮继续看`WXShare$3.smali`了。
+　　提示：在Java中，一个内部类的类名的格式为`外部类名$内部类名`，对于匿名内部类来说，内部类名用数字编号。
 
-　　既然知道WXShare$3是Runnable的子类，那我们直接如找run方法，看看里面有什么。又是一阵连蒙带猜结束后，看到了如下代码：
+　　既然知道`WXShare$3`是`Runnable`的子类，那我们直接去找`run`方法，看看里面有什么。又是一阵连蒙带猜结束后，看到了如下代码：
 ``` smali
 .line 141
     .local v2, wechat:Lcn/sharesdk/framework/Platform;
     invoke-virtual {v2, v1}, Lcn/sharesdk/framework/Platform;->share(Lcn/sharesdk/framework/Platform$ShareParams;)V
 ```
-　　终于找到了我们想要看到的“share”函数的调用了，虽然不确定是不是分享，但是从名字上看，90%是没错了。假设我们没找错，那也只是能证明“点击一键分享朋友圈按钮是，程序会调用ShareText函数，并由ShareText函数执行分享操作”，接下来我们该干什么?
+　　终于找到了我们想要看到的“`share`”函数的调用了，虽然不确定是不是分享，但是从名字上看，`90%`是没错了。假设我们没找错，那也只是能证明“`点击一键分享朋友圈按钮时，程序会调用ShareText函数，并由ShareText函数执行分享操作`”，接下来我们该干什么?
 
-　　我们没必要继续向下追踪了，那里面都是分享SDK相关的代码了，对我们没用。现在就需要回到ShareSDK的Demo项目中看看当分享成功后它是怎么接到通知的。
-　　从WechatPage.java中找到了如下代码：
+　　我们没必要继续向下追踪了，那里面都是分享SDK相关的代码了，对我们没用。现在就需要回到ShareSDK官方提供的Demo项目中看看当分享成功后它是怎么接到通知的。
+　　从`WechatPage.java`中找到了如下代码：
 ``` android
 Platform plat = null;
 ShareParams sp = getShareParams(v);
@@ -485,14 +490,14 @@ if (ctvPlats[0].isChecked()) {
 plat.setPlatformActionListener(this);
 plat.share(sp);
 ```
-　　发现它是在调用share方法进行分享之前，调用setPlatformActionListener方法设置了一个回调接口，WechatPage类实现了该接口。
-　　那么我们再在WechatPage类找找PlatformActionListener接口定义了哪些方法，最终找到了它：
+　　发现它是在调用`share`方法进行分享之前，调用`setPlatformActionListener`方法设置了一个回调接口，`WechatPage`类实现了该接口。
+　　那么我们再在`WechatPage`类找找`PlatformActionListener`接口定义了哪些方法，最终找到了它：
 ``` android
 public void onComplete(Platform plat, int action, HashMap<String, Object> res)
 ```
 
-　　终于又找到新的线索了，当分享成功后ShareSDK会调用PlatformActionListener接口的onComplete函数。那么还是按照刚才的结论(一些相关的类相距不会太远），在smali\com\qcplay\www\wechat\wxapi目录下找找，看看有没有实现PlatformActionListener接口的smali文件。
-　　最终，我们定位到了WXShare$2.smali，在它的onComplete函数里找到了如下代码：
+　　终于又找到新的线索了，当分享成功后ShareSDK会调用`PlatformActionListener`接口的`onComplete`函数。那么还是按照刚才的结论(同一模块内部的一些相关的类所在的位置相距不会太远），在`smali\com\qcplay\www\wechat\wxapi`目录下找找，看看有没有实现`PlatformActionListener`接口的`smali`文件。
+　　最终，我们定位到了`WXShare$2.smali`，在它的`onComplete`函数里找到了如下代码：
 ``` smali
 .line 71
     const-string v0, "3rd_sdk"
@@ -503,8 +508,8 @@ public void onComplete(Platform plat, int action, HashMap<String, Object> res)
 
     invoke-static {v0, v1, v2}, Lcom/unity3d/player/UnityPlayer;->UnitySendMessage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 ```
-　　这就是当分享成功后，程序要执行的代码，onComplete函数里的其他代码就是用来打印Log的，不重要，我们不用管。
-　　现在我们需要做的就是，把这端代码copy出来，然后放到WXShare.smali的ShareWebPage函数里，即当用户点击分享的时候，我们不掉用分享，而是直接调用上面的代码，让用户可以立刻领取奖励，代码如下：
+　　这就是当分享成功后，程序要执行的代码，`onComplete`函数里的其他代码就是用来打印`Log`的，不重要，我们不用管。
+　　现在我们需要做的就是，把这段代码copy出来，然后放到`WXShare.smali`的`ShareWebPage`函数里。即当用户点击分享的时候，我们不调用分享，而是直接调用上面的代码，让用户可以立刻领取奖励，最终的代码如下：
 ``` smali
 .method public static ShareWebPage(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;[B)V
     .locals 6
@@ -531,23 +536,23 @@ public void onComplete(Platform plat, int action, HashMap<String, Object> res)
 ```
 　　然后保存、打包、签名、运行。
 
-　　至此我们就完成了分享SDK的破解，看了这么多你可能会感觉如果是自己搞的话，思路就没有这么清晰，还是会感觉无从下手。 没关系，万事开头难，我搞这个SDK破解也是没头绪的晕了2天，然后才慢慢走出来的。
+　　至此我们就完成了分享SDK的破解，看了这么多你可能会感觉，如果是自己搞的话思路不会有这么清晰，还是会感觉无从下手。 没关系，万事开头难，我搞这个SDK破解也是没头绪的晕了2天，然后才慢慢走出来的。
 
 
 ### 破解短信支付功能 ###
-　　还是老套路，先观察游戏使用的是什么支付方式再决定怎么破解。 但经过观察后，我们从游戏界面上只能看出来《愚公移山》使用的是短信支付，其他的却什么都看不出来，那么只能再去看看smali文件夹下面有什么线索没有了。
+　　还是老套路，先观察游戏使用的是什么支付方式再决定怎么破解。 但经过观察后，我们从游戏界面上只能看出来《愚公移山》使用的是短信支付，其他的却什么都看不出来，那么只能再去看看`smali`文件夹下面有什么线索没有了。
 
-　　虽然现在没什么头绪，只能是胡乱翻找，但是按照“相关代码不会离太远”的原则，我们先去sharesdk所在的目录看看，结果发现了一个名为“egame”的支付SDK，然后果断去百度一下，看看egame是怎么个用法，结果搜索到了http://180.96.63.69/Documents/SDK_Pay.html。
+　　虽然现在没什么头绪，只能是胡乱翻找，但是按照“`相关代码不会离太远`”的原则，我们先去`sharesdk`所在的目录看看，结果发现了一个名为“`egame`”的支付SDK，然后果断去百度一下，看看`egame`是怎么个用法，结果搜索到了 http://180.96.63.69/Documents/SDK_Pay.html 。
 
-　　接着将egame的SDK下载下来，打开cn.play.egamesmsonline69.MainActivity文件，发现有个名为EgamePay的类比较核心，我们也许可以从它入手。 
-　　然后在Eclipse中全文搜索EgamePay类，查询出了2个目录：
+　　接着将`egame`的SDK下载下来，打开`cn.play.egamesmsonline69.MainActivity`文件，发现有个名为`EgamePay`的类比较核心，我们也许可以从它入手。 
+　　然后在Eclipse中全文搜索`EgamePay`类，查询出了2个目录：
 
 	-  cn\egame\terminal\paysdk
 	-  com\heitao\mp\channel
-　　其中第一个目录不出意外的话应该是egame提供给游戏开发者的SDK中的jar包，所以对我们没什么用。
-　　而第二个目录，看起来就像是游戏开发者自己写的充值代码了，所以我们打算先打开HTMP_CHA.smali文件看看，查看之后，结果里面就是支付相关的代码。
+　　其中第一个目录不出意外的话应该是`egame`提供给游戏开发者的SDK中的`jar`包，所以对我们没什么用。
+　　而第二个目录，看起来就像是游戏开发者自己写的充值代码了，所以我们打算先打开`HTMP_CHA.smali`文件看看，查看之后，结果里面就是支付相关的代码。
 
-　　但是此时还有个问题，com\heitao\mp\channel目录下有7个类，其中HTMPBaseChannel.smali是一个父类，另外6个类中有三个是内部类，而剩下的三个类从名字来看的话，应该是代表三个充值渠道，那么可以肯定的是，这三个渠道不会同时被使用，所以需要知道我们从360市场下载过来的apk会走哪个充值渠道。
+　　但是此时还有个问题，`com\heitao\mp\channel`目录下有`7`个类，其中`HTMPBaseChannel.smali`是一个父类，另外`6`个类中有三个是内部类，而剩下的三个类从名字来看的话，应该是代表三个充值渠道，那么可以肯定的是，这三个渠道不会同时被使用，所以需要知道我们从`360`市场下载过来的apk会走哪个充值渠道。
 　　这个好判断，只要在这三个类中都加上我们万能的HelloWorld代码，然后重新打包，看看运行时输出的内容就可以了。
 
 ``` smali
@@ -566,20 +571,21 @@ public void onComplete(Platform plat, int action, HashMap<String, Object> res)
 
 .end method
 ```
-　　从运行结果开出来，我们所使用的渠道为HTMP_CHL.smali，那么接下来要做的就是：
+<br>　　从运行结果看出来，我们从360上下载的apk所使用的渠道为`HTMP_CHL.smali`，那么接下来要做的就是：
 
 	-  先把调用充值SDK的代码（假设为A）给删掉。
 	-  然后找到充值成功后程序要执行的代码（假设为B）。
 	-  将B放到原来A所在的地方。
 　　
-　　那么先来删除调用充值SDK的代码，即下面的这段：
+　　那么先来删除调用充值SDK的代码（`HTMP_CHL.smali`的第`74`行），即下面的这段：
 ``` smali
 invoke-virtual/range {v0 .. v6}, Lmm/purchasesdk/Purchase;->order(Landroid/content/Context;Ljava/lang/String;ILjava/lang/String;ZLmm/purchasesdk/OnPurchaseListener;)Ljava/lang/String;
 ```
 　　为什么知道是这个方法呢? 还是老样子，一半是猜的，一般是根据支付SDK分析的。 
-　　事实上《愚公移山》的apk中包含了多个支付SDK（至少我就看到了2个），一个是egame，一个是中国移动的purchasesdk。
+　　事实上《愚公移山》的apk中包含了多个支付SDK（至少我就看到了2个），一个是`egame`，一个是中国移动的`purchasesdk`。
+　　从360平台上下载的《愚公移山》实际上使用的是中国移动的`purchasesdk`，我们上面的分析过程的意义就是：通过搜索`egmae`中的`EgamePay`类来定位出《愚公移山》的支付模块所在的位置，进而确定了它使用的支付SDK实际为`purchasesdk`。
 
-　　接下来开始找充值后要执行的代码了，目前唯一的线索就是HTMP_CHL$1.smali这个内部类，进入看看后，发下了如下可疑代码：
+　　接下来我们需要找到充值后要执行的代码，目前唯一的线索就是`HTMP_CHL$1.smali`这个内部类，进入看看后，发下了如下可疑代码：
 ``` smali
 .line 57
     iget-object v1, p0, Lcom/heitao/mp/channel/HTMP_CHL$1;->this$0:Lcom/heitao/mp/channel/HTMP_CHL;
@@ -588,7 +594,7 @@ invoke-virtual/range {v0 .. v6}, Lmm/purchasesdk/Purchase;->order(Landroid/conte
 
     invoke-virtual {v1}, Lcom/heitao/mp/listener/HTMPPayListener;->onHTPayCompleted()V
 ```
-　　然后把这三行代码中的后两行copy出来，放到HTMP_CHL.smali的doPay方法里即可，最终结果如下：
+　　然后把这三行代码中的后两行copy出来，放到`HTMP_CHL.smali`的`doPay`方法里即可，最终结果如下：
 ``` smali
 
 #以上省略若干代码
