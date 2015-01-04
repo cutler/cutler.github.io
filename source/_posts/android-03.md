@@ -1,6 +1,6 @@
 title: 第二章 应用程序组件 — Service
 date: 2014-11-12 22:40:14
-categories: android
+categories: Android
 tags:
 - Android
 ---

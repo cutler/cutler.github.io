@@ -1,6 +1,6 @@
 title: 第二章 应用程序组件 — Activity
 date: 2014-10-30 23:28:28
-categories: android
+categories: Android
 tags:
 - Android
 ---

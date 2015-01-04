@@ -1,6 +1,6 @@
 title: 第二章 应用程序组件 — Intent与Intent Filters
 date: 2014-12-1 21:39:45
-categories: android
+categories: Android
 tags:
 - Android
 ---

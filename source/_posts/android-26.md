@@ -1,0 +1,618 @@
+title: 第十章 应用程序破解
+date: 2014-12-29 22:10:15
+categories: Android
+tags:
+- 破解
+---
+　　本章主要介绍如何使用`ApkTool`工具对Android应用程序（包含游戏）进行破解。
+　　软件破解本就是违法行为，如果市场上充斥着破解软件，那么开发正版游戏、正版软件的公司将难以生存，为了中国软件事业的健康发展，请支持正版。
+　　本章提到的破解技术仅供学习交流，尽可能多的了解软件破解的原理也能让我们写出更安全、优秀的软件。
+<br>
+
+# 第一节 破解工具 #
+　　软件破解，本质上就是先把软件给拆开了，然后修改一下软件的内容（比如去掉收费相关的软件代码），接着在把软件给组装起来的过程。 
+　　因此，在进行软件破解时，第一步要做的就是把软件给拆开，而ApkTool就是用来将软件拆开的一个工具。
+　　工欲善其事必先利其器，因此在开始破解之前我们要先介绍一下ApkTool，以便后面顺利的开展破解工作。
+
+<br>**ApkTool**
+　　ApkTool是Google提供的apk编译工具，它不仅可以用来反编译apk，还可以用来将反编译的apk重新编译回apk。反编译时我们需要使用`decode`命令，重新编译时则需要使用`build`命令，这两个命令的具体用法后面会有详细介绍。
+
+　　下载地址：https://code.google.com/p/android-apktool/wiki/Install
+
+<br>**Apk文件**
+　　在进行破解之前，为了减少我们之间的知识断层，这里先介绍一些apk相关的常识：
+
+	-  Apk文件本质上是一个压缩文件，可以使用压缩软件打开它。
+	-  Apk文件必须被签名之后才能被安装到设备（手机、平板等）上，否则无法安装。
+	-  所谓的对Apk文件进行签名，就是使用JDK里自带的jarsigner.exe工具将一个签名文件和一个未签名的Apk文件绑定到一起。
+	-  使用Eclipse开发时，Eclipse每次生成Apk时都会使用一个默认的签名文件（debug.keystore）对APK进行签名。
+	-  debug.keystore被保存在当前操作系统用户目录下的.android目录下：
+	   -  在Vista和Windows7系统中，路径为：C:\Users\用户\.android\debug.keystore
+	   -  在更早版本的Windows（如XP）系统中，路径为：C:\Document and Settings\用户\.android\debug.keystore
+	-  Apk文件里的xml是二进制格式的，如果直接使用压缩软件解压Apk，那么解压出来的xml文件是无法直接查看、编辑的，但是里面的图片是可以直接查看的。
+	-  只有包名和签名完全一样的两个Apk之间才可以相互覆盖安装，否则无法覆盖安装。
+	-  Dalvik与JVM的最大的区别之一就是Dalvik是基于寄存器的。
+
+# 第二节 HelloWorld #
+　　针对不同的需求破解Apk有不同方式，最简单的破解就是不修改程序的代码，而只是替换一下程序中所用到的图片、文本等数据。
+
+　　接下来将介绍这种破解方式的具体实施步骤。
+
+　　1、创建一个名为`Decode`的`Android`项目，项目的包名为`com.cutler.decode`，然后在`Eclipse`中进行编译、运行。
+　　2、将下载来的`apltool`工具和刚生成的`apk`文件都复制到`D:\decode`目录下。
+　　3、打开`cmd`窗口，进入到`D:\decode`目录，执行如下命令：
+``` android
+apktool.bat d -f Decode.apk
+```
+    语句解释：
+    -  apktool.bat会在D:\decode目录下创建一个Decode目录，并将Decode.apk的内容解压到其中。
+    -  通过apktool.bat解压apk时，解压出来的xml是可以查看和修改的。
+
+<br>**decode命令**
+　　既然上面用到apktool工具的`decode`命令，那么在继续向下进行之前，有必要先学习一下该命令的用法。
+　　它的语法格式为：
+``` lua
+apktool.bat d[ecode] [OPTS] <file.apk> [<dir>]
+```
+	语句解释：
+	-  在上面的语法遵守了“扩展巴科斯范式”的约定，中括号括起来的代表是可选的，尖括号括起来的是必选的。
+	-  刚才我们执行的命令是“apktool.bat d -f Decode.apk”，其中d是decode的简写，它等价于：apktool decode。
+	-  [OPTS]是decode命令的附加选项，常用的取值有：
+	   -  -s：反编译时不反编译apk中的源代码。即不会把apk里的classes.dex文件反编译。
+	   -  -r：反编译时不反编译apk中的资源文件。即res目录下的xml文件等仍然保持二进制形式的，并且res/values将不会被反编译。
+	   -  -f：强制覆盖已经存在的文件。即执行反编译命令时，如果输出路径所已经存在了，则是无法进行反编译的，除非加上-f参数。
+	-  <file.apk>：要反编译的文件的名称。
+	-  [<dir>]：反编译的输出路径。如果不写则默认为当前目录，并且以apk的文件名做为目录名。
+
+　　5、接着修改`Decode\res\values\strings.xml`文件中的“`Hello world!`”为“`世界，你好!`”。
+　　6、接着删除`Decode\res\drawable-ldp`、`Decode\res\drawable-mdpi`、`Decode\res\drawable-xhdpi`三个目录。
+　　7、然后找一个`72*72`尺寸的`png`图来替换调`Decode\res\drawable-hdpi`目录中的“`ic_launcher.png`”。
+　　8、在`cmd`窗口中执行如下命令：
+``` lua
+apktool.bat b Decode newDecode.apk
+```
+　　另外，在打开、修改、保存`Decode\res\values\strings.xml`文件时，要始终保证文件编码是`UTF-8`，因为在“记事本”等文本编译软件中会自动使用系统的默认编码来操作文本文件，而中文操作系统的默认编码是`GBK`，这会导致打包失败。
+
+<br>**build命令**
+　　同样的，我们也来学习一下apktool工具的`build`命令的语法格式为：
+``` lua
+apktool.bat b[uild] [OPTS] [<app_path>] [<out_file>]
+```
+	语句解释：
+	-  [<app_path>]：要打包的目录。
+	-  [<out_file>]：打包成功后生出的文件。
+
+　　值得注意的是，使用`apktool`的`build`命令生成的`apk`是一个未签名的文件，而未签名的文件是无法被安装的，因此接下来我们要对`apk`进行签名，并且为了能覆盖安装，我们将不再创建新的签名文件，而是使用`debug.keystore`进行签名。
+
+　　说到这里，我们就可以发现一件事：如果我们能得到软件作者的签名文件，那么我们破解后的包将完全可以覆盖安装掉原作者的包！ 妈的想想还挺激动呢。
+
+　　我们需要使用下面的命令来对apk进行签名：
+``` lua
+jarsigner -verbose -keystore debug.keystore -signedjar signed.apk newDecode.apk androiddebugkey -storepass android -digestalg SHA1 -sigalg MD5withRSA
+```
+	语句解释：
+	-  首先要保证JDK\bin目录已经被放到了PATH环境变量中，否则无法使用上面的命令进行打包。
+	-  下面依次介绍一下jarsigner.exe的各个参数的取值：
+	   -  [-verbose[:suboptions]]：签名/验证时输出详细的过程信息。子选项可以是all, grouped或summary。
+	   -  [-keystore <url>]：签名文件的保存位置。
+	   -  [-signedjar <文件>]，这个参数分为三个部分：
+	      -  第一部分是即将生成的已签名的JAR文件所要使用的名称。
+	      -  第二部分是待签名的apk文件。
+	      -  第三部分是签名文件里设置的别名(alias)。
+	   -  [-storepass <口令>]：签名文件里设置的密码。
+	   -  [-digestalg <算法>]：摘要算法的名称。
+	   -  [-sigalg <算法>]：签名算法的名称。
+
+　　然后就可以将生成的`signed.apk`安装到手机上查看运行效果了。
+
+　　至此我们通过修改`apk`里的文字、图片资源，完成了一个最简单的破解。 但是真正的游戏、软件破解可不是这么简单的，万里长征，第一步吧。
+
+# 第三节 破解App #
+　　本节将介绍如何破解一个纯Android开发的应用软件，至于游戏的破解将在下一节中介绍。
+
+　　老规矩为了更好的理解破解过程，我们在此之前先介绍一下`JVM`、`Dalvik`、`Dex`三者的概念。
+
+　　JVM、Dalvik与Dex：
+
+	-  JVM是Java Virtual Machine（Java虚拟机）的缩写，简单的说它就是用来运行Java程序的。
+	   -  目前Android程序使用Java语言来开发，因而不可避免的会使用JVM来运行程序。但实际上JVM对移动设备的支持并没有想象中的那么完美，因而Google公司自己设计了一个用于Android平台的虚拟机，即Dalvik。
+	-  Dalvik和JVM是一样的，用来解释执行Java字节码文件，但Dalvik解析的字节码文件的后缀名为.dex，而不是JVM的.class。
+	   -  这也就是说，Android系统中的应用程序是运行在Android自身的Dalvik虚拟机上的，而不是运行在Java VM之上。
+	-  对于Android来说，一个Apk文件内部只有一个classes.dex文件，而这个.dex文件内部其实保存着多个.class文件。
+
+<br>　　然后再介绍一下`Smali`语言的概念：
+
+	-  在使用Apktool工具反编译apk时，它会在输出目录里创建一个smali子目录，并将apk里面的classes.dex里的一个个类，按照它们的包结构反编译成一个个的smali文件，Smali文件里的代码都是用Smali语言写的。
+	-  Smali代码是Android的Dalvik虚拟机的可执行文件DEX文件反汇编后的代码，Smali语言是Dalvik的反汇编语言。  
+
+<br>　　到这里一切都明白了，由于我们手上不可能拥有`apk`的源代码， 所以为了达到破解的目的，我们只能通过修改反编译生成的`smali`文件的内容来完成修改游戏逻辑的需求了。既然我们目标已经明确了（需要去修改`smali`文件），那么下一步就应该动手去做了。但在动手之前，还得先学习一下`Smali`语言的基础语法，不然是无从下手的（看都看不懂，又怎能知道如何修改）。
+
+## Smali语言入门 ##
+　　为了由浅入深的介绍`Smali`语言，我们先在原来的`Decode`项目基础上创建一个普通的类：`HelloWorld`。
+
+<br>　　范例1：com.cutler.decode.HelloWorld.java。
+``` java
+package com.cutler.decode;
+
+public class HelloWorld {
+    // 定义基本类型变量
+    static short varShort;
+    protected static int varInt;
+    // 定义对象类型变量
+    String objString = "ABC";
+    Long objLong;
+	
+    public HelloWorld(int param1, boolean param2){
+        int param3 = 2;
+        long param4 = 3;
+    }
+}
+```
+	语句解释：
+	-  在HelloWorld中定义了各种类型的变量和方法，稍后我们将看到这些代码的在Smali语言中是如何表示的。
+	-  由于篇幅有限，笔者不会把所有Java支持的语法都列举出来，并将它们对应于Smali代码，因此本章中未讲到的语法知识，读者可以自行去测试。
+
+<br>　　然后对项目执行编译、运行操作，并将生成的apk文件反编译，接着打开`smali/com/cutler/decode/HelloWorld.smali`文件。
+
+<br>　　范例2：HelloWorld.smali代码解读（1）。
+``` smali
+# .class指明当前文件是一个类文件，后面跟随着该类的访问（和存在）修饰符、包名、类名
+.class public Lcom/cutler/decode/HelloWorld;
+# .super指明当前类的父类
+.super Ljava/lang/Object;
+# .source指明当前类所在的文件名
+.source "HelloWorld.java"
+
+
+# static fields
+# .field 指明接下来定义的是一个字段。 格式为：[.field 修饰符 字段名:字段数据类型简写形式]
+.field protected static varInt:I
+.field static varShort:S
+
+
+# instance fields
+.field objLong:Ljava/lang/Long;
+.field objString:Ljava/lang/String;
+
+
+# direct methods
+# .method 指明接下来定义的是一个方法。 constructor表名该方法是一个构造方法。
+# 方法内部代码的含义，会在下面的几个范例中逐一讲解。
+.method public constructor <init>(IZ)V
+    .locals 4
+    .parameter "param1"
+    .parameter "param2"
+
+    .prologue
+    .line 11
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    .line 8
+    const-string v3, "ABC"
+
+    iput-object v3, p0, Lcom/cutler/decode/HelloWorld;->objString:Ljava/lang/String;
+
+    .line 12
+    const/4 v0, 0x2
+
+    .line 13
+    .local v0, param3:I
+    const-wide/16 v1, 0x3
+
+    .line 14
+    .local v1, param4:J
+    return-void
+#.end method是方法结束的标志。
+.end method
+```
+	语句解释：
+	-  上面提到的字段的数据类型简写形式，可以通过JDK提供的javap工具获取，在NDK开发的时候也会用到javap工具。
+	-  javap的命令为：javap -s 包名.类名
+	-  数据类型的简写形式有：
+	   -  byte -> B    char -> C      short -> S      double -> D      long -> J
+	   -  int -> I     float -> F     boolean -> Z    int[]-> [I       Object -> L
+
+<br>　　范例3：HelloWorld.smali代码解读（2）。
+　　方法有直接方法和虚方法两种，直接方法的声明格式如下：
+``` smali
+.method <访问权限> [修饰关键字] <方法签名>  
+    <.locals> 
+    [.parameter] 
+    [.prologue] 
+    [.line] 
+    <代码体>
+.end method 
+```
+	语句解释：
+	-  <访问权限>的取值有public、private等。
+	-  [修饰关键字]的取值有static、constructor等。
+	-  <方法签名>的格式为：（参数1的类型参数2的类型...）方法返回值的类型。也可以通过javap工具获取某个类的方法签名。
+	-  <.locals>指定了方法中局部变量所占据的寄存器的总数（注意不包括方法的参数）。这里有两点需要注意的：
+	   -  1、如果局部变量没有被赋值，则是不会被计算到.locals里的。比如int a;不会被计算，而int a = 3;则就会被计算。
+	   -  2、特别说明一下：Long和Double类型是64位的，需要2个寄存器。
+	-  [.parameter]指定了方法的参数。 每一个参数对应一个[.parameter]，格式为：.parameter 参数名。
+	-  [.prologue]指明当前位置是代码的开始处。即在它之前出现的都是些方法的元数据，在它之后出现的才是真正的代码。
+	-  [.line]指定了该处指令在源代码中的位置。
+	-  <代码体>指明了代码的内容。一般情况下它总是跟随着[.line]一起出现。
+
+<br>　　在继续学习之前，有些东西需要先说明一下。
+　　前面说过，`Dalvik`与`JVM`的最大的区别之一就是`Dalvik`是基于寄存器的。这意味着在`Smali`里的所有操作都必须经过寄存器来进行，比如函数调用、变量赋值等等。
+<br>　　寄存器分为两种：本地寄存器和参数寄存器。
+
+	-  本地寄存器是用来保存方法内的局部变量的值所使用的寄存器。用v开头数字结尾的符号来表示，如v0、v1、v2、...。本地寄存器没有限制，理论上是可以任意使用的。
+	-  参数寄存器是用来保存方法参数的值所使用的寄存器。以p开头以数字结尾的符号来表示，如p0、p1、p2、...。特别注意的是p0不一定是方法的第一个参数：
+	   -  在非static函数中，p0代指“this”，p1表示函数的第一个参数，依此类推...。
+	   -  在static函数中p0才对应第一个参数（因为Java的static方法中没有this）。   
+
+　　之所以范例2的代码中`.locals`的值是4，是因为`smali`代码中包含了`v0-v3`共4个寄存器。
+
+<br>　　范例4：HelloWorld.smali代码解读（3）。
+``` smali
+.line 11
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+```
+	语句解释：
+	-  invoke-direct指令用来调用一个实例方法，格式为：invoke-direct {参数列表}, 方法所在的类以及方法签名。
+	-  本范例的含义为：在对象p0上调用其继承自父类Object类的无参构造方法。
+
+<br>　　范例5：HelloWorld.smali代码解读（4）。
+``` smali
+const-string v3, "ABC"
+const/4 v0, 0x2
+const-wide/16 v1, 0x3
+```
+	语句解释：
+	-  以const开头的指令都是在定义常量。
+	-  const-string指令用来定义一个字符串常量。第一行代码的含义为：将字符串ABC的地址赋值给v3。
+	-  const/4和const-wide/16分别对应int和long型的长量。
+	
+<br>　　范例6：HelloWorld.smali代码解读（5）。
+``` smali
+iput-object v3, p0, Lcom/cutler/decode/HelloWorld;->objString:Ljava/lang/String;
+```
+	语句解释：
+	-  以iput开头的指令都是为一个成员变量赋值，以iget开头的指令都是用来获取成员变量的值。如：iget-boolean。
+	-  以sput开头的指令都是为一个静态变量赋值，以sget开头的指令都是用来获取静态变量的值。如：sput-short。
+	-  没有“-object”后缀的表示操作的成员变量对象是基本数据类型，带“-object”表示操作的成员变量是对象类型。
+	-  本范例代码的含义是：将寄存器v3中保存的值，赋值到对象p0的objString属性上去。
+	   -  Lcom/cutler/decode/HelloWorld; 表示属性所隶属的类。
+	   -  ->表示从属关系。即箭头右端的字段隶属于箭头左端的类。
+	   -  objString表示属性的名称。
+	   -  Ljava/lang/String;表数属性的数据类型。
+
+　　最后的那一条`return-void`指令，就是表示方法没有返回值。如果方法有返回值的话代码类似于：`return v0`。
+
+<br>**本节参考阅读：**
+- [Smali语法学习与DEX文件详解](http://wenku.baidu.com/link?url=B4NykyUlMMkK_zTAZSUT92mNVpCpX0NscXAGlDJGUGPVwZcTrlzJCDONz0x-KiKVNT1-hkACWSc-hbApUbVpWYTmKkXBYfqoJsJg1lv89Wq) 
+- [APK反编译之一：基础知识](http://blog.csdn.net/lpohvbe/article/details/7981386)  
+
+## MainActivity.smali ##
+　　通过上一节我们了解了Smali语言的基础语法，但是仅仅了解那几个语法还是远远不够的，本节则通过分析MainActivity.smali文件来介绍Smali语言的其它语法。
+
+<br>　　范例1：onCreate()方法分析。
+``` smali
+# virtual methods
+.method public onCreate(Landroid/os/Bundle;)V
+    .locals 1
+    .parameter "savedInstanceState"
+
+    .prologue
+    .line 11
+    invoke-super {p0, p1}, Landroid/app/Activity;->onCreate(Landroid/os/Bundle;)V
+
+    .line 12
+    const/high16 v0, 0x7f03
+
+    invoke-virtual {p0, v0}, Lcom/cutler/decode/MainActivity;->setContentView(I)V
+
+    .line 13
+    return-void
+.end method
+```
+	语句解释：
+	-  以invoke开头的指令都是在进行方法调用。常用的几个指令有：
+	   -  invoke-static 调用静态方法。
+	   -  invoke-super 调用父类的方法。
+	   -  invoke-interface 调用接口的方法。
+	   -  invoke-direct
+
+<br>　　现在我们想在`MainActivity.smali`的`onCreate()`方法里加个`Toast`，Android中对应的代码应该是这样的：
+``` android
+Toast.makeText(this, "世界，你好！", Toast.LENGTH_SHORT).show();
+```
+<br>　　那么问题来了，虽然我们之前讲解的东西都很容易懂，但是现在让我们真刀真枪的上去干，还是不会写啊，怎么办？ 
+　　简单，那就自己建立一个Android项目，在Android中把这行代码给写出来，然后再反编译它，就得到了我们想要的代码了，这种方法对于那些比较复杂的情况也照样适用，最多在代码使用之前我们稍微改改而已。
+　　写代码不会写，尼玛改代码还不会么？？？？
+
+<br>　　范例2：添加Toast输出。
+``` smali
+# virtual methods
+.method public onCreate(Landroid/os/Bundle;)V
+    .locals 2
+    .parameter "savedInstanceState"
+
+    .prologue
+    .line 11
+    invoke-super {p0, p1}, Landroid/app/Activity;->onCreate(Landroid/os/Bundle;)V
+
+    .line 12
+    const/high16 v0, 0x7f03
+
+    invoke-virtual {p0, v0}, Lcom/cutler/decode/MainActivity;->setContentView(I)V
+
+    .line 13
+    const-string v0, "\u4e16\u754c\uff0c\u4f60\u597d\uff01"
+
+    const/4 v1, 0x0
+
+    invoke-static {p0, v0, v1}, Landroid/widget/Toast;->makeText(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;
+
+    move-result-object v0
+
+    invoke-virtual {v0}, Landroid/widget/Toast;->show()V
+
+    .line 14
+    return-void
+.end method
+```
+	语句解释：
+	-  将Demo项目为Toast而生成的smali代码放到待破解项目中时，有以下几点要注意：
+	   -  确保函数第一行上的那个“.locals 寄存器数量”的数值是正确的。 比如默认情况下onCreate的.locals值为1，但是由于我们添加了的Toast操作需要两个寄存器变量，所以需要把.locals修改为2。
+	   -  onCreate()函数里的代码的“.line 行号”就得相应后移了。如本范例把Toast的smali代码插入到onCreate()函数的13行上，相应的return-void就应该被定义为“.line 14了”。
+	-  move-result-object指令用来将它上一条“方法调用”指令的返回值放到一个寄存器中。
+
+　　关于Smali的其他语法在此就不一一介绍了，当遇到不认识的指令时Google搜索或自己推测一下，问题都不大。
+
+# 第四节 破解游戏 #
+　　在破解之前，先来说一下游戏破解最常见的两个目的：
+
+	-  修改游戏里的数值。 比如金钱、血量。
+	-  修改游戏里的支付、分享等逻辑。 比如让玩家点击充值、分享时直接可以获取到奖励，而不用真正的去充值、分享。
+
+　　市场中的游戏都是基于各种各样的游戏引擎开发的，而大多数游戏的源代码最终都被打入一个`so`库中，然后在程序中动态加载这个库文件。如果想修改游戏的数值必须得修改`so`库。
+　　由于修改`so`库的技术含量比较高，因此本节只会讲解如何破解使用`Cocos2d-x`、`Unity3D`游戏引擎开发的单机游戏的支付、分享等逻辑。
+
+<br>**思路是这样的**
+　　以国内游戏为例，通常游戏会接入支付宝、银联等支付SDK，接入微信、新浪微博等分享SDK，而这些SDK的厂家都是通过jar包的形式对外提供SDK的，这就好办多了，我们通过前三节学习的知识完全可以完成破解工作（也许你还需要再学习一些指令，比如if指令）。
+　　我们以分享为例，通常游戏需要进行分享时，开发人员的做法会是：
+
+	-  当玩家在游戏中点击分享按钮时，游戏会调用Android中的某个类（假设它叫ShareUtil）的某个方法（假设它叫share）中执行分享操作。
+	-  在ShareUtil.share()方法中会执行两个操作：
+	   -  首先，设置一些与分享相关的信息（比如要分享的文字、图片等）。
+	   -  然后，调用分享SDK进行分享。
+	-  当分享SDK分享成功后会通过回调通知ShareUtil。
+	-  最后，ShareUtil接到通知后会转过来去告诉游戏端发放奖励。
+
+　　支付的流程与分享的流程是类似的，既然已经知道了它们的套路，那么接下来我们就开始吧。
+
+## 《愚公移山》 ##
+　　《愚公移山》是由厦门青瓷开发，上海黑桃互动代理发行的手机休闲游戏，运用Unity3D技术实现游戏的多平台均可运行的游戏。
+
+　　[点击下载](http://zhushou.360.cn/detail/index/soft_id/2037801)
+
+　　将APK下载到本地后，为了避免中文文件名导致的各种问题，我们先把APK文件的名称为“ygys.apk”。
+
+<br>　　范例1：先把它反编译。
+```
+apktool.bat d ygys.apk
+```
+	语句解释：
+	-  我们都懂得！！！！
+
+　　破解游戏的第一步要干什么？ 当然是先确定目标啊，我们的破解任务有两个：
+
+	-  进入游戏后，点击“商店”，找到“微信分享”，让玩家可以在点击“一键分享朋友圈”时，直接获得“5000儿孙”!!!
+	-  在“商店”里，找到“花费：1200金币”，让玩家可以不花费金币就“儿孙数量翻倍”。
+
+　　确立了目标后，然后就该各个击破它们了。
+
+### 破解分享功能 ###
+　　所谓知己知彼百战不殆，破解之前先打开游戏玩一下，看看它们用的是哪家的分享SDK，这样我们就可以也下载那个SDK，然后参考SDK的接入流程来进行破解了。  
+　　通过观察，从表面上只能看出愚公移山使用的是微信分享，但是没法确定是哪一家的，没办法只能进入到smali目录下，随便瞎看，结果没点几下就看到了smali\cn\sharesdk目录，看到这里我们就知道了，它使用的是[ShareSDK](http://sharesdk.mob.com/Download)。
+　　然后，我们就可以去ShareSDK官网把Android端的分享SDK的接入Demo给下载下来，稍后会用到。
+
+　　为了方便代码定位，我们将反编译出来的ygys文件夹放入到Eclipe中，因为Eclipse有全文搜索的功能，快捷键是“ctrl+H”，打开搜索窗口后，找到“File Search”选项卡，如下图所示：
+
+
+　　现在我们来看看ShareSDK的demo项目中是如何进行微信分享的，找到 cn.sharesdk.demo.WechatPage类，发现有如下代码：
+``` android
+ShareSDK.setPlatformDevInfo("WechatMoments", map);
+```
+　　这行代码的作用看起来像是为SDK指定分享的方式的，那么就用它作为我们的入口，因为不论是.java文件还是.smali文件，虽然它们的语法差别很大，但是方法的名称是不会被改变的，因此我们在Eclipse中搜索`setPlatformDevInfo`关键字，得到两个结果，如下图所示：
+
+
+　　通过观察发现，第一个结果是setPlatformDevInfo的定义，而第二个则是对setPlatformDevInfo的调用，我们打开smali\com\qcplay\www\wechat\wxapi\WXShare.smali，找到318行，发现它是属于“.method private _init()V”函数的，以我们以往接入SDK的经验来看，一般SDK都会存在一个“初始化”的步骤，只有初始化完毕后，SDK才能正常工作，所以_init应该不是用户点击按钮的时候方法，因为初始化通常是个耗时操作，放在点击按钮的时候明显不合适（用户等待的时间就变长了）。当然最重要的一点是，仔细看了一下这个方法里的代码，并没有调用分享，所以综合这些信息，我们要找的不是这个方法。
+
+　　那么既然已经找到了setPlatformDevInfo方法的调用位置了，那么真正的分享代码也不会放太远了（除非那个狗日的程序员是个傻屌乱写代码），现在只有上下看看WXShare.smali里还有其他什么方法没有，结果看到了下面这八个方法：
+
+	-  ShareImgBit、ShareImgPath、ShareText、ShareWebPage、_shareImgBit、_shareImgPath、_shareText、_shareWebPage
+
+　　其中后四个是private修饰的，外界没法直接调用它们，因此先将它们排除。
+　　现在只剩下四个方法了，但是当玩家在游戏中点击“一键分享朋友圈”按钮时，真正调用的是哪一个方法呢？ 没办法只有在这四个方法里都加入我们的代码，进行测试了，比如我们把ShareText方法的代码修改如下：
+``` smali
+.method public static ShareText(ZLjava/lang/String;)V
+    .locals 2
+    .parameter "isTimelineCb"
+    .parameter "text"
+
+    .prologue
+    .line 96
+    sget-object v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
+
+    const-string v1, "*********************************** Hi ShareText"
+
+    invoke-virtual {v0, v1}, Ljava/io/PrintStream;->println(Ljava/lang/String;)V
+
+    .line 97
+    return-void
+.end method
+```
+	语句解释：
+	-  实际上就是加了一个System.out.println("*********************************** Hi ShareText");
+	-  注意还有修改一下 .locals 2，因为System.out语句使用到了2个寄存器。
+
+　　另外三个方法也是同样的道理，只是它们输出的内容各不相同罢了，然后重新打包、签名、安装、运行，当点击“一键分享朋友圈”时，发现输出的内容是我们在ShareWebPage方法里写的内容，至此我们就确定了Android端第一个被调用的方法了。
+
+　　查看ShareWebPage方法的内部，发现它又调用了_shareWebPage方法，我们接着跟进去，第一眼看到的就是我们熟悉的Handler的定义：
+``` smali
+.prologue
+    .line 127
+    new-instance v6, Landroid/os/Handler;
+```
+　　通过连猜带蒙的方式，得知它调用了Handler.post(Runnable)方法执行一个任务，这个Runnable对象就是WXShare$3.smali。由于在_shareWebPage方法中也发现那一行代码像是在调用分享SDK，所以我们只能硬着头皮继续看WXShare$3.smali了。
+　　提示：在Java中，一个内部类的类名的格式为：外部类名$内部类名，对于匿名内部类来说，内部类名用数字编号。
+
+　　既然知道WXShare$3是Runnable的子类，那我们直接如找run方法，看看里面有什么。又是一阵连蒙带猜结束后，看到了如下代码：
+``` smali
+.line 141
+    .local v2, wechat:Lcn/sharesdk/framework/Platform;
+    invoke-virtual {v2, v1}, Lcn/sharesdk/framework/Platform;->share(Lcn/sharesdk/framework/Platform$ShareParams;)V
+```
+　　终于找到了我们想要看到的“share”函数的调用了，虽然不确定是不是分享，但是从名字上看，90%是没错了。假设我们没找错，那也只是能证明“点击一键分享朋友圈按钮是，程序会调用ShareText函数，并由ShareText函数执行分享操作”，接下来我们该干什么?
+
+　　我们没必要继续向下追踪了，那里面都是分享SDK相关的代码了，对我们没用。现在就需要回到ShareSDK的Demo项目中看看当分享成功后它是怎么接到通知的。
+　　从WechatPage.java中找到了如下代码：
+``` android
+Platform plat = null;
+ShareParams sp = getShareParams(v);
+if (ctvPlats[0].isChecked()) {
+    plat = ShareSDK.getPlatform("Wechat");
+} else if (ctvPlats[1].isChecked()) {
+    plat = ShareSDK.getPlatform("WechatMoments");
+} else {
+    plat = ShareSDK.getPlatform("WechatFavorite");
+}
+plat.setPlatformActionListener(this);
+plat.share(sp);
+```
+　　发现它是在调用share方法进行分享之前，调用setPlatformActionListener方法设置了一个回调接口，WechatPage类实现了该接口。
+　　那么我们再在WechatPage类找找PlatformActionListener接口定义了哪些方法，最终找到了它：
+``` android
+public void onComplete(Platform plat, int action, HashMap<String, Object> res)
+```
+
+　　终于又找到新的线索了，当分享成功后ShareSDK会调用PlatformActionListener接口的onComplete函数。那么还是按照刚才的结论(一些相关的类相距不会太远），在smali\com\qcplay\www\wechat\wxapi目录下找找，看看有没有实现PlatformActionListener接口的smali文件。
+　　最终，我们定位到了WXShare$2.smali，在它的onComplete函数里找到了如下代码：
+``` smali
+.line 71
+    const-string v0, "3rd_sdk"
+
+    const-string v1, "OnWeChatResp"
+
+    const-string v2, "errcode=0"
+
+    invoke-static {v0, v1, v2}, Lcom/unity3d/player/UnityPlayer;->UnitySendMessage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+```
+　　这就是当分享成功后，程序要执行的代码，onComplete函数里的其他代码就是用来打印Log的，不重要，我们不用管。
+　　现在我们需要做的就是，把这端代码copy出来，然后放到WXShare.smali的ShareWebPage函数里，即当用户点击分享的时候，我们不掉用分享，而是直接调用上面的代码，让用户可以立刻领取奖励，代码如下：
+``` smali
+.method public static ShareWebPage(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;[B)V
+    .locals 6
+    .parameter "isTimelineCb"
+    .parameter "url"
+    .parameter "title"
+    .parameter "description"
+    .parameter "img"
+
+    .prologue
+    .line 122
+    .line 71
+    const-string v0, "3rd_sdk"
+
+    const-string v1, "OnWeChatResp"
+
+    const-string v2, "errcode=0"
+
+    invoke-static {v0, v1, v2}, Lcom/unity3d/player/UnityPlayer;->UnitySendMessage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+
+    .line 123
+    return-void
+.end method
+```
+　　然后保存、打包、签名、运行。
+
+　　至此我们就完成了分享SDK的破解，看了这么多你可能会感觉如果是自己搞的话，思路就没有这么清晰，还是会感觉无从下手。 没关系，万事开头难，我搞这个SDK破解也是没头绪的晕了2天，然后才慢慢走出来的。
+
+
+### 破解短信支付功能 ###
+　　还是老套路，先观察游戏使用的是什么支付方式再决定怎么破解。 但经过观察后，我们从游戏界面上只能看出来《愚公移山》使用的是短信支付，其他的却什么都看不出来，那么只能再去看看smali文件夹下面有什么线索没有了。
+
+　　虽然现在没什么头绪，只能是胡乱翻找，但是按照“相关代码不会离太远”的原则，我们先去sharesdk所在的目录看看，结果发现了一个名为“egame”的支付SDK，然后果断去百度一下，看看egame是怎么个用法，结果搜索到了http://180.96.63.69/Documents/SDK_Pay.html。
+
+　　接着将egame的SDK下载下来，打开cn.play.egamesmsonline69.MainActivity文件，发现有个名为EgamePay的类比较核心，我们也许可以从它入手。 
+　　然后在Eclipse中全文搜索EgamePay类，查询出了2个目录：
+
+	-  cn\egame\terminal\paysdk
+	-  com\heitao\mp\channel
+　　其中第一个目录不出意外的话应该是egame提供给游戏开发者的SDK中的jar包，所以对我们没什么用。
+　　而第二个目录，看起来就像是游戏开发者自己写的充值代码了，所以我们打算先打开HTMP_CHA.smali文件看看，查看之后，结果里面就是支付相关的代码。
+
+　　但是此时还有个问题，com\heitao\mp\channel目录下有7个类，其中HTMPBaseChannel.smali是一个父类，另外6个类中有三个是内部类，而剩下的三个类从名字来看的话，应该是代表三个充值渠道，那么可以肯定的是，这三个渠道不会同时被使用，所以需要知道我们从360市场下载过来的apk会走哪个充值渠道。
+　　这个好判断，只要在这三个类中都加上我们万能的HelloWorld代码，然后重新打包，看看运行时输出的内容就可以了。
+
+``` smali
+.method public doPay(Lcom/heitao/mp/model/HTMPPayInfo;Lcom/heitao/mp/listener/HTMPPayListener;)V
+
+#以上省略若干代码
+
+    .line 150
+    sget-object v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
+    const-string v1, "*********************************** Hello World22"
+    invoke-virtual {v0, v1}, Ljava/io/PrintStream;->println(Ljava/lang/String;)V
+    :goto_0
+    return-void
+
+#以下省略若干代码
+
+.end method
+```
+　　从运行结果开出来，我们所使用的渠道为HTMP_CHL.smali，那么接下来要做的就是：
+
+	-  先把调用充值SDK的代码（假设为A）给删掉。
+	-  然后找到充值成功后程序要执行的代码（假设为B）。
+	-  将B放到原来A所在的地方。
+　　
+　　那么先来删除调用充值SDK的代码，即下面的这段：
+``` smali
+invoke-virtual/range {v0 .. v6}, Lmm/purchasesdk/Purchase;->order(Landroid/content/Context;Ljava/lang/String;ILjava/lang/String;ZLmm/purchasesdk/OnPurchaseListener;)Ljava/lang/String;
+```
+　　为什么知道是这个方法呢? 还是老样子，一半是猜的，一般是根据支付SDK分析的。 
+　　事实上《愚公移山》的apk中包含了多个支付SDK（至少我就看到了2个），一个是egame，一个是中国移动的purchasesdk。
+
+　　接下来开始找充值后要执行的代码了，目前唯一的线索就是HTMP_CHL$1.smali这个内部类，进入看看后，发下了如下可疑代码：
+``` smali
+.line 57
+    iget-object v1, p0, Lcom/heitao/mp/channel/HTMP_CHL$1;->this$0:Lcom/heitao/mp/channel/HTMP_CHL;
+
+    iget-object v1, v1, Lcom/heitao/mp/channel/HTMP_CHL;->mPayListener:Lcom/heitao/mp/listener/HTMPPayListener;
+
+    invoke-virtual {v1}, Lcom/heitao/mp/listener/HTMPPayListener;->onHTPayCompleted()V
+```
+　　然后把这三行代码中的后两行copy出来，放到HTMP_CHL.smali的doPay方法里即可，最终结果如下：
+``` smali
+
+#以上省略若干代码
+
+    .line 150
+    iget-object v1, p0, Lcom/heitao/mp/channel/HTMP_CHL;->mPayListener:Lcom/heitao/mp/listener/HTMPPayListener;
+
+    invoke-virtual {v1}, Lcom/heitao/mp/listener/HTMPPayListener;->onHTPayCompleted()V
+    :goto_0
+    return-void
+
+#以下省略若干代码
+
+```
+	语句解释：
+	-  HTMP_CHL类的mPayListener字段继承自父类HTMPBaseChannel。
+	-  注意：copy过来代码后，还要把“iget-object v1, v1”改成“iget-object v1, p0”。
+
+　　从上面的破解过程可以看出来，软件破解的成功与否，除了需要大量的代码分析外，还与运气有那么一点关系。
+　　
+
+
+
+
+
+
+

@@ -1,6 +1,6 @@
 title: 第二章 应用程序组件 — BroadcastReceiver
 date: 2014-11-29 14:28:35
-categories: android
+categories: Android
 tags:
 - Android
 ---

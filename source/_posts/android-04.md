@@ -1,6 +1,6 @@
 title: 第二章 应用程序组件 — Content Provider
 date: 2014-11-23 15:16:35
-categories: android
+categories: Android
 tags:
 - Android
 ---
