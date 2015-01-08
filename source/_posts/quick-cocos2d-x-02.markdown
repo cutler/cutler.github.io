@@ -3,10 +3,10 @@ layout: post
 title: "第二章 Lua 程序设计"
 date: 2014-09-03 22:07:06 +0800
 comments: true
-categories: cocos2dx-lua
+categories: Cocos2dx-lua
 tags:
 - 脚本语言
-- cocos2dx-lua
+- Cocos2dx-lua
 ---
 　　从上一章我们知道了学习Cocos2dx-lua之前要先学习Lua语言，本章就来介绍一下Lua的基本知识。
 　　本章主要参考《Programming in Lua》中文版一书，并添加了书中未写到的细节知识。<br>

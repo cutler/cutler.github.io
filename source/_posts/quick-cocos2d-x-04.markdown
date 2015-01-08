@@ -3,9 +3,9 @@ layout: post
 title: "第四章 基础入门"
 date: 2014-12-16 22:15:42
 comments: true
-categories: cocos2dx-lua
+categories: Cocos2dx-lua
 tags:
-- cocos2dx-lua
+- Cocos2dx-lua
 ---
 　　所谓工欲善其事必先利其器，深刻的了解并大范围的覆盖了官方的`API`的使用方法，对于开发、调试来说无疑是有很大益处的。 笔者可以毫不负责任的说，开发其实就是`逻辑+API`。API掌握的越多、逻辑思维越厉害，开发也就越轻松。
 
@@ -14,7 +14,7 @@ tags:
 	-  在下面的章节中所列出的API是没有前后顺序的，可以相互交叉着来看。
 	-  本章仅仅将quick中常用的API列出，以便可以正常进行游戏开发工作，而更详细的API文档请参阅quick的安装目录下的/docs/api/index.html文件。
 
-　　再次声明，quick-cocos2d-x是对cocos2d-x + lua的增强版，因此其提供的大部分API的名称和cocos2d-x的是相同的。
+　　再次声明，quick-cocos2d-x是对Cocos2d-x + lua的增强版，因此其提供的大部分API的名称和Cocos2d-x的是相同的。
 
 # 第一节 面向对象程序设计 #
 　　本节将介绍如何在quick中创建、导入类，因为`类是游戏开发的基本单元`，熟练掌握了类相关的基本语法是进一步学习的前提。而当创建完quick类后，我们就可以开始在类的内部写游戏相关的代码了。
@@ -39,8 +39,9 @@ function Shape:draw()
 end
 ```
     语句解释：
-	-  使用class()函数来创建一个类，具体的格式为： class(类名, [父类])
-	-  使用class()函数创建类时，class()函数会做以下操作：
+	-  使用class()函数来创建一个类。
+	   -  具体的格式为： class(类名, [父类])。
+	-  创建类时，class()函数会做以下操作：
 	   -  为该类创建一个super属性，并使其指向父类(如果有的话)。
 	   -  为该类创建一个new()函数，以便可以通过该方法实例化该类的一个实例。
 	   -  为该类创建一个ctor()函数，它相当于一个构造方法，当调用new()函数时，new()函数会将它的所有参数传递给ctor()。
@@ -160,7 +161,7 @@ end
 	-  首先，在游戏中定时（如每5分钟一次）调用某个服务器接口，将本地的版本信息传递给服务端，服务端进行比较，然后将新的脚本或图片返回给客户端。
 	-  客户端下载完脚本后，执行如下代码，将已存在于内存中的文件清除，然后在加载最新的文件。
 
-　　具体的代码回来补上，因为笔者还没有在quick3.x版本中进行版本更新，之前的游戏都是在quick2.x版本上进行的。
+　　具体的代码回来补上，因为笔者还没有在quick3.x版本中进行版本更新，之前的游戏都是在quick2.2.5版本上进行的。
 
 ## 创建Model类 ##
 　　在quick中，任何一个model类都应该继承`cc.mvc.ModelBase`类，它是`quick`为我们封装好的，遵循`mvc`结构的公共基类。这里所说的`Model`类等价于`Java`中的`JavaBean`，本节将从`ModelBase`的用法开始讲起。
@@ -779,7 +780,7 @@ local color3 = cc.c4f(0, 0, 1.0, 0.3) -- 30% 透明度的蓝色
 ## Director ##
 　　本节来介绍`Cocos2d-x`中非常重要的一个类，它管理整个游戏的开始、结束、暂停等，可以说它就是我们游戏的总指挥，那么它就是我们的导演类`Director`。下面让我们一起来学习一下导演类`Director`。
 
-　　CCDirector类是Cocos2d-x游戏引擎的核心，它用来创建并且控制着主屏幕的显示，同时控制场景的显示时间和显示方式。在整个游戏里一般只有一个导演。游戏的开始、结束、暂停都会调用Director类的方法。Director类具有如下功能：
+　　Director类是Cocos2d-x游戏引擎的核心，它用来创建并且控制着主屏幕的显示，同时控制场景的显示时间和显示方式。在整个游戏里一般只有一个导演。游戏的开始、结束、暂停都会调用Director类的方法。Director类具有如下功能：
 
 	-  初始化OpenGL会话。
 	-  设置OpenGL的一些参数和方式。
@@ -1592,7 +1593,7 @@ end
     语句解释：
 	-  create方法有重载，第二个参数设置图片的显示区域，原点是图片左上角。
 	-  本范例的结果是：在1128845.png上截取出一个矩形作为Sprite要显示的图片，矩形的范围是从1128845.png左上角开始，到x和y轴偏移120像素的位置结束。
-	-  也可以在创建完毕CCSprite后，调用setTextureRect(rect)方法来设置显示区域。
+	-  也可以在创建完毕Sprite后，调用setTextureRect(rect)方法来设置显示区域。
 
 　　除了上面那种方法，在Cocos2dx-lua中还有三种创建Sprite对象的方法，下面将依次来介绍。
 
@@ -1618,7 +1619,7 @@ end
 function MainScene:ctor()
     -- 将一个图片加入缓存并返回一个CCTexture2D的对象
     local pTexture = cc.Director:getInstance():getTextureCache():addImage("1128845.png")
-    -- 创建CCSprite对象
+    -- 创建Sprite对象
     local sp = cc.Sprite:createWithTexture(pTexture)
     sp:setPosition(display.cx, display.cy)
     self:addChild(sp)
@@ -1647,11 +1648,11 @@ end
 <br>　　范例1：通过精灵帧创建精灵。
 ``` lua
 function MainScene:ctor()
-    -- 将图片和plist文件加载到内存中，并缓存到CCSpriteFrameCache中。
+    -- 将图片和plist文件加载到内存中，并缓存到SpriteFrameCache中。
     display.addSpriteFrames("AnimBear.plist", "AnimBear.png")
-    -- 从CCSpriteFrameCache的缓存中查找的图片，若成功则返回CCSpriteFrame。
+    -- 从SpriteFrameCache的缓存中查找的图片，若成功则返回SpriteFrame。
     local frame = display.newSpriteFrame("bear1.png")
-    -- 使用CCSpriteFrame创建一个精灵。
+    -- 使用SpriteFrame创建一个精灵。
     local sprite = display.newSprite(frame)
     sprite:center()
     self:addChild(sprite)
@@ -1692,6 +1693,46 @@ self:addChild(display.newSprite("1128845.png", 400,400))
 	-  函数有三个参数：newSprite(文件名, x坐标, y坐标)
 	-  此语句会使用1128845.png创建一个Sprite对象，并设置其position为(400,400)。
 	-  使用newSprite()函数创建精灵是最常见的。它内部会依据不同的情况来去转调用Sprite:create()和Sprite:createWithSpriteFrame()函数创建精灵。
+<br>
+### Scale9Sprite ###
+　　`Android`中提供的`NinePatch`图片在`Cocos2d-x`中也有对应的实现，即`Scale9Sprite`类。值得注意的是`Scale9Sprite`类显示的图并不需要画线，画线也没用。
+
+<br>　　范例1：创建`Scale9Sprite`。
+``` lua
+function MainScene:ctor()
+    local sprite = ccui.Scale9Sprite:create("button.png")
+    -- 设置精灵的大小
+    sprite:setPreferredSize(cc.size(300,300))
+    sprite:center()
+    self:addChild(sprite)
+end
+```
+    语句解释：
+	-  若没有调用setPreferredSize()或setContentSize()函数来设置Scale9Sprite的尺寸，则默认使用图片的尺寸作为Scale9Sprite的尺寸。
+	-  若调用了，则会在水平和垂直方向上，拉伸图片到设置的尺寸。
+
+<br>　　范例2：其他函数。
+``` lua
+-- 获取sprite所显示的图片的原始尺寸。
+sprite:getOriginalSize().width, s:getOriginalSize().height
+
+-- 设置拉伸的区域
+sprite:setCapInsets(cc.rect(120, 120, 10, 10))
+```
+<br>
+### GraySprite ###
+　　在实际项目中，经常需要用到灰色图像。比如按钮变灰，一般情况下，我们需要准备三张图，一张正常颜色图，一张按钮按下图，一张按钮变灰图。若此种类似情况过多，就会导致资源包过大，这显然不是我们愿意看到的结果。此种情况下，我们就可以考虑修改程序的方法，实现正常颜色图变灰，就可以减少资源图。
+
+<br>　　范例1：创建灰度精灵。
+``` lua
+function MainScene:ctor()
+    local sprite = display.newGraySprite("CheckBoxButton2On.png")
+    sprite:center()
+    self:addChild(sprite)
+end
+```
+
+
 
 <br>**本节参考阅读：**
 - [深入分析Cocos2d-x 2.0中的“纹理”](http://blog.csdn.net/honghaier/article/details/8068895) 
@@ -1702,7 +1743,7 @@ self:addChild(display.newSprite("1128845.png", 400,400))
 　　Layer对象是一种特殊的显示对象，主要功能是响应触摸事件、重力感应事件，以及 Android 按键事件。
 　　对象继承关系： `Ref` -> `Node` -> `Layer`
 
-### CCLayerColor ###
+### LayerColor ###
 　　颜色布景层类LayerColor是Layer类的子类，包含Layer类的特性，并且有两个拓展功能：可以为布景层增添颜色，以及设置不透明度。
 
 <br>　　范例1：创建颜色层。
