@@ -889,6 +889,7 @@ cd ..
 	-  第14行将target/assets/common.properties文件写入到刚才生成的未签名的apk文件的assets目录中。
 	-  第15行对apk进行签名。
 	-  第17行返回到上一级目录中。
+	-  批处理相关的知识请参阅本人所写的《Windows批处理》，jarsigner.exe相关的知识请参阅本人所写的《应用程序破解》。
 
 　　在执行这个`build.bat`文件之前，需要做的几件事：
 
@@ -915,6 +916,91 @@ cd D:\makeApk\MavenBuild
 	   -  先安装Eclipse打出的非debug签名的包到手机上，然后再安装从mOutputDir目录下找到的已签名的apk，如果能覆盖安装，则证明两者相同。
 	-  最后，执行adb命令时，如果试图安装一个手机上已经安装了的app则adb会报错：Failure [INSTALL_FAILED_ALREADY_EXISTS]， 解决的方法是在adb install命令后面加一个-r的参数，强制覆盖安装即可。
 
+## 添加项目依赖 ##
+　　刚才已经介绍了如何在一个最简单的`Android`项目上使用Maven进行多渠道打包，但只掌握那点知识还远远不够，因为实际应用的过程中情况要复杂的多。
+　　对于一个老项目来说，它可能已经引用了很多第三方`jar`文件（它们保存在项目的`lib`目录下），而使用Maven对这个项目打包时，Maven它只关注`pom.xml`文件里的`<dependency>`所依赖的`jar`包，因此如果在`pom.xml`文件里没有找到对`jar`包的依赖，则打包的时候就会报错。
+
+<br>　　通常项目所引用的`jar`包可分为两类：
+
+	-  在中央（或其他远程）仓库中可以找到的jar包。
+	-  第三方提供的jar包。
+
+
+### 从中央仓库获取 ###
+　　在Android项目中，除了`android.jar`外，最常用的一个`jar`包就是`android-support-v4.jar`了，因此我们不可避免的需要在`pom.xml`文件中添加对它的依赖。
+　　当我们需要引用一个第三方的库时，首先应该尝试去中央仓库（[http://search.maven.org](http://search.maven.org)，可能需要翻墙）中搜索，如下图所示：
+
+<center>
+![搜索android-support-v4.jar](/img/maven/maven_1_1.png)
+</center>
+
+　　如果找到了自己想要的`jar`，则可以点击它的版本号（上图中红框圈住的部分），就可以找到它对应的依赖信息了，如下图所示：
+
+<center>
+![依赖信息](/img/maven/maven_1_2.png)
+</center>
+
+　　将上图中的依赖信息赋值到`pom.xml`文件中即可。
+
+### 手动添加到仓库 ###
+　　当中央（或远程）仓库中不存在我们所需要的`jar`包时，我们就需要自己手工去下载`jar`，然后把它添加到本地仓库中。
+
+　　比如，现在项目需要接入一个第三方的支付SDK，该SDK以`jar`包的形式提供给我们，并要求把这个`jar`添加到项目中。由于这个`jar`包肯定不可能被Maven中央仓库所收录，因此为了保证项目在使用Maven打包的时候不报错，我们应该将这个`jar`手动的放入到仓库（本地或者远程）中，当打包的时候Maven能从仓库中引用到它了。
+
+　　首先，假设这个`jar`的名称为`srapp.jar`，它的存放路径为`D:\libs\srapp.jar`。
+<br>　　然后，我们执行下面的命令将它安装到本地仓库中。
+``` mvn
+mvn install:install-file -Dfile=D:\libs\srapp.jar -DgroupId=com.srapp -DartifactId=srapp -Dversion=1.1 -Dpackaging=jar
+```
+    语句解释：
+	-  使用mvn install:install-file命令来将一个jar文件安装到本地仓库中。该命令有五个参数：
+	   -  file：jar文件的本地路径。
+	   -  groupId：组id。通常可以用jar里面的顶层包的包名。当然也可以任意写，只需要保证它的唯一性即可。
+	   -  artifactId、version、packaging：你懂的。
+
+<br>　　接着，执行完毕命令后，我们可以到本地仓库下找到这个文件：
+``` mvn
+C:\Users\cutler\.m2\repository\com\srapp\srapp\1.1
+```
+
+<br>　　最后，我们需要把它配置到`pom.xml`文件中：
+``` pom
+<dependency>
+    <groupId>com.srapp</groupId>
+    <artifactId>srapp</artifactId>
+    <version>1.1</version>
+</dependency>
+```
+
+### apklib依赖 ###
+　　实际开发中通常会引用第三方提供的`apklib`项目，而Maven也可以帮我们处理。
+
+　　首先，在`apklib`项目中添加一个`pom.xml`文件，具体的添加流程和普通项目完全一样，唯一不同的是`packaging`属性的值：
+``` mvn
+<groupId>com.srapp.coreres</groupId>
+<artifactId>coreres</artifactId>
+<version>1.0.0</version>
+<packaging>apklib</packaging>
+```
+
+　　然后，在命令行中进入到`apklib`项目的根目录下，执行：
+``` mvn
+mvn clean install
+```
+
+　　如果执行成功的话，我们就可以在本地仓库中找到它。然后在主项目的`pom.xml`中添加如下代码：
+``` mvn
+<dependency>
+    <groupId>com.srapp.coreres</groupId>
+    <artifactId>coreres</artifactId>
+    <version>1.0.0</version>
+    <type>apklib</type>
+</dependency>
+```
+　　注意，引用的时候使用`<type>`标签指明该依赖是`apklib`类型的。
+
+　　最后，在命令行中进入到主项目的根目录下，执行打包即可。
+
 
 <br>**相关链接：**
 - [Maven入门指南](http://ifeve.com/maven-1/)
@@ -924,6 +1010,7 @@ cd D:\makeApk\MavenBuild
 - [理解maven的核心概念](http://www.cnblogs.com/holbrook/archive/2012/12/24/2830519.html)
 - [常用Maven插件介绍](http://www.infoq.com/cn/news/2011/04/xxb-maven-7-plugin)
 - [Maven pom.xml 配置详解](http://blog.csdn.net/ithomer/article/details/9332071)
+- [Maven 手动添加 JAR 包到本地仓库](http://www.blogjava.net/fancydeepin/archive/2012/06/12/380605.html)
 
 
 <br><br>
