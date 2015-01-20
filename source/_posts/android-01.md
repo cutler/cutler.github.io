@@ -1,8 +1,6 @@
 title: 第一章 概述
 date: 2014-10-27 23:15:24
 categories: Android
-tags:
-- Android
 ---
 　　本章主要介绍 Android 应用程序的原理、Android 系统架构，以及如何创建一个新的Android 项目。
 <br>

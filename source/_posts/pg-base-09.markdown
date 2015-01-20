@@ -5,7 +5,6 @@ date: 2015-1-9 15:21:49
 comments: true
 categories: 编程基础
 tags:
-- 编程基础
 - 脚本语言
 ---
 　　本章介绍一下`Windows`中常用的批处理命令，在日后的开发中不免会使用到它，比如`Android`的多渠道打包。

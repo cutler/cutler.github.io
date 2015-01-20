@@ -1,8 +1,6 @@
 title: 第十章 应用程序破解
-date: 2014-12-29 22:10:15
+date: 2024-12-29 22:10:15
 categories: Android
-tags:
-- 破解
 ---
 　　本章主要介绍如何使用`ApkTool`工具对Android应用程序（包含游戏）进行破解。
 　　软件破解本就是违法行为，如果市场上充斥着破解软件，那么开发正版游戏、正版软件的公司将难以生存，为了中国软件事业的健康发展，请支持正版。
@@ -391,9 +389,9 @@ Toast.makeText(this, "世界，你好！", Toast.LENGTH_SHORT).show();
 ## 《愚公移山》 ##
 　　《愚公移山》是由厦门青瓷开发，上海黑桃互动代理发行的手机休闲游戏，运用Unity3D技术实现游戏的多平台均可运行的游戏。
 
-　　[点击查看：《愚公移山》](http://zhushou.360.cn/detail/index/soft_id/2037801)
+　　[点击查看：《愚公移山1.1》](http://zhushou.360.cn/detail/index/soft_id/2037801)
 
-　　将apk下载到本地后，为了避免中文文件名导致的各种问题，我们先把apk文件的名称为“ygys.apk”。
+　　将apk下载到本地后，为了避免中文文件名导致的各种问题，我们先把apk文件的名称为`“ygys.apk”`。
 
 <br>　　范例1：先把它反编译。
 ```
@@ -584,7 +582,7 @@ public void onComplete(Platform plat, int action, HashMap<String, Object> res)
 ``` smali
 invoke-virtual/range {v0 .. v6}, Lmm/purchasesdk/Purchase;->order(Landroid/content/Context;Ljava/lang/String;ILjava/lang/String;ZLmm/purchasesdk/OnPurchaseListener;)Ljava/lang/String;
 ```
-　　为什么知道是这个方法呢? 还是老样子，一半是猜的，一般是根据支付SDK分析的。 
+　　为什么知道是这个方法呢? 还是老样子，一半是猜的，一半是根据支付SDK分析的。 
 　　事实上《愚公移山》的apk中包含了多个支付SDK（至少我就看到了2个），一个是`egame`，一个是中国移动的`purchasesdk`。
 　　从360平台上下载的《愚公移山》实际上使用的是中国移动的`purchasesdk`，我们上面的分析过程的意义就是：通过搜索`egmae`中的`EgamePay`类来定位出《愚公移山》的支付模块所在的位置，进而确定了它使用的支付SDK实际为`purchasesdk`。
 
@@ -602,10 +600,13 @@ invoke-virtual/range {v0 .. v6}, Lmm/purchasesdk/Purchase;->order(Landroid/conte
 
 #以上省略若干代码
 
-    .line 150
+    move v5, v3
+
     iget-object v1, p0, Lcom/heitao/mp/channel/HTMP_CHL;->mPayListener:Lcom/heitao/mp/listener/HTMPPayListener;
 
     invoke-virtual {v1}, Lcom/heitao/mp/listener/HTMPPayListener;->onHTPayCompleted()V
+
+    .line 150
     :goto_0
     return-void
 
@@ -617,6 +618,99 @@ invoke-virtual/range {v0 .. v6}, Lmm/purchasesdk/Purchase;->order(Landroid/conte
 	-  注意：copy过来代码后，还要把“iget-object v1, v1”改成“iget-object v1, p0”。
 
 <br>　　从上面的破解过程可以看出来，软件破解的成功与否，除了需要大量的代码分析外，还与运气有那么一点关系。
+
+## 《消灭星星》 ##
+　　《消灭星星》是一款经典的消除类益智休闲手游，由掌游天下从韩国引入后深受中国玩家们的喜爱。简单的游戏规则，轻松的趣味关卡，1分钟即可上手,，一旦开始根本停不下来！
+
+　　[点击查看：《消灭星星4.0.1》](http://shouji.baidu.com/game/item?docid=7371485&from=web_alad_6)
+
+**此次破解任务：**
+　　将《消灭星星》里的支付SDK替换成我们自己的支付SDK，具体可以将任务分为两步来执行：
+
+	-  首先，定位出游戏调用支付和处理支付结果的代码。
+	-  然后，将我们的SDK插入到游戏中。
+
+### 定位支付代码 ###
+　　游戏下载完毕后我们不着急破解，而是先将它安装到手机上观察一下整个游戏，比如看看它使用的是什么样的支付方式（手机话费、支付宝等）。
+
+<br>**移动MM支付SDK？**
+　　首次打开游戏，发现了`“MM伴我，移动生活”`的闪屏页，因而可以初步判断游戏应该是接入了中国移动的支付SDK，然后进入游戏，在商城中选择某个充值项后，游戏确实也打开了手机话费的充值界面，这样一来就有`90%`的把握确定游戏是接入的移动支付。
+　　然后，在百度中搜索`“移动mm支付sdk”`可以搜索到[ 中国移动应用内计费SDK ](http://dev.10086.cn/cmdn/bbs/thread-80671-1-1.html)，从帖子中的截图来看，这和《消灭星星》中弹出的支付界面十分相似，那么现在我们有`98%`的把握确定游戏是接入的移动支付。
+　　接着，我们下载这个移动支付的SDK，打开`Demo\src\com\aspire\demo\Demo.java`文件，找一下支付相关的代码，发现了支付时所执行的代码为`purchase.order(context, mPaycode, listener);`，我们从这行代码中提取出两个关键词`Purchase`和`order`。
+　　接着，把《消灭星星》的`apk`给反编译了，并把`smali`文件夹放入到`Eclipse`中，全文搜索这两个关键字，虽然搜索出来的内容不少，但是能和`order(context, mPaycode, listener)`对上号的却没有。
+　　但是，从已到的信息来看，游戏很大可能是使用了移动MM支付，但是我们却搜不到支付相关的代码，现在好像是没头绪了，然后笔者无意识的退出游戏，再次重新进入时发现闪屏页变化成了`百度移动游戏`。
+
+<br>**百度移动游戏SDK！**
+　　既然获取到了新线索，那现在就去搜索`百度移动游戏SDK`，然后就找到了[ Android单机SDK ](http://dev.mgame.baidu.com/yyjr/djsdk)。
+　　下载完毕后打开`doc\百度移动游戏SDK（单机版）接入API参考手册_支付模块.doc`，我们找到了一个名为`invokePayCenterActivity`支付接口，然后全文搜索它，结果找到了我们想要的代码。
+　　从搜索结果中我们可以确定，《消灭星星》接入了百度移动游戏SDK，而在百度SDK中又接入了移动支付的SDK，我们的任务就是搞掉百度的支付SDK就可以了。
+
+　　经过一番比较，我们猜测`PopStarxiaomiexingxingguan_401\smali\com\brianbaek\popstar\popStarA$1.smali`第`245`行是支付代码，为了验证猜测，将那行代码替换为我们万能的`HelloWorld`：
+``` smali
+    sget-object v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
+    const-string v1, "*********************************** Hello World22"
+    invoke-virtual {v0, v1}, Ljava/io/PrintStream;->println(Ljava/lang/String;)V
+```
+　　然后打包、签名、运行，从运行的结果可以看到，我们的猜测是正确的。
+
+<br>**支付成功后的代码**
+　　继续查看`百度移动游戏SDK`的文档，发现在调用支付接口时，第6个参数是一个名为`IDKSDKCallBack`回调接口，用来接收支付的结果。
+　　然后，我们通过`popStarA$1.smali`第`239`行代码得知，支付函数的第六个参数（即`v6`）是`com/brianbaek/popstar/popStarA$1$4;`类型的，因此我们现在就去该文件中找一找线索。
+
+　　整体查看一遍`popStarA$1$4;`后，猜测对我们有用的代码应该在`onResponse`方法中，然后再经历一些连蒙带猜，定位出第`66`和`107`行是支付完成后，通知游戏进行后续操作的代码，它们分别表示`支付失败`（值为0）和`支付成功`（值为1）。
+
+　　为了验证猜测，我们把下面的代码替换到`popStarA$1.smali`第`245`行上：
+``` smali
+    const/4 v3, 0x1
+
+    invoke-static {v3}, Lcom/zplay/iap/ZplayJNI;->sendMessage(I)V
+```
+　　然后打包、签名、运行，从运行的结果可以看到，每当我们点击支付时，会立刻增加幸运星的个数。
+
+### 替换支付SDK ###
+　　在上一节中已经找到了游戏的支付相关的代码，那么破解后的游戏的支付流程应为：
+
+	-  首先，用户点击支付按钮。
+	-  然后，游戏调用我们的支付SDK进行支付。
+	-  接着，依据我们的SDK的支付结果来控制游戏是否发放游戏币。
+
+<br>　　通常，各平台（支付宝、微信等）的支付SDK会以一个`lib`项目的形式提供给开发者，且`lib`项目中会包含一些`drawable`、`style`、`layout`等资源，因此如果我们想把它们的SDK插入到某个`apk`中，则必须得把SDK中的`drawable`等也同时插入进去。
+
+　　这此时就有一个问题，任何存在于`res`目录里的资源都是有`资源id`的，因此在破解时，我们除了要把支付SDK`res`目录下的资源文件复制到待破解的apk里外，还需要为它们创建资源id，否则在程序中是无法引用的。
+
+　　问：那既然要添加资源id，我们总不能手工修改项目的`R`文件，挨个的为每个资源添加资源id吧？
+　　答：我们可以创建一个辅助项目，把游戏和我们SDK的资源都放到它里面去，让Eclipse帮我们生成资源id，然后再把这个辅助项目的apk给反编译出来，获取到其中的`R`文件即可。
+
+　　接下来以《消灭星星》为例，来介绍如何向apk中添加自己的SDK。
+
+<br>**创建辅助项目**
+
+　　第一步，创建一个新的Android项目，名为`XmxxDecode`，项目的包名要与游戏的包名相同，此处我们设置为`com.wpd.game.popstar`。
+　　第二步，删除`XmxxDecode`项目中的以下内容：
+
+	-  MainActivity.java
+	-  res下的所有文件
+	-  libs下的所有文件(如android-support-v4.jar)
+
+　　第三步，将反编译出来的《消灭星星》的`res`目录的所有文件复制到`XmxxDecode`的`res`目录下。
+　　第四步，删除`XmxxDecode\res\values\public.xml`文件，该文件是反编译时生成的，具体用法请自行搜索。
+　　第五步，假设我们要插入到游戏中的SDK项目叫做`PaySDK`，则让`XmxxDecode`去引用`PaySDK`项目。
+　　第六步，如果`PaySDK`除了提供了`lib`项目外，还提供了`jar`包让开发者接入，那么就把`jar`包复制到`XmxxDecode\libs`目录下。
+
+<br>**将辅助项目合并到游戏中**
+　　第一步，运行`XmxxDecode`项目。虽然不会成功，但是会生成一个apk，接着将`bin\XmxxDecode.apk`复制出来，反编译。
+　　第二步，把在`XmxxDecode\smali`下的所有文件覆盖（最好先删除原来的）到`PopStarxiaomiexingxingguan_401\smali`目录下。
+　　第三步，把在文`XmxxDecode\res`下的所有件覆盖（最好先删除原来的）到`PopStarxiaomiexingxingguan_401\res`目录下。
+　　第四步，把接入`PaySDK`时所需要的权限、组件等都复制到`PopStarxiaomiexingxingguan_401\AndroidManifest.xml`中。
+　　第五步，将`PopStarxiaomiexingxingguan_401`文件夹打包、签名。
+
+　　不出意外的话，程序运行将一切正常，但事实上我们已经把`PaySDK`的资源和代码都给插入到apk中了，剩下的就是调用它们了。
+
+<br>**调用我们的支付SDK**
+　　第一步，找到`popStarA$1.smali`第`245`行，把它删掉，然后改成调用我们的支付接口。如果不会写调用语句，可以按照前面那样先在Android中写一遍然后反编译。
+　　第二步，当支付有结果时，调用游戏的代码，通知游戏是否增加游戏币。
+
+　　这里有个小的技术难点：如果Android通知游戏发放游戏币的接口是静态的，那么在我们的支付SDK中可以直接调用它，但是如果是实例的，则在支付SDK中就得想办法获取该接口的一个对象了。不过这都问题不大，稍微想想就可以解决。
 
 <br><br>
 　　

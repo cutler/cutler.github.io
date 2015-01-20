@@ -4,8 +4,6 @@ title: "第三章 环境搭建"
 date: 2014-12-10 21:52:05
 comments: true
 categories: Cocos2dx-lua
-tags:
-- Cocos2dx-lua
 ---
 　　经过前两章的学习我们已经做好了充足的准备，那么接下来我们就开始吧。
 
