@@ -699,8 +699,8 @@ invoke-virtual/range {v0 .. v6}, Lmm/purchasesdk/Purchase;->order(Landroid/conte
 
 <br>**将辅助项目合并到游戏中**
 　　第一步，运行`XmxxDecode`项目。虽然不会成功，但是会生成一个apk，接着将`bin\XmxxDecode.apk`复制出来，反编译。
-　　第二步，把在`XmxxDecode\smali`下的所有文件覆盖（最好先删除原来的）到`PopStarxiaomiexingxingguan_401\smali`目录下。
-　　第三步，把在文`XmxxDecode\res`下的所有件覆盖（最好先删除原来的）到`PopStarxiaomiexingxingguan_401\res`目录下。
+　　第二步，把在`XmxxDecode\smali`下的所有文件覆盖到`PopStarxiaomiexingxingguan_401\smali`目录下。
+　　第三步，把在文`XmxxDecode\res`下的所有件覆盖到`PopStarxiaomiexingxingguan_401\res`目录下。
 　　第四步，把接入`PaySDK`时所需要的权限、组件等都复制到`PopStarxiaomiexingxingguan_401\AndroidManifest.xml`中。
 　　第五步，将`PopStarxiaomiexingxingguan_401`文件夹打包、签名。
 
