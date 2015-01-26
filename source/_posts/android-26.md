@@ -17,7 +17,7 @@ categories: Android
 <br>**ApkTool**
 　　ApkTool是Google提供的apk编译工具，它不仅可以用来反编译apk，还可以用来将反编译的apk重新编译回apk。反编译时我们需要使用`decode`命令，重新编译时则需要使用`build`命令，这两个命令的具体用法后面会有详细介绍。
 
-　　下载地址：https://code.google.com/p/android-apktool/wiki/Install
+　　下载地址：https://code.google.com/p/android-apktool/wiki/Install ，本文档使用的是`2.0.0rc3`版本。
 
 <br>**Apk文件**
 　　在进行破解之前，为了减少我们之间的知识断层，这里先介绍一些apk相关的常识：
@@ -52,35 +52,36 @@ apktool.bat d -f Decode.apk
 　　既然上面用到apktool工具的`decode`命令，那么在继续向下进行之前，有必要先学习一下该命令的用法。
 　　它的语法格式为：
 ``` lua
-apktool.bat d[ecode] [OPTS] <file.apk> [<dir>]
+apktool d[ecode] [options] <file_apk>
 ```
 	语句解释：
 	-  在上面的语法遵守了“扩展巴科斯范式”的约定，中括号括起来的代表是可选的，尖括号括起来的是必选的。
 	-  刚才我们执行的命令是“apktool.bat d -f Decode.apk”，其中d是decode的简写，它等价于：apktool decode。
-	-  [OPTS]是decode命令的附加选项，常用的取值有：
+	-  [options]是decode命令的附加选项，常用的取值有：
 	   -  -s：反编译时不反编译apk中的源代码。即不会把apk里的classes.dex文件反编译。
 	   -  -r：反编译时不反编译apk中的资源文件。即res目录下的xml文件等仍然保持二进制形式的，并且res/values将不会被反编译。
 	   -  -f：强制覆盖已经存在的文件。即执行反编译命令时，如果输出路径所已经存在了，则是无法进行反编译的，除非加上-f参数。
+	   -  -o：反编译的输出路径。如果不写则默认为当前目录，并且以apk的文件名作为输出目录名。
 	-  <file.apk>：要反编译的文件的名称。
-	-  [<dir>]：反编译的输出路径。如果不写则默认为当前目录，并且以apk的文件名做为目录名。
 
 　　4、接着修改`Decode\res\values\strings.xml`文件中的“`Hello world!`”为“`世界，你好!`”。
 　　5、接着删除`Decode\res\drawable-ldp`、`Decode\res\drawable-mdpi`、`Decode\res\drawable-xhdpi`三个目录。
 　　6、然后找一个`72*72`尺寸的`png`图来替换调`Decode\res\drawable-hdpi`目录中的“`ic_launcher.png`”。
 　　7、在`cmd`窗口中执行如下命令：
 ``` lua
-apktool.bat b Decode newDecode.apk
+apktool.bat b Decode -o newDecode.apk
 ```
 　　另外，在打开、修改、保存`Decode\res\values\strings.xml`文件时，要始终保证文件编码是`UTF-8`，因为在“记事本”等文本编译软件中会自动使用系统的默认编码来操作文本文件，而中文操作系统的默认编码是`GBK`，这会导致打包失败。
 
 <br>**build命令**
 　　同样的，我们也来学习一下apktool工具的`build`命令的语法格式为：
 ``` lua
-apktool.bat b[uild] [OPTS] [<app_path>] [<out_file>]
+apktool b[uild] [options] <app_path>
 ```
 	语句解释：
-	-  [<app_path>]：要打包的目录。
-	-  [<out_file>]：打包成功后生出的文件。
+	-  [options]是build命令的附加选项，常用的取值有：
+	   -  -o：打包成功后生出的文件。如果不写则默认将apk放到<app_path>/dist目录下。
+	-  <app_path>：要打包的目录。
 
 　　值得注意的是，使用`apktool`的`build`命令生成的`apk`是一个未签名的文件，而未签名的文件是无法被安装的，因此接下来我们要对`apk`进行签名，并且为了能覆盖安装，我们将不再创建新的签名文件，而是使用`debug.keystore`进行签名。
 
@@ -180,8 +181,8 @@ public class HelloWorld {
 # 方法内部代码的含义，会在下面的几个范例中逐一讲解。
 .method public constructor <init>(IZ)V
     .locals 4
-    .parameter "param1"
-    .parameter "param2"
+    .param p1, "param1"    # I
+    .param p2, "param2"    # Z
 
     .prologue
     .line 11
@@ -295,14 +296,14 @@ iput-object v3, p0, Lcom/cutler/decode/HelloWorld;->objString:Ljava/lang/String;
 # virtual methods
 .method public onCreate(Landroid/os/Bundle;)V
     .locals 1
-    .parameter "savedInstanceState"
+    .param p1, "savedInstanceState"    # Landroid/os/Bundle;
 
     .prologue
     .line 11
     invoke-super {p0, p1}, Landroid/app/Activity;->onCreate(Landroid/os/Bundle;)V
 
     .line 12
-    const/high16 v0, 0x7f03
+    const/high16 v0, 0x7f030000
 
     invoke-virtual {p0, v0}, Lcom/cutler/decode/MainActivity;->setContentView(I)V
 
@@ -330,14 +331,14 @@ Toast.makeText(this, "世界，你好！", Toast.LENGTH_SHORT).show();
 # virtual methods
 .method public onCreate(Landroid/os/Bundle;)V
     .locals 2
-    .parameter "savedInstanceState"
+    .param p1, "savedInstanceState"    # Landroid/os/Bundle;
 
     .prologue
     .line 11
     invoke-super {p0, p1}, Landroid/app/Activity;->onCreate(Landroid/os/Bundle;)V
 
     .line 12
-    const/high16 v0, 0x7f03
+    const/high16 v0, 0x7f030000
 
     invoke-virtual {p0, v0}, Lcom/cutler/decode/MainActivity;->setContentView(I)V
 
@@ -438,8 +439,8 @@ ShareSDK.setPlatformDevInfo("WechatMoments", map);
 ``` smali
 .method public static ShareText(ZLjava/lang/String;)V
     .locals 2
-    .parameter "isTimelineCb"
-    .parameter "text"
+    .param p0, "isTimelineCb"    # Z
+    .param p1, "text"    # Ljava/lang/String;
 
     .prologue
     .line 96
@@ -462,8 +463,8 @@ ShareSDK.setPlatformDevInfo("WechatMoments", map);
 　　查看`ShareWebPage`方法的内部，发现它又调用了`_shareWebPage`方法，我们接着跟进去，第一眼看到的就是我们熟悉的`Handler`的定义：
 ``` smali
 .prologue
-    .line 127
-    new-instance v6, Landroid/os/Handler;
+.line 127
+new-instance v6, Landroid/os/Handler;
 ```
 　　通过连猜带蒙的方式，得知它调用了`Handler.post(Runnable)`方法执行一个任务，这个`Runnable`对象就是`WXShare$3.smali`。由于那一行代码看起来像是在调用分享SDK，所以我们只能硬着头皮继续看`WXShare$3.smali`了。
 　　提示：在Java中，一个内部类的类名的格式为`外部类名$内部类名`，对于匿名内部类来说，内部类名用数字编号。
@@ -471,8 +472,8 @@ ShareSDK.setPlatformDevInfo("WechatMoments", map);
 　　既然知道`WXShare$3`是`Runnable`的子类，那我们直接去找`run`方法，看看里面有什么。又是一阵连蒙带猜结束后，看到了如下代码：
 ``` smali
 .line 141
-    .local v2, wechat:Lcn/sharesdk/framework/Platform;
-    invoke-virtual {v2, v1}, Lcn/sharesdk/framework/Platform;->share(Lcn/sharesdk/framework/Platform$ShareParams;)V
+.local v2, "wechat":Lcn/sharesdk/framework/Platform;
+invoke-virtual {v2, v1}, Lcn/sharesdk/framework/Platform;->share(Lcn/sharesdk/framework/Platform$ShareParams;)V
 ```
 　　终于找到了我们想要看到的“`share`”函数的调用了，虽然不确定是不是分享，但是从名字上看，`90%`是没错了。假设我们没找错，那也只是能证明“`点击一键分享朋友圈按钮时，程序会调用ShareText函数，并由ShareText函数执行分享操作`”，接下来我们该干什么?
 
@@ -501,34 +502,30 @@ public void onComplete(Platform plat, int action, HashMap<String, Object> res)
 　　最终，我们定位到了`WXShare$2.smali`，在它的`onComplete`函数里找到了如下代码：
 ``` smali
 .line 71
-    const-string v0, "3rd_sdk"
+const-string v0, "3rd_sdk"
 
-    const-string v1, "OnWeChatResp"
+const-string v1, "OnWeChatResp"
 
-    const-string v2, "errcode=0"
+const-string v2, "errcode=0"
 
-    invoke-static {v0, v1, v2}, Lcom/unity3d/player/UnityPlayer;->UnitySendMessage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+invoke-static {v0, v1, v2}, Lcom/unity3d/player/UnityPlayer;->UnitySendMessage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 ```
 　　这就是当分享成功后，程序要执行的代码，`onComplete`函数里的其他代码就是用来打印`Log`的，不重要，我们不用管。
 　　现在我们需要做的就是，把这段代码copy出来，然后放到`WXShare.smali`的`ShareWebPage`函数里。即当用户点击分享的时候，我们不调用分享，而是直接调用上面的代码，让用户可以立刻领取奖励，最终的代码如下：
 ``` smali
 .method public static ShareWebPage(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;[B)V
     .locals 6
-    .parameter "isTimelineCb"
-    .parameter "url"
-    .parameter "title"
-    .parameter "description"
-    .parameter "img"
+    .param p0, "isTimelineCb"    # Z
+    .param p1, "url"    # Ljava/lang/String;
+    .param p2, "title"    # Ljava/lang/String;
+    .param p3, "description"    # Ljava/lang/String;
+    .param p4, "img"    # [B
 
     .prologue
     .line 122
-    .line 71
     const-string v0, "3rd_sdk"
-
     const-string v1, "OnWeChatResp"
-
     const-string v2, "errcode=0"
-
     invoke-static {v0, v1, v2}, Lcom/unity3d/player/UnityPlayer;->UnitySendMessage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 
     .line 123
@@ -589,11 +586,11 @@ invoke-virtual/range {v0 .. v6}, Lmm/purchasesdk/Purchase;->order(Landroid/conte
 　　接下来我们需要找到充值后要执行的代码，目前唯一的线索就是`HTMP_CHL$1.smali`这个内部类，进入看看后，发下了如下可疑代码：
 ``` smali
 .line 57
-    iget-object v1, p0, Lcom/heitao/mp/channel/HTMP_CHL$1;->this$0:Lcom/heitao/mp/channel/HTMP_CHL;
+iget-object v1, p0, Lcom/heitao/mp/channel/HTMP_CHL$1;->this$0:Lcom/heitao/mp/channel/HTMP_CHL;
 
-    iget-object v1, v1, Lcom/heitao/mp/channel/HTMP_CHL;->mPayListener:Lcom/heitao/mp/listener/HTMPPayListener;
+iget-object v1, v1, Lcom/heitao/mp/channel/HTMP_CHL;->mPayListener:Lcom/heitao/mp/listener/HTMPPayListener;
 
-    invoke-virtual {v1}, Lcom/heitao/mp/listener/HTMPPayListener;->onHTPayCompleted()V
+invoke-virtual {v1}, Lcom/heitao/mp/listener/HTMPPayListener;->onHTPayCompleted()V
 ```
 　　然后把这三行代码中的后两行copy出来，放到`HTMP_CHL.smali`的`doPay`方法里即可，最终结果如下：
 ``` smali
