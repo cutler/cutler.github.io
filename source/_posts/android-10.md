@@ -714,5 +714,139 @@ public void onCheckboxClicked(View view) {
 　　如果认为有必要让用户看到所有并列的可选项，并且各个选项中只能有一个被选择，那么单选框是个好选择。 
 　　如果没有必要显示所有的并列选项，那么可以用`Spinner`下拉列表代替。
 
+<center>
+![](/img/android/android_3_9.png)
+</center>
+
+　　创建单个选项之前，需要在布局文件中创建选项按钮`RadioButton`。然而，因为复选按钮之间是互斥的，它们需要被放在同一个选项组框`RadioGroup`里。这样系统会认为在同一个选项组里每次只能有一个选项被选择。
+
+
+　　即：
+	-  在xml文件中使用<RadioButton>标签定义一个单选按钮。
+	-  在xml文件中使用<RadioGroup>标签将多个单选按钮组成一个组，从而使组中的所有按钮同一时间只能有一个被选择。
+	-  在xml文件中每个<RadioButton>标签都对应于RadioButton类的一个实例。标签<RadioGroup> 也同样如此。
+
+<br>　　范例1：单选按钮。
+``` xml
+<RadioGroup
+    android:id="@+id/group"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+    <RadioButton
+        android:id="@+id/boy"
+        android:text="男"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <RadioButton
+        android:id="@+id/girle"
+        android:text="女"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</RadioGroup>
+```
+
+<br>　　范例2：RadioButton类。 
+``` android
+//  修改当前RadioButton对象的选定状态。true为选定。false为不选定。
+public void setChecked(boolean checked)
+
+//  查看当前RadioButton对象是否处于选定状态。
+public boolean isChecked()
+```
+
+<br>　　范例3：RadioGroup类。 
+``` android
+//  监听当前按钮组中的按钮，当用户的选择改变时，会触发此事件。
+public void setOnCheckedChangeListener(RadioGroup.OnCheckedChangeListener listener)
+```
+
+<br>　　范例4：RadioGroup.OnCheckedChangeListener接口。
+``` android
+//  监听当前按钮组中的按钮，当用户的选择改变时，会调用此方法。
+//  group ：产生事件的RadioGroup对象。
+//  checkeId ：当前被选中的RadioButton对象的id ，此id在R.java中定义。
+public abstract void onCheckedChanged(RadioGroup group, int checkedId)
+```
+
+<br>　　范例5：监听按钮组。
+``` android
+RadioGroup g = (RadioGroup) this.findViewById(R.id.group);
+g.setOnCheckedChangeListener(
+    new OnCheckedChangeListener(){
+    public void onCheckedChanged(RadioGroup radiogroup, int checkedId) {
+        String sex = null;
+        sex = (R.id.boy == checkedId ? "男":"女");
+        System.out.println("您选择了："+sex);
+    }
+});
+```
+    语句解释：
+    -  一般来说会在RadioGroup对象上添加事件监听器，当RadioGroup中的某个按钮的状态被改变了，就会触发onCheckedChanged方法。
+    -  当然直接在RadioButton上进行监听也是可以的，选择哪种方案就看具体情况了。
+
+## ToggleButton ##
+　　`ToggleButton`是一个开关按钮，与普通Button的区别在于它有两种状态，选中和未选中。程序可以根据ToggleButton的当前状态，设置其所要显示的文本。
+　　Android有两种开关按钮，在`Android4.0`之前，你可以添加一个基本的`ToggleButton`开关按钮对象到布局文件。 `Android 4.0`（API 级别14）中介绍了另外一种叫做`Switch`的切换按钮，这个按钮提供一个滑动控件，可以通过添加`Switch`对象来实现。
+
+<center>
+![](/img/android/android_3_10.png)
+</center>
+
+　　`Toggle Button`和`Switch`控件都是`CompoundButton`的子类并且有着相同的功能，所以你可以用同样的方法来实现他们功能。
+
+<br>　　范例1：开关按钮。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <ToggleButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOn="开"
+        android:textOff="关"
+        android:checked="true"
+        android:paddingRight="20dp"
+        android:onClick="onClick"
+        android:background="@drawable/toggle_btn_bg" />
+</LinearLayout>
+```
+　　属性解释：
+``` xml
+android:textOn    按钮处于选中状态时所要显示的文本。 
+android:textOff   按钮处于非选中状态时所要显示的文本。
+android:checked   设置按钮的当前是否处于选中状态。
+```
+
+<br>　　范例2：`toggle_btn_bg.xml`。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true" android:drawable="@drawable/bn_yes_bg"/>
+    <item android:state_checked="false" android:drawable="@drawable/bn_no_bg"/>
+</selector>
+
+```
+　　提示：本范例中涉及到的`<selector>`标签将在后面章节中详细介绍。
+
+<br>　　范例3：控制文字的显示位置。
+``` android
+public void onClick(View view) {
+    ToggleButton switchbtn = (ToggleButton) view;
+    // 若当前按钮处于选中状态。
+    if (switchbtn.isChecked()) {
+        // 将按钮上的文本左对齐。
+        switchbtn.setPadding(0, 0, switchbtn.getWidth() / 2, 0);
+    } else {
+        // 将按钮上的文本右对齐。
+        switchbtn.setPadding(switchbtn.getWidth() / 2, 0, 0, 0);
+    }
+}
+```
+    语句解释：
+    -  当ToggleButton的状态改变时，除了会改变按钮的background属性外，还会将按钮上的文本的位置改变。
+    -  提示：如果需要改变按钮的状态，通过使用setChecked(boolean)或者toggle() 方法可以实现。
+
 
 <br><br>
