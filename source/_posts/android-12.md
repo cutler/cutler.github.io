@@ -928,7 +928,7 @@ public class MainActivity extends Activity {
 </center>
 
 ## 大视图 ##
-　　而对于大视图（Big View）而言，它的细节区域只能显示`256dp`高度的内容，并且只对`Android4.1+`之后的设备才支持，它比标准视图不一样的地方，均需要使用`setStyle()`方法设定，它大致的效果如下：
+　　而对于大视图（Big View）而言，它的细节区域只能显示`256dp`高度的内容，并且只对`Android4.1+`之后（但在之前的版本中也不会报错）的设备才支持，它比标准视图不一样的地方，均需要使用`setStyle()`方法设定，它大致的效果如下：
 
 <center>
 ![](/img/android/android_3_32.png)
@@ -938,14 +938,265 @@ public class MainActivity extends Activity {
 
 	-  NotificationCompat.BigPictureStyle, 在细节部分显示一个256dp高度的位图。
 	-  NotificationCompat.BigTextStyle，在细节部分显示一个大的文本块。
-	-  NotificationCompat.InboxStyle，在细节部分显示一段行文本。
+	-  NotificationCompat.InboxStyle，在细节部分显示多行文本。
 
-<br>　　如果仅仅显示一个图片，使用`BigPictureStyle`是最方便的；如果需要显示一个富文本信息，则可以使用`BigTextStyle`；如果仅仅用于显示一个文本的信息，那么使用`InboxStyle`即可。下面会以一个示例来展示`InboxStyle`的使用，模仿上面图片的显示。
+<br>　　如果仅仅显示一个图片，使用`BigPictureStyle`是最方便的；如果需要显示一个富文本（或者是不需要换行的长文本）信息，则可以使用`BigTextStyle`；如果仅仅用于显示一个文本（需要换行）的信息，那么使用`InboxStyle`即可。下面会以一个示例来展示`InboxStyle`的使用，模仿上面图片的显示。
+``` android
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        
+        Bitmap btm = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
+        Intent intent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,PendingIntent.FLAG_CANCEL_CURRENT);
+        Notification noti = new NotificationCompat.Builder(this)
+            .setSmallIcon(R.drawable.ic_launcher)
+            .setLargeIcon(btm)
+            .setNumber(13)
+            .setContentText("ContentText")
+            .setContentTitle("ContentTitle")
+            .setContentIntent(pendingIntent)
+            // 设置通知被展开时，所显示的内容。
+            .setStyle(new NotificationCompat.InboxStyle()
+                // 一行行的增加文本。
+                .addLine("M.Twain (Google+) Haiku is more than a cert...")
+                .addLine("M.Twain Reminder")
+                .addLine("M.Twain Lunch?")
+                .addLine("M.Twain Revised Specs")
+                .addLine("M.Twain ")
+                .addLine("Google Play Celebrate 25 billion apps with Goo..")
+                .addLine("Stack Exchange StackOverflow weekly Newsl...")
+                .setBigContentTitle("6 new message")
+                .setSummaryText("mtwain@android.com"))
+        .build();
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(0, noti);
+    }
+}
+```
+
+　　显示效果：
+
+<center>
+![](/img/android/android_3_33.png)
+</center>
+
+　　值得注意的是，不同厂家的手机对大视图风格的通知有不同的展现形式，比如：
+
+	-  在三星S5手机上，当程序向状态栏中添加大视图风格的通知时，默认情况该通知会被折叠起来（即和正常通知的大小一样），用户可以通过滑动来展开通知，通知一旦被展开则无法重新折叠回去。
+	-  在Android4.1的模拟器上，默认直接将大视图的通知给展开，因而用户无法查看到通知的contentTitle、contentText属性的值，同时也无法将通知折叠回去，所以通常情况下我们应该为setContentText和setBigContentTitle传递相似的值。
+
+　　还有一点就是，`Android4.1`之前的设备上是无法显示大视图的通知的，因此为了兼容性考虑，请务必设置通知的`contentTitle`、`contentText`属性的值。
+
+## 进度条样式的通知 ##
+　　对于一个标准通知，有时候显示的消息并不一定是静态的，还可以设定一个进度条用于显示事务完成的进度。
+
+　　`Notification.Builder`类中提供一个`setProgress(int max, int progress, boolean indeterminate)`方法用于设置进度条：
+
+	-  max用于设定进度的最大数。
+	-  progress用于设定当前的进度
+	-  indeterminate用于设定是否是一个不确定进度的进度条。
+　　通过`indeterminate`的设置，可以实现两种不同样式的进度条，一种是有进度刻度的（`true`）,一种是循环流动的（`false`）。
+
+
+<br>　　范例1：有进度刻度。
+``` android
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        
+        final NotificationCompat.Builder builder = new NotificationCompat.Builder(MainActivity.this);
+        builder.setSmallIcon(R.drawable.ic_launcher);
+        builder.setContentTitle("Picture Download");
+        builder.setContentText("Download in progress");
+        builder.setAutoCancel(true);
+        final PendingIntent pendingintent = PendingIntent.getActivity(this, 0, new Intent(), PendingIntent.FLAG_CANCEL_CURRENT);
+        builder.setContentIntent(pendingintent);
+        final NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        //通过一个子线程，动态增加进度条刻度
+        new Thread(new Runnable() {
+            public void run() {
+                int incr;
+                for (incr = 0; incr <= 100; incr += 5) {
+                    builder.setProgress(100, incr, false);
+                    manager.notify(0, builder.build());
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) { }
+                }
+                builder.setContentText("Download complete");
+                builder.setProgress(0, 0, false);
+                manager.notify(0, builder.build());
+            }
+        }).start();
+    }
+}
+```
+    语句解释：
+    -  只有在Android4.0+以后的版本中通知才支持进度条，在更低的版本中通知里是不会包含进度条的。
+    -  只要把setProgress方法的第三个参数改为true，就可以显示一个不确定的进度条。
+
+## 自定义通知 ##
+　　和`Toast`一样，通知也可以使用自定义的XML来自定义样式，但是对于通知而言，因为它的全局性，并不能简单`inflate`出一个View，因为可能触发通知的时候，响应的App已经关闭，无法获取当指定的XML布局文件。所以需要使用单独的一个`RemoteViews`类来操作。
+
+　　`RemoteViews`描述了一个视图层次的结构，可以显示在另一个进程，这个类提供了一些基本的操作求改其`inflate`的内容。
+　　`RemoteViews`提供了多个构造函数，一般使用`RemoteViews(String packageName, int layoutId)`。第一个参数为包的名称，第二个为layout资源的Id。当获取到`RemoteViews`对象之后，可以使用它的一系列`setXxx()`方法通过控件的Id设置控件的属性。
+　　最后使用`NotificationCompat.Builder.setContent(RemoteViews)`方法设置它到一个`Notification`中。
+
+<br>**创建XML文件**
+``` xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="10dp" >
+    <ImageView android:id="@+id/image"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_marginRight="10dp" />
+    <TextView android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/image"
+        style="@style/NotificationTitle" />
+    <TextView android:id="@+id/text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/image"
+        android:layout_below="@id/title"
+        style="@style/NotificationText" />
+</RelativeLayout>
+```
+　　注意那两个TextView的`style`属性。在自定义通知界面时，为文本使用`style`文件进行定义是很重要的，因为通知界面的背景色会因为不同的硬件，不同的`os`版本而改变。从`Android2.3(API 9)`开始，系统为默认的通知界面定义了文本的`style`属性。
+　　因此，你应该使用`style`属性，以便于在`Android2.3`或更高的版本上可以清晰地显示你的文本，而不被背景色干扰。
+
+<br>　　例如，在低于`Android2.3`的版本中使用标准文本颜色，应该使用如下的文件`res/values/styles.xml`:
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="NotificationText">
+      <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+    <style name="NotificationTitle">
+      <item name="android:textColor">?android:attr/textColorPrimary</item>
+      <item name="android:textStyle">bold</item>
+    </style>
+    <!-- If you want a slightly different color for some text, consider using ?android:attr/textColorSecondary -->
+</resources>
+```
+
+<br>　　然后，在高于`Android2.3`的系统中使用系统默认的颜色。如`res/values-v9/styles.xml`：
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+   <style name="NotificationText" parent="android:TextAppearance.StatusBar.EventContent" />
+   <style
+    name="NotificationTitle" parent="android:TextAppearance.StatusBar.EventContent.Title" />
+</resources>
+```
+
+<br>　　现在，当运行在`2.3`版本以上时，在你的界面中，文本都会是同一种颜色-系统为默认通知界面定义的颜色。这很重要，能保证你的文本颜色是高亮的，即使背景色是意料之外的颜色，你的文本页也会作出适当的改变。
+
+<br>**代码实现**
+``` android
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        
+        RemoteViews contentViews = new RemoteViews(getPackageName(), R.layout.custom_notification);
+        //通过控件的Id设置属性
+        contentViews.setImageViewResource(R.id.image, R.drawable.ic_launcher);
+        contentViews.setTextViewText(R.id.title, "Custom notification");
+        contentViews.setTextViewText(R.id.text, "This is a custom layout");
+
+        Intent intent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,PendingIntent.FLAG_CANCEL_CURRENT);
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
+            .setSmallIcon(R.drawable.ic_launcher)
+            .setContentTitle("My notification")
+            .setTicker("new message");
+        mBuilder.setAutoCancel(true);
+        mBuilder.setContentIntent(pendingIntent);
+        mBuilder.setContent(contentViews);
+        mBuilder.setAutoCancel(true);
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(10, mBuilder.build());
+    }
+}
+```
+
+　　显示效果：
+
+<center>
+![](/img/android/android_3_34.png)
+</center>
+
+<br>　　之前也说了，带有进度条的通知只能运行在`Android4.0`系统以上，如果想在`Android4.0`以下使用，则就只能通过自定义通知的方式实现了，当想修改进度条的值时，只需要调用`RemoteViews.setProgressBar()`方法，然后再重新发送一遍通知即可。
+``` android
+contentViews.setProgressBar(R.id.progressbar, 100, curProgress, false);
+contentViews.setTextViewText(R.id.percent, "已下载："+curProgress); 
+mNotificationManager.notify(notifyId, mBuilder.build());
+```
+
+## 设定提示响应 ##
+　　对于有些通知，需要调用一些设备的资源，使用户能更快的发现有新通知，一般可设定的响应有：铃声、闪光灯、震动。对于这三个属性，`NotificationCompat.Builder`提供了三个方法设定：
+
+	-  setSound(Uri sound)：设定一个铃声，用于在通知的时候响应，传递一个Uri的参数。
+	-  setLights(int argb, int onMs, int offMs)：设定前置LED灯的闪烁速率，持续毫秒数，停顿毫秒数。
+	-  setVibrate(long[] pattern)：设定震动的模式，以一个long数组保存毫秒级间隔的震动。
+
+<br>　　大多数时候，我们并不需要设定一个特定的响应效果，只需要遵照用户设备上系统通知的效果即可，那么可以使用`setDefaults(int)`方法设定默认响应参数，在`Notification`中，对它的参数使用常量定义了，我们只需使用即可：
+
+	-  DEFAULT_ALL：铃声、闪光、震动均系统默认。
+	-  DEFAULT_SOUND：系统默认铃声。
+	-  DEFAULT_VIBRATE：系统默认震动。
+	-  DEFAULT_LIGHTS：系统默认闪光。
+
+<br>　　而在Android中，如果需要访问硬件设备的话，是需要对其进行授权的，所以需要在清单文件`AndroidManifest.xml`中增加两个授权，分别授予访问振动器与闪光灯的权限：
+``` xml
+<!-- 闪光灯权限 -->
+<uses-permission android:name="android.permission.FLASHLIGHT"/>
+<!-- 振动器权限 -->
+<uses-permission android:name="android.permission.VIBRATE"/>
+```
+
+<br>**添加声音**
+``` android
+// 使用res/raw目录下的音乐文件。
+mBuilder.setSound(Uri.parse("android.resource://"+getPackageName()+"/"+R.raw.system));
+
+// 使用SD卡下的音乐文件。
+mBuilder.setSound(Uri.parse("file://"+Environment.getExternalStorageDirectory()+"/notification/ringer.mp3"));
+
+// 使用系统的默认声音。
+mBuilder.setDefaults(Notification.DEFAULT_SOUND);
+```
+
+<br>**添加震动**
+``` android
+// 使用系统默认的震动
+mBuilder.setDefaults(Notification.DEFAULT_VIBRATE);
+
+// 自定义的方式，要是定义一个long型数组，赋值给vibrate属性。
+mBuilder.setVibrate(new long[] { 100, 200, 300 });
+```
+    语句解释：
+    -  long型的数组定义了交替振动的方式和振动的时间（毫秒）。第一个值是指振动前的准备（间歇）时间，第二个值是第一次振动的时间，第三个值又是间歇的时间，以此类推。振动的方式任你设定。但是不能够反复不停。
+
+<br>**添加闪灯**
+``` andriod
+// 使用默认闪灯
+mBuilder.setDefaults(Notification.DEFAULT_LIGHTS);
+```
 
 <br>
 **本节参考阅读：**
 - [Android--通知之Notification](http://www.cnblogs.com/plokmju/p/android_notification.html)
-- http://developer.android.com/design/patterns/notifications_k.html
+- [Notifications in Android 4.4 and Lower](http://developer.android.com/design/patterns/notifications_k.html)
 
 
 
