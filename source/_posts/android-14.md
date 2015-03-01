@@ -1,4 +1,4 @@
-title: 第四章 应用程序资源 — 基础入门
+title: 第四章 应用程序资源
 date: 2015-2-27 12:56:41
 categories: Android
 ---
@@ -279,13 +279,136 @@ xml		任意的XML文件，能在运行时被Resources.getXML()调用。各种XML
 	5、 重复第2，3和4步，直到只有一个路径剩下。随后，在本例中没指定屏幕方向的路径被排除：drawable-en/、drawable-en-notouch-12key/。
 	6、 最终剩下drawable-en-port/路径。
 
-　　    虽然这个处理流程查找了每一个要求的资源，但系统在一些方面做出了进一步的优化。其中一个优化是，一但这个设备配置已知，它将排除那些永远不能匹配的可选资源。例如，如果配置语言为英语（“en”），那么任意一个设置了除英语以外的语言修饰语的资源路径将不会再包括在被检测的资源池中（但是，没有设置语言修饰语的路径还被包括在内）。 
-当选择基于屏幕尺寸修饰语的资源时，如果没有更好的匹配资源，系统将会使用一个比当前屏幕更小的资源（如，在需要的情况下，一个大尺寸<large-size>屏幕将会使用一个普通尺寸<normal-size>的屏幕资源）。但是，如果只有一个比当前屏幕更大的可用资源，系统将不会使用他们，如果没有其他资源与设备配置匹配，你的应用程序将会崩溃（例如，所有的布局资源都标着xlarger这个修饰语，但设备是一个普通尺寸<normal-size>的屏幕）。
+<br>　　虽然这个处理流程查找了每一个要求的资源，但系统在一些方面做出了进一步的优化。其中一个优化是，一但这个设备配置已知，它将排除那些永远不能匹配的可选资源。例如，如果配置语言为英语（`“en”`），那么任意一个设置了除英语以外的语言修饰语的资源路径将不会再包括在被检测的资源池中（但是，没有设置语言修饰语的路径还被包括在内）。 
+　　当选择基于屏幕尺寸修饰语的资源时，如果没有更好的匹配资源，系统将会使用一个比当前屏幕更小的资源（如，在需要的情况下，一个大尺寸`<large-size>`屏幕将会使用一个普通尺寸`<normal-size>`的屏幕资源）。但是，如果只有一个比当前屏幕更大的可用资源，系统将不会使用他们，如果没有其他资源与设备配置匹配，你的应用程序将会崩溃（例如，所有的布局资源都标着`xlarger`这个修饰语，但设备是一个普通尺寸`<normal-size>`的屏幕）。
 
+# 第三节 访问资源 #
+　　一旦你在你的应用程序中提供了一个资源，你可以通过引用它的`资源ID`来调用它。所有在工程项目中`R.class`中定义的`资源ID`都是通过`aapt`自动生成的。
+　　当你的应用程序被编译时，`aapt`生成了`R.class`，其中包含了`res/`路径下所有资源的`资源ID`。对于每种类型的资源，都有的一个`R`的子类与之对应（如：`R.drawable`对应绘图`<drawable>`资源），并且对于每一种资源类型，都有一个静态整型常量与之对应（如，`R.drawable.icon`）。这个整型常量就是可以被用来调用资源的资源ID。
+　　虽然资源ID是在`R.class`中指定的，但你并不需要去那儿找资源ID。一个资源ID总是由以下部分组成：
 
+	-  资源类型：每一个资源都是以某种“类型”分组的，如string、drawable、layout。
+	-  资源名（依据不同的资源类型，会使用不同的名字）：
+	   -  若资源只是一个基本类型值（如string），则资源名就是在XML中android:name属性的值。
+	   -  否则资源名就是文件名，不包括其括展名。
 
+<br>**两种访问方式：**
+　　访问一个资源有两种方法：
+	-  在代码中：使用一个R.class子类中的一个静态整型值。
+	   -  如： R.string.hello，其中string是资源类型，hello是资源名。
+	   -  当你提供一个这种格式的资源类型时，有很多的Android API可以访问你你的资源。
+	-  在XML中：使用一个特殊的XML语法，对应R.class中定义的资源ID。
+	   -  如： @string/hello。string是资源类型，hello是资源名。
+	   -  你可以在XML中任意一个需要的地方使用这个语法。
 
+## 在代码中访问资源 ##
+<br>**语法**
+　　这是在代码中引用一个资源的语法：
+```
+[<package_name>.]R.<resource_type>.<resource_name>
+```
+    语句解释：
+    -  <package_name>是资源所在的包名（如果被引用的资源在你自己的包中，不需要指明）。
+    -  <resource_type>是R的子类中资源的类型。
+    -  <resource_name>是不包括扩展名的资源文件名或XML元素中android:name属性的值（基本类型）。
+
+<br>**使用案例**
+　　有很多种方法可以接受一个资源ID参数，你可以使用`Resources`中的方法来检索资源。你可以通过`Context.getResources()`来获得`Resources`的一个实例。
+　　以下是在代码中访问资源的一些实例：
+``` android 
+// Load a background for the current screen from a drawable resource
+getWindow().setBackgroundDrawableResource(R.drawable.my_background_image) ;
  
+// Set the Activity title by getting a string from the Resources object, because
+//  this method requires a CharSequence rather than a resource ID
+getWindow().setTitle(getResources().getText(R.string.main_title));
+ 
+// Load a custom layout for the current screen
+setContentView(R.layout.main_screen);
+ 
+// Set a slide in animation by getting an Animation from the Resources object
+mFlipper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.hyperspace_in));
+ 
+// Set the text on a TextView object using a resource ID
+TextView msgTextView = (TextView) findViewById(R.id.msg);
+msgTextView.setText(R.string.hello_message);
+```
+
+　　不要手动修改`R.java`文件——它是在项目被编译时由`aapt`生成的。任何的改变将在下一次编译时被重写。
+
+## 通过XML访问资源 ##
+　　你可以使用一个已存在的资源的引用来定义一些XML的属性和元素的值。当你创建布局文件时将会经常使用到这个方法为你的小部件提供字符串和图片。
+
+　　例如，假如你有以下资源文件，包括了一个颜色资源和一个字符串资源：
+``` xml
+<resources>
+   <color name="opaque_red">#f00</color>
+   <string name="hello">Hello!</string>
+</resources>
+```
+　　你可以在以下的布局文件中使用这些资源来设置文本颜色和文本字符串：
+``` xml
+<EditText xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:textColor="@color/opaque_red"
+    android:text="@string/hello" />
+```
+　　在这个案例中，在资源引用时，你不需要指名包名，因为这些资源来自于你自己的包。引用一个系统资源，你需要包括一个包名。如：
+``` xml
+<EditText xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:textColor="@android:color/secondary_text_dark"
+    android:text="@string/hello" />
+```
+　　注意：你应该始终都使用字符串资源，这样你的应用就可以依据设备的语言来进行动态的本地化。
+
+<br>**引用样式属性**
+　　引用一个样式属性本质上说的是，“在当前主题下，使用一个被这个属性所定义的样式。”
+　　引用一个样式属性，其命名的语法几乎是与一般资源的格式相同，但是，使用一个问号`“?”`来替代`“@”`符号，并且资源类型部分是可选的。如：
+
+	?[<package_name>:][<resource_type>/]<resource_name>
+
+　　例如，下面展示了如何引用一个属性来设定文本颜色以匹配系统主题的文本颜色：
+``` xml
+<EditText id="text"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:textColor="?android:textColorSecondary"
+    android:text="@string/hello_world" />
+```
+　　在这个小部件中，Android将使用`android:textColorSecondary`样式属性的值作为`android:textColor`的值。
+　　编译工具知道，在这个环境下需要一个属性资源，因此并不需要明确指定其类型（即`?android:attr/textColorSecondary`），此处可省些`attr`。
+
+# 第四节 资源类型 #
+　　本节的每小节都描述了一类应用资源的用法，格式和语法。你可以把这些资源放在你的资源目录下（即`res/`)。
+
+## Animation ##
+　　Android框架提供了两种动画系统：
+
+	-  property animation（属性动画）：使用Animator类来表示一个属性动画，在Android3.0中提出。
+	-  view animation（视图动画），而在视图动画框架中又包含两种动画：
+	   -  tween animation（补间动画）：使用Animation类表示一个补间动画，补间动画会为控件指定一个变化的范围，让控件在这个范围内不断的变化。tween动画定义了四种操作：平移、渐变、缩放、旋转。
+	   -  frame animation（帧动画）：使用AnimationDrawable类表示一个帧动画，它通过短时间内连续播放多张图片，来达到动画的效果，和电影类似。
+
+<br>　　在Android中实现动画的方式有两种：
+	-  通过XML文件。依据不同的动画，在res文件夹下面建立对应的文件夹用于存放动画文件。每个动画文件对应一个xml文件。
+	-  通过编写代码。直接在代码中new出一个动画对象。
+
+<br>**视图动画和属性动画特点**
+<br>　　视图动画提供的功能，只针对动画View对象，所以如果你想动画非View对象，你要自己来实现。 
+　　视图动画的缺点是：
+	-  视图动画系统事实上只能暴露一个View对象几个方面的动画，如缩放和旋转视图，但没有背景颜色。
+	-  视图动画不是会修改View本身。 虽然你的动画在屏幕上移动一个按钮后，从屏幕上来看按钮确实被移动到了新的位置，但按钮实际的位置不会改变，所以你要实现自己的逻辑来处理这个问题。
+
+<br>　　属性动画中这些限制完全消除，你可以动画任何对象的任何属性（视图和非视图）和对象本身实际也是可以被修改。属性动画系统也更强大的方式进行了动画。在一个较高的水平，你分配要动画的属性，如颜色，位置或大小，可以定义方面，如插补和同步多个动画的动画。
+　　属性动画的缺点是：
+	-  在Android3.0中才被提出。
+
+　　然而，视图动画系统，花费更少的时间设置，需要更少的代码。如果视图动画完成了你需要做的，或者你现有的代码已经完成了工作，那就没有必要使用属性动画系统。
+
+
 
 
 <br><br>

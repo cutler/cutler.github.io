@@ -429,10 +429,35 @@ this.startActivity(intent);
 ```
 
 ## 处理配置的改变 ##
-　　某些设备配置能够在运行期间改变（如屏幕方向、键盘的可用性、语言等）。当这些改变发生时，Android会重建正在运行的Activity（系统调用`onDestroy()`方法后，立即调用`onCreate()`方法）。设计这个行为来帮助应用程序自动的适应新的配置，重新加载应用程序的替代资源（针对不同屏幕方向和尺寸的布局）。
-　　如果正确的设计你的Activity使它能够处理屏幕方向改变期间重启和恢复以上描述的Activity状态，就会使你的应用程序对于Activity生命周期内产生的异常事件的处理更富有弹性。
-　　处理像重启这类事件的最好方法是使用前面章节中讨论的`onSaveInstanceState()`和`onRestoreInstanceSate()`方法来保存和恢复Activity的状态。
-　　关于发生在运行时的配置改变以及如处理这种改变的更多信息，后面章节会详细介绍。
+　　某些设备配置能够在运行期间改变（如屏幕方向、键盘的可用性、语言等）。当这些改变发生时，Android会重建正在运行的Activity（系统调用`onDestroy()`方法后，立即调用`onCreate()`方法）。
+　　但是你也可以修改这个默认的行为，从而阻止系统重启你的Activity，即告诉系统由Activity自己来处理配置变化。
+
+　　只需要设置清单文件的`<activity>`元素的`android:configChanges`属性，为你要处理的配置即可。
+　　最常用的值是`orientation`(处理当屏幕的方向变化)，`keyboardHidden`(处理键盘可用性改变)，多个配置的值之间通过`“|”`符号将它们分隔开。
+　　例如，以下代码声明了Activity中将同时处理屏幕的方向变化和键盘的可用性变化：
+``` xml
+<activity android:name=".MyActivity"
+    android:configChanges="orientation|keyboardHidden"
+    android:label="@string/app_name">
+```
+　　当这些配置中的一个发生改变时，MyActivity不会重新启动。相反，这个Activity会接收`onConfigurationChanged()`方法的调用。这个方法传递一个`Configuration`类的对象来表示新的设备配置。通过读取`Configuration`对象的字段，你可以更新你的界面。当这个方法被调用时，你的Activity的`Resources`对象会被更新并返回一个基于新配置的`Resources`对象，因此你可以在不用系统重启你的Activity的情况下很容易地重置你的UI元素。
+
+　　注意：从`Android3.2`(`API level 13`)开始，当屏幕在横竖屏间切换时也会导致`“screen size”`改变，如果你想在`APILevel 13`或更高的版本中防止运行时重启Activity，你必须同时包含`“screen size”`和`“orientation”`两个值。你也可以将项目的`targetSdkVersion`值设置为`12`或者更低，这样仅设置`orientation`即可。
+
+　　例如，接下来的`onConfigurationChanged()`方法中实现了检查硬件键盘的可用性和当前设备的方向：
+``` android
+public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    // Checks the orientation of the screen
+    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+    } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+        Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+    }
+}
+```
+　　另外，不论你是同时设置`“screen size”`和`“orientation”`还是将`targetSdkVersion`设置为`<=13`，他们都只是会阻止Activity的重建，但并不会阻止屏幕的横竖屏切换。 
+　　如果你想让Activity支持横屏或竖屏二者之一，那么应该使用`android:screenOrientation`属性。
 
 ## 协调Activity ##
 　　当一个Activity启动另一个Activity时，它们的生命周期都会发生变化。第一个Activity被pause和stop（如果它在新Activity的后面依然对用户可见，则不会被stop）时，另一个Activity就会被创建。
