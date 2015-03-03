@@ -397,7 +397,7 @@ msgTextView.setText(R.string.hello_message);
 	-  通过编写代码。直接在代码中new出一个动画对象。
 
 <br>**视图动画和属性动画特点**
-<br>　　视图动画提供的功能，只针对动画View对象，所以如果你想动画非View对象，你要自己来实现。 
+　　视图动画提供的功能，只针对动画View对象，所以如果你想动画非View对象，你要自己来实现。 
 　　视图动画的缺点是：
 	-  视图动画系统事实上只能暴露一个View对象几个方面的动画，如缩放和旋转视图，但没有背景颜色。
 	-  视图动画不是会修改View本身。 虽然你的动画在屏幕上移动一个按钮后，从屏幕上来看按钮确实被移动到了新的位置，但按钮实际的位置不会改变，所以你要实现自己的逻辑来处理这个问题。
@@ -408,6 +408,555 @@ msgTextView.setText(R.string.hello_message);
 
 　　然而，视图动画系统，花费更少的时间设置，需要更少的代码。如果视图动画完成了你需要做的，或者你现有的代码已经完成了工作，那就没有必要使用属性动画系统。
 
+### 视图动画 ###
+　　视图动画框架同时支持补间和逐帧动画，它都可以用XML声明。
+
+<br>
+#### Tween动画 ####
+　　Android提供了四种Tween动画：`透明`、`平移`、`旋转`、`缩放`。
+
+<br>**透明**
+　　透明(`alpha`)动画 ，可以将一个`View`从某个透明度转变为另一个透明度。
+
+<br>　　范例1：透明动画(`alpha.xml`)。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <alpha 
+      	android:fromAlpha="1.0"
+     	android:toAlpha="0"
+     	android:duration="5000" />
+</set>
+```
+    语句解释：
+    -  本范例通过XML文件来定义一个透明动画，必须要将动画文件放到res/anim文件夹下。
+    -  动画文件必须以<set>，<objectAnimator>，<valueAnimator>三者之一作为根节点。根节点中必须定义android命名空间。
+    -  使用<alpha>标签来定义一个透明动画。
+
+    属性解释：
+    -  android:fromAlpha	 控件的初始透明度。取值在0.0~1.0之间。1.0为完全不透明。
+    -  android:toAlpha       动画结束时，控件的透明度。
+    -  android:duration	  播放动画时持续的时间。 
+
+<br>　　范例2：播放动画。
+``` android
+public class AndroidTestActivity extends Activity {
+    private ImageView img;
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        
+        this.img = (ImageView) this.findViewById(R.id.img);
+        // 指定动画文件的资源ID ，将其从res/anim目录导入到程序中，并将其转换为一个Animation对象。
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.alpha);
+        this.img.startAnimation(animation);
+    } 
+}
+```
+    语句解释：
+    -  本范例是在ImageView上面播放刚才我们创建的透明动画。
+ 
+<br>　　范例3：通过代码实现动画。
+``` android
+public class AndroidTestActivity extends Activity {
+    private ImageView img; 
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        
+        this.img = (ImageView) this.findViewById(R.id.img);
+        // 直接实例化一个AlphaAnimation对象，构造方法为：AlphaAnimation (float fromAlpha,float toAlpha)。
+        Animation animation = new AlphaAnimation(1.0f,0.1f);
+        // 设置动画的播放时间，单位(毫秒)。
+        animation.setDuration(4000);
+        // 设置控件是否定格在动画播放和完成后的状态。
+        animation.setFillAfter(true);
+        this.img.startAnimation(animation);
+    } 
+}
+```
+    语句解释：
+    -  本范例是在ImageView上面播放刚才我们创建的透明动画。
+
+<br>**平移**
+　　平移(`translate`)动画，可以将指定的View从某一个位置移动到另一个位置。某个View的平移动画的播放范围是其父控件所占的空间。如下图所示： 
+
+<center>
+![](/img/android/android_4_6.png)
+</center>
+
+　　上图中`灰色部分`是一个线性布局，布局内有`TextView`和`Button`两个控件 。若此时按钮B需要播放一个平移动画，那么按钮B的平移动画的`可视范围`则是线性布局所占据的区域，即上图中的灰色部分。 
+
+<br>　　范例1：平移动画(`alpha.xml`)。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <translate 
+        android:fromXDelta="0"
+        android:fromYDelta="0"
+        android:toXDelta="100"
+        android:toYDelta="150"
+        android:duration="3000"	/>
+</set>
+```
+    属性解释：
+    -  android:fromXDelta	设置动画移动时的起始X坐标。
+    -  android:fromYDelta	设置动画移动时的起始Y坐标。
+    -  android:toXDelta	  设置动画移动时的结束X坐标。
+    -  android:toYDelta	  设置动画移动时的结束Y坐标。 
+
+<br>　　对于平移动画的四个属性来说，其值可以使用百分比或具体数字来表示：
+
+	-  若取值为百分比：则表示当前控件内部的某个位置。如“50%”。
+	-  若取值为百分比p：则表示当前控件的父控件内部的某个位置。如“50%p”。
+	-  若取值为具体常量：常量就是相对于当前控件的在未播放动画时的左上角坐标的偏移量。
+
+　　因此，在范例1中，动画的起点就是按钮B的左上角，动画的终点就是左上角坐标沿着`x`轴偏移`100`像素，沿着`y`轴偏移`150`像素。 
+
+<br>**旋转**
+　　旋转(`rotate`)动画，可以将指定的View沿着某一个点从某一个角度旋转到另一个角度。旋转动画的可视范围同样是待播放动画的View的父控件所占据的空间。
+
+<br>　　范例1：旋转动画。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <rotate
+        android:fromDegrees="0"
+        android:toDegrees="-90"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:duration="3000" />
+</set>
+```
+    属性解释：
+    -  android:fromDegrees	   设置控件(相对于0度)最初倾斜角度。若值为0则控件不倾斜。
+    -  android:toDegrees	     设置控件(相对于0度)最终倾斜角度，若值与fromDegrees相等则控件不倾斜。
+    -  android:pivotX和pivotY	设置控件旋转时所用的参照点的X和Y轴坐标。
+
+    若将fromDegrees或toDegrees属性的值设置为负数，则动画会按照逆时针旋转。
+
+<br>　　范例2：RotateAnimation类。
+``` android
+// 根据指定的参数构造一个RotateAnimation对象。 
+// 此构造方法默认是相对于屏幕上的某个点进行旋转。若想相对于控件本身或父元素旋转，则需要调用另一个构造方法。
+public RotateAnimation(float fromDegrees, float toDegrees, float pivotX, float pivotY)
+
+// 根据指定的参数构造一个RotateAnimation对象。
+// 其中pivotXType和pivotYType指出当前动画旋转的参照点的类型，有三个取值：
+// -  相对的(RELATIVE)：
+//    -  Animation.RELATIVE_TO_SELF ：控件围绕自己内部的某点旋转。
+//    -  Animation.RELATIVE_TO_PARENT ：控件围绕其父组件内部某点旋转。
+// -  绝对的(ABSOLUTE)：
+//    -  Animation.ABSOLUTE：控件围绕屏幕中的某个具体的点旋转。
+// -  其中pivotXValue和pivotYValue的取值范围为：
+// -  若Type设置为相对的(RELATIVE)，则取值范围是0.0~1.0之间。1.0就是100%。
+// -  若Type设置为绝对的(ABSOLUTE) ，则取值可以是一个具体的数字。
+public RotateAnimation(float fromDegrees, float toDegrees, int pivotXType, float pivotXValue, int pivotYType, float pivotYValue)
+```
+
+<br>**缩放**
+　　缩放(`scale`)动画，可以将指定的View沿着某一个点从某一个尺寸缩放到另一个尺寸。缩放动画的可视范围同样是待播放动画的View的父控件所占据的空间。
+
+<br>　　范例1：缩放动画。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <scale 
+        android:fromXScale="1.0" 
+        android:fromYScale="5.0"
+        android:toXScale="3.0" 
+        android:toYScale="1.0" 
+        android:pivotX="50%"
+        android:pivotY="50%" 
+        android:duration="5000" />
+</set>
+```
+    属性解释：
+    -  android:fromXScale	设置控件最初在水平方向上被缩放的倍数。若为1.0则不缩放。
+    -  android:fromYScale	设置控件最初在垂直方向上被缩放的倍数。若为1.0则不缩放。
+    -  android:toXScale	  设置控件最终在水平方向上被缩放的倍数。
+    -  android:toYScale	  设置控件最终在垂直方向上被缩放的倍数。
+    -  android:pivotX	    设置控件以某个中心点进行缩放时，中心点的X坐标。 
+    -  android:pivotY	    设置控件以某个中心点进行缩放时，中心点的Y坐标。
+
+<br>　　范例2：反向。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<scale
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fromXScale="1"
+    android:fromYScale="1"
+    android:toXScale="-1"
+    android:toYScale="-1"
+    android:pivotX="50%"
+    android:pivotY="50%"
+    android:duration="3000" />
+```
+    语句解释：
+    -  若fromXScale、fromYScale、toXScale、toYScale四个属性的取值为负数，则：
+       -  X轴会以中心点X轴坐标为准从右到左的反向。
+       -  Y轴会以中心点Y轴坐标为准从上到下的反向。
+
+<br>**AnimationSet**
+　　使用`<set>`标签来定义一个动画集合，其内部可以嵌套其他动画元素（`<alpha>`，`<scale>`，`<translate>`，`<rotate>`），甚至是另一个`<set>`，`<set>`元素使用`AnimationSet`类来表示。
+　　
+<br>　　范例1：一组动画。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android" >
+    <alpha
+        android:duration="1000"
+        android:fromAlpha="0.5"
+        android:toAlpha="1.0" />
+    <scale
+        android:duration="1000"
+        android:fromXScale="1"
+        android:fromYScale="1"
+        android:toXScale="0.5"
+        android:toYScale="0.5" />
+    <translate
+        android:duration="1000"
+        android:fromXDelta="0"
+        android:fromYDelta="0"
+        android:toXDelta="150"
+        android:startOffset="3000"
+        android:toYDelta="150"/>
+</set>
+```
+    语句解释：
+    -  使用动画的android:startOffset属性可以设置其播放的开始时间，单位是毫秒。
+    -  本范例中，当这个动画集合开始时会首先播放前两个动画，等动画集已经播放了三秒时，第三个平移动画才开始播放。
+
+    属性解释：
+    -  android:interpolator为<set>元素设置加速器。
+    -  android:shareInterpolator
+       -  “true” if you want to share the same interpolator among all child elements.
+
+<br>**Interpolators**
+　　`Interpolators`是在xml中定义的动画加速器，它可以影响动画的播放速度，允许您对现有的动画效果进行`加速`、`减速`、`重复`、`反弹`等。Android中所有的加速器都是`Interpolators`类的子类。Android中已提供的加速器如下表所示：
+```
+加速器类名				资源id
+AccelerateDecelerateInterpolator	@android:anim/accelerate_decelerate_interpolator
+AccelerateInterpolator			@android:anim/accelerate_interpolator
+AnticipateInterpolator			@android:anim/anticipate_interpolator
+AnticipateOvershootInterpolator		@android:anim/anticipate_overshoot_interpolator
+BounceInterpolator			@android:anim/bounce_interpolator
+CycleInterpolator			@android:anim/cycle_interpolator
+DecelerateInterpolator			@android:anim/decelerate_interpolator
+LinearInterpolator			@android:anim/linear_interpolator
+OvershootInterpolator			@android:anim/overshoot_interpolator
+```
+　　使用的方法：
+``` xml
+<set android:interpolator="@android:anim/accelerate_interpolator">
+    <!-- ... -->
+</set>
+```
+    语句解释：
+    -  interpolator属性的值必须指向加速器的资源Id，而不是类名。
+
+<br>**自定义Interpolators**
+　　如果平台提供的加速器无法满足你的需求，你可以在这些加速器的基础上再创建一个自定义的加速器。
+
+　　文件位置：`res/anim/filename.xml`
+　　语法：
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<InterpolatorName 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:attribute_name="value"/>
+```
+　　如果你不为加速器指定任何属性，那么和直接使用它们是没有任何区别的，关于系统内置的加速器支持哪些属性，请自行搜索。
+
+#### Frame动画 ####
+　　帧动画通过在短时间内连续播放多张图片来达到动画的效果。
+
+<br>　　范例1：建立动画文件`res/drawable/look.xml`。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android" android:oneshot="false">
+    <item android:drawable="@drawable/girl_1" android:duration="120" />
+    <item android:drawable="@drawable/girl_2" android:duration="120" />
+    <item android:drawable="@drawable/girl_3" android:duration="120" />
+    <item android:drawable="@drawable/girl_4" android:duration="120" />
+</animation-list>
+```
+    语句解释：
+    -  帧动画的根标签为<animation-list>，帧动画的xml文件必须要放在res/drawable文件夹中。
+    -  <item>标签描述帧动画中的每一帧所要显示的图片。
+
+    属性解释
+    -  android:oneshot   设置动画是否只播放一次。若值为false，则动画会循环播放。
+    -  <item>标签的 android:drawable 当前帧所显示的图片。
+    -  <item>标签的 android:duration 当前帧的持续时间（毫秒）。
+
+<br>　　范例2：使用动画。
+``` xml
+<ImageView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:src="@drawable/look"
+    android:onClick="onClick"
+    android:id="@+id/img" />
+```
+    语句解释：
+    -  使用<ImageView>的android:src属性来指向新建立好的动画文件look.xml。
+
+<br>　　范例3：播放动画。
+``` 
+AnimationDrawable drawable = (AnimationDrawable) this.img.getDrawable();
+drawable.start();
+```
+    语句解释：
+    -  调用ImageView的getDrawable方法获取动画后，就可以启动动画了。
+    -  提示：帧动画不可以通过AnimationUtils工具类获取，该类仅能获取Tween动画。
+
+<br>　　在`Activity`的`onCreate()`中调用`AnimationDrawable`的`start()`方法动画并不会被播放。这是因为`AnimationDrawable`不能在不完全的窗口上运行。可以在`onCreate()`方法之后的`onWindowFocusChanged()`方法中启动动画。
+
+
+<br>　　范例4：在`onWindowFocusChanged`中。
+``` android
+public void onWindowFocusChanged(boolean hasFocus) {
+    super.onWindowFocusChanged(hasFocus);
+    if(hasFocus){ // 若当前Activity获得焦点。
+        TextView text = (TextView) findViewById(R.id.text);
+        AnimationDrawable drawable =(AnimationDrawable) text.getBackground();
+        drawable.start();    		
+    }
+}
+```
+    语句解释：
+    -  onWindowFocusChanged方法将在Activity的onResume方法之后且用户可操作之前被调用。
+
+<br>
+### 属性动画 ###
+暂缓。
+
+## Color State List ##
+　　你可以在XML中定义`ColorStateList`对象，并且把它作一个`color`来使用的对象，这个对象会根据所使用它的View对象的状态改变颜色。
+　　例如， 一个`Button`控件可以存在几种不同的状态（`press`按下、`focused`获得焦点、`selected`和`checked`选中），此时使用`ColorStateList`，就可以跟据每个状态提供不同的颜色值来显示。
+
+　　您可以在一个XML文件中，把每种颜色定义在一个单独的`<selector>`标签内的`<item>`标记里面。
+　　每个`<item>`可使用各种属性来描述其对应的状态，在每个状态变化时，状态列表将从上到下，找到第一个符合当前的状态将就会被用上。也就是说，并不是基于用`“最佳匹配”`的算法来选择的，而仅仅遇到第一个符合最低标准的就会被使用。
+　　
+<br>**语法：**
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item
+        android:color="hex_color"
+        android:state_pressed=["true" | "false"]
+        android:state_focused=["true" | "false"]
+        android:state_selected=["true" | "false"]
+        android:state_checkable=["true" | "false"]
+        android:state_checked=["true" | "false"]
+        android:state_enabled=["true" | "false"]
+        android:state_window_focused=["true" | "false"] />
+</selector>
+```
+
+<br>　　范例1：`my_color.xml`文件。此文件必须在`res/color`文件夹下建立。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:state_pressed="true"
+        android:color="#f00" />
+    <item
+        android:state_focused="true"
+        android:color="#0f0" />
+    <item android:color="#00f" />
+</selector>
+```
+    语句解释：
+    -  使用<selector>标签创建一个state-list文件，此标签必须为根节点。
+    -  View的每一个状态使用一个<item>标签来描述，标签常用的属性为color，表示颜色值，其值可以是资源id或者颜色常量。此属性必须被指定。
+    -  本范例的含义为，当View获得焦点时，View的背景色将被设置为“0f0” ，被按下时，背景色将被设置为“f00”。
+
+<br>　　匹配原则：
+
+	-  当View的状态被改变时，系统会使用View当前的状态和此文件内所有的<item>匹配。
+	   -  匹配的顺序：从上到下，从左到右依次匹配每一个<item>标签。
+	   -  匹配的原则：
+	      -  若View的当前状态与某个<item>标签匹配成功，则将View的背景色设置为该<item>标签指定的色值，并不会再继续匹配，直接返回。
+	      -  若匹配失败，则继续匹配下一个<item>标签。
+	      -  若直到最后都没有一个<item>匹配成功，则将为View设置黑色的背景。
+	      -  若某个<item>标签没有指定任何具体的状态，则意味着该<item>可以和任何状态匹配，因此应该把没有指定状态的<item>标签放到文件的最后书写。
+
+<br>　　范例2：使用颜色状态列表。
+``` xml
+<Button
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="领奖"
+    android:textColor="@color/my_color" />
+```
+    语句解释：
+    -  当按钮被按下时，按钮上的文字的颜色将变为红色。
+
+
+<br>　　范例3：属性介绍。
+``` 
+android:state_pressed          控件是否被按下（一个点击事件由按下、抬起两个事件组成）。
+
+android:state_focused          控件是否获得焦点。
+                               使用滑轮或键盘的方向导航键导航到某一个控件上，此控件就得到了焦点（会被高亮显示，在模拟器容易看到）。
+
+android:state_selected         控件是否被选中。比如一个tab被打开。
+
+android:state_checkable        控件是否处于可选状态。
+                               这个属性仅仅用于那些可以在“可选”和“不可选”两种状态之间过渡的控件，如RadioButton。
+
+android:state_checked          控件是否处于选中状态。
+                               这个属性仅仅用于那些可以在“可选”和“不可选”两种状态之间过渡的控件，如CheckBox。
+
+android:state_enabled          控件是否处于可用状态。
+
+android:state_window_focused   应用程序的窗口是否处于聚焦状态。 
+                               通知罩（即通知栏被拉下后的半透时界面）被打开时或者一个对话框（dialog）出现时，后面的窗口就处于失焦状态。
+```
+
+## Drawable ##
+　　在Android中有`十一种`类型常用的图片资源，它们分别对应与不同的应用场景。这些类型的图片都是`可编辑`的，它们有一个共同的父类`Drawable`。
+　　一个`Drawable`资源，就是能被画到屏幕的一个一般的图形概态。
+
+### 位图资源 ###
+　　Android开发中，应用程序所使用的图片资源仅支持三种格式的位图：`png`、`jpg`、`gif` (不可以使用`bmp`格式的图片)。
+　　创建位图资源有两种方式：通过位图文件、通过`xml`文件（即为其创建一个资源id的别名）。
+
+<br>
+#### Bitmap File ####
+　　位图文件：直接将`png`、`jpg`、`gif`格式的文件放到`res/drawable`目录下即可。图片的名称就是位图资源的ID，在程序中可以通过资源ID引用图片。
+
+<br>　　范例1：当一个图片保存在`res/drawable/myimage.png` ,下面就是xml来使用此图到一个View上：
+``` xml
+<ImageView
+    android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    android:src="@drawable/myimage" />
+```
+
+　　下面的应用代码是将一个图片恢复为一个Drawable对象：
+``` 
+Resources res = getResources();
+Drawable drawable = res.getDrawable(R.drawable.myimage);
+```
+
+<br>　　注意：在编译过程中`Bitmap`文件可能使用`aapt`工具优化为无损压缩图像，例如，一个不需要`256`色的真彩PNG图片可能转化为附有调色板的`8-bitPNG`图片。这会产生同等质量的图片，但只需要较少的内存。所以需要明白在此路径下的图片在编译中会改变。如果打算按`bit`流读取图片以转换成位图，把图片放在`res/raw/`文件夹，这不会被优化。
+
+　　`Drawable`顾名思义就是可画的、可编辑的。而位图资源则可以通过`BitmapDrawable`类进行编辑。
+
+<br>　　范例2：获取图像宽高。
+``` android
+public class AndroidTestActivity extends Activity {
+    private ImageView img;
+    private BitmapDrawable drawable;
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+		
+        this.img = (ImageView) this.findViewById(R.id.icon);
+        this.drawable = (BitmapDrawable) this.img.getDrawable();
+        // 取值范围：0 ~ 255 ，255为完全不透明。透明度取值范围：0 ~ 255 ，255为完全不透明。
+        this.drawable.setAlpha(35); 
+        System.out.println("width="+this.drawable.getBitmap().getWidth());
+        System.out.println("height="+this.drawable.getBitmap().getHeight());
+    }
+}
+```
+
+<br>
+#### XML Bitmap ####
+　　XML Bitmap是定义在xml文件中的，指向一个位图的资源文件。这种作用对于原始的位图文件尤其有效。并且XML可以设定抖动，拼接等位图的附加属性。
+
+<br>　　范例1：通过xml文件。本xml文件需要在`res/drawable`目录下建立，名为`bitmap.xml`。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<bitmap
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/a" />
+```
+    语句解释：
+    -  在xml文件中使用<bitmap>标签来描述一个位图资源，xml文件名称就是图片的资源ID。
+    -  其中<bitmap>标签必须包含src属性，该属性用来指出一个位图文件。
+    -  通过xml文件方式创建位图资源，可以为指定位图文件做一些附加的修饰。
+       -  如：指出图片的gravity、平铺模式以及是否启动图片抗锯齿等。
+
+<br>　　范例2：引用位图资源。
+``` xml
+<ImageView
+    android:layout_width="300dp"
+    android:layout_height="300dp"
+    android:src="@drawable/bitmap"
+    android:id="@+id/icon"/>
+```
+    语句解释：
+    -  引用xml文件和引用普通位图文件的方式是完全一样的。
+
+<br>**语法：**
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<bitmap
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@[package:]drawable/drawable_resource"
+    android:antialias=["true" | "false"]
+    android:dither=["true" | "false"]
+    android:filter=["true" | "false"]
+    android:gravity=["top" | "bottom" | "left" | "right" | "center_vertical" |
+                      "fill_vertical" | "center_horizontal" | "fill_horizontal" |
+                      "center" | "fill" | "clip_vertical" | "clip_horizontal"]
+    android:tileMode=["disabled" | "clamp" | "repeat" | "mirror"] />
+```
+    属性解释
+    -  android:antialia      布尔型，是否允许抗锯齿。
+    -  android:dither        布尔型，如果位图与屏幕的像素配置不同时，是否允许抖动.（例如：一个位图的像素设置是 ARGB 8888，但屏幕的设置是RGB 565）。
+    -  android:filter        布尔型。 是否允许对位图进行滤波。对位图进行收缩或者延展使用滤波可以获得平滑的外观效果。
+    -  android:gravity       定义位图的gravity，如果位图小于其容器，使用gravity属性指明在容器的何处绘制该位图。
+
+### Nine-Patch ###
+　　`NinePatch`是一个标准的PNG图像，它是一个可以伸缩的位图图像，Android会自动调整大小来容纳显示的内容。一个例子就是NinePatch为背景，使用标准的Android按钮，按钮必须伸缩来容纳长度变化的字符。 NinePatch与传统PNG图像不同的是：
+
+	-  它的四条边上包括额外的1个像素的边界。
+	-  它的后缀名为“.9.png”。
+	-  它需要被保持到工程的res/drawable目录中。
+　　另外，若你是从`apk`解压后得到的`*.9.png`文件，则会发现它是已将周围的空白像素去掉了的，在使用时必须再加上。
+
+<br>**NinePatch的边界：**
+　　这个边界是用来确定图像的可伸缩和静态区域。你可以在`左边`和`上边`的线上画一个或多个黑色的1个像素`指出可伸缩的部分`，它的相对位置在可伸缩部分相同，所以大的部分总是很大的。
+　　你还有可以在图像的`右边`和`下边`画一条可选的drawable区域（有效的，内边距线）。如果你的View对象设置NinePath为背景然后指定特殊的视图字体，它将自行伸缩使所有的文本来适应根据右线与底部线设计好的区域（如果有的话），当然内边距线不包括其中，Android可以使用左边的线与上面的线来定义一个drawable区域。
+
+<br>
+#### Nine-Patch File ####
+　　你可以使用`tools\draw9patch.bat`工具来将普通的png图片修改为`*.9.png`的图片，该工具非常直观的展示了图片在上下或左右拉伸时的效果以及作为背景时其内容显示的位置。
+
+　　虽然`.9.png`图片是在`.png`基础上制作出来的，但它在项目中的引用方式和`png`图片完全一样。
+
+<br>　　范例1：有一个图片保存在`res/drawable/myninepatch.9.png`, 此布局XML应用到一个View。
+``` xml
+<Button
+    android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    android:background="@drawable/myninepatch" />
+```
+
+<br>
+#### XML Nine-Patch ####
+　　一个`XML Nine-Patch`是一个定义在XML中，指向一个`Nine-Patch`文件的资源，此XML能够设置图片的抖动。
+
+<br>**语法：**
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<nine-patch
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@[package:]drawable/drawable_resource"
+    android:dither=["true" | "false"] />
+```
+    属性解释
+	-  xmlns:android      定义XML的命名空间，必须要有且值必须是“http://schemas.android.com/apk/res/android”。
+	-  android:src        可绘制资源，必要的，指向一个Nine-Patch文件。
+	-  android:dither     布尔型，如果位图与屏幕的像素配置不同时，是否允许抖动.（例如：一个位图的像素设置是 ARGB 8888，但屏幕的设置是RGB 565）。
+
+　　提示：NinePatch图片使用`NinePatchDrawable`类来表示。
 
 
 
