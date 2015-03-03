@@ -958,6 +958,193 @@ public class AndroidTestActivity extends Activity {
 
 　　提示：NinePatch图片使用`NinePatchDrawable`类来表示。
 
+<br>
+### Layer List ###
+　　层列表(`layer-list`) 类型的图片资源是一个复合的图片资源，它可以将多张图片组合成一张图片。它类似于帧布局。
+
+　　效果图：
+<center>
+![](/img/android/android_4_7.png)
+</center>
+
+　　`Layer-list`类型的图片资源通过xml文件来构建。
+
+<br>**语法：**
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item
+        android:drawable="@[package:]drawable/drawable_resource"
+        android:id="@[+][package:]id/resource_name"
+        android:top="dimension"
+        android:right="dimension"
+        android:bottom="dimension"
+        android:left="dimension" />
+</layer-list>
+```
+
+<br>　　范例1：`icon.xml`。本文件需要在`res/drawable`目录下建立。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/b" />
+    <item android:drawable="@drawable/a" />
+</layer-list>
+```
+    语句解释：
+    -  使用<layer-list>标签创建一个Layer-list文件，<layer-list>标签必须为根节点。
+    -  每一张图片使用一个<item>标签来描述，drawable属性表示图片资源。此属性必须被指定。
+    -  多张图片组合时，先出现的<item>元素会被放在下面。如：在本范例中a图片会放在b的图片的上面。
+
+<br>　　范例2：其他属性。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:drawable="@drawable/icon"
+        android:top="140dp"
+        android:right="150dp"
+        android:left="150dp"
+        android:bottom="20dp" />
+</layer-list>
+```
+　　效果图：
+<center>
+![](/img/android/android_4_8.png)
+</center>
+
+　　`<item>`标签：
+
+	-  top、right、left、bottom属性，
+	-  指出图片在ImageView所占据的空间的最小padding 。即图片距离ImageView某一边实际的padding必须大于等于指定的距离。
+	-  若指定的padding超过了ImageView所占据的大小，则将缩小图片，以保证属性的值生效。
+	-  在<item>标签内部可以使用<bitmap>等标签直接构造一张图片。<bitmap>标签的gravity属性可以取多个值，多个值间使用“|”间隔。 
+
+<br>　　范例3：引用此图片。
+``` xml
+<ImageView
+    android:layout_width="300dp"
+    android:layout_height="300dp"
+    android:src="@drawable/layout_list"
+    android:id="@+id/ico"/>
+```
+    语句解释：
+    -  若此时调用ImageView的getDrawable方法，返回值的类型为： LayerDrawable 。
+
+<br>　　层列表中所定义的图片是可以动态的改变的，与位图资源一样，若想对图片进行编辑，则需要获取图片资源的Drawable对象。
+
+<br>　　范例4：点击事件。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/b" />
+    <item
+        android:id="@+id/content"
+        android:drawable="@drawable/a" />
+</layer-list>
+```
+    语句解释：
+    -  本范例中为<item>标签设置一个ID 。
+
+　　动态更新图片：
+``` android
+public class AndroidTestActivity extends Activity {
+    private ImageView img;
+    private Resources rs;
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+		
+        this.img = (ImageView) this.findViewById(R.id.img);
+        this.rs = this.getResources();
+    }
+    public void onClick(View view){
+        // 通过Resources类获取一个新的LayerDrawable对象。
+        LayerDrawable drawable=(LayerDrawable)rs.getDrawable(R.drawable.layer);
+        drawable.setDrawableByLayerId(R.id.content,rs.getDrawable(R.drawable.icon));
+        // 将新的LayerDrawable对象赋值给ImageView。
+        this.img.setImageDrawable(drawable);
+    }
+}
+```
+    语句解释：
+    -  层列表类型的图片资源在程序运行的时候，其内的多张图片会被转成一幅图片。
+    -  因此在动态更新图片时，需要重新创建一个新的LayerDrawable对象。
+
+<br>　　范例5：实现如下效果。
+<center>
+![](/img/android/android_4_9.png)
+</center>
+　　代码为：
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+      <bitmap android:src="@drawable/android_red"
+        android:gravity="center" />
+    </item>
+    <item android:top="10dp" android:left="10dp">
+      <bitmap android:src="@drawable/android_green"
+        android:gravity="center" />
+    </item>
+    <item android:top="20dp" android:left="20dp">
+      <bitmap android:src="@drawable/android_blue"
+        android:gravity="center" />
+    </item>
+</layer-list>
+```
+
+<br>
+### Level List ###
+　　等级列表(`level-list`) 类型的图片资源，可以根据Drawable当前的等级，让View显示不同的背景图片。
+　　有些时候，View的背景图片更新的时间是不确定的，仅仅通过View的状态的改变来更新View难以满足特殊的需求。此时可以使用等级列表。 
+　　等级列表和状态列表类似，他们均是事先规定好View所能使用的背景图片。不同的是：
+	-  状态列表：依赖于View的状态，图片的改变由用户的操作来决定。
+	-  等级列表：依赖于一个“等级”，图片的改变由程序当前执行的情况来决定。
+
+<br>　　范例1：`levle.xml`。本文件需要在`res/drawable`目录下建立。
+``` xml
+<level-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/a" />
+    <item
+        android:drawable="@drawable/b"
+        android:minLevel="1"
+        android:maxLevel="10" />
+    <item
+        android:drawable="@drawable/c"
+        android:minLevel="11"
+        android:maxLevel="20" />
+</level-list>
+```
+    语句解释：
+    -  使用<level-list>标签描述一个等级列表，每一个<item>标签代表一张图片。<item>标签的drawable属性为必选。
+    -  <level-list>标签对应于LevelListDrawable类。
+    -  在本范例中，当<level-list>的当前等级x与某个<item>标签的minLevel和maxLevel属性满足关系：minLevel <=x<= maxLevel 时，该<item>标签所对应的图片将被使用当前LevelListDrawable作为背景图片的View使用。
+    -  若某个<item>标签没有指定minLevel和maxLevel属性，则他们的默认取值都为0 。
+    -  若有两个或以上的<item>标签同时匹配，则系统会选择最先扫描到的，选择之后就不再继续向下匹配。
+
+<br>　　范例2：更改等级。
+``` android
+public class AndroidTestActivity extends Activity {
+	private ImageView img; // 图片。
+	private EditText text; // 文本框,用来让用户输入等级。
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.main);
+		
+		this.img = (ImageView) this.findViewById(R.id.img);
+		this.text = (EditText) this.findViewById(R.id.text);
+	}
+	public void onClick(View view){
+		int level = Integer.valueOf(this.text.getText().toString());
+		Drawable drawable = this.img.getDrawable();
+		// 根据用户输入的等级,设置Drawable的等级。
+		drawable.setLevel(level);
+	}
+}
+
+```
 
 
 <br><br>
