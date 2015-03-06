@@ -4,7 +4,7 @@ categories: Android
 ---
 
 # 第一节 概述 #
-　　你应该总是将你的资源从应用程序代码中分离出来（如图像和字符串），这样您就可以保持他们的独立。外部化资源后，您还可以提供替代资源（如依据不同的语言或屏幕尺寸），这变得越来越重要，因为越来越多的android设备提供不同的配置。为了提供不同配置的兼容性，您必须在项目的组织资源`res/`目录下，使用各种子目录组类型和配置资源。
+　　你应该总是将你的资源从应用程序代码中分离出来（如图像和字符串），这样您就可以保持他们的独立。外部化资源后，您还可以提供替代资源（如依据不同的语言或屏幕尺寸），这变得越来越重要，因为越来越多的android设备提供不同的配置。为了提供不同配置的兼容性，您必须在项目的资源目录`res/`下，使用各种子目录组类型和配置资源。
 
 　　你可以为您的应用程序中任何类型的资源，指定一个默认和多个替代资源：
 
@@ -26,7 +26,7 @@ categories: Android
 
 # 第二节 提供资源 #
 　　你应该总是化将你应用程序中的资源外部，比如`图片`、`字符串`等，这样有利于你独立处理这些资源。
-　　你也应该根据特定的设备配置提供一些`可替代的资源`，并且把他们分组保存在指定的路径名下。运行时，Android可以根据当前的配置使用适当的资源。比如，你也许会根据不同的屏幕尺寸提供不同的UI布局或是不同的语言设定提供不同的字符串。
+　　你也应该根据特定的设备配置提供一些`可替代的资源`，并且把他们分别设备保存在指定的路径名下。运行时，Android可以根据当前的配置使用适当的资源。比如，你也许会根据不同的屏幕尺寸提供不同的UI布局或是不同的语言设定提供不同的字符串。
 　　一旦你外部化了应用程序中的资源，你就能通过项目中的`R.class`生成的`ID`来调用他们（怎么使用你的资源将在下一节讨论）。本节将向你展示怎么样分类你Android项目中的资源，以及怎么样给特定的设备配置提供可替代的资源。
 
 ## 分组资源类型 ##
@@ -44,7 +44,7 @@ MyProject/
       values/
          strings.xml
 ```
-　　从这个例子中你可以看到，`res/`路径下包含了所有类型的资源：一个图片资源，两个布局资源和一个字符串资源文档。资源路径名非常重要，并在下表中做了具体描述。
+　　从这个例子中你可以看到，`res/`路径下包含了：一个图片资源，两个布局资源和一个字符串资源文档。资源路径名非常重要，并在下表中做了具体描述。
 
 <br>　　范例1：项目`res/`下的资源路径子目录。
 ``` android
@@ -67,7 +67,7 @@ raw		存放任意的原始格式文件。
 		在assets/中的文件不会被赋予资源ID，你只能通过AssetManager类来读取它们。
 values		存放XML格式的基本数值，如字符串、样式和颜色等。
 		XML文件的根节点为<recources>，我们可以在根节点内部定义各种元素。
-		比如，一个字符串<string>元素创建了一个R.string资源，一个颜色<color>元素创建了一个R.color资源。
+		比如，一个字符串<string>元素对应一个R.string资源，一个颜色<color>元素对应一个R.color资源。
 		为清楚起见，你应该把不同的资源放在不同的文件中。例如，以下是一些你可以使用的每一种资源对应的常用文件名：
 		-  arrays.xml 数组资源 (数组类型)
 		-  colors.xml 颜色
@@ -1073,9 +1073,11 @@ public class AndroidTestActivity extends Activity {
     -  因此在动态更新图片时，需要重新创建一个新的LayerDrawable对象。
 
 <br>　　范例5：实现如下效果。
+
 <center>
 ![](/img/android/android_4_9.png)
 </center>
+
 　　代码为：
 ``` xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -1127,24 +1129,493 @@ public class AndroidTestActivity extends Activity {
 <br>　　范例2：更改等级。
 ``` android
 public class AndroidTestActivity extends Activity {
-	private ImageView img; // 图片。
-	private EditText text; // 文本框,用来让用户输入等级。
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
+    private ImageView img; // 图片。
+    private EditText text; // 文本框,用来让用户输入等级。
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
 		
-		this.img = (ImageView) this.findViewById(R.id.img);
-		this.text = (EditText) this.findViewById(R.id.text);
-	}
-	public void onClick(View view){
-		int level = Integer.valueOf(this.text.getText().toString());
-		Drawable drawable = this.img.getDrawable();
-		// 根据用户输入的等级,设置Drawable的等级。
-		drawable.setLevel(level);
-	}
+        this.img = (ImageView) this.findViewById(R.id.img);
+        this.text = (EditText) this.findViewById(R.id.text);
+    }
+    public void onClick(View view){
+        int level = Integer.valueOf(this.text.getText().toString());
+        Drawable drawable = this.img.getDrawable();
+        // 根据用户输入的等级,设置Drawable的等级。
+        drawable.setLevel(level);
+    }
 }
+```
+    语句解释：
+    -  若想在程序中动态的为LevelListDrawable添加等级，则可以使用LevelListDrawable类的addLevel方法。
+
+<br>
+### Transition Drawable ###
+　　过渡(`transition`)类型的图片资源，其内包含有两张图片，它类似于动画，当用户做出特定的操作时，View的Drawable会从第一张图片慢慢的过渡为第二张图片。
+　　事实上，这两张图片在Drawable中分别占据一个图层，第一张图片占据第一层，第二张图片占据第二层。第一层是最底层。
+
+<br>　　范例1：`transition.xml`。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<transition xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/a" />
+    <item android:drawable="@drawable/b" />
+</transition>
+```
+    语句解释：
+    -  使用<transition>标签描述一个过渡图片资源，每一个<item>标签代表一张图片。
+       -  <item>标签的drawable属性为必选。
+       -  <transition>标签对应于TransitionDrawable类。
+    -  系统会默认显示第一张图片，若指定的<item>的个数大于2，则只有前两个<item>有效。
+    -  系统从第一张图片过渡向第二张图片后，第二张图片会覆盖到第一张图片的上面，但是第一张图片并不会消失，因此实际应用中，通常第二张图片的尺寸会大于等于第一张图片的尺寸，以达到完全覆盖的目的。
+
+<br>　　范例2：过渡图片。
+``` android
+public class AndroidTestActivity extends Activity {
+    private ImageView img; // 图片。
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+		
+        this.img = (ImageView) this.findViewById(R.id.img);
+    }
+    public void onClick(View view){
+        TransitionDrawable transition=(TransitionDrawable)img.getDrawable();
+        // 从第一层的图片过渡到第二层的图片。在3000毫秒内完成过渡。 
+        transition.startTransition(3000);
+    }
+}
+```
+
+<br>
+### Clip Drawable ###
+　　剪切(`clip`)类型的图片资源，它可以根据Drawable的当前等级，来显示图片的某一部分内容。等级的取值范围为：`0~10000`(0代表完全不显示图片，10000代表完全显示图片)。
+
+<br>　　范例1：clip.xml。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<clip xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/login_input"
+    android:clipOrientation="horizontal"
+    android:gravity="left" />
+```
+    语句解释：
+    -  使用<clip>标签描述一个剪切图片资源。 <clip>标签的drawable属性为必选。
+
+    属性解释：
+    -  clipOrientation 图片显示的方式，取值为：vertical(按照垂直方向显示)，horizontal(按照水平方向显示)。
+    -  gravity 图片的起始方向，取值：left(从左向右)，bottom(从下向上)。
+
+<br>　　范例2：设置等级。
+``` android
+public class AndroidTestActivity extends Activity {
+    private ImageView img; // 图片。
+    private ClipDrawable clip;
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+		
+        this.img = (ImageView) this.findViewById(R.id.img);
+        this.clip = (ClipDrawable) this.img.getDrawable();
+    }
+    public void onClick(View view){ // 最初时,图片的等级为0,此时图片将完全不显示。
+        clip.setLevel(clip.getLevel()+1000);
+    }
+}
+```
+
+<br>
+### Shape Drawable ###
+　　图形(`shape`)类型的图片资源，通过它可以画出一幅图片。使用`<shape>`标签描述一个shape图片资源。
+
+<br>　　范例1：shape文件。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle" >
+
+</shape>
+```
+    语句解释：
+    -  本范例绘制了一个矩形，至于矩形的尺寸、颜色等信息并没有指定，因此若直接使用本范例，则是无法在屏幕中看到矩形的。
+    -  android:shape属性的取值有：
+       -  rectangle (矩形)，是默认形状。
+       -  ring(环形)
+       -  oval (椭圆形)
+       -  line (直线)，这个形状要求<stroke>元素来定义线的宽度。
+
+<br>　　在`<shape>`内部支持`6`个子标签，用来设置图形的不同属性，下面将依次介绍。
+
+<br>　　范例2：圆角矩形。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle" >
+    <!-- 圆角半径 -->
+    <corners
+        android:radius="10dp"
+        android:topLeftRadius="0dp"
+        android:topRightRadius="33dp" />
+    <!-- 图像的尺寸 -->
+    <size
+        android:height="100dp"
+        android:width="160dp" />
+    <!-- 图像的边缘线 -->
+    <stroke
+        android:dashGap="5dp"
+        android:dashWidth="50dp"
+        android:width="1dp"
+        android:color="#f00" />
+    <!-- 图像的填充色 -->
+    <solid android:color="#bfafad" />
+</shape>
+```
+    语句解释：
+    -  各个标签书写的顺序是任意的。
+
+　　效果图：
+
+<center>
+![](/img/android/android_4_10.png)
+</center>
+
+<br>　　范例3：各标签的介绍。
+``` xml
+<corners>标签：为形状创建圆角，只有当形状为矩形时才应用。
+-  android:radius：尺寸数，所有的角的半径，作为一个尺寸值或尺寸资源，对于每个角会重写如下的属性：
+-  android:topLeftRadius尺寸数，左上角的半径。每个角的角半径必须大于1，不然没有圆角。下面三个属性也是一样。
+-  android:topRightRadius尺寸数，右上角的半径。
+-  android:bottomLeftRadius尺寸数，左下角的半径。
+-  android:bottomRightRadius尺寸数，右下角的半径。
+
+
+<size>标签：指定形状的大小。
+-  android:height：尺寸，形状的高，作为一个尺寸值或者尺寸资源。
+-  android:width：尺寸，形状的宽，作为一个尺寸值或者尺寸资源。
+
+
+<solid>标签：固定颜色填充形状。
+-  android:color：颜色，用到形状上的颜色，作为一个十六进制值或颜色资源。
+
+
+<stroke>标签：指出图形的边缘线的粗细、颜色、间隔等。
+-  android:width：线的宽度(粗细)，单位：尺寸值或尺寸资源。
+-  android:color：线的颜色，单位：十六进制值或者颜色资源。
+-  android:dashGap：虚线与虚线之前的间隔距离，单位：尺寸值或尺寸资源。
+-  android:dashWidth：每段虚线的长度，单位：尺寸值或尺寸资源。
+
+
+<gradient>标签：可以设置图形内部的渐变色。
+-  android:angle：整形，渐变的角度，度数，0度为从左到右，90度是从底到上，必须是45度的倍数，默认为0。
+-  android:centerX：浮点型，距离渐变中心的X坐标的相对位置(0 - 1.0)。
+-  android:centerY：浮点型，距离渐变中心的Y坐标的相对位置(0 - 1.0)。
+-  android:gradientRadius：浮点型，渐变的半径，只有当android:type="radial"才使用
+-  android:startColor：颜色，开始颜色，作为一个十六进制值或者颜色资源。
+-  android:endColor：颜色，结束颜色，作为一个十六进制值或颜色资源。
+-  android:centerColor：颜色，可选择开始到结束之间的颜色，作为一个十六进制值或颜色资源。
+-  android:type：关键字，使用的渐变模式，有效值如下：
+-  linear：线性渐变，默认选择。
+-  radial：辐射渐变，开始颜色也是结束颜色。
+-  sweep：卷曲线渐变。
 
 ```
 
+<br>　　范例4：渐变色。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval" >
+    <size
+        android:height="100dp"
+        android:width="160dp" />
+    <stroke
+        android:width="1dp"
+        android:color="#f00" />
+    <gradient
+        android:angle="45"
+        android:endColor="#80FF00FF"
+        android:startColor="#FFFF0000" />
+</shape>
+```
 
+　　效果图：
+
+<center>
+![](/img/android/android_4_11.png)
+</center>
+
+<br>　　值得注意的是，只有当`android:shape="ring"`时下面的属性才能使用：
+
+	-  android:innerRadius：尺寸，内环半径（中间的孔），单位：尺寸值或尺寸资源。
+	-  android:thickness：尺寸，环的厚度，单位：尺寸值或尺寸资源。
+	-  android:thicknessRatio：浮点型，环的厚度比上环的宽度，例如，如果android:thicknessRatio="2"，厚度等于环的宽度的1/2，此值被android:innerRadius重写，默认为3.
+	-  android:useLevel：布尔型，为"true"时，用于LevelListDrawable，正常情况设为"false",或者形状不出现。
+
+<br>
+### Inset Drawable ###
+　　`InsetDrawable`用来将一个drawable嵌入到其内部，并且在内部留一些间距，这一点很像`padding`属性，表示它与容器之间的边距。当控件需要的背景比实际的边框小的时候比较适合使用`InsetDrawable`。
+
+<br>　　范例1：语法。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<inset
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/drawable_resource"
+    android:insetTop="dimension"
+    android:insetRight="dimension"
+    android:insetBottom="dimension"
+    android:insetLeft="dimension" />
+```
+
+<br>　　范例2：案例。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/background"
+    android:insetTop="10dp"
+    android:insetLeft="10dp" />
+```
+
+<br>
+### Scale Drawable ###
+　　一个定义在XML中的可绘制对象，能够依据当前级别改变另一个可绘制对象的大小。
+
+<br>　　范例1：语法。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<scale
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/drawable_resource"
+    android:scaleGravity=["top" | "bottom" | "left" | "right" | "center_vertical" |
+                          "fill_vertical" | "center_horizontal" | "fill_horizontal" |
+                          "center" | "fill" | "clip_vertical" | "clip_horizontal"]
+    android:scaleHeight="percentage"
+    android:scaleWidth="percentage" />
+```
+    语句解释：
+    -  scaleGravity属性，指定缩放后的gravity位置，取值必须是如下常量中一个或多个（以“|”分隔）。
+
+<br>
+### Rotate Drawable ###
+　　`RotateDrawable`可以旋转其他Drawable对象，旋转的开始和结束角度可以通过属性控制。
+
+<br>　　范例1：使用范例。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<rotate xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:pivotX="50%" 
+    android:pivotY="50%"
+    android:fromDegrees="0"
+    android:toDegrees="360">
+    <shape
+        android:shape="ring"
+        android:innerRadiusRatio="5"
+        android:thicknessRatio="15"
+        android:useLevel="false">
+    <gradient
+        android:type="sweep"
+        android:useLevel="false"
+        android:startColor="#FF06436e" 
+        android:centerColor="#FF094c7b"
+        android:centerY="0.50"
+        android:endColor="#FF127fc4" />
+    </shape>
+</rotate>
+```
+    语句解释：
+    -  通过本范例可以看出来各个Drawable是可以相互嵌套使用的。
+
+
+## Layout ##
+　　布局(`layout`)的基本语法再次就不再重复介绍了，只介绍一些常用的标签。
+
+<br>**< requestFocus >**
+　　将屏幕的初始焦点设成其父元素，任何表示View类对象的元素都能包含这个内容为空的元素。但每个文件内只能出现一次本元素。
+
+<br>**< include >**
+　　将另一个布局（`layout`）文件包含到此标签所处的位置上。
+
+　　属性：
+	-  layout：Layout资源。必填项。引用布局资源。
+	-  android:id：资源ID。覆盖包含进来的layout资源中的根view ID。
+	-  android:layout_height：尺寸值或关键字。覆盖包含进来的layout资源中根view给出的高度。仅在同时给出android:layout_width时才生效。
+	-  android:layout_width：尺寸值或关键字。覆盖包含进来的layout资源中根view给出的高度。仅在同时给出android:layout_height时才生效。
+
+　　只要是被包含的`layout`资源根元素支持的属性，都能在`<include>`元素中包含进来，并且会覆盖本资源内根元素已定义的属性。
+
+　　注意：如果要覆盖`layout`的长度和宽度，必须同时覆盖`android:layout_height`和`android:layout_width`——不能只覆盖长度或只覆盖宽度。如果只覆盖其中一个，则不会生效。而其他未覆盖的布局属性，比如`weight`，仍然继承自原有的`layout`。
+
+　　包含`layout`资源的另一种方式是使用`ViewStub`。这是个轻量级的View，它在实际被填充之前不占用`layout`空间。在实际被填充时，它再把`android:layout`属性指定的`layout`资源文件动态包含进来。
+
+<br>**< merge >**
+　　在`layout`的层次结构图里并没画出这个可充当根的元素。当明确知道本`layout`会被放入某个父View中去时，可以用`<merge>`作为根元素来包裹其下的子元素。如果希望本`layout`能被其他`layout`用`<include>`包含进去，并不再另外生成`ViewGroup`容器，本元素也特别有用。
+
+## String ##
+　　字符串资源为应用程序提供可选样式和格式的文本字符串。应用程序可以使用三种类型的字符串资源：
+
+	-  String：提供了一个字符串的XML资源。
+	-  String Array：提供了一个字符串数组的资源。
+	-  Quantity Strings (Plurals)：提供同一个单词或者词组不固定重复组成的字符串资源，所有的字符串都可以匹配某种标记样式和格式化参数。
+
+<br>　　范例1：`res/values/strings.xml`。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello!</string>
+</resources>
+```
+　　XML布局文件把字符串应用到一个View中：
+``` xml
+<TextView
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:text="@string/hello" />
+```
+　　应用程序通过以下代码返回一个字符串：
+``` android
+String string = getString(R.string.hello);
+```
+
+<br>　　范例2：字符串数组。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="planets_array">
+        <item>Mercury</item>
+        <item>Venus</item>
+        <item>Earth</item>
+        <item>Mars</item>
+    </string-array>
+</resources>
+```
+
+<br>　　范例3：撇号和引号的转义。
+``` xml
+<string name="good_example">"This'll work"</string>
+<string name="good_example_2">This\'ll also work</string>
+<string name="bad_example">This doesn't work</string>
+<string name="bad_example_2">XML encodings don&apos;t work</string>
+```
+    语句解释：
+    -  前两个是正确的范例，后两个是错误的范例。
+
+<br>　　范例4：字符串的格式化。
+``` xml
+<string name="welcome_messages">Hello, %1$s! You have %2$d new messages.</string>
+```
+　　此例中存在两个占位符：`%1$s`是个字符串，`%2$d`是个数字，在应用程序中可以用如下方式用参数来格式化字符串：
+``` android
+Resources res = getResources();
+String text = String.format(res.getString(R.string.welcome_messages), username, mailCount);
+```
+
+<br>　　范例5：用HTML标记来样式化。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome">Welcome to <b>Android</b>!</string>
+</resources>
+```
+    语句解释：
+    -  支持以下HTML元素：
+       -  <b>文本加粗bold。
+       -  <i>文本变斜体italic。
+       -  <u>文本加下划线underline。
+
+## More Types ##
+
+<br>　　范例1：bool类型数据(`res/values-small/bools.xml`)。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+   <bool name="screen_small">true</bool>
+   <bool name="adjust_view_bounds">true</bool>
+</resources>
+```
+　　程序代码获取：
+``` xml
+<ImageView
+    android:layout_height="fill_parent"
+    android:layout_width="fill_parent"
+    android:src="@drawable/logo"
+    android:adjustViewBounds="@bool/adjust_view_bounds" />
+```
+
+<br>　　范例2：color类型数据(`res/values-small/colors.xml`)。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+   <color name="opaque_red">#f00</color>
+   <color name="translucent_red">#80ff0000</color>
+</resources>
+```
+　　程序代码获取：
+``` xml
+<TextView
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:textColor="@color/translucent_red"
+    android:text="Hello"/>
+```
+    语句解释：
+    -  颜色值通常以 “#” 字符开头，接着Alpha-Red-Green-Blue（透明度-红-绿-蓝）信息。
+    -  常见的颜色格式有：RGB、ARGB、RRGGBB、AARRGGBB。
+       
+<br>　　范例3：inteter类型数据(`res/values-small/integers.xml`)。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="max_speed">75</integer>
+    <integer name="min_speed">5</integer>
+</resources>
+```
+　　程序代码获取：
+``` android
+Resources res = getResources();
+int maxSpeed = res.getInteger(R.integer.max_speed);
+```
+
+<br>　　范例4：inteter数组数据(`res/values/integers.xml`)。
+``` xml
+ <?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer-array name="bits">
+        <item>4</item>
+        <item>8</item>
+        <item>16</item>
+        <item>32</item>
+    </integer-array>
+</resources>
+```
+　　程序代码获取：
+``` android
+Resources res = getResources();
+int[] bits = res.getIntArray(R.array.bits);
+```
+
+<br>　　范例5：TypeArray数据(`res/values/arrays.xml`)。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+   <array name="icons">
+        <item>@drawable/home</item>
+        <item>@drawable/settings</item>
+        <item>@drawable/logout</item>
+   </array>
+   <array name="colors">
+        <item>#FFFF0000</item>
+        <item>#FF00FF00</item>
+        <item>#FF0000FF</item>
+   </array>
+</resources>
+```
+　　程序代码获取：
+``` android
+Resources res = getResources();
+TypedArray icons = res.obtainTypedArray(R.array.icons);
+Drawable drawable = icons.getDrawable(0);
+ 
+TypedArray colors = res.obtainTypedArray(R.array.colors);
+int color = colors.getColor(0,0);
+```
 <br><br>
