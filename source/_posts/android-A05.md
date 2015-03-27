@@ -1,5 +1,6 @@
-title: 第二章 应用程序组件 — BroadcastReceiver
+title: 入门篇　第五章 BroadcastReceiver
 date: 2014-11-29 14:28:35
+create: 2014-11-29 14:28:35
 categories: Android
 ---
 　　在现实世界中发生一个新闻后，广播电台会广播这个新闻给打开收音机的人，对这个新闻感兴趣的人会关注，可能会拿笔记下。 Android 也提供了类似的机制，它将`系统开关机`、`时间变更`、`屏幕变暗`、`电池电量不足通知`、`抓图通知` 、 `手机接到外界的电话` 、`短信` 等等事件封装成一个广播，当这些事件发生时它就会通知所有关注该事件的应用软件。
@@ -314,7 +315,7 @@ public class MainActivity extends Activity {
 
 <br>**但现实并非如此简单：**
 　　从Android 3.1开始的Android加入了一种保护机制，这个机制导致程序接收不到某些系统广播，其中就包含了开机启动广播。
-　　系统为Intent添加了两个flag，`FLAG_INCLUDE_STOPPED_PACKAGES`和`FLAG_EXCLUDE_STOPPED_PACKAGES`，用来控制Intent是否要对处于停止状态的App起作用，如果一个App安装后未启动过或者被用户在管理应用中手动停止（强行停止）的话，那么该App就处于`stopped`状态了。
+　　系统为Intent添加了两个flag，`FLAG_INCLUDE_STOPPED_PACKAGES`和`FLAG_EXCLUDE_STOPPED_PACKAGES`，用来控制Intent是否要对处于`stopped`状态的App起作用，如果一个App`安装后未启动过`或者`被用户在管理应用中手动停止`（强行停止）的话，那么该App就处于`stopped`状态了。
 
 　　顾名思义：
 

@@ -1,5 +1,6 @@
-title: 第三章 用户界面 — 常用控件
+title: UI篇　第二章 常用控件
 date: 2015-1-25 14:37:55
+create: 2015-1-25 14:37:55
 categories: Android
 ---
 　　本章将介绍一下Android中常用的控件，如：TextView、Button、RadioButton等。

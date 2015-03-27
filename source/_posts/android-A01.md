@@ -1,5 +1,6 @@
-title: 第一章 概述
+title: 入门篇　第一章 Android
 date: 2014-10-27 23:15:24
+create: 2014-10-27 23:15:24
 categories: Android
 ---
 　　本章主要介绍 Android 应用程序的原理、Android 系统架构，以及如何创建一个新的Android 项目。
@@ -394,9 +395,9 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 ``` android
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="org.cxy.tomcat"
-	android:versionCode="1"
-	android:versionName="1.0">
+    package="org.cxy.tomcat"
+    android:versionCode="1"
+    android:versionName="1.0">
 </manifest>
 ```
 
@@ -417,7 +418,7 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 ``` android
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="org.cxy.tomcat" android:versionCode="1" android:versionName="1.0">
+    package="org.cxy.tomcat" android:versionCode="1" android:versionName="1.0">
     <application 
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name">

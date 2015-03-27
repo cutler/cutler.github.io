@@ -1,5 +1,6 @@
-title: 第三章 用户界面 — Styles and Themes
+title: UI篇　第五章 样式和主题
 date: 2015-2-4 17:58:50
+create: 2015-2-4 17:58:50
 categories: Android
 ---
 　　`Styles`是用于指定`View`或`Window`的外观和格式的一系列属性的集合。比如指定高（`height`）、填补（`padding`）、字体颜色、字体大小、背景颜色等等属性。

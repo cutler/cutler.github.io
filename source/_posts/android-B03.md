@@ -1,5 +1,6 @@
-title: 第三章 用户界面 — 输入事件
+title: UI篇　第三章 输入事件
 date: 2015-1-27 14:53:50
+create: 2015-1-27 14:53:50
 categories: Android
 ---
 　　本章将介绍一下Android中的输入事件。
@@ -777,5 +778,9 @@ public boolean onTouchEvent(MotionEvent ev) {
 </center>
 
 　　也就是说，按下动作的后续动作将只会通过Activity传递给`text1`，而`myLayoutRoot`和`myLayout`将不会接收到。
+
+<br>**本节参考阅读：**
+- [Android事件分发机制完全解析，带你从源码的角度彻底理解](http://blog.csdn.net/guolin_blog/article/details/9097463) 
+
 
 <br><br>

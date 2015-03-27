@@ -1,8 +1,9 @@
-title: 第二章 应用程序组件 — Activity
+title: 入门篇　第二章 Activity
 date: 2014-10-30 23:28:28
+create: 2014-10-30 23:28:28
 categories: Android
 ---
-　　一个`Activity`是提供给用户的用于与程序进行交互的界面组件，如打电话、拍照片、发邮件、或看地图等。每个Activity都通过一个窗口来描画它的用户界面，通常这个窗口是全屏的，但是也可以比屏幕小，并且可以浮动在其他窗口的上面。
+　　`Activity`是提供给用户的用于与程序进行交互的界面组件，如打电话、拍照片、发邮件、看地图等。它通过一个窗口来描画它的用户界面，通常这个窗口是全屏的，但是也可以比屏幕小，并且可以浮动在其他窗口的上面。
 
 　　一个应用程序通常由多个Activity组成，它们彼此松散的绑定到一起。通常，在一个应用程序中要指定一个Activity作为`主Activity`，当用户启动应用程序时，这个Activity首先表现给用户。每个Activity为了执行不同的动作，可以开启另一个Activity。`每启动一个新的Activity，前一个Activity会被Stop`(如果有前一个的话)，同时系统会把新Activity保留到一个`堆栈`中（即back stack）做为栈顶元素，`back stack`遵循基本的`“后进先出”`机制，因此当用户用当前的Activity完成工作，并按下回退键时，当前Activity就会从堆栈中弹出(并且被摧毁)，同时前一个Activity会恢复之前的状态。
 
@@ -116,10 +117,10 @@ public class MainActivity extends Activity {
 　　这些元素指定了你的Activity能够响应那种类型的Intent。关于Intent的更详细内容将在Intent一节中讲解。
 
 ## 启动另一个Activity ##
-　　你可以通过调用Context类的`startActivity()`方法来启动另外一个Activity，在调用这个方法时要给它传递一个Intent对象，该Intent对象描述了你想要启动的Activity。这个Intent既可以确切的指定你想要启动的Activity，也可以是你想要执行的Action的类型的描述，系统会依据你指定的Action从操作系统内所有已注册的Activity中给你选择出匹配的Activity，并将它们列出来(如果有多个匹配的话)，甚至可以从不同的应用程序中选择。Intent也能够携带少量的数据给被启动的Activity。
+　　你可以通过调用`Context`类的`startActivity()`方法来启动另外一个Activity，在调用这个方法时要给它传递一个`Intent`对象，该Intent对象描述了你想要启动的Activity。这个Intent既可以确切的指定你想要启动的Activity，也可以是你想要执行的`Action`的类型的描述，系统会依据你指定的Action从操作系统内所有已注册的Activity中给你选择出匹配的Activity，并将它们列出来(如果有多个匹配的话)，甚至可以从不同的应用程序中选择。Intent也能够携带少量的数据给被启动的Activity。
 　　注：Activity类是Context类的子类，因此Activity的对象就可以使用startActivity()方法。
 
-<br>　　在你自己的应用程序中，你会经常的需要启动自己的Activity，你可以直接使用类名来启动它们。通过创建一个你想启动的明确定义的Activity的Intent来做这件事。例如，下面的例子说明了怎样启动一个名叫SignInActivity的Activity。
+<br>　　在你自己的应用程序中，你会经常的需要启动自己的Activity，你可以直接使用类名来启动它们。通过创建一个你想启动的明确定义的Activity的Intent来做这件事。例如，下面的例子说明了怎样启动一个名叫`SignInActivity`的Activity。
 ``` android
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
