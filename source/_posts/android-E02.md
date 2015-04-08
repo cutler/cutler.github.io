@@ -680,8 +680,10 @@ public void setImageMatrix(Matrix matrix);
 
 	-  平移位置： 由两个值来记录，即上图中的transX和transY，它表示矩阵当前所在的位置，距离原点所在的位置，在x和y轴上的偏移量。 
 	-  缩放大小： 由两个值来记录，即上图中的scaleX和scaleY，表示当前矩阵在水平方向(X轴)和垂直方向(Y轴)上放大的比例。
-	-  倾斜信息： 由两个值来记录，即上图中的skewX和skewY，表示当前矩阵在水平和垂直方向上倾斜的大小。
+	-  倾斜信息： 由两个值来记录，即上图中的skewX和skewY，表示当前矩阵在水平方向(X轴)和垂直方向(Y轴)上倾斜的大小。
 	-  旋转角度： 由四个值来记录，即上图中的scaleX和scaleY、skewX和skewY，即通过缩放+倾斜，我们可以实现旋转效果。
+
+<br>　　提示：一个刚创建的`Matrix`对象其实就是一个`单位矩阵`。
 
 <br>　　范例1：Matrix类。
 ```
@@ -719,16 +721,18 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 		
         ImageView img = (ImageView) findViewById(R.id.img);
-        // 获取ImageView当前的Matrix对象，此时图片的左上角位于ImageView的(0,0)点。
-        Matrix m = img.getImageMatrix();
+        // 创建一个新的矩阵对象。 其实就是创建一个单位矩阵。
+        Matrix m = new Matrix();
         // 将图片的左上角移动到ImageView内部的(100,100)点。
         m.postTranslate(100, 100);
         // 将图片的左上角移动到ImageView内部的(110,90)点。
         m.postTranslate(10, -10);
         // 将图片的左上角移动到ImageView内部的(100,80)点。
         m.preTranslate(-10, -10);
-        // 更新ImageView的矩阵。
+        // 更新ImageView的矩阵。 必须保证ImageView的android:scaleType="matrix"，否则即使修改矩阵也没效果。
         img.setImageMatrix(m);
+        // 设置ImageView要显示的位图。
+        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.icon));
     }
 }
 ```
@@ -746,19 +750,53 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 		
         ImageView img = (ImageView) findViewById(R.id.img);
+        // 获取ImageView的矩阵。
         Matrix m = img.getImageMatrix();
+        // 让图像的宽度放大2倍，高度缩小到0.5倍
         m.setScale(2, 0.5f);
+        // 更新ImageView的矩阵。
         img.setImageMatrix(m);
-        System.out.println(m);
+        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.icon));
     }
 }
 ```
-    语句解释：
-    -  让图像的宽度放大2倍，高度缩小到0.5倍。
+
+<br>**倾斜**
+　　我们这里所说的`倾斜`，其实更专业的说法是`错切变换(skew)`，在数学上又称为`Shear mapping`。它是一种比较特殊的`线性变换`，错切变换的效果就是`让所有点的x坐标(或者y坐标)保持不变，而对应的y坐标(或者x坐标)则按比例发生平移`。错切变换，属于`等面积变换`，即一个形状在错切变换的前后，其面积是相等的。
+
+　　如下图（左）中，各点的`y`坐标保持不变，但其`x`坐标则按比例发生了平移。这种情况将`水平错切`。
+　　如下图（右）中，各点的`x`坐标保持不变，但其`y`坐标则按比例发生了平移。这种情况叫`垂直错切`。
+
+<center>
+![](/img/android/android_e02_8.png)
+</center>
+
+　　简单地说，错切变幻指的是类似于四边形不稳定性那种性质，`方形变平行四边形`，任意一边都可以被拉长的过程。
+
+<br>　　范例1：倾斜操作。
+```
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+		
+        ImageView img = (ImageView) findViewById(R.id.img);
+        // 获取ImageView的矩阵。
+        Matrix m = img.getImageMatrix();
+        // 让图像的x轴保持不变，y轴倾斜0.4 。
+        m.setSkew(0, 0.4f);
+        // 更新ImageView的矩阵。
+        img.setImageMatrix(m);
+        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.icon));
+    }
+}
+```
 
 
-
-　　除`平移`外，`旋转`、`缩放`和`倾斜`都可以`围绕一个中心点`来进行，如果不指定，在默认情况下是围绕`(0, 0)`来进行相应的变换的。
+　　下图（左）是原图，（右）是图片在`y`轴上倾斜`0.4`之后的效果，倾斜的数值可以是`负数`，负数则往`逆方向`上倾斜。
+<center>
+![](/img/android/android_e02_9.png)
+</center>
 
 <br>**旋转**
 
@@ -770,17 +808,23 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 		
         ImageView img = (ImageView) findViewById(R.id.img);
+        // 获取ImageView的矩阵。
         Matrix m = img.getImageMatrix();
+        // 顺时针旋转45度。
         m.setRotate(45);
+        // 更新ImageView的矩阵。
         img.setImageMatrix(m);
+        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.icon));
     }
 }
 ```
     语句解释：
     -  让图像顺时针旋转45度，如果想逆时针旋转，则可以设为负数。
 
+<br>**围绕一个中心点**
+<br>　　除`平移`外，`旋转`、`缩放`和`倾斜`都可以`围绕一个中心点`来进行，如果不指定，在默认情况下是围绕`(0, 0)`来进行相应的变换的。 也就是说，`setRotate(45)`与`setRotate(45, 0, 0)`是等价的。
 
-<br>　　范例2：指定旋转的中心点。
+<br>　　范例1：指定旋转的中心点。
 ```
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
@@ -788,29 +832,31 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 		
         ImageView img = (ImageView) findViewById(R.id.img);
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.icon);
+        // 获取ImageView的矩阵。
         Matrix m = img.getImageMatrix();
-        m.setRotate(45);
+        // 以图片的中心点为原点，顺时针旋转180度。
+        m.setRotate(180, bitmap.getWidth()/2, bitmap.getHeight()/2);
+        // 更新ImageView的矩阵。
         img.setImageMatrix(m);
+        img.setImageBitmap(bitmap);
     }
 }
 ```
     语句解释：
-    -  让图像顺
+    -  围绕某一点进行旋转，被分成3个步骤：首先将坐标原点移至该点，然后围绕新的坐标原点进行旋转变换，再然后将坐标原点移回到原先的坐标原点。被围绕的点可以是任意取值，它不受控件大小的限制。比如我们可以围绕(1000, 1000)这个点来旋转。
+    -  简单的说，可以把用来绘制图像的区域，想象成一个无限大小的画布，当执行旋转时，默认情况下是旋转画布的左上角(0, 0)，而若我们指定了一个相对的点，比如(300, 300)，那么画布中图像的位置是不变的，只不过此时的旋转，以画布的(300, 300)为中心了。
 
- http://blog.csdn.net/yuzhiboyi/article/details/7619238
-
-
-
-
-
-
-http://blog.csdn.net/loongggdroid/article/details/18706999
-
-http://wenku.baidu.com/view/96590cd076a20029bd642ddf.html
-
-	   -  比如旋转30度后，矩阵中的值应该是：Math.cos(Math.toRadians(30))和Math.sin(Math.toRadians(30))。
-	-  
+<br>**Preconcats or Postconcats?** 
+　　由于矩阵乘法不满足交换律，所以用矩阵`B`乘以矩阵`A`，需要考虑是左乘（`B*A`），还是右乘（`A*B`）。
+　　Android中的`android.graphics.Matrix`中为我们提供了类似的方法，也就是我们本节要说明的`Preconcats matrix`与`Postconcats  matrix`。
 
 
-当我们想移动`ImageView`内部所显示的图片时，只需要先获取到`ImageView`的`Matrix`，然后调用该`Matrix`的`postTranslate`或`preTranslate`方法即可。
+<br>**本节参考阅读：**
+- [Android Matrix基础+详解](http://wenku.baidu.com/view/96590cd076a20029bd642ddf.html) 
+- [Android中图像变换Matrix的原理、代码验证和应用(一)](http://blog.csdn.net/pathuang68/article/details/6991867)
+- [百度百科 - 剪切变换](http://baike.baidu.com/view/2424073.htm) 
+- [Android之Matrix用法](http://blog.csdn.net/yuzhiboyi/article/details/7619238)
+- [Android学习记录（9）—Android之Matrix的用法](http://blog.csdn.net/loongggdroid/article/details/18706999)    
+
 <br><br>
