@@ -724,21 +724,16 @@ public class MainActivity extends Activity {
         // 创建一个新的矩阵对象。 其实就是创建一个单位矩阵。
         Matrix m = new Matrix();
         // 将图片的左上角移动到ImageView内部的(100,100)点。
-        m.postTranslate(100, 100);
-        // 将图片的左上角移动到ImageView内部的(110,90)点。
-        m.postTranslate(10, -10);
-        // 将图片的左上角移动到ImageView内部的(100,80)点。
-        m.preTranslate(-10, -10);
+        m.setTranslate(100, 100);
         // 更新ImageView的矩阵。 必须保证ImageView的android:scaleType="matrix"，否则即使修改矩阵也没效果。
         img.setImageMatrix(m);
         // 设置ImageView要显示的位图。
-        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.icon));
+        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
     }
 }
 ```
 <br>　　`Matrix`是个`3阶方阵`，其内的`9`个元素用来记录图片的不同信息，其中`m[0][2]`和`m[1][2]`的值，就是用来记录当前图片的`左上角`所在的位置相对于`(0,0)`点平移了多少位置。
-　　当我们调用`Matrix`对象`A`的`postTranslate`或`preTranslate`方法时，在该方法的内部，会先创建一个新的`Matrix`对象`B`，然后将我们传递给`xxxTranslate`方法的参数设置到`B`的`m[0][2]`和`m[1][2]`上，然后再让`A`与`B`进行矩阵相加运算。因此，我们可以说`平移操作`其实就是在执行`矩阵加法`运算。
-　　由于`矩阵的加法则是满足交换律的`，所以我们调用`pre`和`post`的效果是一样的。
+　　当我们调用`Matrix`对象`A`的`setTranslate`方法时，在该方法的内部，会先创建一个新的`Matrix`对象`B`，然后再让`A`与`B`进行矩阵相乘运算。
 
 <br>**缩放**
 
@@ -794,6 +789,7 @@ public class MainActivity extends Activity {
 
 
 　　下图（左）是原图，（右）是图片在`y`轴上倾斜`0.4`之后的效果，倾斜的数值可以是`负数`，负数则往`逆方向`上倾斜。
+
 <center>
 ![](/img/android/android_e02_9.png)
 </center>
@@ -845,18 +841,132 @@ public class MainActivity extends Activity {
 ```
     语句解释：
     -  围绕某一点进行旋转，被分成3个步骤：首先将坐标原点移至该点，然后围绕新的坐标原点进行旋转变换，再然后将坐标原点移回到原先的坐标原点。被围绕的点可以是任意取值，它不受控件大小的限制。比如我们可以围绕(1000, 1000)这个点来旋转。
-    -  简单的说，可以把用来绘制图像的区域，想象成一个无限大小的画布，当执行旋转时，默认情况下是旋转画布的左上角(0, 0)，而若我们指定了一个相对的点，比如(300, 300)，那么画布中图像的位置是不变的，只不过此时的旋转，以画布的(300, 300)为中心了。
+    -  简单的说，可以把用来绘制图像的区域，想象成一个无限大小的画布，当执行旋转时，默认情况下是旋转画布的左上角(0, 0)，而若我们指定了一个相对的点，比如(300, 300)，那么此时将以画布的(300, 300)为中心了。
 
-<br>**Preconcats or Postconcats?** 
-　　由于矩阵乘法不满足交换律，所以用矩阵`B`乘以矩阵`A`，需要考虑是左乘（`B*A`），还是右乘（`A*B`）。
-　　Android中的`android.graphics.Matrix`中为我们提供了类似的方法，也就是我们本节要说明的`Preconcats matrix`与`Postconcats  matrix`。
+<br>**前乘与后乘** 
+　　我们已经知道了，只有当矩阵`A`的列数与矩阵`B`的行数相等时`A*B`才有意义。所以用矩阵`A`乘以矩阵`B`，需要考虑是左乘（`A*B`），还是右乘（`B*A`）。
+　　左乘：又称前乘，就是乘在左边(即乘号前)，比如说，矩阵`A(m,n)`左乘矩阵`B(n,p)`，会得到一个`m*p`的矩阵`C(m,p)`，写作`A*B=C`。
 
+　　还有一点值得注意的是，假设`A`和`B`都是一个`3*3`的矩阵，那么`A*B`与`B*A`的结果也可能是不一样的。 如下图所示：
+
+<center>
+![](/img/android/android_e02_10.png)
+</center>
+
+<br>　　由于矩阵乘法不满足交换律，`Matrix`类为我们提供了类似的方法，以平移操作为例，`Matrix`类的源代码为：
+``` android
+    /**
+     * Preconcats the matrix with the specified translation.
+     * M' = M * T(dx, dy)
+     */
+    public boolean preTranslate(float dx, float dy) {
+        return native_preTranslate(native_instance, dx, dy);
+    }
+
+    /**
+     * Postconcats the matrix with the specified translation.
+     * M' = T(dx, dy) * M
+     */
+    public boolean postTranslate(float dx, float dy) {
+        return native_postTranslate(native_instance, dx, dy);
+    }
+```
+　　通过比较，我们可以看出，`pre`其实执行的就是让`参数矩阵右乘当前矩阵`，而`post`执行的就是`让参数矩阵左乘当前矩阵`。
+
+<br>**单一运算与单一连乘** 
+
+<br>　　范例1：单一运算——旋转45度。
+```
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+		
+        ImageView img = (ImageView) findViewById(R.id.img);
+        Matrix m = new Matrix();
+        // 此处也可以调用postRotate()方法，并且效果相同。
+        m.preRotate(45);
+        img.setImageMatrix(m);
+        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
+    }
+}
+```
+    语句解释：
+    -  一个新创建的Matrix对象就是一个单位矩阵。对于平移、缩放、旋转、倾斜四个操作来说，当它们与一个单位矩阵进行运算时，不论调用的是pre还是post方法，最终的效果是一样的。
+    -  一旦单位矩阵执行了某种操作，那么它就不再是单位矩阵了，此时就需要区分pre和post方法的调用。
+
+<br>　　范例2：单一连乘——旋转45度。
+```
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+		
+        ImageView img = (ImageView) findViewById(R.id.img);
+        Matrix m = new Matrix();
+        m.preRotate(15);
+        m.postRotate(15);
+        m.preRotate(15);
+        img.setImageMatrix(m);
+        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
+
+        // 将图片移动到ImageView内部的(100,100)点。
+        // m.postTranslate(100, 100);
+        // 将图片移动到ImageView内部的(110,90)点。
+        // m.postTranslate(10, -10);
+        // 将图片移动到ImageView内部的(100,80)点。
+        // m.preTranslate(-10, -10);
+
+        // 先缩小10倍。
+        // m.postScale(0.1f, 0.1f);
+        // 再放大10倍。 此时显示出来的图片尺寸就是它本身的尺寸。
+        // m.preScale(10, 10);
+    }
+}
+```
+    语句解释：
+    -  如果矩阵中只包含平移、选择、倾斜、缩放中的某一种类型的操作，那么我们也不需要考虑pre和post方法的区别。以平移操作为例，不论我们调用的pre还是post方法，最终产生的矩阵，除了m[0][2]和m[1][2]的值之外，其他位置的值都和单位矩阵的值一样。
+    -  提示：两个单位矩阵相乘，结果仍是一个单位矩阵。
+
+<br>　　范例3：`setXxx`方法。
+```
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+		
+        ImageView img = (ImageView) findViewById(R.id.img);
+        Matrix m = new Matrix();
+        m.preRotate(45);
+        m.preTranslate(100, 100);
+        m.postSkew(0.2f, 0.2f);
+        // 不论矩阵之前执行了什么操作，只要它调用了setXxx方法，那么就会先将矩阵重置为单位矩阵，然后再做相应的操作。
+        m.setScale(2, 2);
+        img.setImageMatrix(m);
+        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
+    }
+}
+```
+    语句解释：
+    -  在本范例中，最终图片只会被放大到2倍，除此之外，其他什么操作都不会执行。
+
+<br>**混合连乘** 
+　　假设现在有三个变换，分别是平移变换，对应矩阵`T`，旋转变换，对应矩阵`R`，缩放变换，对应矩阵`S`，顺序是先平移，再旋转，后缩放，那么这个矩阵乘法该如何去写呢？
+
+　　我他妈也不知道，查了好久，没人说的明白，在此先略过矩阵的混合连乘，等技术有所突破的时候再回过头来研究。
+
+## ColorMatrix ##
 
 <br>**本节参考阅读：**
-- [Android Matrix基础+详解](http://wenku.baidu.com/view/96590cd076a20029bd642ddf.html) 
+- [百度文库 - Android Matrix基础+详解](http://wenku.baidu.com/view/96590cd076a20029bd642ddf.html) 
 - [Android中图像变换Matrix的原理、代码验证和应用(一)](http://blog.csdn.net/pathuang68/article/details/6991867)
+- [Android中关于矩阵（Matrix）前乘后乘的一些认识](http://blog.csdn.net/linmiansheng/article/details/18820599) 
 - [百度百科 - 剪切变换](http://baike.baidu.com/view/2424073.htm) 
 - [Android之Matrix用法](http://blog.csdn.net/yuzhiboyi/article/details/7619238)
-- [Android学习记录（9）—Android之Matrix的用法](http://blog.csdn.net/loongggdroid/article/details/18706999)    
+- [Android学习记录（9）—Android之Matrix的用法](http://blog.csdn.net/loongggdroid/article/details/18706999)  
+- [云算子 - 在线矩阵相乘计算器](http://www.yunsuanzi.com/matrixcomputations/solvematrixmultiplication.html)   
+- [百度百科 - 矩阵乘法](http://baike.baidu.com/view/2455255.htm)  
+
+
 
 <br><br>
