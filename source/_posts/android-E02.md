@@ -873,9 +873,9 @@ public class MainActivity extends Activity {
 ```
 　　通过比较，我们可以看出，`pre`其实执行的就是让`参数矩阵右乘当前矩阵`，而`post`执行的就是`让参数矩阵左乘当前矩阵`。
 
-<br>**单一运算与单一连乘** 
+<br>**单次运算与单类型连乘** 
 
-<br>　　范例1：单一运算——旋转45度。
+<br>　　范例1：单次运算——旋转45度。
 ```
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
@@ -895,7 +895,7 @@ public class MainActivity extends Activity {
     -  一个新创建的Matrix对象就是一个单位矩阵。对于平移、缩放、旋转、倾斜四个操作来说，当它们与一个单位矩阵进行运算时，不论调用的是pre还是post方法，最终的效果是一样的。
     -  一旦单位矩阵执行了某种操作，那么它就不再是单位矩阵了，此时就需要区分pre和post方法的调用。
 
-<br>　　范例2：单一连乘——旋转45度。
+<br>　　范例2：单类型连乘——旋转45度。
 ```
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
@@ -955,7 +955,39 @@ public class MainActivity extends Activity {
 
 　　我他妈也不知道，查了好久，没人说的明白，在此先略过矩阵的混合连乘，等技术有所突破的时候再回过头来研究。
 
-## ColorMatrix ##
+<br>**拖动ImageView里的图片** 
+
+<br>　　范例1：移动图片。
+``` android
+private final class MyOnTouchListener implements OnTouchListener{
+    private Matrix matrix = new Matrix();
+    private float preX;
+    private float preY;
+    public boolean onTouch(View v, MotionEvent event) {
+        switch(event.getAction()){
+        case MotionEvent.ACTION_DOWN:
+            preX = event.getX();  // 记录用户按下手指时的x坐标。
+            preY = event.getY();  // 记录用户按下手指时的y坐标。
+            break;
+        case MotionEvent.ACTION_MOVE:
+            float currX = event.getX();// 用户移动手指时,记录当前x坐标。
+            float currY = event.getY();// 用户移动手指时,记录当前y坐标。
+            float dx = currX - preX; // 用当前x坐标减去上一次的x坐标。
+            float dy = currY - preY; // 用当前y坐标减去上一次的y坐标。
+            // 让matrix在当前位置上,平移dx和dy个位置。
+            matrix.postTranslate(dx, dy); 
+            preX = currX; // 记录下当前x坐标。
+            preY = currY; // 记录下当前y坐标。
+            break;
+        }
+        //更新ImageView控件的矩阵。
+        img.setImageMatrix(matrix); 
+        return true;
+    }
+}
+```
+    语句解释：
+    -  把这个类的对象设置到ImageView中即可。
 
 <br>**本节参考阅读：**
 - [百度文库 - Android Matrix基础+详解](http://wenku.baidu.com/view/96590cd076a20029bd642ddf.html) 
@@ -967,6 +999,94 @@ public class MainActivity extends Activity {
 - [云算子 - 在线矩阵相乘计算器](http://www.yunsuanzi.com/matrixcomputations/solvematrixmultiplication.html)   
 - [百度百科 - 矩阵乘法](http://baike.baidu.com/view/2455255.htm)  
 
+## 图像颜色处理 ##
+　　在实际应用中，我们除了会对图片进行`缩放`、`平移`、`旋转`、`倾斜`操作外，也会对图片的`显示效果`做出修改。
+　　比如，我们常见的对图像进行颜色方面的处理有：`黑白老照片`、`泛黄旧照片`、`高对比度`、`低饱和度`等效果，这些处理操作在Android中都可以通过使用颜色矩阵（`ColorMatrix`）来实现。
 
+<br>**基本概念**
+　　位图是由像素（`Pixel`）组成的，`像素`是位图最小的信息单元。每个像素都具有特定的`位置`和`颜色值`，颜色值有`ARGB`四个通道，分别对应`透明度`、`红`、`绿`、`蓝`这四个通道分量。位图文件会按`从左到右`、`从上到下`的顺序来记录图像中每一个像素的信息，如：像素在屏幕上的`位置`、`颜色`等。
+
+　　根据位深度（即每个像素点用几位二进制表示），可将位图分为`1`、`4`、`8`、`16`、`24`及`32`位图像等。每个像素使用的信息位数越多，可用的颜色就越多，颜色表现就越逼真，相应的数据量越大。例如，位深度为`1`的像素位图只有两个可能的值（黑色和白色），所以又称为二值位图。位深度为`8`的图像有`2^8`（即`256`）个可能的值。位深度为`8`的`灰度模式`图像有`256`个可能的`灰色值`。
+
+<br>
+### ColorMatrix ###
+　　颜色矩阵是一个`5*4`的矩阵，用来对图片颜色值进行处理。在Android中，颜色矩阵是以`一维数组`的方式进行存储的（参见`ColorMatrix`类的源码）。
+
+<center>
+![颜色矩阵M的示意图，其中第二个括号里的值是颜色矩阵的初始值](/img/android/android_e02_11.png)
+</center>
+
+　　通过颜色矩阵，修改原图像的`RGBA`值的步骤为：
+
+	-  首先，系统会遍历图像中的所有像素点。
+	-  然后，让每个像素点的颜色值与颜色矩阵进行矩阵乘法运算。
+	-  接着，将计算出来的新颜色值设置到那个像素点上。
+	-  最后，当所有像素点都运算完毕后，整张图的颜色就变化完成了。
+
+　　为了能让`像素点的色值`和`颜色矩阵`进行乘法运算，系统会先将像素点的`RGBA`值存储在一个`5*1`的分量矩阵中，然后再和颜色矩阵相乘。这意味着，我们可以`通过修改颜色矩阵的值，来控制图像最终的颜色效果`。如下图所示：
+
+<center>
+![颜色矩阵与分量矩阵相乘示意图](/img/android/android_e02_12.png)
+</center>
+
+　　通过阅读`ColorMatrix`类的源码，得知在上面说的`5*4`的颜色矩阵中，第一行参数`abcde`决定了图像的`红色`成分，第二行参数`fghij`决定了图像的`绿色`成分，第三行参数`klmno`决定了图像的`蓝色`成分，第四行参数`pqrst`决定了图像的`透明度`。并且，从上图可知，颜色矩阵的`第五列`参数`ejot`是颜色的`偏移量`，即如果只是想在像素点现有的颜色上进行微调的话，我们只需要修改`ejot`即可。
+
+<br>　　接下来我们通过两个范例来实现下图所示的效果：
+
+<center>
+![原图（左）、变黄（中）、灰度化（右）](/img/android/android_e02_13.png)
+</center>
+
+<br>　　范例1：让图片变黄。
+``` android
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+		
+        ImageView img = (ImageView) findViewById(R.id.img);
+        // 创建一个新的颜色矩阵。
+        ColorMatrix cm = new ColorMatrix();
+        // 重新设置颜色矩阵中的值。 此处只是将R和G的偏移量设置为100。
+        cm.set(new float[]{
+            1, 0, 0, 0, 100,
+            0, 1, 0, 0, 100,
+            0, 0, 1, 0, 0,
+            0, 0, 0, 1, 0,
+        });
+        // 创建一个ColorMatrixColorFilter对象，用它来包装一下颜色矩阵，并将它设置到ImageView中。
+        img.setColorFilter(new ColorMatrixColorFilter(cm));
+        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.icon));
+    }
+}
+```
+    语句解释：
+    -  通过计算后可以得知该颜色矩阵的作用是使图像的红色分量和绿色分量均增加100，这样的效果就使图片泛黄（因为红色与绿色混合后得到黄色）。
+
+<br>　　范例2：让图片灰度化。
+``` android
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+		
+        ImageView img = (ImageView) findViewById(R.id.img);
+        ColorMatrix cm = new ColorMatrix();
+        // 饱和度设置为0 。
+        cm.setSaturation(0);
+        img.setColorFilter(new ColorMatrixColorFilter(cm));
+        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.icon));
+    }
+}
+```
+    语句解释：
+    -  这样一来，对于被禁用的按钮所显示的图片，如果美工不给，我们也可以自己做出来了。
+
+
+<br>**本节参考阅读：**
+- [Android学习笔记22：图像颜色处理（ColorMatrix）](http://www.cnblogs.com/menlsh/archive/2013/02/03/2890888.html)
+- [Android图片处理：颜色矩阵和坐标变换矩阵](http://ju.outofmemory.cn/entry/26741)
+- [维基百科 - 位图](http://zh.wikipedia.org/wiki/%E4%BD%8D%E5%9B%BE)
+- [百度百科 - 位图图像](http://baike.baidu.com/view/80262.htm)
 
 <br><br>
