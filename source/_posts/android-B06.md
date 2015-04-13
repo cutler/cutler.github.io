@@ -28,7 +28,7 @@ C:\WINDOWS\system32\drivers\etc\hosts
 　　然后在末尾加上一行`“74.125.237.1  dl-ssl.google.com”`，保存后关闭即可。 然后重启`SDK Manager`就可以继续了。
 
 ## 特点 ##
-　　下面依次介绍一下`5`个支持库的应用场景及特点，你可以依据自己的需求来选择使用哪一个支持库。
+　　下面依次介绍这些支持库的应用场景及特点，你可以依据自己的需求来选择使用哪一个支持库。
 
 <br>
 ### V4 支持库 ###
@@ -56,36 +56,75 @@ C:\WINDOWS\system32\drivers\etc\hosts
 <br>
 ### V7 支持库 ###
 　　除了`v4`以外，还有一些库设计用于与`Android 2.1`(`API level 7`)或更高的平台。这些库(它们都是以Android库项目的方式存在)提供特定的功能集，可以包含在您的应用程序，并且独立于其他应用程序。
-　　`v7`库下面有多个子库，它们分别用于不同的场景，其中有几个子库体积比较大，因而不再像`v4`包那样合在一起，而是将他们分开发布，下面将依次介绍它们。
+　　`v7`库下面有多个子库，它们分别用于不同的场景，其中有几个子库体积比较大，因而不再像`v4`包那样合在一起，而是将它们分开发布，下面将依次介绍它们。
 
-<br>**V7 appcompat库**
-　　这个库添加了对 [ActionBar](http://developer.android.com/guide/topics/ui/actionbar.html) 的支持，同时也支持`Android5.0`提出的`Material Design`风格。
+<br>**V7 appcompat 库**
+　　这个库添加了对 [ActionBar](http://developer.android.com/guide/topics/ui/actionbar.html) 的支持，同时也支持`Android5.0`（`Android Lollipop`）提出的`Material Design`风格。
 　　值得注意的是，这个库需要依赖于`v4`库，如果你使用`Ant`或者`Eclipse`，要确保这个库中的类可以引用到`v4`库中的类。
 
 　　这里有几个关键的类包含在`v7 appcompat`库：
 
 	-  ActionBar：提供了ActionBar的实现。
 	-  ActionBarActivity：需要使用ActionBar的Activity必须派生自此类。
-	-  ShareActionProvider：可以支持一个标准化共享行动(比如电子邮件或发布到社交应用程序),可以包含在操作栏中。
+	-  ShareActionProvider：可以支持一个标准化共享行动(比如电子邮件或发布到社交应用程序)，可以包含在操作栏中。
 
-　　这个库放在：`<sdk>\extras\android\support\v7\appcompat\libs`目录下。
+　　这个库放在：`<sdk>/extras/android/support/v7/appcompat/`目录下。
 
-v7 gridlayout library
-这个库添加支持GridLayout类,它允许您安排用户界面元素使用网格的矩形框。这个库放在：<sdk> \extras\android\support\v7\gridlayout\libs目录下。
-v7 mediarouter library
-	这个库添加支持MediaRouter, MediaRouteProvider，以及其他相关的媒体类。
-一般来说,这些在v7 mediarouter库中的api提供了一种手段,控制路由的媒体渠道和流从当前设备到外部屏幕、音箱、和其他目标设备。该库依赖于v7 apcompat库，因此你的项目要同时导入这两个库。
+<br>**V7 cardview 库**
+　　这个库添加了对`CardView`类的支持，它是`Android 5.0`推出的一个卡片式的`View`组件。卡片化是全新的`Material`风格设计中重要的组成部分之一，卡片设计适合重要信息的展示，以及在`List`中作为一个包含有复杂操作的`item`使用。
+　　`CardView`继承自`FrameLayout`类，同时卡片可以包含圆角、阴影。
+　　经常使用`Google APP`的人应该对卡片式设计非常熟悉，不管是`Google Now`、`Google Email`、`Google+`等都沿用了卡片式设计的风格，非常清新明了，感觉没有任何冗余的信息。它的具体用法此处就不在展开介绍了。
+　　这个库放在：`<sdk>/extras/android/support/v7/gridlayout/ `目录下。
+
+效果参看：
+
+- [《Android L中的RecyclerView 、CardView 、Palette的使用》](http://blog.csdn.net/xyz_lmn/article/details/38735117)
+- [《使用CardView实现卡片式Google Plus布局》](http://www.yiqivr.com/2015/01/%E4%BD%BF%E7%94%A8cardview%E5%AE%9E%E7%8E%B0%E5%8D%A1%E7%89%87%E5%BC%8Fgoogle-plus%E5%B8%83%E5%B1%80/)
+
+<br>**V7 gridlayout 库**
+　　这个库添加了对`GridLayout`类的支持，它是在`Android 4.0`中，新引入的一个布局控件。`GridLayout`可以用来做一个象`TableLayout`这样的布局样式，但其性能及功能都要比`Tablelayout`要好，比如`GridLayout`的布局中的单元格可以跨越多行，而`Tablelayout`则不行，此外，其渲染速度也比`Tablelayout`要快。它的具体用法此处就不在展开介绍了。
+　　这个库放在：`<sdk>/extras/android/support/v7/gridlayout/`目录下。
+
+效果参看：
+
+- [《Android 4.0开发之GridLayOut布局实践》](http://tech.it168.com/a2011/1213/1287/000001287977.shtml)
+
+<br>**V7 mediarouter 库**
+　　这个库添加支持`MediaRouter`，`MediaRouteProvider`以及其他相关的媒体类。
+　　当用户使用无线技术连接电视，家庭影院和音乐播放器时，他们希望`android apps`的内容可以在这些大屏幕的设备上播放。启用这种方式的播放，能把一台设备一个用户模式变为一个乐于分享的、令人激动和鼓舞的多用户模式。
+　　android媒体路由（`mediarouter`）接口被设计成可以在二级设备上呈现和播放媒体。
+　　这个库放在：`<sdk>/extras/android/support/v7/mediarouter/`目录下。注意：该库依赖于`v7 apcompat`库，因此你的项目要同时导入这两个库。
+
+参考阅读：
+
+- [《media and camera 框架之二： MediaRouter》](http://blog.csdn.net/go_strive/article/details/19973011)
+
+
+<br>**V7 palette 库**
+　　这个库添加了对`Palette`类的支持，它是`Android 5.0`推出的一个新特性。`Palette` 可以从一张图片中提取颜色，我们可以把提取的颜色融入到`App UI`中，可以使`UI`风格更加美观融洽。比如，我们可以从图片中提取颜色设置给`ActionBar`做背景颜色，这样`ActionBar`的颜色就会随着显示图片的变化而变化。
+　　这个库放在：`<sdk>/extras/android/support/v7/palette/`目录下。
+
+参考阅读：
+
+- [《Android Lollipop 新特性 - Palette》](http://baoyz.com/android/2014/10/21/android-palette-use/)
+
+<br>**V7 recyclerview 库**
+　　这个库添加了对`RecyclerView`类的支持，它是`Android 5.0`推出的一个新View组件，用来取代ListView的。
+　　`RecyclerView`的特性（但不限于）如下：
+
+	-  支持设置横向和纵向显示Item。
+	-  默认情况下,删除或者增加IteM的时候有动画，当然也可以自定义。
+
+　　这个库放在：`<sdk>/extras/android/support/v7/recyclerview/`目录下。它的具体用法此处就不在展开介绍了。
 
 <br>
 ### V8 支持库 ###
-
-这个库设计用于与Android 2.2(API level 8)或更高的平台，它增加了对RenderScript计算框架的支持，这些APIs被包含在android.support.v8.renderscript包中。值得注意的是，包含这个支持库到你项目中的方法不同于其他支持库，更多信息请参看RenderScript 开发手册。
+　　这个库设计用于与`Android 2.2`(`API level 8`)或更高的平台，它增加了对`RenderScript`计算框架的支持，这些`APIs`被包含在`android.support.v8.renderscript`包中。值得注意的是，包含这个支持库到你项目中的方法不同于其他支持库，更多信息请参看`RenderScript`开发手册。
 
 <br>
 ### V13 支持库 ###
-
-这个库设计用于与Android 3.2(API level 13)或更高的平台。它增加了对FragmentCompat类的支持，以及更多与Fragment相关的支持类。
-这个库放在：<sdk> \extras\android\support\v13\目录下。
+　　这个库设计用于与`Android 3.2`(`API level 13`)或更高的平台。它增加了对`FragmentCompat`类的支持，以及更多与`Fragment`相关的支持类。
+　　这个库放在：`<sdk>/extras/android/support/v13/ `目录下。
 
 <br>**本节参考阅读：**
 - [Support Library](http://developer.android.com/tools/support-library/index.html)
