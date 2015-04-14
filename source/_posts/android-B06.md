@@ -21,12 +21,6 @@ categories: Android
  
 　　下载完毕后，这些文件被放入到`“<sdk>/extras/android/support/”`目录下面。
 
-　　提示：很多时候打开`SDK Manager`时总是为卡在一个地方无法继续向下，从而也导致无法下载支持库。 解决的方法是修改`hosts`文件，首先打开电脑C盘并找到这个文件：
-```
-C:\WINDOWS\system32\drivers\etc\hosts
-```
-　　然后在末尾加上一行`“74.125.237.1  dl-ssl.google.com”`，保存后关闭即可。 然后重启`SDK Manager`就可以继续了。
-
 ## 特点 ##
 　　下面依次介绍这些支持库的应用场景及特点，你可以依据自己的需求来选择使用哪一个支持库。
 
@@ -109,7 +103,7 @@ C:\WINDOWS\system32\drivers\etc\hosts
 - [《Android Lollipop 新特性 - Palette》](http://baoyz.com/android/2014/10/21/android-palette-use/)
 
 <br>**V7 recyclerview 库**
-　　这个库添加了对`RecyclerView`类的支持，它是`Android 5.0`推出的一个新View组件，用来取代ListView的。
+　　这个库添加了对`RecyclerView`类的支持，它是`Android 5.0`推出的一个新`View`组件，用来取代`ListView`的。
 　　`RecyclerView`的特性（但不限于）如下：
 
 	-  支持设置横向和纵向显示Item。
