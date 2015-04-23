@@ -33,6 +33,14 @@ categories: Android
 　　不出意外的话，此时你会遇到第一个问题，`Studio`会卡在`“fetching Android sdk compoment information”`上面，这其实是去获取`android sdk`组件信息，这个过程相当慢（视你的网速而定），甚至是加载失败，进而导致`Studio`启动不起来。之所以这么慢是因为`Google`被墙掉了。同时由于是第一次启动`Studio`，因而`Studio`在获取完毕组件信息后，还会去下载一些东西（可以帮我们省很多事，所以尽量让它去下载），所以这个问题必须解决。
 　　解决这个问题，只需要配置一个代理服务器即可，具体步骤请参阅：[《关于红杏的公益代理，Android Studio以及freso的编译》](http://www.liaohuqiu.net/cn/posts/about-red-apricot-and-compiling-fresco/) 。（这里帮他们打个广告，笔者是个懒人，能花小钱搞定的事情，绝对不想去花费时间和精力，红杏让我可以用最简单的方式翻墙，所以我很干脆就掏钱了，:）。
 
+<br>**Windows平台**
+　　如果你是在Windows平台，可以这么做：
+
+	-  首先，到android studio安装目录，打开bin目录，编辑idea.properties, 在文件末尾添加：
+	   -  disable.android.first.run=true 这将禁用第一次运行。
+	-  然后，打开android studio，在File > Settings > HTTP Proxy settings设置代理相关参数，关闭android studio。
+	-  最后，再次打开idea.properties文件，删除刚刚添加的disable.android.first.run=true ，并重新打开android studio。
+
 ## HelloWorld ##
 　　环境搭建完毕后，我们接下来就开始创建一个名为`HelloWorld`的项目，然后运行它。
 　　项目创建的具体过程，可以参阅：[《Android Studio for Mac初体验》](http://blog.csdn.net/keyboardota/article/details/8937384)，笔者就不再冗述了，主要是因为要截很多图，太占博客的空间了。
@@ -65,7 +73,7 @@ Failure [INSTALL_FAILED_OLDER_SDK]
 </center>
 
 <br>**Poject 与 Module**
-　　在`Android Studio`中，仍然存在工作空间的概念，但是`Studio`不再像`Eclipse`那样可以同时将工作空间的中所有项目导入到程序中，而是一个`Project`对应一个`Android Studio`窗口，如果想打开多个`Project`，那么只能打开多个`Studio`窗口了。
+　　在`Android Studio`中，仍然存在工作空间的概念，但是`Studio`不再像`Eclipse`那样可以同时将工作空间的中所有项目导入到程序中，而是一个`Project`对应一个`Studio`窗口，如果想打开多个`Project`，那么只能打开多个`Studio`窗口了。
 　　我们都知道，在实际开发中可能会用到第三方提供的`Android library`项目，因而一个完整的项目是由一个主项目+若干library项目组成的。`Android Studio`提出了`Module`的概念，`Module`就是指的一个具体的项目，我们刚才说的`主项目`、`library项目`都被称为一个`Module`，即`一个Project由多个Module组成`。
 
 　　每一个`Module`需要有属于自己的`Gradle build file`（当你新建一个`Module`时会自动帮你生成的，当你导入一个Eclipse的项目时需自己创建）。这些`Gradle`文件包含了一些很重要的内容，比如所支持的安卓版本和项目依赖的东西，以及安卓项目中其它重要的数据。
@@ -178,11 +186,315 @@ class Foo {
 　　我们每天对项目进行编译、运行单元测试、生成文档、打包和部署等烦琐且不起眼的工作，都可以说是在对项目进行`构建`。
 　　使用Gradle构建时，可以同时构建一个或多个`project`，一个project到底代表什么依赖于你想用Gradle做什么。举个例子，一个project可以代表一个`JAR`或者一个网页应用。它也可能代表一个发布的`ZIP`压缩包，这个ZIP可能是由许多其他项目的`JARs`构成的。但是一个project不一定非要代表被构建的某个东西。它可以代表一件要做的事，比如部署你的应用。
 　　`每一个project是由一个或多个tasks构成的`。一个`task`代表一些更加细化的构建。它可能是编译一些`classes`，创建一个`JAR`，生成`javadoc`，或者生成某个目录的压缩文件。
-
+<br>
 ### HelloWorld ###
 　　首先，我们先来创建一个名为`gradleTest`的空文件夹。
 　　然后，要知道Gradle与Maven、Ant一样，有一个核心的构建文件，名为`build.gradle`，整个构建的过程都是从它开始的。
-　　接着，我们创建完毕`gradleTest/build.gradle`后，就可以使用`gradle`命令来启动构建了。
+
+<br>　　范例1：将如下代码放入到`build.gradle`中。
+``` gradle
+task hello {
+    doLast {
+        println 'Hello world!'
+    }
+}
+```
+    语句解释：
+    -  首先，我们在脚本中创建了一个名为hello的task。
+    -  然后，每一个task中可以有多个代码块（使用{}括起来），这些代码块被称为action。
+    -  接着，task使用一个队列来管理它所有的action。当task被执行的时候，按照先进先出的原则依次执行每个action。
+    -  最后，代码块是没有名字的，我们使用doLast关键字来将一个action放到task的队列的队尾。
+
+<br>　　接着，我们创建完毕`gradleTest/build.gradle`后，就可以使用`gradle task名称`命令来启动构建了。
+``` gradle
+gradle -q hello
+```
+    语句解释：
+    -  这里需要注意两点：
+       -  由于我们是在命令行中执行这个脚本，因此build.gradle文件必须是ANSI编码，别用UTF-8编码。
+       -  gradle命令后面跟着的是task的名称，而不是文件的名称。
+    -  本节之后的内容绝大多数的范例会在命令里加入-q，加上它之后就不会生成Gradle的日志信息，所以用户只能看到tasks的输出。当然也可以不加它。
+
+<br>　　范例2：快捷的任务定义。
+``` gradle
+task hello << {
+    println "Hello world!!"
+}
+```
+    语句解释：
+    -  与前面的例子比较，doLast 被替换成了 <<，它们有一样的功能，但看上去更加简洁了。
+    -  字符串既可以用单引号也可以用双引号。
+<br>
+### 构建脚本代码 ###
+　　Gradle 的构建脚本展示了 Groovy 的所有能力。作为开胃菜，来看看这个：
+
+<br>　　范例1：字符串连接与函数调用。
+``` gradle
+task upper << {
+    String someString = 'mY_nAmE'
+    println "Original: " + someString
+    println "Upper case: " + someString.toUpperCase()
+    println "Length: " + someString.length()
+}
+```
+　　程序输出：
+
+	E:\gradleTest>gradle -q upper
+	Original: mY_nAmE
+	Upper case: MY_NAME
+	Length: 7
+
+<br>　　范例2：循环语句与判断语句。
+``` gradle
+task count << {
+    4.times { 
+        if("$it" < 3){
+            print "$it " 
+        } else {
+            println "$it " 
+        }
+    }
+}
+```
+    语句解释：
+    -  本范例会循环4次，前三次只会打印出数字，最后一次打印完数字后，会接着打印一个换行符。
+
+<br>
+### 任务 ###
+　　就像你所猜想的那样，你可以声明任务之间的依赖关系、定义动态任务等。
+
+<br>　　范例1：申明任务之间的依赖关系。
+``` gradle
+task hello << {
+    println 'Hello world!'
+}
+
+task intro(dependsOn: hello) << {
+    println "I'm Gradle"
+}
+```
+　　程序输出：
+
+	E:\gradleTest>gradle -q intro
+	Hello world!
+	I'm Gradle
+
+　　由于`intro`依赖于`hello`，所以执行`intro`的时候`hello`命令会被优先执行来作为启动`intro`任务的条件。
+
+<br>　　范例2：其他的任务还没有存在。
+``` gradle
+task taskX(dependsOn: 'taskY') << {
+    println 'taskX'
+}
+task taskY << {
+    println 'taskY'
+}
+```
+　　程序输出：
+
+	E:\gradleTest>gradle -q taskX
+	taskY
+	taskX
+
+　　在加入一个依赖之前，这个依赖的任务不需要提前定义，`taskX`到`taskY`的依赖在`taskY`被定义之前就已经声明了。这一点对于我们之后讲到的多任务构建是非常重要的。
+
+<br>　　范例3：动态的创建一个任务。
+``` gradle
+4.times { counter ->
+    task "task$counter" << {
+        println "I'm task number $counter"
+    }
+}
+```
+    语句解释：
+    -  本范例通过循环语句动态的创建了4个task。
+    -  我们可以自定义循环语句的迭代变量的名称，本范例中迭代变量的名字为counter，引用迭代变量是使用 "$变量名"，注意要有引号。
+       -  循环次数.times{迭代变量 -> 循环体}
+    -  事实上，我们在命令行中执行“gradle -q hello”命令时，Grale做了如下两步操作：
+       -  第一，从当前目录下查找build.gradle文件，然后从该文件第一行代码开始扫描执行。
+       -  第二，等一切都结束后，再开始执行hello任务。这意味着我们可以直接“gradle -q”命令，后面不需要跟随一个task。
+　　程序输出：
+
+	E:\gradleTest>gradle -q task2
+	I'm task number 2
+
+<br>　　范例4：通过API访问一个任务 - 加入一个依赖。
+``` gradle
+// 先动态创建4个task
+4.times { counter ->
+    task "task$counter" << {
+        println "I'm task number $counter"
+    }
+}
+// 由于Gradle从上到下执行,因此会在创建完毕任务后,让task0依赖task2、task3
+task0.dependsOn task2, task3
+```
+    语句解释：
+    -  当任务创建之后, 它可以通过API来访问。
+　　程序输出：
+
+	E:\gradleTest>gradle -q task0
+	I'm task number 2
+	I'm task number 3
+	I'm task number 0
+
+<br>　　范例5：通过API访问一个任务 - 加入行为。
+``` gradle
+// 创建一个task，并在队列尾部添加一个action
+task hello << {
+    println 'Hello Earth'
+}
+// 在队列首部添加一个action
+hello.doFirst {
+    println 'Hello Venus'
+}
+// 在队列尾部添加一个action
+hello.doLast {
+    println 'Hello Mars'
+}
+// 在队列尾部添加一个action
+hello << {
+    println 'Hello Jupiter'
+}
+```
+    语句解释：
+    -  doFirst 和 doLast 可以被执行许多次。他们分别可以在任务动作列表的开始和结束加入动作。当任务执行的时候，在动作列表里的动作将被按顺序执行。这里第四个行为中 << 操作符是 doLast 的简单别称。
+　　程序输出：
+
+	E:\gradleTest>gradle -q hello
+	Hello Venus
+	Hello Earth
+	Hello Mars
+	Hello Jupiter
+
+<br>　　正如同你已经在之前的示例里看到，有一个短标记`$`可以访问一个存在的任务。也就是说每个任务都可以作为构建脚本的属性：
+
+<br>　　范例6：当成构建脚本的属性来访问一个任务。
+``` gradle
+task hello << {
+    println 'Hello world!'
+}
+hello.doLast {
+    println "Greetings from the $hello.name task."
+}
+```
+    语句解释：
+    -  这里的name是任务的默认属性，代表当前任务的名称。
+    -  这使得代码易于读取，特别是当使用了由插件（如编译）提供的任务时尤其如此。
+　　程序输出：
+
+	E:\gradleTest>gradle -q hello
+	Hello world!
+	Greetings from the hello task.
+
+<br>　　范例7：给任务加入自定义属性。
+``` gradle
+task boy << {
+    ext.age = "17"
+}
+boy.doLast {
+    println boy.name + " age is " + boy.age
+}
+```
+    语句解释：
+    -  给任务加自定义属性是没有限制的。
+    -  如果不是在一个字符串中引用属性，则可以去掉$符号。
+　　程序输出：
+
+	E:\gradleTest>gradle -q boy
+	boy age is 17
+
+<br>　　范例8：创建一个方法。
+``` gradle
+task listFile << {
+    // 首先，调用_doFistFile()方法，并传递一个路径过去。
+    // 然后，在返回的File[]对象上，调用each()方法进行遍历，迭代变量的名称为file。
+    _doFistFile('E:/gradleTest').each {File file ->
+        println "I'm fond of $file.name"
+    }
+}
+// 此处定义了一个方法。
+File[] _doFistFile(String dir) {
+    // 调用API获取文件列表，注意不会列出文件夹。 看不懂也没关系，我们主要的目的是了解。
+    file(dir).listFiles({file -> file.isFile() } as FileFilter).sort()
+}
+```
+　　程序输出：
+
+	E:\gradleTest>gradle -q listFile
+	I'm fond of build.gradle
+	I'm fond of gradle
+
+<br>　　范例9：定义默认任务。
+``` gradle
+// 定义默认执行的任务，此行代码放在任何地方都可以，不一定要放在第一行。
+// 它等价于 gradle clean run ，即我们可以同时运行多个task，task之间使用空格间隔。
+defaultTasks 'clean', 'run'
+
+task clean << {
+    println 'Default Cleaning!'
+}
+
+task run << {
+    println 'Default Running!'
+}
+
+task other << {
+    println "I'm not a default task!"
+}
+
+```
+    语句解释：
+    -  在一个多项目构建中，每一个子项目都可以有它特别的默认任务。如果一个子项目没有特别的默认任务，父项目的默认任务将会被执行。
+　　程序输出：
+
+	E:\gradleTest>gradle -q
+	Default Cleaning!
+	Default Running!
+
+<br>
+### 通过DAG配置 ###
+　　Gradle有一个配置阶段和执行阶段，在配置阶段后，Gradle将会知道应执行的所有任务。Gradle 为你提供一个"钩子"（即回调），以便利用这些信息。举个例子，判断发布的任务是否在要被执行的任务当中。根据这一点，你可以给一些变量指定不同的值。
+
+<br>　　范例1：根据选择的任务产生不同的输出。
+``` gradle
+task distribution << {
+    println "We build the zip with version=$version"
+}
+
+task release(dependsOn: 'distribution') << {
+    println 'We release now'
+}
+// 通过gradle.taskGraph.whenReady来设置回调，回调方法接收一个名为taskGraph的参数。
+gradle.taskGraph.whenReady {taskGraph ->
+    // 如果release任务将会被执行，则版本号设定为1.0 。
+    if (taskGraph.hasTask(release)) {
+        version = '1.0'
+    } else {
+        version = '1.0-SNAPSHOT'
+    }
+}
+```
+    语句解释：
+    -  回调函数将优先于任何task执行，因此在distribution被执行之前，version变量已经存在且有值了。
+　　程序输出：
+
+	E:\gradleTest>gradle -q distribution
+	We build the zip with version=1.0-SNAPSHOT
+	E:\gradleTest>gradle -q release
+	We build the zip with version=1.0
+	We release now
+
+## 构建Android项目 ##
+　　在正式讲解如何使用Gradle构建Android项目之前，先来介绍一下`“插件”`的概念。
+
+<br>**插件**
+　　`Gradle`与`Maven`类似，它的很多功能（编译、测试、部署）都是通过插件（`Plugin`）来完成的。简单的说，插件就是一组`task`的集合，我们所说的使用某个插件，实际上就是在使用插件中的`task`。`Gradle`装载了许多插件，针对不同类型的项目、不同的需求，你可以使用不同的插件，比如`java插件`、`android插件`等。你也可以编写自己的插件并和其他开发者分享它。
+
+　　插件是`基于合约`的，这意味着插件给项目的许多方面定义了默认的值（如存放项目源文件的目录叫什么）。如果你在项目里遵从这些合约，你通常不需要在你的构建脚本里加入太多东西。如果你不想要或者是你不能遵循合约，`Gradle`允许你自己定制你的项目。
+
+<br>
+### HelloWorld ###
 
 
 
