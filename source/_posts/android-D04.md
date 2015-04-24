@@ -23,7 +23,7 @@ categories: Android
 　　[Android Studio 中文组](http://android-studio.org/index.php)，是2013年5月16日筹办，5月21号上线的`Android Studio`中文社区网站，对`Android Studio`的安装，配置，调试，`BUG`提交等问题进行经验交流和总结； 中文组还承载着对`Android Studio`进行汉化和教程编写的工作，为中文开发者提供了本地支持！
 
 <br>　　以上是从百度百科中摘抄过来的介绍，猛地一看，没看懂多少，说的太空泛了。
-　　笔者也是被大势所趋，在`2015年4月14日 夜`，突然顿悟，看透天机，明白使用`Android Studio`开发才是正道，未来Android推出的新技术，势必会完全向`Android Studio`靠拢，而不会是`Eclipse`，（开源社区都越来越偏向`Android Studio`了）。因而在`Android Studio`发布`1.1.0`版本时，笔者决定开始接触它了。接下来我们从环境搭建开始，一步步的揭开`Android Studio`的面纱。
+　　笔者也是被大势所趋，在`2015年4月14日 夜`，突然顿悟，看透天机，明白使用`Android Studio`开发才是正道，未来Android推出的新技术，势必会完全向`Android Studio`靠拢，而不会是`Eclipse`，（开源社区也都越来越偏向`Android Studio`了）。因而在`Android Studio`发布`1.1.0`版本时，笔者决定开始接触它了。接下来我们从环境搭建开始，一步步的揭开`Android Studio`的面纱。
 
 ## 环境搭建 ##
 　　第一步，从官方下载界面中下载 [AndroidStudio](https://developer.android.com/sdk/index.html) ，本节将以Mac为例，讲解搭建过程。
@@ -31,7 +31,7 @@ categories: Android
 　　第三步，开始安装时会询问你：`“You can import your settings from a previous version of Android Studio”`，由于我们是第一次安装，因此选择第二项 `“I do not ……”`即可。
 
 　　不出意外的话，此时你会遇到第一个问题，`Studio`会卡在`“fetching Android sdk compoment information”`上面，这其实是去获取`android sdk`组件信息，这个过程相当慢（视你的网速而定），甚至是加载失败，进而导致`Studio`启动不起来。之所以这么慢是因为`Google`被墙掉了。同时由于是第一次启动`Studio`，因而`Studio`在获取完毕组件信息后，还会去下载一些东西（可以帮我们省很多事，所以尽量让它去下载），所以这个问题必须解决。
-　　解决这个问题，只需要配置一个代理服务器即可，具体步骤请参阅：[《关于红杏的公益代理，Android Studio以及freso的编译》](http://www.liaohuqiu.net/cn/posts/about-red-apricot-and-compiling-fresco/) 。（这里帮他们打个广告，笔者是个懒人，能花小钱搞定的事情，绝对不想去花费时间和精力，红杏让我可以用最简单的方式翻墙，所以我很干脆就掏钱了，:）。
+　　解决这个问题，只需要配置一个代理服务器即可，具体步骤请参阅：[《关于红杏的公益代理，Android Studio以及freso的编译》](http://www.liaohuqiu.net/cn/posts/about-red-apricot-and-compiling-fresco/) 。（这里帮红杏打个广告，笔者是个懒人，能花小钱搞定的事情，绝对不想去花费时间和精力，红杏让我可以用最简单的方式翻墙，所以我很干脆就掏钱了，:）。
 
 <br>**Windows平台**
 　　如果你是在Windows平台，可以这么做：
@@ -64,7 +64,7 @@ DEVICE SHELL COMMAND: pm install -r "/data/local/tmp/com.cutler.helloworld"
 pkg: /data/local/tmp/com.cutler.helloworld
 Failure [INSTALL_FAILED_OLDER_SDK]
 ```
-　　这是因为项目的`minSdkVersion`属性设置的高于设备的SDK版本号。按照以前的思路，我们应该去`AndroidManifest.xml`文件里修改这个值，但是我们在`AndroidManifest.xml`中却找不到`<uses-sdk>`标签了。
+　　这是因为项目的`minSdkVersion`属性设置的高于设备的SDK版本号。按照以前的思路，我们应该去`AndroidManifest.xml`文件里修改这个值，但是现在我们在`AndroidManifest.xml`中却找不到`<uses-sdk>`标签了。
 
 　　事实上，使用	`Android Studio`创建的Android项目的`目录结构`已经和Eclipse创建的不一样了，现在我们需要进入到一个名为`build.gradle`的文件中修改，即下图中的`build.gradle(Module:app)`，把里面的`minSdkVersion 21`改为`minSdkVersion 8`即可。
 
@@ -73,8 +73,8 @@ Failure [INSTALL_FAILED_OLDER_SDK]
 </center>
 
 <br>**Poject 与 Module**
-　　在`Android Studio`中，仍然存在工作空间的概念，但是`Studio`不再像`Eclipse`那样可以同时将工作空间的中所有项目导入到程序中，而是一个`Project`对应一个`Studio`窗口，如果想打开多个`Project`，那么只能打开多个`Studio`窗口了。
-　　我们都知道，在实际开发中可能会用到第三方提供的`Android library`项目，因而一个完整的项目是由一个主项目+若干library项目组成的。`Android Studio`提出了`Module`的概念，`Module`就是指的一个具体的项目，我们刚才说的`主项目`、`library项目`都被称为一个`Module`，即`一个Project由多个Module组成`。
+　　在`Android Studio`中，不再存在工作空间的概念了（但创建项目时可以设置保存的位置），也不再像`Eclipse`那样可以同时将工作空间的中所有项目导入到程序中，而是一个`Project`对应一个`Studio`窗口，如果想打开多个`Project`，那么只能打开多个`Studio`窗口。
+　　我们都知道，在实际开发中可能会用到第三方提供的`Android library`项目，因而一个完整的项目是由一个主项目+若干`library`项目组成的。`Android Studio`提出了`Module`的概念，`Module`就是指的一个具体的项目，我们刚才说的`主项目`、`library项目`都被称为一个`Module`，即`一个Project由多个Module组成`。
 
 　　每一个`Module`需要有属于自己的`Gradle build file`（当你新建一个`Module`时会自动帮你生成的，当你导入一个Eclipse的项目时需自己创建）。这些`Gradle`文件包含了一些很重要的内容，比如所支持的安卓版本和项目依赖的东西，以及安卓项目中其它重要的数据。
 　　这样一来，我们就能明白为什么要修改上面的`build.gradle(Module:app)`文件了。
@@ -94,6 +94,7 @@ Failure [INSTALL_FAILED_OLDER_SDK]
 
 # 第二节 Gradle #
 　　新增的`Gradle`将会是你转到`Android Studio`上最大的障碍，和`Maven`一样，`Gradle`只是提供了构建项目的一个框架，真正起作用的是`Plugin`。如果你不知道什么是`构建工具`、`Maven`，那么请参看笔者的另一篇文章《实战篇　第三章 Maven》。
+　　笔者将本节的内容，定位为`“了解”`，也就是说你不需要记住下面所有的知识，只要能看懂范例、理解思路即可。
 
 ## 概述 ##
 <br>**是什么？**
@@ -202,7 +203,7 @@ task hello {
     语句解释：
     -  首先，我们在脚本中创建了一个名为hello的task。
     -  然后，每一个task中可以有多个代码块（使用{}括起来），这些代码块被称为action。
-    -  接着，task使用一个队列来管理它所有的action。当task被执行的时候，按照先进先出的原则依次执行每个action。
+    -  接着，task使用一个队列来管理它所有的action。当task被执行的时候，按照先后顺序依次执行每个action。
     -  最后，代码块是没有名字的，我们使用doLast关键字来将一个action放到task的队列的队尾。
 
 <br>　　接着，我们创建完毕`gradleTest/build.gradle`后，就可以使用`gradle task名称`命令来启动构建了。
@@ -211,7 +212,7 @@ gradle -q hello
 ```
     语句解释：
     -  这里需要注意两点：
-       -  由于我们是在命令行中执行这个脚本，因此build.gradle文件必须是ANSI编码，别用UTF-8编码。
+       -  由于我们是在命令行中执行这个脚本，因此build.gradle文件必须是ANSI编码，别用UTF-8编码，否则编译会出错。
        -  gradle命令后面跟着的是task的名称，而不是文件的名称。
     -  本节之后的内容绝大多数的范例会在命令里加入-q，加上它之后就不会生成Gradle的日志信息，所以用户只能看到tasks的输出。当然也可以不加它。
 
@@ -454,7 +455,7 @@ task other << {
 
 <br>
 ### 通过DAG配置 ###
-　　Gradle有一个配置阶段和执行阶段，在配置阶段后，Gradle将会知道应执行的所有任务。Gradle 为你提供一个"钩子"（即回调），以便利用这些信息。举个例子，判断发布的任务是否在要被执行的任务当中。根据这一点，你可以给一些变量指定不同的值。
+　　`Gradle`有一个配置阶段和执行阶段，在配置阶段后，`Gradle`将会知道应执行的所有任务。`Gradle`为你提供一个`"钩子"`（即回调），以便利用这些信息。举个例子，判断发布的任务是否在要被执行的任务当中。根据这一点，你可以给一些变量指定不同的值。
 
 <br>　　范例1：根据选择的任务产生不同的输出。
 ``` gradle
@@ -485,16 +486,89 @@ gradle.taskGraph.whenReady {taskGraph ->
 	We build the zip with version=1.0
 	We release now
 
-## 构建Android项目 ##
-　　在正式讲解如何使用Gradle构建Android项目之前，先来介绍一下`“插件”`的概念。
+## 构建Java项目 ##
+　　在正式讲解如何使用`Gradle`构建Java项目之前，先来介绍一下`“插件”`的概念。
 
 <br>**插件**
 　　`Gradle`与`Maven`类似，它的很多功能（编译、测试、部署）都是通过插件（`Plugin`）来完成的。简单的说，插件就是一组`task`的集合，我们所说的使用某个插件，实际上就是在使用插件中的`task`。`Gradle`装载了许多插件，针对不同类型的项目、不同的需求，你可以使用不同的插件，比如`java插件`、`android插件`等。你也可以编写自己的插件并和其他开发者分享它。
 
 　　插件是`基于合约`的，这意味着插件给项目的许多方面定义了默认的值（如存放项目源文件的目录叫什么）。如果你在项目里遵从这些合约，你通常不需要在你的构建脚本里加入太多东西。如果你不想要或者是你不能遵循合约，`Gradle`允许你自己定制你的项目。
 
-<br>
-### HelloWorld ###
+<br>**开始构建**
+　　让我们来看一个简单的例子，先创建一个名为`HelloWorld`目录，然后创建`HelloWorld\build.gradle`，接着在`build.gradle`中加入下面的代码来使用Java插件：
+``` gradle
+// 我们可以使用“apply plugin: '插件名称'”的格式来引入一个插件。
+apply plugin: 'java'
+```
+    语句解释：
+    -  我们此时就可以直接运行“gradle -q build”命令了，其中build任务就是Java插件提供的。
+    -  对于Java项目来说，它构建完成后最终会生成一个jar文件，里面包含了你创建的类。
+    -  如果一切顺利，Java插件会在HellWorld目录创建一个名为“build”的目录，用来存放编译生成的文件。只不过由于我们目录下除了build.gradle外什么都没有，所以使用Java插件生成的jar里面不会有任何类文件。
+
+<br>　　Java插件有如下几个默认的事情：
+
+	-  从 src/main/java 搜索并编译你的Java源代码。
+	-  从 src/test/java 搜索你的测试代码。
+	-  任何在 src/main/resources 的文件都将被包含在 JAR 文件里。
+	-  任何在 src/test/resources 的文件会被加入到 classpath 中以运行测试代码。
+	-  所有的输出文件将会被创建在build里。如：JAR 文件 存放在 build/libs 文件夹里。
+
+<br>　　我们接下来创建`HelloWorld\src\main\java\Demo1.java`，内容如下：
+``` android
+public class Demo1 {
+    public static void main(String[] args) {
+        System.out.println("Hello World from Java!");
+    }
+}
+```
+　　然后再执行`gradle -q build`，此时生成的jar里就会包含我们的`Demo1.class`了。 
+
+　　在继续向下讲解之前，我们先插播个小的知识点。
+
+<br>**Java插件有哪些构件任务？**
+　　你可以使用`gradle tasks`来列出项目的所有任务（包括Java插件中的任务）。
+　　虽然Java插件在你的项目里加入了许多任务，但通常你只会用到其中的一小部分任务。最常用的任务是`build`，它会构建你的项目，当你运行`gradle build`命令时，Gradle 将编译和测试你的代码, 并且创建一个包含类和资源的`JAR`文件。
+
+　　其余一些有用的任务是：
+
+	-  clean：删除build生成的目录和所有生成的文件。
+	-  assemble：编译并打包你的代码，但是并不运行单元测试。
+	-  check：编译并测试你的代码。
+
+<br>**定制项目**
+　　我们接着刚才的步骤，当我们生成出一个jar包之后，就可以执行它了，以此来验证这个包是否正确。 我们可以通过下面的代码来执行一个jar包：
+``` gradle
+java -jar ./build/libs/HelloWorld.jar
+```
+　　但是执行这条命令的时候，却得到一个错误：
+
+	./build/libs/HelloWorld.jar中没有主清单属性
+
+　　问题出在，我们没有在`manifest`文件中配置`Jar`文件的`主类`。
+
+　　Java插件给项目加入了一些属性，这些属性已经被定义了默认的值，已经足够来开始构建项目了。如果你认为不合适，改变它们的值也是很简单的。比如我们可以通过下面的代码来为`jar`设置主类：
+``` gradle
+apply plugin: 'java'
+
+// 定义一个变量，保存主类的名称
+def mainClassName = 'Demo1'
+
+// 下面是要传给Java插件的参数，Java插件会自动来读取它们。
+jar {
+    manifest {
+        attributes 'Main-Class': mainClassName , 'CustomAttributes': 'Hi Attributes'
+    }
+}
+```
+    语句解释：
+    -  Main-Class属性就是用来指明主类的，由于我们的主类没有放到任何包里，所以本范例中直接写的类名。
+    -  其中CustomAttributes是我们自定义的，对于manifest来说，任何自定义的属性都会被原样写到文件中。
+
+<br>　　此时我们再执行一下`jar`包，就可以得到我们想要的结果了。
+
+<br>**外部的依赖**
+　　通常，一个Java项目会有许多外部的依赖，既是指外部的`jar`文件。为了在项目里引用这些`jar`文件，你需要告诉`Gradle`去哪里找它们。在`Gradle`中，`jar`文件位于一个仓库中，这里的仓库类似于`Maven`的仓库。仓库可以被用来提取依赖，或者放入一个依赖，或者两者皆可。举个例子，我们将使用开放的`Maven`仓库：
+
 
 
 
