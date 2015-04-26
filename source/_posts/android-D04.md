@@ -39,7 +39,7 @@ categories: Android
 	-  首先，到android studio安装目录，打开bin目录，编辑idea.properties, 在文件末尾添加：
 	   -  disable.android.first.run=true 这将禁用第一次运行。
 	-  然后，打开android studio，在File > Settings > HTTP Proxy settings设置代理相关参数，关闭android studio。
-	-  最后，再次打开idea.properties文件，删除刚刚添加的disable.android.first.run=true ，并重新打开android studio。
+	-  最后，再次打开idea.properties文件，删除刚刚添加的disable.android.first.run=true，并重新打开studio。
 
 ## HelloWorld ##
 　　环境搭建完毕后，我们接下来就开始创建一个名为`HelloWorld`的项目，然后运行它。
@@ -64,7 +64,7 @@ DEVICE SHELL COMMAND: pm install -r "/data/local/tmp/com.cutler.helloworld"
 pkg: /data/local/tmp/com.cutler.helloworld
 Failure [INSTALL_FAILED_OLDER_SDK]
 ```
-　　这是因为项目的`minSdkVersion`属性设置的高于设备的SDK版本号。按照以前的思路，我们应该去`AndroidManifest.xml`文件里修改这个值，但是现在我们在`AndroidManifest.xml`中却找不到`<uses-sdk>`标签了。
+　　这是因为项目的`minSdkVersion`属性设置的高于设备的`Api Level`版本号。按照以前的思路，我们应该去`AndroidManifest.xml`文件里修改这个值，但是现在我们在`AndroidManifest.xml`中却找不到`<uses-sdk>`标签了。
 
 　　事实上，使用	`Android Studio`创建的Android项目的`目录结构`已经和Eclipse创建的不一样了，现在我们需要进入到一个名为`build.gradle`的文件中修改，即下图中的`build.gradle(Module:app)`，把里面的`minSdkVersion 21`改为`minSdkVersion 8`即可。
 
@@ -212,7 +212,7 @@ gradle -q hello
 ```
     语句解释：
     -  这里需要注意两点：
-       -  由于我们是在命令行中执行这个脚本，因此build.gradle文件必须是ANSI编码，别用UTF-8编码，否则编译会出错。
+       -  由于我们是在Windows命令行中执行这个脚本，因此build.gradle必须是ANSI编码，别用UTF-8编码，否则编译会出错。
        -  gradle命令后面跟着的是task的名称，而不是文件的名称。
     -  本节之后的内容绝大多数的范例会在命令里加入-q，加上它之后就不会生成Gradle的日志信息，所以用户只能看到tasks的输出。当然也可以不加它。
 
@@ -259,6 +259,7 @@ task count << {
 ```
     语句解释：
     -  本范例会循环4次，前三次只会打印出数字，最后一次打印完数字后，会接着打印一个换行符。
+    -  it是迭代变量的默认名称，后面我们会介绍如何修改迭代变量的名称。
 
 <br>
 ### 任务 ###
@@ -553,7 +554,8 @@ apply plugin: 'java'
 // 定义一个变量，保存主类的名称
 def mainClassName = 'Demo1'
 
-// 下面是要传给Java插件的参数，Java插件会自动来读取它们。
+// 下面定义一个名为jar的方法，如果方法没有参数，则可以省写括号。
+// jar方法里面包含要传给Java插件的参数，Java插件会自动来读取它们。
 jar {
     manifest {
         attributes 'Main-Class': mainClassName , 'CustomAttributes': 'Hi Attributes'
@@ -566,14 +568,381 @@ jar {
 
 <br>　　此时我们再执行一下`jar`包，就可以得到我们想要的结果了。
 
-<br>**外部的依赖**
-　　通常，一个Java项目会有许多外部的依赖，既是指外部的`jar`文件。为了在项目里引用这些`jar`文件，你需要告诉`Gradle`去哪里找它们。在`Gradle`中，`jar`文件位于一个仓库中，这里的仓库类似于`Maven`的仓库。仓库可以被用来提取依赖，或者放入一个依赖，或者两者皆可。举个例子，我们将使用开放的`Maven`仓库：
+<br>
+### 外部的依赖 ###
+　　在现实生活中，要创造一个没有任何`外部依赖`（使用外部`jar`）的应用程序并非不可能，但也是极具挑战的。这也是为什么依赖管理对于每个软件项目都是至关重要的一部分。
 
+　　笔者推荐阅读：[《Gradle入门系列（3）：依赖管理》](http://blog.jobbole.com/72992/) ，本节中的大部分内容参考自该文章。
+
+<br>**仓库**
+　　本质上说，仓库是一种存放依赖的容器，每一个项目都具备一个或多个仓库。
+　　类似于`Maven`的仓库，仓库可以被用来提取依赖，或者放入一个依赖，或者两者皆可。当`Gradle`需要引用依赖时就会自动去仓库中查找这个依赖。
+
+　　Gradle支持以下仓库格式：
+
+	-  Ivy仓库
+	-  Maven仓库
+	-  Flat directory仓库
+
+<br>　　以`Maven`仓库为例，我们可以通过`URL`地址或本地文件系统地址，将`Maven`仓库加入到我们的构建中。如果想通过`URL`地址添加一个`Maven`仓库，我们可以将以下代码片段加入到`build.gradle`文件中：
+``` gradle
+repositories {
+    maven {
+        url "http://maven.petrikainulainen.net/repo"
+    }
+}
+```
+
+　　如果想通过本地文件系统地址添加一个`Maven`仓库，我们可以将以下代码片段加入到`build.gradle`文件中：
+``` gradle
+repositories {
+    maven {       
+        url "../maven-repo"
+    }
+}
+```
+
+<br>　　在加入`Maven`仓库时，`Gradle`提供了三种“别名”供我们使用，它们分别是：
+
+	-  mavenCentral()别名，表示依赖是从Central Maven 2 仓库中获取的。
+	-  jcenter()别名，表示依赖是从Bintary’s JCenter Maven 仓库中获取的。
+	-  mavenLocal()别名，表示依赖是从本地的Maven仓库中获取的。
+
+　　如果我们想要将`Central Maven 2`仓库加入到构建中，我们必须在`build.gradle`文件中加入以下代码片段：
+``` gradle
+repositories {
+    mavenCentral()
+}
+```
+
+<br>**配置中的依赖分类**
+　　Gradle会对依赖进行分组，比如：编译Java时使用的是这组依赖，运行Java时又可以使用另一组依赖。我们把每一组依赖都称为一个`“DependencyGroup”`。
+
+　　Java插件指定了若干依赖配置项，其描述如下：
+
+	-  compile      配置项中包含的依赖在当前项目的源代码被编译时是必须的。
+	-  runtime      配置项中包含的依赖在运行时是必须的。
+	-  testCompile  配置项中包含的依赖在编译项目的测试代码时是必须的。
+	-  testRuntime  配置项中包含的依赖在运行测试代码时是必须的。
+	-  archives     配置项中包含项目生成的文件（如Jar文件）。
+	-  default      配置项中包含运行时必须的依赖。
+
+<br>**配置依赖**
+　　一个外部依赖可以由以下属性指定：
+
+	-  group属性指定依赖的分组（在Maven中，就是groupId）。
+	-  name属性指定依赖的名称（在Maven中，就是artifactId）。
+	-  version属性指定外部依赖的版本（在Maven中，就是version）。
+
+　　我们假设我们需要指定以下依赖：
+
+	-  依赖的分组是foo。
+	-  依赖的名称是foo。
+	-  依赖的版本是0.1。
+	-  在项目编译时需要这些依赖。
+
+　　我们可以将以下代码片段加入到`build.gradle`中，进行依赖声明：
+``` gradle
+dependencies {
+    compile group: 'foo', name: 'foo', version: '0.1'
+}
+```
+　　我们也可以采用一种快捷方式声明依赖：`[group]:[name]:[version]`。如果我们想用这种方式，我们可以将以下代码段加入到`build.gradle`中：
+``` gradle
+dependencies {
+    compile 'foo:foo:0.1'
+}
+```
+　　我们也可以在同一个配置项中加入多个依赖，传统的方式如下：
+``` gradle
+dependencies {
+    compile (
+        [group: 'foo', name: 'foo', version: '0.1'],
+        [group: 'bar', name: 'bar', version: '0.1']
+    )
+}
+```
+　　如果采用快捷方式，那可以是这样：
+``` gradle
+dependencies {
+    compile 'foo:foo:0.1', 'bar:bar:0.1'
+}
+```
+　　自然地，声明属于不同配置项的依赖也是可以的。比如说，如果我们想要声明属于`compile`和`testCompile`配置项的依赖，可以这么做：
+``` gradle
+dependencies {
+    compile group: 'foo', name: 'foo', version: '0.1'
+    testCompile group: 'test', name: 'test', version: '0.1'
+}
+```
+　　同样的，给力的快捷方式又来了：
+``` gradle
+dependencies {
+    compile 'foo:foo:0.1'
+    testCompile 'test:test:0.1'
+}
+```
+
+<br>
+### Pinyin4j ###
+　　`Pinyin4j`是一个流行的Java库，支持中文字符和拼音之间的转换，拼音输出格式可以定制。
+
+　　现在，继续完善我们之前的项目，在`build.gradle`文件中加入对`Pinyin4j`的依赖，在里面添加如下内容：
+``` gradle
+repositories {
+    // Gradle会从Maven的中央仓库(http://search.maven.org/#browse)中查找依赖。
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'com.belerweb', name: 'pinyin4j', version: '2.5.0'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+```
+　　然后，修改`Demo1`类的代码为：
+``` java
+import net.sourceforge.pinyin4j.*;
+public class Demo1{
+    public static void main(String[] args) {
+        System.out.println("Hello World from Java!");
+
+        // 由于汉字有不少多音字，因此返回值是一个String[]类型的。
+        String[] pinyin = PinyinHelper.toHanyuPinyinStringArray('重');
+        for(String item : pinyin){
+            System.out.println(item);
+        }
+    }
+}
+```
+　　然后编译并运行生成的`jar`文件，你可能会得到如下的一个异常：
+``` java
+Exception in thread "main" java.lang.NoClassDefFoundError: net/sourceforge/pinyi
+n4j/PinyinHelper
+        at Demo1.main(Demo1.java:6)
+Caused by: java.lang.ClassNotFoundException: net.sourceforge.pinyin4j.PinyinHelp
+er
+        at java.net.URLClassLoader$1.run(Unknown Source)
+        at java.net.URLClassLoader$1.run(Unknown Source)
+        at java.security.AccessController.doPrivileged(Native Method)
+        at java.net.URLClassLoader.findClass(Unknown Source)
+        at java.lang.ClassLoader.loadClass(Unknown Source)
+        at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source)
+        at java.lang.ClassLoader.loadClass(Unknown Source)
+        ... 1 more
+
+```
+　　抛出异常的原因是，当我们运行程序时，`Pinyin4j`的依赖在`classpath`中没有找到。
+　　解决这个问题最简单的方式是创建一个所谓的`“胖”jar`文件，即把所有程序运行所需的依赖都打包到`jar`文件中去。
+``` gradle
+apply plugin: 'java'
+
+// 定义一个变量，保存主类的名称
+def mainClassName = 'Demo1'
+
+// 下面是要传给Java插件的参数，Java插件会自动来读取它们。
+jar {
+    manifest {
+	    attributes 'Main-Class': mainClassName , 'CustomAttributes': 'Hi Attributes'
+    }
+    // 创建胖jar
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+// 添加maven仓库。
+repositories {
+    mavenCentral()
+}
+
+// Gradle会对依赖进行分组，比如：编译Java时使用的是这组依赖，运行Java时又可以使用另一组依赖。
+// 每一组依赖称为一个“DependencyGroup”。
+dependencies {
+    compile group: 'com.belerweb', name: 'pinyin4j', version: '2.5.0'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+```
+
+## 构建多个项目 ##
+　　在实际开发中，一个完整的项目可能是由一个根项目（root project）和若干个子项目（subject project）构成的。
+
+　　要创建多`Project`的`Gradle`项目，我们首先需要在根中加入名为`settings.gradle`的配置文件，该文件应该包含各个子项目的名称。比如，我们有一个根项目名为`root-project`，它包含有两个子项目，名字分别为`sub-project1`和`sub-project2`，此时对应的文件目录结构如下：
+``` c
+root-project/
+   sub-project1/
+      build.gradle
+   sub-project2/
+      build.gradle
+build.gradle
+settings.gradle
+```
+
+　　根项目本身也有自己的`build.gradle`文件，同时它还拥有`settings.gradle`文件位于和`build.gradle`相同的目录下。此外，两个子项目也拥有它们自己的`build.gradle`文件。
+
+<br>　　要将`sub-project1`和`sub-project2`加入到`root-project`中，我们需要在`settings.gradle`中加入：
+``` gradle
+include 'sub-project1', 'sub-project2'
+```
+
+<br>**通用配置**
+　　在Gradle中，我们可以通过根项目的`allprojects()`方法将配置一次性地应用于所有的子项目，当然也包括定义Task。比如，在根项目的`build.gradle`中，我们可以做以下定义：
+``` gradle
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+```
+
+　　除了`allprojects()`之外，根项目还提供了`subprojects()`方法用于配置所有的子项目（不包含根项目）。
 
 
 
 <br>**本节参考阅读：**
 - [从零开始学习Gradle之一---初识Gradle](http://www.blogjava.net/wldandan/archive/2012/06/27/381605.html)
 - [Gradle User Guide 中文版](http://dongchuan.gitbooks.io/gradle-user-guide-/content/index.html)
+- [Gradle学习系列之八——构建多个Project](http://www.cnblogs.com/CloudTeng/p/3418425.html)
+
+
+# 第三节 Android应用 #
+　　从本节开始，我们将以Android项目为例，介绍`Gradle`相关的技术的用法。
+
+　　经过前面章节的学习，我们再回过头去看网上那些教程，就能很好的理解了，其中写的比较好的（这个列表会不定期更新）有如下几个：
+
+- [Android Studio系列教程四--Gradle基础](http://stormzhang.com/devtools/2014/12/18/android-studio-tutorial4/)
+- [IDEA 及 Gradle 使用总结](http://www.jiechic.com/archives/the-idea-and-gradle-use-summary)
+
+## build.gradle ##
+　　本节介绍一下Android项目的`build.gradle`中的各种配置的含义。
+``` gradle
+// 使用android插件构建项目。
+apply plugin: 'com.android.application'
+
+// 创建一个名为android的方法，该方法由android插件调用。
+android {
+    // 项目的编译版本。
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    // 项目的基本信息，见名知意，也是不多说！
+    defaultConfig {
+        applicationId "com.cutler.helloworld"
+        minSdkVersion 8
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            // 是否进行混淆
+            minifyEnabled false
+            // 混淆文件的位置。由这个文件来控制哪些代码需要混淆，哪些不需要。
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+```
+
+## API Level ##
+　　考虑到有的读者可能不清楚项目的`编译版本`和`最低运行版本`之间的区别，特此增加这一节专门介绍一下`API Level`相关的知识。
+
+　　Android平台提供了一套框架API，使得应用程序可以与系统底层进行交互。该框架API由以下模块组成：
+
+	-  一组核心的包和类。
+	-  清单(manifest)文件的XML元素和属性声明。
+	-  资源文件的XML元素和属性声明及访问形式。
+	-  各类意图(Intents)。
+	-  应用程序可以请求的各类授权，以及系统中包含的授权执行。
+　　每个版本的Android操作系统以及其提供的框架`API`，都被指定一个`整数`标识符，称为`API Level`。以`Android1.0`系统为例，它的`API`的版本号是`1`，这个数字被保存在操作系统内部，之后Android系统版本的`API Level`依次递增`1`。
+``` c
+操作系统             API等级          操作系统             API等级
+Android1.0	        1            Android1.1              2
+Android1.5	        3            Android1.6              4
+Android2.0	        5            Android2.0.1            6
+Android2.1.x	        7            Android2.2.x            8
+Android2.3,2.3.x       	9            Android2.3.x            10
+Android3.0.x	        11           Android3.1.x            12
+Android3.2              13           Android4.0,4.0.x        14
+Android4.0.3,4.0.4      15           Android4.1,4.1.x        16
+Android4.2,4.2.2	17
+```
+
+　　提示：
+
+	-  高版本Andrdoid平台的框架API与早期版本兼容，即新版本的Android平台大多数都是新增功能，和引进新的或替代的功能。
+	-  对于API的升级，会将老版本的标记为已过时，但不会从新版本中删除，因此现有的应用程序仍然可以使用它们。在极少数情况下，部分旧版本的API可能被修改或删除，通常这种变化是为了保障API的稳定性及应用程序或系统的安全。
+
+<br>**minSdkVersion**
+　　开发程序之前，为了保证程序正确的运行，需要设置App所支持最低`API Level`（`minSdkVersion`）。
+　　当项目设置了`minSdkVersion`后，在用户准备安装这个项目生成的`apk`到手机等Android设备前，操作系统会检查该`apk`所支持的`minSdkVersion`是否和系统内部的`API Level`匹配，当且仅当小于或等于系统中保存的`API Level`时，才会继续安装此程序，否则将不允许安装。
+
+　　警告：
+
+	-  如果你不声明minSdkVersion属性，系统会假设一个默认值“1”，这意味着您的应用程序兼容所有版本的Android。
+	-  如果您的应用程序不兼容所有版本(例如，它使用了API级别3中的接口)并且你没有设置minSdkVersion的值，那么当安装在一个API级别小于3的系统中时，应用程序在运行，并且执行到了调用Android1.5（API级别3级）的API的那句代码时，就会崩溃，即试图访问不可用API(但是程序的其他没有调用该API的地方可以正常运行)。出于这个原因，一定要申报相应的API级别在minSdkVersion属性。
+	-  例如，android.appwidget类包是在API级别3中开始引入的。如果一个应用程序使用了这个API，就必须通过指明minSdkVersion属性为3来声明运行的最低要求。于是，该应用程序就可以在Android 1.5、Android 1.6 (API级别4级)等平台上安装，但是在Android 1.1 (API级别2级)和 Android 1.0 平台(API级别1级)上却是无法安装的。
+
+<br>**targetSdkVersion**
+　　标明应用程序目标`API Level`的一个整数。如果不设置，默认值和`minSdkVersion`相同。
+　　这个属性通知系统，你已经针对这个指定的目标版本测试过你的程序，系统不必再使用兼容模式来让你的应用程序向前兼容这个目标版本。应用程序仍然能在低于`targetSdkVersion`的系统上运行（一直到`minSdkVersion`属性值所指定的版本）。
+
+　　在Android演进的每个新版本中，都会有一些行为甚至外观的改变。但是，如果平台的`API Level`比应用程序声明的`targetSdkVersion`的值大，那么系统就可以启用兼容行为，以便确保应用程序能够继续执行期望的工作。因此，可以通过指定应用程序所运行的目标SDK版本（`targetSdkVersion`）来禁止启用这种兼容行为。
+　　例如，把这个属性值设置为`11`或更大，就会允许系统把新的默认主题应用给在`Android3.0`或更高版本平台之上的应用程序，并且在运行在较大屏幕的设备上时，也禁止使用屏幕兼容模式（因为针对`API Level 11`的支持，暗示着对较大屏幕的支持）。
+　　这个属性在`API Leve 4`中被引入。
+
+　　个人经验：
+
+	-  比如从Android 3.0开始，在绘制View的时候支持硬件加速，充分利用GPU的特性，使得绘制更加平滑(会多消耗一些内存)。若是将targetSdkVersion设置为11或以上，则系统会默认使用硬件加速来绘制，但Android3.0之前版本提供的某些绘图API，在硬件加速下进行绘制时，会抛异常。
+	-  因此，除非你充分测试了，否则不要把targetSdkVersion设置的过高。
+
+<br>**compileSdkVersion**
+　　项目的编译版本（`compileSdkVersion`）和`android:minSdkVersion`属性的值：
+
+	-  compileSdkVersion是指编译当前项目时所使用的SDK平台的版本。
+	-  minSdkVersion属性则是限定了当前项目只能安装在大于等于其指定API等级的设备上。
+
+	-  也就是说，我们可以将项目的compileSdkVersion设置为17，而minSdkVersion属性的值则仅为8 。 
+	-  只要保证在项目中不去调用API等级8中所未提供的API，那么使用API等级17编译出来的项目依然会正常运行在Android2.2的设备上。
+
+<br>　　问：为什么要把项目的编译版本提高呢?
+　　答：它可以让我们的应用程序，既可以使用高版本Android系统中所提供的新功能，同时又能完美的运行在低版本的系统中。以`holo`主题为例，众所周知`holo`主题是`Android3.0`之后的系统中的一个非常大的亮点。如果可以实现“当应用程序运行在3.0之前的系统时使用一般的主题，而运行在3.0之后的系统时则使用holo主题”那可就太好了。
+
+<br>　　范例1：使用`Holo`主题（`styles.xml`）。
+``` xml
+<!-- For API level 11 or later, the Holo theme is available and we prefer that. -->
+<style name="ThemeHolo" parent="android:Theme.Holo">
+</style>
+```
+　　如果项目的当前编译版本低于`3.0`则`Android Studio`就会报错。
+　　因为`Android Studio`在编译Android的`xml`文件时，会依据当前项目的编译版本，去SDK的安装目录下查找其所依赖的所有资源，若未找到则就报错。 本范例中查找`Theme.Holo`主题的目录为：
+　　`SDK\platforms\android-11\data\res\values`
+　　其中`“android-11”`与项目的编译版本相对应。我们进入到`values`目录后，打开`themes.xml`就可以找到`Theme.Holo`主题了。同样的，在项目中引用的其他系统资源(如颜色、尺寸等)在`platforms`目录下面都是可以找到的。
+
+　　然后我们就可以在项目中建立`res\values-v11`目录，并把上面的`styles.xml`放到里面去。当程序运行的时候，系统会检测当前设备的`API Level`，若大于等于`11`则使用`values-v11`目录下的`styles.xml`，否则则使用`values`目录下的。
+
+## 添加依赖 ##
+　　在`build.gradle`中，Android项目依赖`jar libs`有三种方法：
+``` gradle
+// 依赖项目相对路径的jar包，当然，你可以换成全路径
+compile files('libs/something_local.jar')
+// 或者依赖libs目录下的所有jar包
+compile fileTree(dir: 'libs', include: ['*.jar'])
+
+// 依赖仓库中的支持包（目前很多好的都在maven进行管理，比如 v4，v7支持包）
+compile 'com.android.support:appcompat-v7:22.0.0'
+
+// 依赖其他library module
+compile project(':jiechic-library')
+```
+　　值得注意的是，当你添加完依赖时，记得点击`“build”`菜单下的`“Clean Project”`。
+　　
+<br>　　至此，`Android Studio`的入门教程的第一阶段算是结束了，笔者相信，当今很多博客比较热衷于写的那些简单的问题（如：设置快捷键、从Eclipse迁移老项目等）是难不倒您的，所以笔者就不再冗述了。笔者接下来打算增加的内容有：
+
+	-  多渠道打包。
+	-  项目过大导致的65k问题。
+	-  内存泄漏分析。
+
 
 <br><br>
