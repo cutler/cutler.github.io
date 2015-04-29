@@ -48,7 +48,7 @@ categories: Android
 　　进入到`Android Studio`后，你会看到如下界面：
 
 <center>
-![](/img/android/android_d03_01.jpg)
+![](/img/android/android_d04_01.jpg)
 </center>
 
 　　上面的那一个红框里的按钮，都是我们常用的功能键，比如第二个和第三个分别是`运行`和`Debug`，倒数第二个和倒数第一个分别是，`SDK Manager`和`Android Device Monitor`（即原来Eclipse中的`DDMS`视图）。
@@ -69,7 +69,7 @@ Failure [INSTALL_FAILED_OLDER_SDK]
 　　事实上，使用	`Android Studio`创建的Android项目的`目录结构`已经和Eclipse创建的不一样了，现在我们需要进入到一个名为`build.gradle`的文件中修改，即下图中的`build.gradle(Module:app)`，把里面的`minSdkVersion 21`改为`minSdkVersion 8`即可。
 
 <center>
-![](/img/android/android_d03_02.png)
+![](/img/android/android_d04_02.png)
 </center>
 
 <br>**Poject 与 Module**
@@ -810,7 +810,9 @@ allprojects {
 - [Android Studio系列教程四--Gradle基础](http://stormzhang.com/devtools/2014/12/18/android-studio-tutorial4/)
 - [IDEA 及 Gradle 使用总结](http://www.jiechic.com/archives/the-idea-and-gradle-use-summary)
 
-## build.gradle ##
+## 基础知识 ##
+<br>
+### build.gradle ###
 　　本节介绍一下Android项目的`build.gradle`中的各种配置的含义。
 ``` gradle
 // 使用android插件构建项目。
@@ -845,7 +847,23 @@ dependencies {
 }
 ```
 
-## API Level ##
+<br>　　在`build.gradle`中，Android项目依赖`jar libs`有三种方法：
+``` gradle
+// 依赖项目相对路径的jar包，当然，你可以换成全路径
+compile files('libs/something_local.jar')
+// 或者依赖libs目录下的所有jar包
+compile fileTree(dir: 'libs', include: ['*.jar'])
+
+// 依赖仓库中的支持包（目前很多好的都在maven进行管理，比如 v4，v7支持包）
+compile 'com.android.support:appcompat-v7:22.0.0'
+
+// 依赖其他library module
+compile project(':jiechic-library')
+```
+　　值得注意的是，当你添加完依赖时，记得点击`“build”`菜单下的`“Clean Project”`。
+
+<br>
+### API Level ###
 　　考虑到有的读者可能不清楚项目的`编译版本`和`最低运行版本`之间的区别，特此增加这一节专门介绍一下`API Level`相关的知识。
 
 　　Android平台提供了一套框架API，使得应用程序可以与系统底层进行交互。该框架API由以下模块组成：
@@ -922,27 +940,74 @@ Android4.2,4.2.2	17
 
 　　然后我们就可以在项目中建立`res\values-v11`目录，并把上面的`styles.xml`放到里面去。当程序运行的时候，系统会检测当前设备的`API Level`，若大于等于`11`则使用`values-v11`目录下的`styles.xml`，否则则使用`values`目录下的。
 
-## 添加依赖 ##
-　　在`build.gradle`中，Android项目依赖`jar libs`有三种方法：
-``` gradle
-// 依赖项目相对路径的jar包，当然，你可以换成全路径
-compile files('libs/something_local.jar')
-// 或者依赖libs目录下的所有jar包
-compile fileTree(dir: 'libs', include: ['*.jar'])
+## 从Eclipse迁移老项目 ##
 
-// 依赖仓库中的支持包（目前很多好的都在maven进行管理，比如 v4，v7支持包）
-compile 'com.android.support:appcompat-v7:22.0.0'
+　　既然是从Eclipse迁移老项目，那么我们首先要做的就是在`Android Studio`中配置`SVN`。
 
-// 依赖其他library module
-compile project(':jiechic-library')
-```
-　　值得注意的是，当你添加完依赖时，记得点击`“build”`菜单下的`“Clean Project”`。
-　　
-<br>　　至此，`Android Studio`的入门教程的第一阶段算是结束了，笔者相信，当今很多博客比较热衷于写的那些简单的问题（如：设置快捷键、从Eclipse迁移老项目等）是难不倒您的，所以笔者就不再冗述了。笔者接下来打算增加的内容有：
+<br>**配置SVN**
+　　`Android Studio`配`SVN`比普通IDE复杂点，它需要电脑里有独立的SVN客户端，我们可以到[ TortoiseSVN官网 ](http://tortoisesvn.net/downloads.html)上下载。
+　　`Android Studio`会使用到`TortoiseSVN`的`“command line client tools”`，但是由于在安装`TortoiseSVN`时，默认是不安装这个工具的，因而即便是你已经安装了`TortoiseSVN`，仍然需要卸载了重新装。
 
-	-  多渠道打包。
-	-  项目过大导致的65k问题。
-	-  内存泄漏分析。
+<center>
+![安装时，选择第一项即可](/img/android/android_d04_03.png)
+</center>
+
+　　安装完成后，执行如下步骤：
+
+	-  首先，打开Android Studio，找到的 File > Settings > Version Control > Subversion。
+	-  然后，在“Genneral”选项卡下，勾选“Use command line client”，并选择你svn的安装路径下的bin\svn.exe。
+	   -  比如：D:\workspace\programe\tortoiseSVN1.8.11\bin\svn.exe 。
+	-  接着，点击ok即可。
+
+　　如果你想从SVN上检出代码，可以这么做：点击`“VCS”`菜单，然后点击`“Checkout from Version Control > Subversion”`即可。
+
+<br>**无痛将Eclipse项目导入Andriod Studio**
+　　如果你导入的是一个Eclipse项目，那么`Android Studio`会自动将它转换成`Android Studio`项目。
+
+　　具体会按照如下步骤执行：
+
+	-  首先，点击“File > Import Project”。
+	-  然后，选择转换后的项目，所要保存的路径。
+	-  接着，保持默认设置，点击“Finish”。
+	-  最后，等待Studio自己完成转换过程。
+
+　　导入Eclipse格式的项目后，你可能会遇到`“Android Manifest doesn't exists or has incorrect root tag”`的错误，解决的方式是点击下图所示的按钮：
+
+<center>
+![Sync project with Gradle files](/img/android/android_d04_04.png)
+</center>
+
+　　如果你没有找到这个按钮，请参看 [Android Studio: Android Manifest doesn't exists or has incorrect root tag](http://stackoverflow.com/questions/17424135/android-studio-android-manifest-doesnt-exists-or-has-incorrect-root-tag) 。
+
+
+　　如果你是通过向导来导入项目的，那么请选择下图所示的`Import project (Eclipse ADT, Gradle, etc.)`：
+<center>
+![](/img/android/android_d04_05.png)
+</center>
+
+<br>**快捷键设置**
+　　在开发方面`Android Studio`确实是比`Eclipse`好用，但是之前使用`Eclipse`的时间还是比较长的，所以很多快捷键还是比较习惯`Eclipse`的，`Android Studio`的快捷键其实是可以设置成`Eclipse`的快捷键的，很方便。
+　　更改的过程为：`File > Settings > Keymap`，然后将`Keymaps`的值设置为`Eclipse`即可。
+
+　　如果你希望在`copy`一段代码到你的类中时，`Android Studio`能自动帮你导入对应的类，那么你可以参看下面这个网页：
+　　[What is the shortcut to Auto import all in Android Studio?](http://stackoverflow.com/questions/16615038/what-is-the-shortcut-to-auto-import-all-in-android-studio)
+
+<br>**修改Logcat字体颜色**
+　　`Android Studio`的`Logcat`的字体颜色，默认全是黑色看着很不舒服，我们可以修改它：
+
+	-  首先，File > Settings > Editor > Colors &Fonts > Android Logcat 。
+	-  然后，就可以修改Verbose、Info、Debug、Warning、Error、Assert等选项了。
+	   -  第一，取消勾选 Inherit Attributes From 。
+	   -  第二，勾选Foreground前的复选框选上。
+	   -  第三，双击Foreground后面的框框去选择颜色了。
+
+　　如果你对修改之后的`Logcat`的显示效果仍然不满意，那么可以使用我们前面一开始提到的`“Android Device Monitor”`窗口。
+
+
+<br>**本节参考阅读：**
+- [Android Studio 关于SVN的相关配置简介](http://blog.csdn.net/zhouzme/article/details/22790395)
+- [Android Studio 快捷键设置为Eclipse的快捷键](http://www.chenwg.com/android/android-studio%E5%BF%AB%E6%8D%B7%E9%94%AE%E8%AE%BE%E7%BD%AE%E4%B8%BAeclipse%E7%9A%84%E5%BF%AB%E6%8D%B7%E9%94%AE.html)
+- [Android Studio 如果修改LogCat的颜色，默认全是黑色看着挺不舒服的](http://blog.csdn.net/hotlinhao/article/details/9150519)
 
 
 <br><br>
