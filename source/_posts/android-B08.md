@@ -363,11 +363,386 @@ private void setChildFrame(View child, int left, int top, int width, int height)
     -  从第25行代码可以看出，LinearLayout的子View最终的显示的宽和高，是由该子View的measure过程的结果来决定的。
     -  因此measure过程的意义就是为layout过程提供视图显示范围的参考值。
 
-<br><br><br><br>
+<br>
+#### 绘画阶段 ####
+　　布局阶段执行完毕后，框架就会调用根节点的`draw()`方法开始绘制`View树`。但是每次绘图时，并不会重新绘制整个`View树`中的所有`View`，而只会重新绘制那些`“需要重绘”`的`View`，`View`类内部变量包含了一个标志位`DRAWN`，当该视图需要重绘时，就会为该`View`添加该标志位。
+
+<br>　　通过查看源码可以知道，View类的绘制流程由六步构成：
+
+	-  第一，绘制当前View的背景。
+	-  第二，如果有必要，则为稍后绘制渐变效果做一些准备操作(大多数情况下，不需要)。
+	-  第三，调用onDraw()方法绘制视图本身。
+	   -  View类的onDraw()方法是空实现，ViewGroup类没有重写此方法。
+	-  第四，调用dispatchDraw()方法绘制子视图。
+	   -  View类的dispatchDraw()方法是空实现，对于不包含子View的控件来说不需要重写此方法。
+	   -  ViewGroup类已经为我们重写了dispatchDraw()的功能实现，因此ViewGroup的子类一般不需要重写该方法。
+	-  第五，如果第二步被执行了，那么第五步也会被执行。第五步用来绘制渐变效果以及绘制渐变效果之后的一些收尾工作。
+	-  第六，绘制滚动条。
+	   -  在Android中不管是Button还是TextView，任何一个视图都是有滚动条的，只是一般情况下我们都没有让它显示出来而已。
+
+　　总而言之，每一个具体的`View`都应该重写`onDraw()`方法，并且不论是`View`还是`ViewGroup`的子类，一般不需要重写`dispatchDraw()`方法。
+
+　　我们现在知道了，View是不会帮我们绘制内容部分的，因此需要每个`View`根据想要展示的内容来自行绘制。如果你去观察`TextView`、`ImageView`等类的源码，你会发现它们都有重写`onDraw()`这个方法，并且在里面执行了相当不少的绘制逻辑。绘制的方式主要是借助`Canvas`这个类，它会作为参数传入到`onDraw()`方法中，供给每个视图使用。
+　　`Canvas`这个类的用法非常丰富，基本可以把它当成一块画布，在上面绘制任意的东西，那么我们就来尝试一下吧。
+
+<br>　　范例1：初步使用画笔和画布。
+``` android
+public class MyView extends View {
+    private Paint mPaint;
+    public MyView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        // 设置画笔颜色为黄色
+        mPaint.setColor(Color.YELLOW);
+        // 使用画笔绘制一个黄色的矩形
+        canvas.drawRect(0, 0, getWidth(), getHeight(), mPaint);
+        // 设置画笔颜色为蓝色
+        mPaint.setColor(Color.BLUE);
+        // 设置画笔的字体大小
+        mPaint.setTextSize(20);
+        String text = "Hello View";
+        // 将一行文本绘制到画布中去，字体的颜色是蓝色，字体的大小是20px。
+        canvas.drawText(text, 0, getHeight() / 2, mPaint);
+    }
+}
+```
+　　布局文件的内容为：
+``` xml
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" >
+    <com.example.viewtest.MyView 
+        android:layout_width="200dp"
+        android:layout_height="100dp" />
+</LinearLayout>
+```
+    语句解释：
+    -  Paint表示一个画笔，Canvas表示一个画布。 
+    -  我们既可以调用Paint类提供的各种方法，设置画笔的颜色等，也可以调用Canvas类提供的方法，对画布进行缩放、平移等操作。这两个类的详细用法后面会具体介绍。
+
+　　运行效果如下图所示：
+
+<center>
+![](http://img.blog.csdn.net/20131223234856718?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvZ3VvbGluX2Jsb2c=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+</center>
+
+<br>**视图重绘**
+　　虽然视图会在`Activity`加载完成之后自动绘制到屏幕上，但是我们完全有理由在与`Activity`进行交互的时候要求`动态更新视图`，比如改变视图的状态、以及显示或隐藏某个控件等。那在这个时候，之前绘制出的视图其实就已经过期了，此时我们就应该对视图进行重绘。
+
+　　调用视图的`setVisibility()`、`setEnabled()`、`setSelected()`等方法时都会导致视图重绘，而如果我们想要手动地强制让视图进行重绘，可以调用`invalidate()`方法来实现。当然了，`setVisibility()`、`setEnabled()`、`setSelected()`等方法的内部其实也是通过调用`invalidate()`方法来实现的，这里的重绘是指谁请求`invalidate()`方法，就绘制该视图(`View`的话只绘制该`View`，`ViewGroup`则绘制整个`ViewGroup`)。
+
+<br>　　如果你需要`定时重绘`，那么你可以使用`postInvalidateDelayed(long delayMilliseconds)`方法，当倒计时结束后，该方法会有如下判断：
+
+	-  若调用该方法的View依然显示在屏幕中，则该方法直接去调用invalidate()方法执行重绘。
+	-  若调用该方法的View已经不显示了，则这个重绘任务会被挂起，等到该View再次显示时，才会触发重绘。
+　　比如，对于一个计时器`View`来说，每秒钟都需要重绘一次，如果通过开启`Thread`来定时调用`invalidate()`方法来实现计时的话，有两个缺点：
+
+	-  第一，开启Thread类需要消耗一定资源。
+	-  第二，若计时器View当前不再屏幕中（比如用户把App切换到后台了），那么线程仍然在跑，View仍然是每秒钟都重绘一次，浪费大量资源。
+
+<br>　　如果你不需要`定时重绘`，那么最好也去使用`postInvalidate()`方法，当`View`不再显示时，它同样不会立刻执行重绘操作，它的源码为：
+``` android
+public void postInvalidate() {
+    postInvalidateDelayed(0);
+}
+```
+
+<br>　　提示：`View`的其它阶段所涉及的方法暂时先放一放，主要是因为它们不常用，等用到的时候再去研究吧。
+
+<br>
+### 其它常用方法 ###
+
+<br>**定位**
+　　`View`的几何形状是`矩形`的，视图的`位置`使用`左上坐标系`表示，`尺寸`由`宽和高`表示，位置和尺寸以`像素`为单位。我们可以通过`getLeft()`和`getTop()`函数取得视图的位置：
+
+	-  前者返回代表视图的矩形的左侧位置（横坐标X）。
+	-  后者返回代表视图的矩形的顶部位置（纵坐标Y）。
+　　这些方法返回视图相对于其父视图的位置，例如`getLeft()`返回`20`，代表视图在其直接父视图左侧边的右侧`20`像素的位置。
+
+　　另外，为了避免不必要的计算，提供了一些便利的方法，它们是`getRight()`和`getBottom()`。这些方法返回代表视图的矩形的右侧和底边的坐标。例如，调用`getRight()`比调用`getLeft() + getWidth()`要简单。
+
+<br>**大小、内边距和外边距**
+　　视图的大小是由`宽度`和`高度`表示的，视图实际拥有`两对宽度和高度`的值。
+
+	-  第一对被称作测量宽度和测量高度。这两个尺寸定义了视图在其父视图中需要的大小，测量的尺寸可以通过调用getMeasuredWidth()和getMeasuredHeight()获得。
+	-  第二对被简单的称作宽度和高度，有时称作绘制宽度和绘制高度。这两个尺寸定义了视图绘制时和布局之后在屏幕上的实际大小。这些值可以（但不是必须）与测量宽度和测量高度不同。宽度和高度可以通过调用getWidth()和getHeight()获得。
+
+　　测量视图大小时，也将它的`内边距(padding)`计算在内，内边距表示视图内部左上右下部的空白。例如，左内边距为2，表示将视图内容从左边向右移动两个像素。
+　　内边距可以通过`setPadding(int, int, int, int)`方法设置，通过`getPaddingLeft()`、`getPaddingTop()`、`getPaddingRight()`、 `getPaddingBottom()`方法来取值。
+
+## 开始自定义 ##
+
+<br>
+### 画布和画笔 ###
+　　在绘制`View`时会涉及到两个类：`Paint`和`Canvas`，这两个类分别代表`画笔`和`画布`。
+　　其中`Canvas`对象由框架创建，在View的`onDraw()`方法被调用时，系统会同时将`Canvas`对象以形参的形式传递给该方法。简单的说，我们需要使用`Paint`向`Canvas`中绘制内容。
+
+<br>　　范例1：绘制文字。
+``` android
+protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    setMeasuredDimension(1500, 1500);
+}
+
+@Override
+protected void onDraw(Canvas canvas) {
+    // 定义一个画笔对象。
+    Paint p = new Paint();
+    // 修改画笔的颜色，下面使用的是android.graphics.Color类。
+    p.setColor(Color.RED);
+    // 字体大小
+    p.setTextSize(70);
+    // 字体下面加下划线
+    p.setUnderlineText(true);
+    // 从(10,10)的位置开始，绘制一行文本。
+    canvas.drawText("Hello Wrold!", 10, 100, p);
+    // 加粗字体。 如果字体的型号比较小，那么加粗的效果可能就不是很明显。
+    p.setFakeBoldText(true);
+    canvas.drawText("Hello Wrold2!", 10, 300, p);
+    // 设置文本在水平方向上的倾斜比例，负数向右倾斜，正数向左倾斜。
+    p.setTextSkewX(-0.3f);
+    // 设置文本的对齐方法，以坐标(10,10)为例： 
+    //   Paint.Align.LEFT : 将文本的左边放到(10,500)的位置，默认设置。
+    //   Paint.Align.CENTER : 将文本的中心点放到(10,500)的位置。
+    //   Paint.Align.RIGHT : 将文本的右边放到(10,500)的位置。
+    p.setTextAlign(Paint.Align.LEFT);
+    canvas.drawText("Hello Wrold3!", 10, 500, p);
+}
+```
+
+<br>　　范例2：绘制图形。
+``` android
+@Override
+protected void onDraw(Canvas canvas) {
+    // 定义一个画笔对象。
+    Paint p = new Paint();
+    p.setColor(Color.RED);
+    p.setStyle(Paint.Style.FILL_AND_STROKE);
+
+    // 将整个canvas染成蓝色。
+    canvas.drawColor(Color.BLUE);
+    // 使用画笔p在canvas上绘画出一条直线，直线的起点为(10,10)，结束点为(10,40)。
+    canvas.drawLine(10, 10, 10, 40, p);
+    // 使用画笔p在canvas上绘画出一个矩形，矩形的左上角坐标为(20,20)，右下角坐标为(40,50)。 
+    canvas.drawRect(new Rect(20,20,40,50), p);
+    // 使用画笔p在canvas上绘画出一个圆形，圆心坐标为(150,150)，半径为60。
+    canvas.drawCircle(150, 150, 60, p);
+    // 使用画笔p在canvas上绘画出一个圆角矩形，矩形左上角坐标为(80,220)，右下角坐标为(210,280)，x和y方向上的圆角半径为(10,10)。
+    canvas.drawRoundRect(new RectF(80,220,210,280), 10, 10, p);
+}
+```
+    语句解释：
+    -  Rect类用来描述一个矩形的四个顶点，RectF类也是一样的，与Rect不同的是，它使用4个float类型的变量。
+    -  setStyle()方法设置当前画笔在画图(圆形、矩形等)时要使用的样式，常用取值： 
+       -  Paint.Style.STROKE： 只画出图形的边框线。
+       -  Paint.Style.FILL：使用当前画笔的颜色填充图形的内部。
+       -  Paint.Style.FILL_AND_STROKE：既画出边框线又填充图形内部。
+    -  绘制椭圆形可以使用drawOval(RectF oval, Paint paint)方法。
+
+<br>　　范例3：绘制弧形。
+
+<center>
+![本范例运行效果示意图](/img/android/android_b08_01.png)
+</center>
+
+``` android
+@Override
+protected void onDraw(Canvas canvas) {
+    Paint p = new Paint();
+    // 在画图的时候，进行图片旋转或缩放等操作之后，在图片的四条边上总是会出现锯齿。我们可以通过下面这行代码消除锯齿。
+    p.setAntiAlias(true);
+    p.setColor(Color.BLUE);
+
+    // 绘制一个弧形，并使用画笔当前的颜色填充它。
+    p.setStyle(Paint.Style.FILL);
+    // 我们提供一个RectF对象作为弧形的外切矩形，系统就知道弧形的位置和尺寸了。
+    // 下面的代码是从-90度开始画，画一个300度的弧形。
+    // 我们常规认为12点方向是0度，但在这里默认3点方向是0度，因而要从-90度开始画弧线。
+    // 这个弧形运行时的效果，请看上面示意图中的第一个，后面三个以此类推。
+    canvas.drawArc(new RectF(100,100,250,250), -90, 300, true, p);
+
+    // 绘制一个弧形，只绘制弧线，不填充内容。
+    p.setStyle(Paint.Style.STROKE);
+    // 设置线的粗（宽度）为5，线宽对Paint.Style.FILL无效、对文本字体无效。
+    p.setStrokeWidth(5);
+    canvas.drawArc(new RectF(300,100,450,250), -90, 300, true, p);
+
+    // 绘制一个弧形，但useCenter字段为false。具体效果请看上面示意图中的第三个。
+    canvas.drawArc(new RectF(500,100,650,250), -90, 300, false, p);
+
+    // 绘制一个弧形，但useCenter字段为false。
+    p.setStyle(Paint.Style.FILL);
+    canvas.drawArc(new RectF(700,100,850,250), -90, 300, false, p);
+}
+```
+
+<br>　　范例4：绘制`GIF`。
+``` android
+public class MyView extends TextView {
+    // 我们将使用android.graphics.Movie类来绘制GIF。
+    private Movie mMovie;
+    // 记录当前播放的位置。
+    private long mMovieStart;
+
+    public MyView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        // 获取res/drawable目录下的GIF文件的输入流。
+        InputStream input = context.getResources().openRawResource(R.drawable.animated_gif);
+        // 从输入流中读入数据，并创建一个Movie对象。
+        mMovie = Movie.decodeStream(input);
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        // 获取当前时间。
+        long now = android.os.SystemClock.uptimeMillis();
+        if (mMovieStart == 0) {   // first time
+            mMovieStart = now;
+        }
+        if (mMovie != null) {
+            // 获取GIF文件的总时长。
+            int dur = mMovie.duration();
+            if (dur == 0) {
+                dur = 1000;
+            }
+            // 计算当前需要播放的位置。
+            int relTime = (int)((now - mMovieStart) % dur);
+            // 将GIF调整到relTime所对应的帧上。
+            mMovie.setTime(relTime);
+            // 将当前帧绘制到canvas的(0,0)坐标上。
+            mMovie.draw(canvas, 0, 0);
+            // 绘制完后，调用下面的方法，触发下一次绘制。
+            invalidate();
+        }
+    }
+}
+```
+    语句解释：
+    -  如果你执行本范例出错了，可能是默认开启了硬件加速导致的，你可以在清单文件的Application标签中添加如下属性来禁用硬件加速：
+       -  android:hardwareAccelerated="false"
+    -  如果你想通过代码来放大、缩小GIF，那么可以调用Canvas提供的scale()方法实现。
+
+<br>　　范例5：画布的相关操作。
+``` android
+public class MyView extends TextView {
+
+    // 此处省略构造方法和onMeasure()方法。
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        Paint p = new Paint();
+        p.setColor(Color.RED);
+        canvas.drawRect(new Rect(20,20,50,50), p);
+
+        p.setColor(Color.GREEN);
+        // 保存当前画布的参数。
+        canvas.save();
+        // 让画布从当前位置开始，在水平和垂直方向上，都平移100像素。
+        canvas.translate(100,100);
+        // 旋转画布15度。
+        canvas.rotate(15);
+        // 绘制一个矩形。
+        canvas.drawRect(new Rect(60,60,90,90), p);
+        canvas.restore();
+
+        p.setColor(Color.BLUE);
+        // 保存当前画布的参数。
+        canvas.save();
+        // 让画布在水平和垂直方向上，都放大3倍。
+        canvas.scale(3,3);
+        // 旋转画布15度。
+        canvas.rotate(30);
+        // 绘制一个矩形。
+        canvas.drawRect(new Rect(100,100,130,130), p);
+        // 还原两个画布。
+        canvas.restore();
+
+        p.setColor(Color.BLACK);
+        // 绘制一个矩形。
+        canvas.drawRect(new Rect(140,140,170,170), p);
+    }
+}
+```
+    语句解释：
+    -  Canvas对象与Matrix对象（在《媒体篇　第二章 图片》中有介绍）类似，也支持平移、缩放、旋转、倾斜四种基本操作。
+    -  上面用到的save()方法用来将当前Canvas对象的各项参数保存起来，restore()方法用来将Canvas对象还原到上一次保存的后的状态。
+       -  你可以连续调用多次save()方法，相应的如果你想还原画布到最初的状态，就必须得连续调用多次restore()方法。
+
+<br>　　范例6：绘制`Bitmap`。
+``` android
+public class MyView extends TextView {
+
+    // 此处省略构造方法和onMeasure()方法。
+
+    private Bitmap mBitmap;
+    private Paint mPaint;
+
+    public MyView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        // 加载位图。
+        mBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
+        mPaint = new Paint();
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        // 将位图绘制到(100,100)的点上。
+        canvas.drawBitmap(mBitmap, 100, 100, mPaint);
+
+        // 先通过Matrix来记录位图的缩放、位置、旋转、倾斜的信息，然后统一交给Canvas对象进行绘制。
+        Matrix matrix = new Matrix();
+        matrix.setTranslate(100,400);
+        matrix.postScale(1, 2);
+        canvas.drawBitmap(mBitmap, matrix, mPaint);
+    }
+}
+```
+    语句解释：
+    -  更多关于Btimap与Matrix类的介绍，请参看笔者的另一篇博文《媒体篇　第二章 图片》。
+
+<br>
+### Cliping ###
+　　这里所要说的`Cliping`是指的画布裁剪，即我们可以在画布上裁剪出一个矩形区域，后续的绘制操作都将作用到这个局域内，而不会影响到画布的其他部分。
+
+<br>　　范例1：两个矩形块。
+
+<center>
+![本范例运行效果示意图](/img/android/android_b08_02.png)
+</center>
+
+``` android
+public class MyView extends TextView {
+
+    // 此处省略构造方法和onMeasure()方法。
+
+    protected void onDraw(Canvas canvas) {
+        // 绘制一个蓝色的矩形
+        canvas.save();
+        canvas.clipRect(new Rect(50,50,250,250));
+        canvas.drawColor(Color.BLUE);
+        canvas.restore();
+
+        // 绘制一个黑色的矩形
+        canvas.clipRect(new Rect(100,100,200,200));
+        canvas.drawColor(Color.BLACK);
+        // 在黒色矩形上绘制一行文本。
+        Paint p = new Paint();
+        p.setColor(Color.WHITE);
+        p.setTextSize(20);
+        canvas.drawText("Hello clipRect()!", 100,120, p);
+    }
+}
+```
+    语句解释：
+    -  从效果图中可以看到，当内容超过裁剪区域的大小时，超出的部分同样不会显示出来。
 
 
 <br>**本章参考阅读：**
 - [Android LayoutInflater原理分析，带你一步步深入了解View(一)](http://blog.csdn.net/guolin_blog/article/details/12921889)
+- [Android视图绘制流程完全解析，带你一步步深入了解View(二)](http://blog.csdn.net/guolin_blog/article/details/16330267)
+- [Android视图状态及重绘流程分析，带你一步步深入了解View(三)](http://blog.csdn.net/guolin_blog/article/details/17045157)
 - [Android如何绘制视图，解释了为何onMeasure有时要调用多次](http://blog.csdn.net/jewleo/article/details/39547631)
 - [How Android Draws Views](http://developer.android.com/guide/topics/ui/how-android-draws.html)
 - [Android中layout过程详解](http://www.cnblogs.com/xilinch/archive/2012/10/24/2737248.html)
