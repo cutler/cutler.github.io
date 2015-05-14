@@ -474,11 +474,25 @@ public void postInvalidate() {
 　　内边距可以通过`setPadding(int, int, int, int)`方法设置，通过`getPaddingLeft()`、`getPaddingTop()`、`getPaddingRight()`、 `getPaddingBottom()`方法来取值。
 
 ## 开始自定义 ##
+　　在绘制`View`时会涉及到两个类：`Paint`和`Canvas`，这两个类分别代表`画笔`和`画布`。
+　　我们需要调用`Canvas`对象所提供的方法进行绘制，其中`Canvas`对象由框架创建，在View的`onDraw()`方法被调用时，系统会同时将`Canvas`对象以形参的形式传递给该方法。
+
+　　`Canvas`对象提供的绘制图形的方法都是以`draw`开头的，我们可以查看`API`：
+
+<center>
+![](/img/android/android_b08_03.jpg)
+</center>
+
+　　从上面方法的名字看来我们可以知道`Canvas`可以绘制的对象有：弧线(`arcs`)、填充颜色(`argb`和`color`)、 `Bitmap`、圆(`circle`和`oval`)、点(`point`)、线(`line`)、矩形(`Rect`)、图片(`Picture`)、圆角矩形 (`RoundRect`)、文本(`text`)、顶点(`Vertices`)、路径(`path`)。
+
+　　通过组合这些对象我们可以画出一些简单有趣的界面出来，但是光有这些功能还是不够的，如果我们要画一个仪表盘(数字围绕显示在一个圆圈中)呢？幸好Android还提供了一些对`Canvas`位置转换的方法：`rorate`、`scale`、`translate`、`skew`等，而且它允许你通过获得它的转换矩阵对象(`getMatrix`方法，不知道什么是转换矩阵？在[《媒体篇　第二章 图片》](http://cutler.github.io/2015/02/06/android-E02/)中有介绍) 直接操作它。
+　　这些操作就像是虽然你的笔还是原来的地方画，但是画布旋转或者移动了，所以你画的东西的方位就产生变化。
+
+　　为了方便一些转换操作，`Canvas`还提供了保存和回滚属性的方法(`save`和`restore`)，比如你可以先保存目前画纸的位置(`save`)，然后旋转`90`度，向下移动`100`像素后画一些图形，画完后调用`restore`方法返回到刚才保存的位置。
 
 <br>
 ### 画布和画笔 ###
-　　在绘制`View`时会涉及到两个类：`Paint`和`Canvas`，这两个类分别代表`画笔`和`画布`。
-　　其中`Canvas`对象由框架创建，在View的`onDraw()`方法被调用时，系统会同时将`Canvas`对象以形参的形式传递给该方法。简单的说，我们需要使用`Paint`向`Canvas`中绘制内容。
+　　简单的说，我们需要使用`Canvas`所提供的方法进行绘制，但绘制的同时还要传递给那些方法一个`Paint`对象，`Paint`对象用来设置画笔的颜色等参数。
 
 <br>　　范例1：绘制文字。
 ``` android
@@ -500,6 +514,8 @@ protected void onDraw(Canvas canvas) {
     canvas.drawText("Hello Wrold!", 10, 100, p);
     // 加粗字体。 如果字体的型号比较小，那么加粗的效果可能就不是很明显。
     p.setFakeBoldText(true);
+    // 给字体加上删除线。
+    p.setStrikeThruText(true);
     canvas.drawText("Hello Wrold2!", 10, 300, p);
     // 设置文本在水平方向上的倾斜比例，负数向右倾斜，正数向左倾斜。
     p.setTextSkewX(-0.3f);
@@ -509,6 +525,16 @@ protected void onDraw(Canvas canvas) {
     //   Paint.Align.RIGHT : 将文本的右边放到(10,500)的位置。
     p.setTextAlign(Paint.Align.LEFT);
     canvas.drawText("Hello Wrold3!", 10, 500, p);
+    //按照既定点 绘制文本内容
+    canvas.drawPosText("Android", new float[]{
+        10,610, //第一个字母在坐标10,610
+        120,640, //第二个字母在坐标120,640
+        230,670, //....
+        340,700,
+        450,730,
+        560,760,
+        670,790,
+    }, p);
 }
 ```
 
@@ -521,7 +547,7 @@ protected void onDraw(Canvas canvas) {
     p.setColor(Color.RED);
     p.setStyle(Paint.Style.FILL_AND_STROKE);
 
-    // 将整个canvas染成蓝色。
+    // 将整个canvas染成蓝色。也可以调用canvas.drawARGB(100, 255, 0, 0);来设置具体的颜色值。  
     canvas.drawColor(Color.BLUE);
     // 使用画笔p在canvas上绘画出一条直线，直线的起点为(10,10)，结束点为(10,40)。
     canvas.drawLine(10, 10, 10, 40, p);
@@ -577,6 +603,8 @@ protected void onDraw(Canvas canvas) {
     canvas.drawArc(new RectF(700,100,850,250), -90, 300, false, p);
 }
 ```
+    语句解释：
+    -  通过第一幅和第四幅图对比我们可以发现，useCenter为false时，弧线区域是用弧线开始角度和结束角度直接连接起来的，当useCenter为true时，是弧线开始角度和结束角度都与中心点连接，形成一个扇形。
 
 <br>　　范例4：绘制`GIF`。
 ``` android
@@ -634,25 +662,23 @@ public class MyView extends TextView {
     protected void onDraw(Canvas canvas) {
         Paint p = new Paint();
         p.setColor(Color.RED);
-        canvas.drawRect(new Rect(20,20,50,50), p);
-
+        canvas.drawText("AAAAAAAAAAAAAA", 100, 100, mPaint);
         p.setColor(Color.GREEN);
+
         // 保存当前画布的参数。
         canvas.save();
         // 让画布从当前位置开始，在水平和垂直方向上，都平移100像素。
         canvas.translate(100,100);
-        // 旋转画布15度。
-        canvas.rotate(15);
-        // 绘制一个矩形。
-        canvas.drawRect(new Rect(60,60,90,90), p);
+        // 让画布的原点旋转90度。即当前已经存在于画布上的东西不会有任何改变，但接下来所绘制的内容，会相对于新的原点进行绘制。
+        canvas.rotate(90);
+        canvas.drawText("1BBBBBBBBBBBBBB2", 0, 0, mPaint);
         canvas.restore();
 
         p.setColor(Color.BLUE);
-        // 保存当前画布的参数。
         canvas.save();
         // 让画布在水平和垂直方向上，都放大3倍。
         canvas.scale(3,3);
-        // 旋转画布15度。
+        // 让画布的原点旋转30度。 
         canvas.rotate(30);
         // 绘制一个矩形。
         canvas.drawRect(new Rect(100,100,130,130), p);
@@ -666,7 +692,7 @@ public class MyView extends TextView {
 }
 ```
     语句解释：
-    -  Canvas对象与Matrix对象（在《媒体篇　第二章 图片》中有介绍）类似，也支持平移、缩放、旋转、倾斜四种基本操作。
+    -  Canvas对象与Matrix对象类似，也支持平移、缩放、旋转、倾斜四种基本操作。
     -  上面用到的save()方法用来将当前Canvas对象的各项参数保存起来，restore()方法用来将Canvas对象还原到上一次保存的后的状态。
        -  你可以连续调用多次save()方法，相应的如果你想还原画布到最初的状态，就必须得连续调用多次restore()方法。
 
@@ -702,50 +728,553 @@ public class MyView extends TextView {
     语句解释：
     -  更多关于Btimap与Matrix类的介绍，请参看笔者的另一篇博文《媒体篇　第二章 图片》。
 
-<br>
-### Cliping ###
-　　这里所要说的`Cliping`是指的画布裁剪，即我们可以在画布上裁剪出一个矩形区域，后续的绘制操作都将作用到这个局域内，而不会影响到画布的其他部分。
-
-<br>　　范例1：两个矩形块。
+<br>　　接下来我们综合上面所学的知识，自定义一个钟表控件，程序运行的效果如下：
 
 <center>
-![本范例运行效果示意图](/img/android/android_b08_02.png)
+![钟表控件运行效果示意图](/img/android/android_b08_03.png)
 </center>
 
+　　完整代码如下：
+``` android
+/**
+ * Created by cutler on 2015/5/4.
+ */
+public class MyView extends TextView {
+
+    private Paint mMainPaint;
+    private int radius = 200;
+
+    public MyView(Context context) {
+        super(context);
+    }
+
+    public MyView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        mMainPaint = new Paint();
+        mMainPaint.setTextSize(30);
+        mMainPaint.setStrokeWidth(1);
+        mMainPaint.setAntiAlias(true);
+        mMainPaint.setColor(Color.BLACK);
+        mMainPaint.setStyle(Paint.Style.STROKE);
+        mMainPaint.setTextAlign(Paint.Align.CENTER);
+    }
+
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        setMeasuredDimension(getMeasuredLength(widthMeasureSpec, true), getMeasuredLength(heightMeasureSpec, false));
+    }
+
+    private int getMeasuredLength(int length, boolean isWidth) {
+        int specMode = MeasureSpec.getMode(length);
+        int specSize = MeasureSpec.getSize(length);
+        int size;
+        if (specMode == MeasureSpec.EXACTLY) {
+            size = specSize;
+            radius = size / 2;
+        } else {
+            int padding = isWidth ? getPaddingLeft() + getPaddingRight(): getPaddingTop() + getPaddingBottom();
+            size = padding + radius;
+            if (specMode == MeasureSpec.AT_MOST) {
+                size = Math.min(size, specSize);
+            }
+        }
+        return size;
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        // 将原点移动到中心点，绘制表盘。
+        canvas.translate(radius, radius);
+        canvas.drawCircle(0, 0, radius, mMainPaint);
+        // 绘制表的刻度
+        int count = 60;
+        int unitOffsetX = radius / 90;
+        for(int i=0 ; i <count ; i++){
+            int degree = 360 / count * i;
+            canvas.save();
+            canvas.rotate(degree, 0f, 0f);
+            canvas.drawLine(0, -radius + (i % 5 == 0 ? 12 : 5), 0, -radius, mMainPaint);
+            canvas.restore();
+            // 绘制表盘上的数字。
+            if (i % 5 == 0) {
+                int x = degree % 90 * unitOffsetX;
+                int y = 0;
+                if (degree >= 0 && degree <= 90) {
+                    x += 25;
+                    y = -radius + x - 20;
+                    if (degree == 0) {
+                        x = 0;
+                        y = -radius + 40;
+                    } else if (degree == 90) {
+                        x = radius - 30;
+                        y = 10;
+                    }
+                } else if (degree > 90 && degree <= 180) {
+                    y = x + 35;
+                    x = radius - x + 5;
+                    if (degree == 180) {
+                        y = radius - 20;
+                        x = 0;
+                    }
+                } else if (degree > 180 && degree <= 270) {
+                    x = -x - 25;
+                    y = radius + x + 35;
+                    if (degree == 270) {
+                        x = -radius + 30;
+                        y = 10;
+                    }
+                } else if (degree > 270 && degree <= 360) {
+                    x = -radius + x;
+                    y = -(radius + x) - 15;
+                }
+                canvas.drawText(String.valueOf(i / 5 == 0 ? 12 : i / 5), x, y, mMainPaint);
+            }
+        }
+        // 绘制指针尾部的圆点。
+        canvas.drawCircle(0, 0, 7, mMainPaint);
+        // 绘制时针、分针、秒针。
+        drawLine(0, 10, 0, -70, mMainPaint, canvas, Calendar.HOUR);
+        drawLine(0, 10, 0, -90, mMainPaint, canvas, Calendar.MINUTE);
+        drawLine(0, 10, 0, -120, mMainPaint, canvas, Calendar.SECOND);
+        // 1秒后进行重绘。
+        postInvalidateDelayed(1000);
+    }
+
+    private void drawLine(float startX, float startY, float stopX, float stopY, Paint paint, Canvas canvas, int type) {
+        Calendar curTime = Calendar.getInstance();
+        canvas.save();
+        float rotate = 0, num = curTime.get(type);
+        switch (type) {
+            case Calendar.HOUR:
+                float offsetDegree = (curTime.get(Calendar.MINUTE) / 10.0f - 1) * 6;
+                rotate = (num == 12 ? 0 : num * 30 + offsetDegree);
+                break;
+            case Calendar.MINUTE:
+            case Calendar.SECOND:
+                rotate = (num == 0 ? 0 : num * 6);
+                break;
+        }
+        canvas.rotate(rotate);
+        canvas.drawLine(startX, startY, stopX, stopY, paint);
+        canvas.restore();
+    }
+}
+```
+　　XML代码如下：
+``` xml
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_height="match_parent">
+
+    <com.example.cutler.smstest.MyView
+        android:layout_width="133dp"
+        android:layout_height="133dp" />
+
+</LinearLayout>
+```
+    语句解释：
+    -  这个控件的尺寸只有在被设置为133dp时，显示的效果才算完美。 
+    -  由于笔者本人也是边学边用，因此暂时没有好的方法让这个控件在任何尺寸下都完美展示，所以现在先让它存留一些缺陷，日后再说。
+
+<br>
+### Path ###
+　　当我们想在画布上绘制任意多边形时，就可以通过指定`Path`对象来实现。可以把`Path`对象看作是一个点集，在该点击中规划了多边形的路径信息。当然也可以使用`drawLines`方法来实现多边形，但是`drawPath`方法更为灵活、方便。
+
+<br>　　范例1：平行四边形与棒棒糖。
 ``` android
 public class MyView extends TextView {
 
     // 此处省略构造方法和onMeasure()方法。
 
+    @Override
     protected void onDraw(Canvas canvas) {
-        // 绘制一个蓝色的矩形
-        canvas.save();
-        canvas.clipRect(new Rect(50,50,250,250));
-        canvas.drawColor(Color.BLUE);
-        canvas.restore();
+        Paint paint = new Paint();
+        paint.setColor(Color.RED);
+        paint.setStyle(Paint.Style.STROKE);
 
-        // 绘制一个黑色的矩形
-        canvas.clipRect(new Rect(100,100,200,200));
-        canvas.drawColor(Color.BLACK);
-        // 在黒色矩形上绘制一行文本。
-        Paint p = new Paint();
-        p.setColor(Color.WHITE);
-        p.setTextSize(20);
-        canvas.drawText("Hello clipRect()!", 100,120, p);
+        Path path1 = new Path();
+        // 移到(50, 50)点处作为起点
+        path1.moveTo(50, 50);
+        // 绘制一条线，起点是(50,50)，终点是(100,50)
+        path1.lineTo(100, 50);
+        path1.lineTo(150, 100);
+        path1.lineTo(50, 100);
+        // 调用此方法自动闭合这个多边形，即补足最后一条边（绘制一条从当前位置开始到Path起点之间的连线）。
+        path1.close();
+        canvas.drawPath(path1, paint);
+
+        Path path2 = new Path();
+        path2.moveTo(300, 50);
+        path2.lineTo(300, 250);
+        path2.addCircle(300, 50, 40, Path.Direction.CCW);
+        canvas.drawPath(path2, paint);
     }
 }
 ```
     语句解释：
-    -  从效果图中可以看到，当内容超过裁剪区域的大小时，超出的部分同样不会显示出来。
+    -  Path.Direction.CCW 表示逆时针，Path.Direction.CW 表示顺时针。
+
+<br>　　范例2：`Path`与文字。
+``` android
+public class MyView extends TextView {
+
+    // 此处省略构造方法和onMeasure()方法。
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        Paint paint = new Paint();
+        paint.setTextSize(30);
+        Path path = new Path(); //定义一条路径
+        path.moveTo(10, 50);    //移动到 坐标10,10
+        path.lineTo(150, 160);
+        path.lineTo(300,350);
+        // 使用此方法绘制一行文本，文本会沿着path的路线绘制。
+        canvas.drawTextOnPath("Android drawTextOnPath 世界，你好！", path, 10, 10, paint);
+    }
+}
+```
+    语句解释：
+    -  如果文本的长度超出了Path的长度，那么多出的文本将不会被显示。
+
+<br>
+### Xfermodes ###
+　　假设现在`Canvas`中有`A`，`B`两张图片，`A`在下面`B`在上面，且它们有重叠的部分，默认情况下此时显示出来的效果将是，`B`图会盖住`A`图的某一部分。不过这个默认的行为是可以修改的，也就是说我们可以让重叠的位置上，显示`A`的部分，或者显示`B`的部分，或者都不显示。
+
+　　这一切都是通过修改`Paint`对象的`Xfermode`属性来完成。
+
+<br>　　范例1：16种显示模式。
+
+<center>
+![本范例运行效果示意图，最左边的为原始图像](/img/android/android_b08_02.png)
+</center>
+
+``` android
+public class MyView extends View {
+
+    public MyView(Context context) {
+        super(context);
+    }
+
+    private static final Xfermode[] sModes = {
+            new PorterDuffXfermode(PorterDuff.Mode.CLEAR),
+            new PorterDuffXfermode(PorterDuff.Mode.SRC),
+            new PorterDuffXfermode(PorterDuff.Mode.DST),
+            new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER),
+            new PorterDuffXfermode(PorterDuff.Mode.DST_OVER),
+            new PorterDuffXfermode(PorterDuff.Mode.SRC_IN),
+            new PorterDuffXfermode(PorterDuff.Mode.DST_IN),
+            new PorterDuffXfermode(PorterDuff.Mode.SRC_OUT),
+            new PorterDuffXfermode(PorterDuff.Mode.DST_OUT),
+            new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP),
+            new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP),
+            new PorterDuffXfermode(PorterDuff.Mode.XOR),
+            new PorterDuffXfermode(PorterDuff.Mode.DARKEN),
+            new PorterDuffXfermode(PorterDuff.Mode.LIGHTEN),
+            new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY),
+            new PorterDuffXfermode(PorterDuff.Mode.SCREEN)
+    };
+
+    private static final String[] sLabels = {
+            "Clear", "Src", "Dst", "SrcOver",
+            "DstOver", "SrcIn", "DstIn", "SrcOut",
+            "DstOut", "SrcATop", "DstATop", "Xor",
+            "Darken", "Lighten", "Multiply", "Screen"
+    };
+
+    // create a bitmap with a rect, used for the "src" image
+    static Bitmap makeSrc(int w, int h) {
+        Bitmap bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bm);
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        p.setColor(0xFF66AAFF);
+        c.drawRect(w/3, h/3, w*19/20, h*19/20, p);
+        return bm;
+    }
+
+    // create a bitmap with a circle, used for the "dst" image
+    static Bitmap makeDst(int w, int h) {
+        Bitmap bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bm);
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        p.setColor(0xFFFFCC44);
+        c.drawOval(new RectF(0, 0, w*3/4, h*3/4), p);
+        return bm;
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        int W = 128, H = 128, ROW_MAX = 4;
+        // 创建一些初始化参数
+        Bitmap mSrcB = makeSrc(W, H);
+        Bitmap mDstB = makeDst(W, H);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        Paint labelP = new Paint(Paint.ANTI_ALIAS_FLAG);
+        labelP.setTextSize(30);
+        Bitmap bm = Bitmap.createBitmap(new int[] { 0xFFFFFFFF, 0xFFCCCCCC, 0xFFCCCCCC, 0xFFFFFFFF }, 2, 2,
+            Bitmap.Config.RGB_565);
+        BitmapShader mBG = new BitmapShader(bm, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+        Matrix m = new Matrix();
+        m.setScale(6, 6);
+        mBG.setLocalMatrix(m);
+
+        // 绘制原始效果图
+        canvas.drawBitmap(mDstB, 200, 200, paint);
+        canvas.drawBitmap(mSrcB, 200, 200, paint);
+
+        // 移动画布，然后在新位置上绘制各类型的效果图
+        canvas.translate(400, 200);
+
+        int x = 0;
+        int y = 0;
+        for (int i = 0; i < sModes.length; i++) {
+            // draw the border
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setShader(null);
+            canvas.drawRect(x - 0.5f, y - 0.5f,
+                    x + W + 0.5f, y + H + 0.5f, paint);
+            // draw the checker-board pattern
+            paint.setStyle(Paint.Style.FILL);
+            paint.setShader(mBG);
+            canvas.drawRect(x, y, x + W, y + H, paint);
+            // draw the src/dst example into our offscreen bitmap
+            int sc = canvas.saveLayer(x, y, x + W, y + H, null,
+                    Canvas.MATRIX_SAVE_FLAG |
+                            Canvas.CLIP_SAVE_FLAG |
+                            Canvas.HAS_ALPHA_LAYER_SAVE_FLAG |
+                            Canvas.FULL_COLOR_LAYER_SAVE_FLAG |
+                            Canvas.CLIP_TO_LAYER_SAVE_FLAG);
+            canvas.translate(x, y);
+            canvas.drawBitmap(mDstB, 0, 0, paint);
+            paint.setXfermode(sModes[i]);
+            canvas.drawBitmap(mSrcB, 0, 0, paint);
+            paint.setXfermode(null);
+            canvas.restoreToCount(sc);
+            // draw the label
+            canvas.drawText(sLabels[i], x, y - labelP.getTextSize()/2, labelP);
+            x += W + 10;
+            // wrap around when we've drawn enough for one row
+            if ((i % ROW_MAX) == ROW_MAX - 1) {
+                x = 0;
+                y += H + 60;
+            }
+        }
+    }
+}
+```
+    语句解释：
+    -  上面这一大段代码可能会让你头大，不过没关系，里面有不少代码是为了显示效果更好而加上的(如BitmapShader类)，最重要的代码是96-99行。
+
+<br>　　我们使用`Xfermode`的步骤通常为：
+
+	-  第一步，往画布中绘制一个Bitmap对象，这个对象就是上图中的Dst，同时也是上面范例中的mDstB变量。
+	-  第二步，调用画笔的setXfermode()方法修改Xfermode。
+	-  第三步，往画布中绘制第二个Bitmap对象，这个对象就是上图中的Src，同时也是上面范例中的mSrcB变量。
+	-  第四步，调用paint.setXfermode(null);来还原，以免对后续的绘图产生影响。
+
+<br>　　范例2：圆形头像。
+
+<center>
+![运行效果](/img/android/android_b08_04.png)
+</center>
+
+``` android
+/**
+ * Created by cutler on 2015/5/13.
+ */
+class MyView extends ImageView {
+
+    public MyView(Context context) {
+        super(context);
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        // 用户的头像
+        Bitmap mSrcB = ((BitmapDrawable)getDrawable()).getBitmap();
+        // 创建一个与原图具有相同尺寸的位图对象
+        int width = mSrcB.getWidth();
+        Bitmap mDstB = Bitmap.createBitmap(width, width, Bitmap.Config.ARGB_8888);
+        // 创建一个临时的画布，任何向tmpCanvas上绘制的内容，都将被绘制到mDstB上
+        Canvas tmpCanvas = new Canvas(mDstB);
+        tmpCanvas.drawCircle(width / 2, width / 2, width / 2, paint);
+        // 使用SRC_IN
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        // 绘制图片
+        tmpCanvas.drawBitmap(mSrcB, 0, 0, paint);
+        // 让画笔去掉Xfermode设置
+        paint.setXfermode(null);
+        // 将生成的新图片绘制到画布中
+        canvas.drawBitmap(mDstB, 200, 200, paint);
+    }
+}
+
+class MainActivity extends Activity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ImageView imageView = new MyView(this);
+        imageView.setImageResource(R.drawable.icon);
+        setContentView(imageView);
+    }
+}
+```
+<br>
+### 控件的属性 ###
+　　除了使用系统内置的属性外(如`android:layout_width`等)，我们也可以为自己的控件，自定义属性。具体的步骤为：
+
+	-  首先，在res/values文件夹下创建一个名为attr.xml的文件，并使用<resources>标签作为根节点。
+	-  然后，在<resources>标签内部使用标签<declare-styleable>来定义一个属性集合。
+	-  接着，属性使用<attr>标签来定义，每个属性都有两个属性：名称和数据类型，<attr>标签具有两个属性：name和format。 
+
+<br>　　范例1：自定义属性。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CustomAttribute">
+        <attr name="textSize"    format="integer" />
+        <attr name="textWidth"   format="dimension" />
+        <attr name="textColor"   format="color" />
+        <attr name="textContent" format="reference" />
+        <attr name="type">
+            <flag name="top" value="0x1" />
+            <flag name="bottom" value="0x2" />
+        </attr>
+    </declare-styleable>
+</resources>
+```
+    语句解释：
+    -  <declare-styleable>标签的name属性用来指出当前属性集合的名称，在此标签内部所定义的属性都将被放到这个属性集合中去。
+    -  属性常见的数据类型有如下几种：
+	   -  integer：整型，可以为当前属性赋值一个整数。
+	   -  dimension：尺寸类型，可以为当前属性赋值一个尺寸数据。如：30dp 。
+	   -  color：颜色类型，可以为当前属性赋值一个颜色数据。如：#FF00FF 。
+	   -  reference：引用类型，可以为当前属性赋值一个资源ID。如：@drawable/icon 。
+	   -  string、boolean、float：数值类型。
+	-  若某个属性支持多种数据类型，则数据类型之间可以使用“|”进行间隔，如：reference|string。属性也可以是枚举类型的，使用<flag>标签即可。
+
+<br>　　范例2：让它们发生关系。
+``` xml
+<RelativeLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:cutler="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.example.cutler.androidtest.MyView
+        android:id="@+id/myView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        cutler:textSize="30"
+        cutler:textWidth="30dp"
+        cutler:textColor="#FF0000"
+        cutler:textContent="ContentMessage" />
+</RelativeLayout>
+```
+    语句解释：
+    -  以xmlns:为开头的代码，就是在定义命名空间，本范例中定义了android和cutler两个命名控件。
+    -  当Android程序运行的时候，系统为某个Activity初始化界面时，会解析其指定的布局文件。在解析其内某个控件的某个属性时，会去该属性所对应的命名空间中查看该属性的数据类型和用户赋的值的数据类型是否匹配。
+       -  在android命名空间中存放的是系统内置的属性，咱们自定义的属性并不会被放到android命名空间中。
+    -  问：Android系统最终会去什么地方验证呢?
+       -  答：去R文件中。
+    -  问：哪个R文件?
+       -  答：命名空间后面跟随的那串字符串，最后一个“/”后面的字符，用来指明R文件的所在包。如在本范例中：
+          -  android命名空间的属性，都会去andriod.R文件中验证。
+          -  cutler命名空间中的属性，都会去com.example.cutler.androidtest.R文件中如验证，注意此处的res-auto表示由系统自动识别。
+	-  事实上，使用<attr>标签定义的每一个属性，在R.attr内部类中都有一个与之对应的常量。验证属性时，首先根据属性的名称去R文件中获取该属性的资源ID，然后再通过资源ID来找到<attr>标签，然后再进行验证。 
+
+<br>　　在程序中有多种方法可以获取到`xml`文件中的属性的值，最为简便、易懂的方法是通过`TypedArray`类来完成。
+
+<br>　　范例3：获取属性值。
+``` android
+public class MyView extends View {
+
+    public MyView(Context context) {
+        super(context);
+    }
+
+    public MyView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        TypedArray list = context.obtainStyledAttributes(attrs, R.styleable.CustomAttribute);
+        // 获取属性值。
+        System.out.println("textSize "+list.getInt(R.styleable.CustomAttribute_textSize, 0));
+        System.out.println("textWidth "+list.getDimension(R.styleable.CustomAttribute_textWidth, 0));
+        System.out.println("textColor "+list.getColor(R.styleable.CustomAttribute_textColor, 0));
+        System.out.println("textContent "+list.getString(list.getIndex(R.styleable.CustomAttribute_textContent)));
+        System.out.println("count="+attrs.getAttributeCount());
+    }
+}
+```
+    语句解释：
+    -  常量“R.styleable.CustomAttribute_textSize”是“R.attr.textSize”在数组“R.styleable.CustomAttribute”内的下标。
+
+<br>　　至此，本节讲解了自定义控件的一些基础知识，但在实际开发中仅仅掌握它们是远远不够的，笔者由于精力有限，还有一些技术没法一次性研究透，比如`clipRect`、`Layers`等，因此就不写出来了，过段时间再继续搞它们。
 
 
-<br>**本章参考阅读：**
+<br>**本节参考阅读：**
 - [Android LayoutInflater原理分析，带你一步步深入了解View(一)](http://blog.csdn.net/guolin_blog/article/details/12921889)
 - [Android视图绘制流程完全解析，带你一步步深入了解View(二)](http://blog.csdn.net/guolin_blog/article/details/16330267)
 - [Android视图状态及重绘流程分析，带你一步步深入了解View(三)](http://blog.csdn.net/guolin_blog/article/details/17045157)
 - [Android如何绘制视图，解释了为何onMeasure有时要调用多次](http://blog.csdn.net/jewleo/article/details/39547631)
 - [How Android Draws Views](http://developer.android.com/guide/topics/ui/how-android-draws.html)
 - [Android中layout过程详解](http://www.cnblogs.com/xilinch/archive/2012/10/24/2737248.html)
+- [Android Canvas绘图详解（图文）](http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2012/1212/703.html)
+- [android.graphics包中的一些类的使用](http://yuanzhifei89.iteye.com/blog/1136651)
+- [Android 完美实现图片圆角和圆形（对实现进行分析）](http://blog.csdn.net/lmj623565791/article/details/24555655)
+- [Android Canvas绘制图片层叠处理方式porterduff xfermode](http://blog.csdn.net/shichaosong/article/details/21239221)
 
+
+# 第二节 开源项目 #
+　　相信您也看多过`Github`上的各类`Android`开源项目，里面有各种绚丽的特效，笔者也看的眼馋，虽然咱们的原则是`“可以不会写，但必须得会改”`，但是每每看到里面的特效，笔者都想知道它们是如何实现的，并希望自己能学会。因此从本节开始，笔者将以各个开源项目为例，来讲自定义控件相关的知识。 当然我们不会去完整的分析每个项目，只是会去看它们关键代码。
+
+## Android-PullLayout ##
+　　这个项目提供了两个功能：`仿UC天气下拉`和`微信下拉眼睛`，`Github`地址：https://github.com/BlueMor/Android-PullLayout 。
+
+　　其中的`微信下拉眼睛`功能，咱们通过上一节学到的`Xfermode`就可以实现。笔者运行了这个项目，在它的`微信下拉眼睛`功能上发现两个缺点：
+
+	-  第一，功能依赖于API Lavel 11中的新API，即程序运行在Android2.2系统中，会有黑框出现。
+	-  第二，项目中的EyeView继承自FrameLayout类，不知道作者出于什么考虑，其实完全可以继承ImageView或者View类。
+
+　　因此，笔者优化后的`EyeView`代码为：
+``` android
+public class EyeView extends View {
+
+    private int mRadius;
+    private int maxRadius;
+    private Bitmap mEyeBitmap;
+
+    public EyeView(Context context) {
+        super(context);
+        mEyeBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.eye);
+        maxRadius = Math.max(mEyeBitmap.getWidth(), mEyeBitmap.getHeight())/2+1;
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        Bitmap mDstB = Bitmap.createBitmap(mEyeBitmap.getWidth(), mEyeBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas tmpCanvas = new Canvas(mDstB);
+        tmpCanvas.drawCircle(mEyeBitmap.getWidth() / 2, mEyeBitmap.getHeight() / 2, mRadius, paint);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        tmpCanvas.drawBitmap(mEyeBitmap, 0, 0, paint);
+        paint.setXfermode(null);
+        canvas.drawBitmap(mDstB, 200, 200, paint);
+    }
+
+    public void setRadius(int radius){
+        if (radius >= 0) {
+            // 更新半径，然后执行重绘。
+            mRadius = radius;
+            if(radius > maxRadius){
+                mRadius = maxRadius;
+            }
+            invalidate();
+        }
+    }
+}
+```
+    语句解释：
+    -  本范例中所涉及的知识我们都已经讲过了，不再冗述。并且本范例可以完美运行在Android2.2版本的系统中。
 
 <br><br>
