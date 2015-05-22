@@ -847,20 +847,19 @@ dependencies {
 }
 ```
 
-<br>　　在`build.gradle`中，Android项目依赖`jar libs`有三种方法：
+<br>　　在`build.gradle`中，Android项目可以依赖三种类型的`libs`库：
 ``` gradle
-// 依赖项目相对路径的jar包，当然，你可以换成全路径
-compile files('libs/something_local.jar')
-// 或者依赖libs目录下的所有jar包
-compile fileTree(dir: 'libs', include: ['*.jar'])
+// 第一种，依赖jar文件。 我们将jar文件放到module\libs目录下，然后在build.gradle中进行配置：
+compile files('libs/something_local.jar')            // 依赖单个jar文件。
+compile fileTree(dir: 'libs', include: ['*.jar'])    // 依赖libs目录下的所有jar文件。
 
-// 依赖仓库中的支持包（目前很多好的都在maven进行管理，比如 v4，v7支持包）
+// 第二种，依赖仓库中的支持包（目前很多好的都在maven进行管理，比如 v4，v7支持包）。
 compile 'com.android.support:appcompat-v7:22.0.0'
 
-// 依赖其他library module
+// 第三种，依赖当前项目中的其他library module。
 compile project(':jiechic-library')
 ```
-　　值得注意的是，当你添加完依赖时，记得点击`“build”`菜单下的`“Clean Project”`。
+　　值得注意的是，当你添加完依赖时，记得执行`Tools -> Android -> Sync Project with Gradle Files`。
 
 <br>
 ### API Level ###
@@ -1002,7 +1001,6 @@ Android4.2,4.2.2	17
 	   -  第三，双击Foreground后面的框框去选择颜色了。
 
 　　如果你对修改之后的`Logcat`的显示效果仍然不满意，那么可以使用我们前面一开始提到的`“Android Device Monitor”`窗口。
-
 
 <br>**本节参考阅读：**
 - [Android Studio 关于SVN的相关配置简介](http://blog.csdn.net/zhouzme/article/details/22790395)

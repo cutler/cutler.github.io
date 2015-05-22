@@ -348,9 +348,147 @@ public void onWindowFocusChanged(boolean hasFocus) {
     -  onWindowFocusChanged方法将在Activity的onResume方法之后且用户可操作之前被调用。
 
 # 第二节 属性动画 #
-## 第一小姐 ##
-暂缓。
+　　简单的说，视图动画可以实现的功能，属性动画基本都可以实现，视图动画的缺点，在属性动画中都不存在了。而且，使用的时候我们只需要告诉系统`动画的运行时长`，需要执行`哪种类型的动画`，以及`动画的初始值和结束值`，剩下的工作就可以全部交给系统去完成了。
 
+　　在介绍属性动画之前，首先得需要从的[ NineOldAndroids 官网 ](http://nineoldandroids.com)上下载最新的`NineOldAndroids`动画库源码，如果感觉源码管理起来麻烦，也可以把它们打包成一个`jar`包。
+
+
+<br>　　笔者在此声明，本节主要参考阅读下面`CSDN郭霖`的三篇文章（有细节上的修改，但几乎可以算是原样抄袭！）：
+- [Android属性动画完全解析(上)，初识属性动画的基本用法](http://blog.csdn.net/guolin_blog/article/details/43536355#)
+- [Android属性动画完全解析(中)，ValueAnimator和ObjectAnimator的高级用法](http://blog.csdn.net/guolin_blog/article/details/43816093)
+  
+　　本节参考的其他文章将在本节末尾处列出。
+
+## ValueAnimator ##
+　　`ValueAnimator`是整个属性动画机制当中最核心的一个类。我们只需要将`初始值和结束值`提供给`ValueAnimator`，并且告诉它动画所需运行的时长，那么`ValueAnimator`就会自动帮我们完成`从初始值平滑地过渡到结束值`这样的效果。除此之外，`ValueAnimator`还负责管理动画的播放次数、播放模式、以及对动画设置监听器等，确实是一个非常重要的类。
+
+<br>　　但是`ValueAnimator`的用法却很简单，我们先从最简单的功能看起吧，比如说想要将一个值从`0`平滑过渡到`1`，时长`300`毫秒，就可以这样写：
+``` android
+// 使用ofFloat()方法来创建一个ValueAnimator对象，其中参数0和1就表示将值从0平滑过渡到1。ofFloat()方法当中允许传入多个float类型的参数。
+ValueAnimator anim = ValueAnimator.ofFloat(0f, 1f);
+// setDuration()方法来设置动画运行的时长。
+anim.setDuration(300);
+// 启动动画。
+anim.start();
+```
+    语句解释：
+    -  值得注意的，本范例使用的是com.nineoldandroids.animation.ValueAnimator类。
+
+<br>　　如果你运行一下上面的代码，程序只是一个将值从`0`过渡到`1`的动画，无法看到任何界面效果，我们需要借助监听器才能知道这个动画是否已经真正运行了，如下所示：
+``` android
+ValueAnimator anim = ValueAnimator.ofFloat(0f, 1f);
+anim.setDuration(300);
+anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+    public void onAnimationUpdate(ValueAnimator valueAnimator) {
+        System.out.println("cuurent value is " + valueAnimator.getAnimatedValue());
+    }
+});
+anim.start();
+```
+    语句解释：
+    -  在动画执行的过程中系统会不断地进行回调onAnimationUpdate()方法，我们只需要在回调方法当中将当前的值取出并打印出来。
+    -  回调onAnimationUpdate()方法的时间间隔是ValueAnimator类根据你设置的初始值、结束值、动画时间三个参数来计算出来的，不需要我们设置，它会尽可能的让动画平滑的播放出来（即在使用最少的回调次数上，保证动画流畅）。
+
+<br>　　另外`ofFloat()`方法当中是可以传入任意多个参数的，因此我们还可以构建出更加复杂的动画逻辑，比如说将一个值在`5`秒内从`0`过渡到`5`，再过渡到`3`，再过渡到`10`，就可以这样写：
+``` android
+ValueAnimator anim = ValueAnimator.ofFloat(0f, 5f, 3f, 10f);
+anim.setDuration(5000);
+anim.start();
+```
+    语句解释：
+    -  如果只是希望将一个整数值从0平滑地过渡到100，那么也很简单，只需要调用ValueAnimator.ofInt(0, 100)就可以了。
+    -  调用setRepeatCount()设置循环播放的次数，默认为1次，ValueAnimator.INFINITE为无限循环。
+    -  调用setRepeatMode()设置循环播放的模式：
+       -  RESTART（默认），动画播放到结尾时，直接从开头再播放。
+       -  REVERSE，动画播放到结尾时，再从结尾再往开头播放。
+    -  除此之外，我们还可以调用setStartDelay()方法来设置动画延迟播放的时间等等。
+
+## ObjectAnimator ##
+　　相比于`ValueAnimator`，`ObjectAnimator`可能才是我们最常接触到的类，因为`ValueAnimator`只不过是对值进行了一个平滑的动画过渡，但我们实际使用到这种功能的场景好像并不多。而`ObjectAnimator`则就不同了，它是可以直接对任意对象的任意属性进行动画操作，如`View`的`alpha`属性。
+
+　　值得注意的是`ObjectAnimator`是`ValueAnimator`的子类，因此它们的用法也非常类似，这里如果我们想要将一个`Button`在`5`秒中内从常规变换成全透明，再从全透明变换成常规，就可以这样写：
+``` android
+Button btn = (Button) findViewById(R.id.btn);
+// 第一个参数是想动画的对象，第二个参数是该对象的属性。
+ObjectAnimator animator = ObjectAnimator.ofFloat(btn, "alpha", 1f, 0f, 1f);
+animator.setDuration(5000);
+animator.start();
+```
+    语句解释：
+    -  把代码改成“ObjectAnimator.ofFloat(btn, "rotation", 0, 360)”则按钮就会被旋转。
+    -  把代码改成“ObjectAnimator.ofFloat(btn, "scaleY", 1f, 3f, 1f)”则按钮就会在垂直方向上进行缩放，然后还原。
+    -  把代码改成“ObjectAnimator.ofFloat(btn, "rotation", 0, 360)”则按钮就会被旋转。
+    -  把代码改成“ObjectAnimator.ofFloat(btn, "translationX", curTranslationX, -500f)”则按钮就会从curTranslationX移动到-500。
+
+<br>　　相信肯定会有不少朋友现在心里都有同样一个疑问，就是`ObjectAnimator`的`ofFloat()`方法的第二个参数到底可以传哪些值呢？目前我们使用过了`alpha`、`rotation`、`translationX`和`scaleY`这几个值，那么还有哪些值是可以使用的呢？答案是我们可以传入`任意的值`到`ofFloat()`方法的第二个参数当中。因为`ObjectAnimator`在设计的时候就没有针对于`View`来进行设计，而是针对于任意对象的，它所负责的工作就是不断地向某个对象中的某个属性进行赋值，然后对象根据属性值的改变再来决定如何展现出来。
+　　以`ObjectAnimator.ofFloat(btn, "alpha", 1f, 0f, 1f)`为例，这行代码的意思就是不断的修改`Button`的`alpha`属性值，但不是直接去修改，而是当动画启动时，`ObjectAnimator`会不断的调用`Button`对象的`getAlpha()`和`setAlpha()`方法，这个两个方法定义在`View`类。
+　　相应的，`rotation`对应的就是`setRotation()`和`getRotation()`方法。
+
+## 组合动画 ##
+　　独立的动画能够实现的视觉效果毕竟是相当有限的，因此将多个动画组合到一起播放就显得尤为重要。幸运的是，Android团队在设计属性动画的时候也充分考虑到了组合动画的功能，因此提供了一套非常丰富的`API`来让我们将多个动画组合到一起。
+　　实现组合动画功能主要需要借助`AnimatorSet`这个类，这个类提供了一个`play()`方法，如果我们向这个方法中传入一个`Animator`对象(`ValueAnimator`或`ObjectAnimator`)将会返回一个`AnimatorSet.Builder`的实例，`AnimatorSet.Builder`中包括以下四个方法：
+
+	-  after(Animator anim)    将现有动画插入到传入的动画之后执行
+	-  after(long delay)       将现有动画延迟指定毫秒后执行
+	-  before(Animator anim)   将现有动画插入到传入的动画之前执行
+	-  with(Animator anim)     将现有动画和传入的动画同时执行
+
+<br>　　比如说我们想要让`Button`先从屏幕外移动进屏幕，然后开始旋转`360`度，旋转的同时进行淡入淡出操作，就可以这样写：
+``` android
+Button btn = (Button) findViewById(R.id.btn);
+ObjectAnimator moveIn = ObjectAnimator.ofFloat(btn, "translationX", -500f, 0f);
+ObjectAnimator rotate = ObjectAnimator.ofFloat(btn, "rotation", 0f, 360f);
+ObjectAnimator fadeInOut = ObjectAnimator.ofFloat(btn, "alpha", 1f, 0f, 1f);
+AnimatorSet animSet = new AnimatorSet();
+animSet.play(rotate).with(fadeInOut).after(moveIn);
+animSet.setDuration(5000);
+animSet.start();
+```
+
+## Animator监听器 ##
+　　在很多时候，我们希望可以监听到动画的各种事件，比如动画何时开始，何时结束，然后在开始或者结束的时候去执行一些逻辑处理。这个功能是完全可以实现的，`Animator`类(ValueAnimator、AnimatorSet都继承自它)当中提供了一个`addListener()`方法，这个方法接收一个`AnimatorListener`，我们只需要去实现这个`AnimatorListener`就可以监听动画的各种事件了。
+
+``` android
+ValueAnimator anim = ValueAnimator.ofInt(0, 10);
+anim.setDuration(1000);
+anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+    public void onAnimationUpdate(ValueAnimator valueAnimator) {
+        System.out.println(valueAnimator.getAnimatedValue());
+    }
+});
+anim.addListener(new Animator.AnimatorListener() {
+    // 动画开始的时候调用
+    public void onAnimationStart(Animator animation) {
+        System.out.println("onAnimationStart");
+    }
+    // 动画重复执行的时候调用
+    public void onAnimationRepeat(Animator animation) {
+        System.out.println("onAnimationRepeat");
+    }
+    // 动画结束的时候调用
+    public void onAnimationEnd(Animator animation) {
+        System.out.println("onAnimationEnd");
+    }
+    // 动画被取消的时候调用
+    public void onAnimationCancel(Animator animation) {
+        System.out.println("onAnimationCancel");
+    }
+});
+```
+
+<br>　　但是也许很多时候我们并不想要监听那么多个事件，可能我只想要监听动画结束这一个事件，那么每次都要将四个接口全部实现一遍就显得非常繁琐。没关系，为此Android提供了一个适配器类，叫作`AnimatorListenerAdapter`，使用这个类就可以解决掉实现接口繁琐的问题了，如下所示：
+``` android
+anim.addListener(new AnimatorListenerAdapter() {
+    @Override
+    public void onAnimationEnd(Animator animation) {
+    }
+});
+```
+
+## 使用XML编写动画 ##
+　　我们可以使用代码来编写所有的动画功能，这也是最常用的一种做法。不过，过去的补间动画除了使用代码编写之外也是可以使用`XML`编写的，因此属性动画也提供了这一功能，即通过`XML`来完成和代码一样的属性动画功能。
+　　通过`XML`来编写动画可能会比通过代码来编写动画要慢一些，但是在重用方面将会变得非常轻松，比如某个将通用的动画编写到`XML`里面，我们就可以在各个界面当中轻松去重用它。
+　　如果想要使用`XML`来编写动画，首先要在`res`目录下面新建一个`animator`文件夹，所有属性动画的`XML`文件都应该存放在这个文件夹当中。然后在`XML`文件中我们一共可以使用如下三种标签：
 
 
 <br>**本节参考阅读：**
