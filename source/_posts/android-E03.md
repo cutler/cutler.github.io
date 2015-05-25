@@ -21,7 +21,7 @@ categories: Android
 　　属性动画的缺点是：在`Android3.0`中才被提出。 
 　　但是万事总有一线生机，现在有一个名为`NineOldAndroids`动画库，可以让低于`Android3.0(API Level 11)`的项目使用上属性动画。它的作者是非常牛逼的`JakeWharton`，好几个著名的开源库都是他的作品。
 　　项目的官网为：http://nineoldandroids.com/ ，`JakeWharton`的`Github`主页为：https://github.com/JakeWharton 。
-<br>　　经过笔者测试验证，当`NineOldAndroids`动画库运行在`Android3.0`之前（`Android3.0`及之后则不会）的平台时，仍然存在上面的第三条所描述的问题（视图的位置不会真正发生改变），`Jake Wharton`本人也对此做出了回应：
+<br>　　遗憾的是，经过笔者测试验证，当`NineOldAndroids`动画库运行在`Android3.0`之前（`Android3.0`及之后则不会）的平台时，仍然存在上面的第三条所描述的问题（视图的位置不会真正发生改变），`Jake Wharton`本人也对此做出了回应：
 ```
 Yes, this is a platform limitation. You need to physically move the view when the animation ends on pre-Honeycomb. 
 ```
@@ -32,8 +32,10 @@ Yes, this is a platform limitation. You need to physically move the view when th
 	-  如果你使用属性动画目的是，动画一个非View对象，那么你可以使用NineOldAndroids库，或者直接基于3.0开发。
 	-  如果你使用属性动画目的是，真正意义的改变View位置、旋转等属性，那么你最好直接基于3.0开发，如果使用NineOldAndroids库，则会相对费劲。
 
-<br>**如何选择？**
-　　使用视图动画可以花费更少的时间，更少的代码，因此如果视图动画完成了你需要做的，或者你现有的代码已经完成了工作，那就没有必要使用属性动画系统。
+　　即便如此，现在也算是到了学习属性动画的时候了，截止至`2015/05/25`，配置`Android3.0`以下版本系统的设备已经不足`6%`了，换句话说我们现在完全可以把项目的`minSdkVersion`设置为`11`了。
+
+<br>**使用视图动画还是属性动画？**
+　　在某些时候，使用视图动画可以花费更少的时间，更少的代码，因此如果视图动画完成了你需要做的，或者你现有的代码已经完成了工作，那就没有必要使用属性动画系统。
 
 # 第一节 视图动画 #
 　　虽然视图动画已经不常用了，但是我们仍然要介绍一下它们的用法。
@@ -370,6 +372,7 @@ public void onWindowFocusChanged(boolean hasFocus) {
 　　本节参考的其他文章将在本节末尾处列出。
 
 ## 基础入门 ##
+　　属性动画有两个常用的类：`ValueAnimator`和`ObjectAnimator`，我们接下来依次介绍它们。
 <br>
 ### ValueAnimator ###
 　　`ValueAnimator`是整个属性动画机制当中最核心的一个类。我们只需要将`初始值和结束值`提供给`ValueAnimator`，并且告诉它动画所需运行的时长，那么`ValueAnimator`就会自动帮我们完成`从初始值平滑地过渡到结束值`这样的效果。除此之外，`ValueAnimator`还负责管理动画的播放次数、播放模式、以及对动画设置监听器等，确实是一个非常重要的类。
@@ -398,7 +401,7 @@ anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 anim.start();
 ```
     语句解释：
-    -  在动画执行的过程中系统会不断地进行回调onAnimationUpdate()方法，我们只需要在回调方法当中将当前的值取出并打印出来。
+    -  在动画执行的过程中系统会不断地回调onAnimationUpdate()方法，我们只需要在回调方法当中将当前的值取出并打印出来。
     -  回调onAnimationUpdate()方法的时间间隔是ValueAnimator类根据你设置的初始值、结束值、动画时间三个参数来计算出来的，不需要我们设置，它会尽可能的让动画平滑的播放出来（即在使用最少的回调次数的基础上，保证动画流畅）。
 
 <br>　　另外`ofFloat()`方法当中是可以传入任意多个参数的，因此我们还可以构建出更加复杂的动画逻辑，比如说将一个值在`5`秒内从`0`过渡到`5`，再过渡到`3`，再过渡到`10`，就可以这样写：
@@ -434,11 +437,12 @@ animator.start();
 
 <br>　　相信肯定会有不少朋友现在心里都有同样一个疑问，就是`ObjectAnimator`的`ofFloat()`方法的第二个参数到底可以传哪些值呢？目前我们使用过了`alpha`、`rotation`、`translationX`和`scaleY`这几个值，那么还有哪些值是可以使用的呢？答案是我们可以传入`任意的值`到`ofFloat()`方法的第二个参数当中。因为`ObjectAnimator`在设计的时候就没有针对于`View`来进行设计，而是针对于任意对象的，它所负责的工作就是不断地向某个对象中的某个属性进行赋值，然后对象根据属性值的改变再来决定如何展现出来。
 　　以`ObjectAnimator.ofFloat(btn, "alpha", 1f, 0f, 1f)`为例，这行代码的意思就是不断的修改`Button`的`alpha`属性值，但不是直接去修改，而是当动画启动时，`ObjectAnimator`会不断的调用`Button`对象的`getAlpha()`和`setAlpha()`方法，这个两个方法定义在`View`类。
-　　相应的，`rotation`对应的就是`setRotation()`和`getRotation()`方法，值得注意的是，`View`类的`getAlpha()`等方法是在`Android3.0`之后才提供的，因此如果代码运行在`3.0`之前则会报错，这个问题在后面会解决。
+　　相应的，`rotation`对应的就是`setRotation()`和`getRotation()`方法，值得注意的是，`View`类的`getRotation()`等方法是在`Android3.0`之后才提供的，因此如果代码运行在`3.0`之前则就只会在视觉上变化，但实际是没变化的。
 <br>
 ### 组合动画 ###
 　　独立的动画能够实现的视觉效果毕竟是相当有限的，因此将多个动画组合到一起播放就显得尤为重要。幸运的是，Android团队在设计属性动画的时候也充分考虑到了组合动画的功能，因此提供了一套非常丰富的`API`来让我们将多个动画组合到一起。
-　　实现组合动画功能主要需要借助`AnimatorSet`这个类，这个类提供了一个`play()`方法，如果我们向这个方法中传入一个`Animator`对象(`ValueAnimator`或`ObjectAnimator`)将会返回一个`AnimatorSet.Builder`的实例，`AnimatorSet.Builder`中包括以下四个方法：
+　　实现组合动画功能主要需要借助`AnimatorSet`这个类，这个类提供了一个`play()`方法，如果我们向这个方法中传入一个`Animator`对象(`ValueAnimator`和`ObjectAnimator`的父类)将会返回一个`AnimatorSet.Builder`的实例。
+　　`AnimatorSet.Builder`中包括以下四个方法：
 
 	-  after(Animator anim)    将现有动画插入到传入的动画之后执行
 	-  after(long delay)       将现有动画延迟指定毫秒后执行
