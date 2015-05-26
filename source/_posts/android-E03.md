@@ -17,22 +17,9 @@ categories: Android
 	-  第二，视图动画系统只能动画View对象几个方面，如缩放、平移等。它没法把View的背景颜色、字体颜色、margin、padding等属性进行动态变化。
 	-  第三，视图动画不是会修改View本身。虽然你的动画在屏幕上移动一个按钮后，从屏幕上来看按钮确实被移动到了新的位置，但按钮实际的位置不会改变，所以你要实现自己的逻辑来处理这个问题。
 
-<br>　　视图动画的缺点在属性动画中完全被消除了，你可以动画任何对象的任何属性（视图和非视图），并且对象本身实际（尺寸、位置等）也是会被修改。
-　　属性动画的缺点是：在`Android3.0`中才被提出。 
-　　但是万事总有一线生机，现在有一个名为`NineOldAndroids`动画库，可以让低于`Android3.0(API Level 11)`的项目使用上属性动画。它的作者是非常牛逼的`JakeWharton`，好几个著名的开源库都是他的作品。
-　　项目的官网为：http://nineoldandroids.com/ ，`JakeWharton`的`Github`主页为：https://github.com/JakeWharton 。
-<br>　　遗憾的是，经过笔者测试验证，当`NineOldAndroids`动画库运行在`Android3.0`之前（`Android3.0`及之后则不会）的平台时，仍然存在上面的第三条所描述的问题（视图的位置不会真正发生改变），`Jake Wharton`本人也对此做出了回应：
-```
-Yes, this is a platform limitation. You need to physically move the view when the animation ends on pre-Honeycomb. 
-```
-　　[点击查看详情](http://stackoverflow.com/questions/13173808/nineoldandroids-not-clickable-view-after-rotation-or-move?rq=1)
-
-　　因此，笔者提出如下的建议：
-
-	-  如果你使用属性动画目的是，动画一个非View对象，那么你可以使用NineOldAndroids库，或者直接基于3.0开发。
-	-  如果你使用属性动画目的是，真正意义的改变View位置、旋转等属性，那么你最好直接基于3.0开发，如果使用NineOldAndroids库，则会相对费劲。
-
+<br>　　视图动画的缺点在属性动画中完全被消除了，你可以动画任何对象的任何属性（视图和非视图），并且对象本身实际（尺寸、位置等）也是会被修改。属性动画的缺点是：在`Android3.0`中才被提出。 
 　　即便如此，现在也算是到了学习属性动画的时候了，截止至`2015/05/25`，配置`Android3.0`以下版本系统的设备已经不足`6%`了，换句话说我们现在完全可以把项目的`minSdkVersion`设置为`11`了。
+　　当然在`Android3.0`之前版本的系统中我们也是可以使用属性动画的，这一点在第四节将详细介绍，第三节将以`Android3.0`版本来讲解属性动画。
 
 <br>**使用视图动画还是属性动画？**
 　　在某些时候，使用视图动画可以花费更少的时间，更少的代码，因此如果视图动画完成了你需要做的，或者你现有的代码已经完成了工作，那就没有必要使用属性动画系统。
@@ -359,11 +346,8 @@ public void onWindowFocusChanged(boolean hasFocus) {
     语句解释：
     -  onWindowFocusChanged方法将在Activity的onResume方法之后且用户可操作之前被调用。
 
-# 第二节 属性动画 #
+# 第三节 属性动画 #
 　　简单的说，视图动画可以实现的功能，属性动画基本都可以实现，视图动画的缺点，在属性动画中都不存在了。而且，使用的时候我们只需要告诉系统`动画的运行时长`，需要执行`哪种类型的动画`，以及`动画的初始值和结束值`，剩下的工作就可以全部交给系统去完成了。
-
-　　在介绍属性动画之前，首先得需要从的[ NineOldAndroids 官网 ](http://nineoldandroids.com)上下载最新的`NineOldAndroids`动画库源码，如果感觉源码管理起来麻烦，也可以把它们打包成一个`jar`包。
-
 
 <br>　　笔者在此声明，本节主要参考阅读下面`CSDN郭霖`的三篇文章（有细节上的修改，但几乎可以算是原样抄袭！）：
 - [Android属性动画完全解析(上)，初识属性动画的基本用法](http://blog.csdn.net/guolin_blog/article/details/43536355#)
@@ -387,7 +371,7 @@ anim.setDuration(300);
 anim.start();
 ```
     语句解释：
-    -  值得注意的，本范例使用的是com.nineoldandroids.animation.ValueAnimator类。
+    -  值得注意的，本范例使用的是android.animation.ValueAnimator类。
 
 <br>　　运行上面的代码时，程序会将值从`0`过渡到`1`，但是我们却无法看到任何界面效果，我们需要借助监听器才能知道这个动画是否已经真正运行了，如下所示：
 ``` android
@@ -437,7 +421,7 @@ animator.start();
 
 <br>　　相信肯定会有不少朋友现在心里都有同样一个疑问，就是`ObjectAnimator`的`ofFloat()`方法的第二个参数到底可以传哪些值呢？目前我们使用过了`alpha`、`rotation`、`translationX`和`scaleY`这几个值，那么还有哪些值是可以使用的呢？答案是我们可以传入`任意的值`到`ofFloat()`方法的第二个参数当中。因为`ObjectAnimator`在设计的时候就没有针对于`View`来进行设计，而是针对于任意对象的，它所负责的工作就是不断地向某个对象中的某个属性进行赋值，然后对象根据属性值的改变再来决定如何展现出来。
 　　以`ObjectAnimator.ofFloat(btn, "alpha", 1f, 0f, 1f)`为例，这行代码的意思就是不断的修改`Button`的`alpha`属性值，但不是直接去修改，而是当动画启动时，`ObjectAnimator`会不断的调用`Button`对象的`getAlpha()`和`setAlpha()`方法，这个两个方法定义在`View`类。
-　　相应的，`rotation`对应的就是`setRotation()`和`getRotation()`方法，值得注意的是，`View`类的`getRotation()`等方法是在`Android3.0`之后才提供的，因此如果代码运行在`3.0`之前则就只会在视觉上变化，但实际是没变化的。
+　　相应的，`rotation`对应的就是`setRotation()`和`getRotation()`方法。
 <br>
 ### 组合动画 ###
 　　独立的动画能够实现的视觉效果毕竟是相当有限的，因此将多个动画组合到一起播放就显得尤为重要。幸运的是，Android团队在设计属性动画的时候也充分考虑到了组合动画的功能，因此提供了一套非常丰富的`API`来让我们将多个动画组合到一起。
@@ -460,9 +444,10 @@ animSet.play(rotate).with(fadeInOut).after(moveIn);
 animSet.setDuration(5000);
 animSet.start();
 ```
+<br>　　当然除了上面说的4个方法外，`AnimatorSet`这个类来提供了不少其它有用的方法，比如`playTogether()`、`playSequentially()`等。
 <br>
 ### Animator监听器 ###
-　　在很多时候，我们希望可以监听到动画的各种事件，比如动画何时开始，何时结束，然后在开始或者结束的时候去执行一些逻辑处理。这个功能是完全可以实现的，`Animator`类(ValueAnimator、AnimatorSet都继承自它)当中提供了一个`addListener()`方法，这个方法接收一个`AnimatorListener`，我们只需要去实现这个`AnimatorListener`就可以监听动画的各种事件了。
+　　在很多时候，我们希望可以监听到动画的各种事件，比如动画何时开始，何时结束，然后在开始或者结束的时候去执行一些逻辑处理。这个功能是完全可以实现的，`Animator`类(ValueAnimator、AnimatorSet的父类)当中提供了一个`addListener()`方法，这个方法接收一个`AnimatorListener`，我们只需要去实现这个`AnimatorListener`就可以监听动画的各种事件了。
 
 ``` android
 ValueAnimator anim = ValueAnimator.ofInt(0, 10);
@@ -490,6 +475,7 @@ anim.addListener(new Animator.AnimatorListener() {
         System.out.println("onAnimationCancel");
     }
 });
+anim.start();
 ```
 
 <br>　　但是也许很多时候我们并不想要监听那么多个事件，可能我只想要监听动画结束这一个事件，那么每次都要将四个接口全部实现一遍就显得非常繁琐。没关系，为此Android提供了一个适配器类，叫作`AnimatorListenerAdapter`，使用这个类就可以解决掉实现接口繁琐的问题了，如下所示：
@@ -506,9 +492,9 @@ anim.addListener(new AnimatorListenerAdapter() {
 　　通过`XML`来编写动画可能会比通过代码来编写动画要慢一些，但是在重用方面将会变得非常轻松，比如某个将通用的动画编写到`XML`里面，我们就可以在各个界面当中轻松去重用它。
 <br>　　如果想要使用`XML`来编写动画，首先要在`res`目录下面新建一个`animator`文件夹，所有属性动画的`XML`文件都应该存放在这个文件夹当中。然后在`XML`文件中我们一共可以使用如下三种标签：
 
-	-  <animator>  对应代码中的ValueAnimator
-	-  <objectAnimator>  对应代码中的ObjectAnimator
-	-  <set>  对应代码中的AnimatorSet
+	-  <animator>        对应代码中的 ValueAnimator
+	-  <objectAnimator>  对应代码中的 ObjectAnimator
+	-  <set>             对应代码中的 AnimatorSet
 
 <br>　　那么比如说我们想要实现一个从`0`到`100`平滑过渡的动画，在`XML`当中就可以这样写：
 ``` xml
@@ -576,6 +562,7 @@ animator.setTarget(view);
 animator.start();
 ```
 　　调用`AnimatorInflater`的`loadAnimator`来将`XML`动画文件加载进来，然后再调用`setTarget()`方法将这个动画设置到某一个对象上面，最后再调用`start()`方法启动动画就可以了，就是这么简单。
+<br>　　最后要注意的是，如果你使用的是`NineOldAndroids`动画库，那么在`Android2.2`设备上加载上面那个动画`XML`文件时会报错。
 
 ## 高级用法 ##
 　　正如上一节当中所说到的，属性动画对补间动画进行了很大幅度的改进，之前补间动画可以做到的属性动画也能做到，补间动画做不到的现在属性动画也可以做到了。因此，今天我们就来学习一下属性动画的高级用法，看看如何实现一些补间动画所无法实现的功能。
@@ -591,8 +578,8 @@ public class FloatEvaluator implements TypeEvaluator {
     // fraction：表示动画的完成度的，我们应该根据它来计算当前动画的值应该是多少。
     // startValue和endValue：表示动画的初始值和结束值。
     public Object evaluate(float fraction, Object startValue, Object endValue) {
-        // 用结束值减去初始值，算出它们之间的差值，然后乘以fraction这个系数，再加上初始值，那么就得到当前动画的值了。
         float startFloat = ((Number) startValue).floatValue();
+        // 用结束值减去初始值，算出它们之间的差值，然后乘以fraction这个系数，再加上初始值，那么就得到当前动画的值了。
         return startFloat + fraction * (((Number) endValue).floatValue() - startFloat);
     }
 }
@@ -716,122 +703,114 @@ public class MyAnimView extends View {
 </center>
 
 　　这样我们就成功实现了通过对对象进行值操作来实现动画效果的功能，这就是`ValueAnimator`的高级用法。
-
 <br>
 ### ObjectAnimator进阶###
-　　之前我们在吐槽补间动画的时候有提到过，补间动画是只能实现移动、缩放、旋转和淡入淡出这四种动画操作的，功能限定死就是这些，基本上没有任何扩展性可言。比如我们想要实现对View的颜色进行动态改变，补间动画是没有办法做到的。
-　　但是属性动画就不会受这些条条框框的限制，它的扩展性非常强，对于动态改变View的颜色这种功能是完全可是胜任的，那么下面我们就来学习一下如何实现这样的效果。
+　　之前我们在吐槽补间动画的时候有提到过，补间动画是只能实现移动、缩放、旋转和淡入淡出这四种动画操作的，功能限定死就是这些，基本上没有任何扩展性可言。比如我们想要实现对`View`的颜色进行动态改变，补间动画是没有办法做到的。
+　　但是属性动画就不会受这些条条框框的限制，它的扩展性非常强，对于动态改变`View`的颜色这种功能是完全可是胜任的，那么下面我们就来学习一下如何实现这样的效果。
 
-　　我们此时就需要在`MyAnimView`中定义一个`color`属性，并提供它的`get`和`set`方法。这里我们可以将`color`属性设置为字符串类型，使用`#RRGGBB`这种格式来表示颜色值，代码如下所示：
+<br>　　我们此时就需要在`MyAnimView`中定义一个`color`属性，并提供它的`get`和`set`方法。这里我们可以将`color`属性设置为字符串类型，使用`#RRGGBB`这种格式来表示颜色值，代码如下所示：
 ``` android
 public class MyAnimView extends View {
-	//...
-	private String color;
+    //...
+    private String color;
 
-	public String getColor() {
-		return color;
-	}
+    public String getColor() {
+        return color;
+    }
 
-	public void setColor(String color) {
-		this.color = color;
-		mPaint.setColor(Color.parseColor(color));
-		invalidate();
-	}
-	//...
+    public void setColor(String color) {
+        this.color = color;
+        // 修改画笔颜色
+        mPaint.setColor(Color.parseColor(color));
+        // 重绘视图，调用此方法后会导致onDraw()方法被调用。
+        invalidate();
+    }
+    //...
 }
 ```
     语句解释：
-    -  setColor()方法中的代码虽然只有三行，但是却执行了一个非常核心的功能，就是在改变了画笔颜色之后立即刷新视图，然后onDraw()方法就会调用。在onDraw()方法当中会根据当前画笔的颜色来进行绘制，这样颜色也就会动态进行改变了。
+    -  在onDraw()方法当中会根据画笔mPaint的颜色来进行绘制，这样颜色也就会动态进行改变了。
 
-　　那么接下来的问题就是怎样让`setColor()`方法得到调用了，毫无疑问，当然是要借助`ObjectAnimator`类，但是在使用`ObjectAnimator`之前我们还要完成一个非常重要的工作，就是编写一个用于告知系统如何进行颜色过度的`TypeEvaluator`。创建`ColorEvaluator`并实现`TypeEvaluator`接口，代码如下所示：
+<br>　　那么接下来的问题就是怎样让`setColor()`方法得到调用了，毫无疑问，当然是要借助`ObjectAnimator`类，但是在使用`ObjectAnimator`之前我们还要完成一个非常重要的工作，就是编写一个用于告知系统如何进行颜色过度的`TypeEvaluator`。创建`ColorEvaluator`并实现`TypeEvaluator`接口，代码如下所示：
 ``` android
 public class ColorEvaluator implements TypeEvaluator {
+    private int mCurrentRed = -1;
+    private int mCurrentGreen = -1;
+    private int mCurrentBlue = -1;
 
-	private int mCurrentRed = -1;
+    @Override
+    public Object evaluate(float fraction, Object startValue, Object endValue) {
+        String startColor = (String) startValue;
+        String endColor = (String) endValue;
+        int startRed = Integer.parseInt(startColor.substring(1, 3), 16);
+        int startGreen = Integer.parseInt(startColor.substring(3, 5), 16);
+        int startBlue = Integer.parseInt(startColor.substring(5, 7), 16);
+        int endRed = Integer.parseInt(endColor.substring(1, 3), 16);
+        int endGreen = Integer.parseInt(endColor.substring(3, 5), 16);
+        int endBlue = Integer.parseInt(endColor.substring(5, 7), 16);
+        // 初始化颜色的值
+        if (mCurrentRed == -1) {
+            mCurrentRed = startRed;
+        }
+        if (mCurrentGreen == -1) {
+            mCurrentGreen = startGreen;
+        }
+        if (mCurrentBlue == -1) {
+            mCurrentBlue = startBlue;
+        }
+        // 计算初始颜色和结束颜色之间的差值
+        int redDiff = Math.abs(startRed - endRed);
+        int greenDiff = Math.abs(startGreen - endGreen);
+        int blueDiff = Math.abs(startBlue - endBlue);
+        int colorDiff = redDiff + greenDiff + blueDiff;
+        if (mCurrentRed != endRed) {
+            mCurrentRed = getCurrentColor(startRed, endRed, colorDiff, 0, fraction);
+        } else if (mCurrentGreen != endGreen) {
+            mCurrentGreen = getCurrentColor(startGreen, endGreen, colorDiff, redDiff, fraction);
+        } else if (mCurrentBlue != endBlue) {
+            mCurrentBlue = getCurrentColor(startBlue, endBlue, colorDiff, redDiff + greenDiff, fraction);
+        }
+        // 将计算出的当前颜色的值组装返回
+        String currentColor = "#" + getHexString(mCurrentRed) + getHexString(mCurrentGreen) + getHexString(mCurrentBlue);
+        return currentColor;
+    }
 
-	private int mCurrentGreen = -1;
-
-	private int mCurrentBlue = -1;
-
-	@Override
-	public Object evaluate(float fraction, Object startValue, Object endValue) {
-		String startColor = (String) startValue;
-		String endColor = (String) endValue;
-		int startRed = Integer.parseInt(startColor.substring(1, 3), 16);
-		int startGreen = Integer.parseInt(startColor.substring(3, 5), 16);
-		int startBlue = Integer.parseInt(startColor.substring(5, 7), 16);
-		int endRed = Integer.parseInt(endColor.substring(1, 3), 16);
-		int endGreen = Integer.parseInt(endColor.substring(3, 5), 16);
-		int endBlue = Integer.parseInt(endColor.substring(5, 7), 16);
-		// 初始化颜色的值
-		if (mCurrentRed == -1) {
-			mCurrentRed = startRed;
-		}
-		if (mCurrentGreen == -1) {
-			mCurrentGreen = startGreen;
-		}
-		if (mCurrentBlue == -1) {
-			mCurrentBlue = startBlue;
-		}
-		// 计算初始颜色和结束颜色之间的差值
-		int redDiff = Math.abs(startRed - endRed);
-		int greenDiff = Math.abs(startGreen - endGreen);
-		int blueDiff = Math.abs(startBlue - endBlue);
-		int colorDiff = redDiff + greenDiff + blueDiff;
-		if (mCurrentRed != endRed) {
-			mCurrentRed = getCurrentColor(startRed, endRed, colorDiff, 0,
-					fraction);
-		} else if (mCurrentGreen != endGreen) {
-			mCurrentGreen = getCurrentColor(startGreen, endGreen, colorDiff,
-					redDiff, fraction);
-		} else if (mCurrentBlue != endBlue) {
-			mCurrentBlue = getCurrentColor(startBlue, endBlue, colorDiff,
-					redDiff + greenDiff, fraction);
-		}
-		// 将计算出的当前颜色的值组装返回
-		String currentColor = "#" + getHexString(mCurrentRed)
-				+ getHexString(mCurrentGreen) + getHexString(mCurrentBlue);
-		return currentColor;
-	}
-
-	/**
-	 * 根据fraction值来计算当前的颜色。
-	 */
-	private int getCurrentColor(int startColor, int endColor, int colorDiff,
-			int offset, float fraction) {
-		int currentColor;
-		if (startColor > endColor) {
-			currentColor = (int) (startColor - (fraction * colorDiff - offset));
-			if (currentColor < endColor) {
-				currentColor = endColor;
-			}
-		} else {
-			currentColor = (int) (startColor + (fraction * colorDiff - offset));
-			if (currentColor > endColor) {
-				currentColor = endColor;
-			}
-		}
-		return currentColor;
-	}
+    /**
+     * 根据fraction值来计算当前的颜色。
+     */
+    private int getCurrentColor(int startColor, int endColor, int colorDiff, int offset, float fraction) {
+        int currentColor;
+        if (startColor > endColor) {
+            currentColor = (int) (startColor - (fraction * colorDiff - offset));
+            if (currentColor < endColor) {
+                currentColor = endColor;
+            }
+        } else {
+            currentColor = (int) (startColor + (fraction * colorDiff - offset));
+            if (currentColor > endColor) {
+                currentColor = endColor;
+            }
+        }
+        return currentColor;
+    }
 	
-	/**
-	 * 将10进制颜色值转换成16进制。
-	 */
-	private String getHexString(int value) {
-		String hexString = Integer.toHexString(value);
-		if (hexString.length() == 1) {
-			hexString = "0" + hexString;
-		}
-		return hexString;
-	}
+    /**
+     * 将10进制颜色值转换成16进制。
+     */
+    private String getHexString(int value) {
+        String hexString = Integer.toHexString(value);
+        if (hexString.length() == 1) {
+            hexString = "0" + hexString;
+        }
+        return hexString;
+    }
 
 }
 ```
 
 　　`ColorEvaluator`写完之后我们就把最复杂的工作完成了，剩下的就是一些简单调用的问题了，比如说我们想要实现从蓝色到红色的动画过度，历时5秒，就可以这样写：
 ``` android
-ObjectAnimator anim = ObjectAnimator.ofObject(myAnimView, "color", new ColorEvaluator(), 
-	"#0000FF", "#FF0000");
+ObjectAnimator anim = ObjectAnimator.ofObject(myAnimView, "color", new ColorEvaluator(), "#0000FF", "#FF0000");
 anim.setDuration(5000);
 anim.start();
 ```
@@ -841,7 +820,7 @@ anim.start();
 ``` android
 public class MyAnimView extends View {
 
-    ...
+    // ...
 
     private void startAnimation() {
         Point startPoint = new Point(RADIUS, RADIUS);
@@ -854,8 +833,7 @@ public class MyAnimView extends View {
                 invalidate();
             }
         });
-        ObjectAnimator anim2 = ObjectAnimator.ofObject(this, "color", new ColorEvaluator(), 
-        		"#0000FF", "#FF0000");
+        ObjectAnimator anim2 = ObjectAnimator.ofObject(this, "color", new ColorEvaluator(), "#0000FF", "#FF0000");
         AnimatorSet animSet = new AnimatorSet();
         animSet.play(anim).with(anim2);
         animSet.setDuration(5000);
@@ -865,12 +843,34 @@ public class MyAnimView extends View {
 }
 ```
 
-　　可以看到，我们并没有改动太多的代码，重点只是修改了startAnimation()方法中的部分内容。这里先是将颜色过度的代码逻辑移动到了startAnimation()方法当中，注意由于这段代码本身就是在MyAnimView当中执行的，因此ObjectAnimator.ofObject()的第一个参数直接传this就可以了。接着我们又创建了一个AnimatorSet，并把两个动画设置成同时播放，动画时长为五秒，最后启动动画。现在重新运行一下代码，效果如下图所示：
+　　可以看到，我们并没有改动太多的代码，重点只是修改了`startAnimation()`方法中的部分内容。这里先是将颜色过度的代码逻辑移动到了`startAnimation()`方法当中，注意由于这段代码本身就是在`MyAnimView`当中执行的，因此`ObjectAnimator.ofObject()`的第一个参数直接传`this`就可以了。接着我们又创建了一个`AnimatorSet`，并把两个动画设置成同时播放，动画时长为`5`秒，最后启动动画。现在重新运行一下代码，效果如下图所示：
 
 <center>
 ![](http://img.blog.csdn.net/20150504225554203)
 </center>
 
+# 第四节 NineOldAndroids #
+
+　　但是万事总有一线生机，现在有一个名为`NineOldAndroids`动画库，可以让低于`Android3.0(API Level 11)`的项目使用上属性动画。它的作者是非常牛逼的`JakeWharton`，好几个著名的开源库都是他的作品。
+　　项目的官网为：http://nineoldandroids.com/ ，`JakeWharton`的`Github`主页为：https://github.com/JakeWharton 。
+<br>　　遗憾的是，经过笔者测试验证，当`NineOldAndroids`动画库运行在`Android3.0`之前（`Android3.0`及之后则不会）的平台时，仍然存在上面的第三条所描述的问题（视图的位置不会真正发生改变），`Jake Wharton`本人也对此做出了回应：
+```
+Yes, this is a platform limitation. You need to physically move the view when the animation ends on pre-Honeycomb. 
+```
+　　[点击查看详情](http://stackoverflow.com/questions/13173808/nineoldandroids-not-clickable-view-after-rotation-or-move?rq=1)
+
+
+　　因此，笔者提出如下的建议：
+
+	-  如果你使用属性动画目的是，动画一个非View对象，那么你可以使用NineOldAndroids库，或者直接基于3.0开发。
+	-  如果你使用属性动画目的是，真正意义的改变View位置、旋转等属性，那么你最好直接基于3.0开发，如果使用NineOldAndroids库，则会相对费劲。
+
+
+　　在介绍属性动画之前，首先得需要从的[ NineOldAndroids 官网 ](http://nineoldandroids.com)上下载最新的`NineOldAndroids`动画库源码，如果感觉源码管理起来麻烦，也可以把它们打包成一个`jar`包。
+
+com.nineoldandroids.animation.ValueAnimator
+
+，值得注意的是，`View`类的`getRotation()`等方法是在`Android3.0`之后才提供的，因此如果代码运行在`3.0`之前则就只会在视觉上变化，但实际是没变化的
 
 <br>**本章参考阅读：**
 - [Android动画进阶—使用开源动画库nineoldandroids](http://blog.csdn.net/singwhatiwanna/article/details/17639987)
