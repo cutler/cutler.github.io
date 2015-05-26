@@ -850,29 +850,66 @@ public class MyAnimView extends View {
 </center>
 
 # 第四节 NineOldAndroids #
-
+　　前面说了，属性动画是在`Android3.0`中推出的，在`Android3.0`之前没法使用它。
 　　但是万事总有一线生机，现在有一个名为`NineOldAndroids`动画库，可以让低于`Android3.0(API Level 11)`的项目使用上属性动画。它的作者是非常牛逼的`JakeWharton`，好几个著名的开源库都是他的作品。
 　　项目的官网为：http://nineoldandroids.com/ ，`JakeWharton`的`Github`主页为：https://github.com/JakeWharton 。
-<br>　　遗憾的是，经过笔者测试验证，当`NineOldAndroids`动画库运行在`Android3.0`之前（`Android3.0`及之后则不会）的平台时，仍然存在上面的第三条所描述的问题（视图的位置不会真正发生改变），`Jake Wharton`本人也对此做出了回应：
+
+　　`NineOldAndroids`的原理很简单，判断当前设备的`API Level`版本，如果大于等于`11`，那么就调用`官方的API`，否则就调用自己实现动画效果。在`API`的名称等方面，它与官方的属性动画基本一致（如`ObjectAnimator`、`ValueAnimator`等），这意味着你只需要修改一下包名就可以在官方和`NineOldAndroids`之间切换。
+　　比如说想要将一个值从`0`平滑过渡到`1`，时长`300`毫秒，写法与官方`API`完全一致：
+``` android
+ValueAnimator anim = ValueAnimator.ofFloat(0f, 1f);
+anim.setDuration(300);
+anim.start();
 ```
-Yes, this is a platform limitation. You need to physically move the view when the animation ends on pre-Honeycomb. 
+    语句解释：
+    -  值得注意的，本范例使用的是com.nineoldandroids.animation.ValueAnimator类。
+
+<br>　　遗憾的是，经过笔者测试验证，当`NineOldAndroids`动画库运行在`Android3.0`之前（`Android3.0`及之后会调用系统的API所以不会）的平台时，仍然存在视图动画的缺点（视图的位置不会真正发生改变），`Jake Wharton`本人也对此做出了回应：
+```
+Yes, this is a platform limitation. 
+You need to physically move the view when the animation ends on pre-Honeycomb. 
 ```
 　　[点击查看详情](http://stackoverflow.com/questions/13173808/nineoldandroids-not-clickable-view-after-rotation-or-move?rq=1)
 
+　　更劲爆的是，作者本人已经将这个项目给`DEPRECATED`了，下面是他的解释：
+```
+NineOldAndroids is deprecated. No new development will be taking place. 
+Existing versions will (of course) continue to function. 
+New applications should use minSdkVersion="14" or higher which has access to the platform animation APIs.
 
-　　因此，笔者提出如下的建议：
-
-	-  如果你使用属性动画目的是，动画一个非View对象，那么你可以使用NineOldAndroids库，或者直接基于3.0开发。
-	-  如果你使用属性动画目的是，真正意义的改变View位置、旋转等属性，那么你最好直接基于3.0开发，如果使用NineOldAndroids库，则会相对费劲。
+Thanks for all your support!
+```
 
 
-　　在介绍属性动画之前，首先得需要从的[ NineOldAndroids 官网 ](http://nineoldandroids.com)上下载最新的`NineOldAndroids`动画库源码，如果感觉源码管理起来麻烦，也可以把它们打包成一个`jar`包。
+<br>　　这是不是说`NineOldAndroids`动画库就完全没用了？ 并不是！事实上`NineOldAndroids`动画库有两个功能：
 
-com.nineoldandroids.animation.ValueAnimator
+	-  第一，让Android3.0之前的平台使用属性动画。
+	-  第二，让Android3.0之前的平台使用setAlpha()、setTranslationX()等方法。
 
-，值得注意的是，`View`类的`getRotation()`等方法是在`Android3.0`之后才提供的，因此如果代码运行在`3.0`之前则就只会在视觉上变化，但实际是没变化的
+　　经过前面几节的学习，我们已然知道了属性动画解决了视图动画的三个缺点，就算`NineOldAndroids`动画库没法真正修改视图的位置，那么它还是解决了视图动画的另外两个缺点。
+　　另外，通过查看`View`类可以看到，`setAlpha()`、`setTranslationX()`等（透明度、平移、缩放）方法是在`Android3.0`中提出的，这几个`API`是十分有用的，`NineOldAndroids`里帮我们做了一些兼容，让我们在`Android3.0`之前就可以使用它们：
+``` java
+// 让view向下方移50像素。
+ViewHelper.setTranslationY(view, 50);
+// 让view宽度放大2倍。
+ViewHelper.setScaleX(view, 2);
+```
+    语句解释：
+    -  比如我们想让控件随着手指的滑动来平移、放大，就可以使用上面的工具类：ViewHelper。
+       -  示例项目地址：https://github.com/BlueMor/Android-PullLayout 。
+    -  通过查看ViewHelper类的源码可以知道，ViewHelper类也是同样的逻辑，当设备是Android3.0或以上时，则会调用系统API，否则则会调用自己实现的API。 
+       -  相应的，当设备是Android3.0之前时，ViewHelper类也只会改变View的视觉效果，View的实际位置等还是不会改变。
+
+<br>　　因此，笔者提出如下的建议：
+
+	-  如果你的项目是基于Android3.0或以上开发的，那么完全不需要使用NineOldAndroids库，直接用系统的API即可。
+	-  如果基于Android3.0之前的版本：
+	   -  如果你只是想用属性动画来动画一个非View对象，那么使用NineOldAndroids库完全没问题。
+	   -  如果你想很方便的、真正意义的在Android3.0之前的设备上改变View位置、旋转等属性，那么NineOldAndroids库做不到。
+
 
 <br>**本章参考阅读：**
 - [Android动画进阶—使用开源动画库nineoldandroids](http://blog.csdn.net/singwhatiwanna/article/details/17639987)
+- [NineOldAndroids动画兼容库的使用](http://www.chengxuyuans.com/Android/87451.html)
 
 <br><br>
