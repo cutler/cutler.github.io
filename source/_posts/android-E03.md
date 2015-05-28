@@ -422,6 +422,59 @@ animator.start();
 <br>　　相信肯定会有不少朋友现在心里都有同样一个疑问，就是`ObjectAnimator`的`ofFloat()`方法的第二个参数到底可以传哪些值呢？目前我们使用过了`alpha`、`rotation`、`translationX`和`scaleY`这几个值，那么还有哪些值是可以使用的呢？答案是我们可以传入`任意的值`到`ofFloat()`方法的第二个参数当中。因为`ObjectAnimator`在设计的时候就没有针对于`View`来进行设计，而是针对于任意对象的，它所负责的工作就是不断地向某个对象中的某个属性进行赋值，然后对象根据属性值的改变再来决定如何展现出来。
 　　以`ObjectAnimator.ofFloat(btn, "alpha", 1f, 0f, 1f)`为例，这行代码的意思就是不断的修改`Button`的`alpha`属性值，但不是直接去修改，而是当动画启动时，`ObjectAnimator`会不断的调用`Button`对象的`getAlpha()`和`setAlpha()`方法，这个两个方法定义在`View`类。
 　　相应的，`rotation`对应的就是`setRotation()`和`getRotation()`方法。
+
+<br>**引入一个问题**
+　　我们现在有个需求，给`Button`加一个动画，让这个`Button`的`paddingLeft`从当前值增加到`500px`。按照上面的思路，我们可以这么写代码：
+``` android
+public class MainActivity extends Activity {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+    }
+    public void onClick(View button) {
+        // 当Button被点击时，我们启动一个属性动画，修改Button的paddingLeft属性的值到500 。
+        ObjectAnimator.ofInt(button, "paddingLeft", 500).setDuration(5000).start();
+    }
+}
+```
+　　上述代码运行后发现没效果，其实没效果是对的。这是因为属性动画如果想成功运行，需要两个条件：
+
+	-  object必须要提供setXxx方法，如果动画的时候没有传递初始值，那么还要提供getXxx方法，因为系统要去拿xxx属性的初始值。
+	-  object的setXxx对属性xxx所做的改变必须能够通过某种方法反映出来（不然你是看不到的），比如会带来ui的改变。
+　　上面范例之所以不成功是因为`View`类没有`setPaddingLeft`方法，而只有`setPadding()`方法，为了实现这个需求，我们可以用一个类来包装原始的`Button`对象，代码为：
+``` android
+public class MainActivity extends Activity {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+    }
+    public void onClick(View button) {
+        // 将按钮放到一个ButtonWrapper中。
+        ObjectAnimator.ofInt(new ButtonWrapper((Button) button), "paddingLeft", 500).setDuration(5000).start();
+    }
+    // 一个普通的包装类。
+    public class ButtonWrapper {
+        private Button mTarget;
+        public ButtonWrapper(Button mTarget) {
+            this.mTarget = mTarget;
+        }
+        public int getPaddingLeft() {
+            return mTarget.getPaddingLeft();
+        }
+        public void setPaddingLeft(int paddingLeft){
+            mTarget.setPadding(paddingLeft, 0, 0, 0);
+        }
+    }
+}
+```
+    语句解释：
+    -  这样一来程序运行时就可以看到动画效果了。
+    -  如果你修改完属性后View没有自动更新，那么你可以调用requestlayout()或invalidate()方法手动更新。
+
+
+<br>**本节参考阅读：**
+- [Android属性动画深入分析：让你成为动画牛人](http://blog.csdn.net/singwhatiwanna/article/details/17841165)
+
 <br>
 ### 组合动画 ###
 　　独立的动画能够实现的视觉效果毕竟是相当有限的，因此将多个动画组合到一起播放就显得尤为重要。幸运的是，Android团队在设计属性动画的时候也充分考虑到了组合动画的功能，因此提供了一套非常丰富的`API`来让我们将多个动画组合到一起。
@@ -905,10 +958,10 @@ ViewHelper.setScaleX(view, 2);
 	-  如果你的项目是基于Android3.0或以上开发的，那么完全不需要使用NineOldAndroids库，直接用系统的API即可。
 	-  如果基于Android3.0之前的版本：
 	   -  如果你只是想用属性动画来动画一个非View对象，那么使用NineOldAndroids库完全没问题。
-	   -  如果你想很方便的、真正意义的在Android3.0之前的设备上改变View位置、旋转等属性，那么NineOldAndroids库做不到。
+	   -  如果你想很方便的、真正意义的在Android3.0之前的设备上改变View位置、旋转等属性，那么NineOldAndroids库很难做到。
 
 
-<br>**本章参考阅读：**
+<br>**本节参考阅读：**
 - [Android动画进阶—使用开源动画库nineoldandroids](http://blog.csdn.net/singwhatiwanna/article/details/17639987)
 - [NineOldAndroids动画兼容库的使用](http://www.chengxuyuans.com/Android/87451.html)
 

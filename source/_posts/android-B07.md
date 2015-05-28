@@ -514,7 +514,7 @@ getSupportActionBar().setCustomView(R.layout.common_title);
 
 
 # 第二节 直接使用ActionBar #
-　　此种方式等回来在写。<br><br><br><br>
+　　仔细想了一下，其实我们没必要使用系统的`ActionBar`，因为`V7 appcompat`库就是Google提供的，`ActionBar`有什么最新的特性也会及时更新到里面去，所以就目前来说`V7 appcompat`库足以够用了。<br><br><br><br>
 
 
 

@@ -1229,14 +1229,14 @@ public class MyView extends View {
 　　相信您也看多过`Github`上的各类`Android`开源项目，里面有各种绚丽的特效，笔者也看的眼馋，虽然咱们的原则是`“可以不会写，但必须得会改”`，但是每每看到里面的特效，笔者都想知道它们是如何实现的，并希望自己能学会。因此从本节开始，笔者将以各个开源项目为例，来讲自定义控件相关的知识。 当然我们不会去完整的分析每个项目，只是会去看它们关键代码。
 
 ## Android-PullLayout ##
-　　这个项目提供了两个功能：`仿UC天气下拉`和`微信下拉眼睛`，`Github`地址：https://github.com/BlueMor/Android-PullLayout 。
+　　这个项目提供了两个功能：`仿U天气下C拉`和`微信下拉眼睛`，`Github`地址：https://github.com/BlueMor/Android-PullLayout 。
 
-　　其中的`微信下拉眼睛`功能，咱们通过上一节学到的`Xfermode`就可以实现。笔者运行了这个项目，在它的`微信下拉眼睛`功能上发现两个缺点：
+<br>　　其中的`微信下拉眼睛`功能，咱们通过上一节学到的`Xfermode`就可以实现。笔者运行了这个项目，在它的`微信下拉眼睛`功能上发现两个缺点：
 
 	-  第一，功能依赖于API Lavel 11中的新API，即程序运行在Android2.2系统中，会有黑框出现。
 	-  第二，项目中的EyeView继承自FrameLayout类，不知道作者出于什么考虑，其实完全可以继承ImageView或者View类。
 
-　　因此，笔者优化后的`EyeView`代码为：
+<br>　　因此，笔者优化后的`EyeView`代码为：
 ``` android
 public class EyeView extends View {
 
@@ -1276,5 +1276,41 @@ public class EyeView extends View {
 ```
     语句解释：
     -  本范例中所涉及的知识我们都已经讲过了，不再冗述。并且本范例可以完美运行在Android2.2版本的系统中。
+
+<br>　　另外，它的`仿U天气下C拉`功能是通过属性动画实现的，并使用了`NineOldAndroids`动画库，关于属性动画请参看笔者写的另一篇文章《媒体篇　第三章 动画》，在此就不再冗述了。
+
+<br>　　在这个项目中还涉及到一个小知识点，我们知道在`Activity`的`onCreate()`方法中调用`View`类的`getWidth()`和`getHeight()`方法无法获得`View`的高度和宽度，这是因为`View`组件布局要在`Activity`的`onResume()`回调后完成。我们可以通过下面的代码解决这个问题：
+``` android
+public class MainActivity extends Activity {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        final TextView textView = (TextView) findViewById(R.id.text);
+        // 通过textView来获取一个ViewTreeObserver对象，然后将一个回调接口添加到其中。
+        textView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            public void onGlobalLayout() {
+                System.out.println(textView.getWidth());
+                System.out.println(textView.getHeight());
+                System.out.println(textView.getLineCount());
+                // 但是需要注意的是OnGlobalLayoutListener可能会被多次触发，因此在得到了高度之后，要将OnGlobalLayoutListener注销掉。
+                textView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+            }
+        });
+
+    }
+}
+```
+    语句解释：
+    -  程序运行时，回调调用两次printTextViewInfo()方法，第一次调用只会打印出来0，第二次调用时则就有值了。
+    -  ViewTreeObserver有多个内部类：
+       -  OnGlobalLayoutListener：当视图树中全局布局发生改变或者视图树中的某个视图的可视状态发生改变时，所要调用的回调函数的接口类。
+       -  OnPreDrawListener：当视图树将要绘制时，所要调用的回调函数的接口类。
+       -  OnScrollChangedListener：当视图树中的一些组件发生滚动时，所要调用的回调函数的接口类。
+       -  OnTouchModeChangeListener：当视图树的触摸模式发生改变时，所要调用的回调函数的接口类。
+
+<br>**本节参考阅读：**
+- [OnGlobalLayoutListener获得一个视图的高度](http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2014/0731/1640.html)
+
 
 <br><br>
