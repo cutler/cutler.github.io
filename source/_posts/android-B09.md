@@ -15,7 +15,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        // 将Activity的引用传递过去。
         addViewToScreen(this);
     }
 
@@ -38,26 +38,137 @@ public class MainActivity extends Activity {
     -  运行本范例时，我们就可以在屏幕的中央看到contentView所对应的内容。
 
 
-<br>　　但是，如果我们此时点击`Home`键，那么`contentView`就会随着`Activity`一起被切到后台。
-　　这是正常的，因为`WindowManager`中可以放置很多个`View`（控件），控件之间有等级之分，`等级高的控件将被放到等级低的控件上面`。若最高等级控件的宽高是`“MATCH_PARENT”`，则其下面的控件都将被完全遮住，`若等级相同则后加入的会被放到上面显示`。我们刚才添加往`WindowManager`中添加`View`时并没有指定任何等级，所以系统使用了默认值。 
+<br>　　但是，如果我们在程序运行后，点击`Home`键，那么`contentView`就会随着`Activity`一起被切到后台。导致这个问题有两个原因：
 
-　　通过`WindowManager.LayoutParams`的`type`属性来设置控件等级，常用取值为：
+	-  第一，我们传递给和方法的context是一个Activity对象。
+	-  第二，没有为WindowManager.LayoutParams对象的type属性设置值，常用取值为：
+	   -  TYPE_PHONE ：手机级别，即表示在所有应用程序之上，但在状态栏之下。
+	   -  TYPE_SYSTEM_ALERT ：系统窗口级别。比如：显示电量低时弹出的Alert对话框。
+	   -  TYPE_SYSTEM_OVERLAY ：系统窗口之上的级别，此级别的控件无法响应点击事件。
 
-	-  TYPE_TOAST ：吐司级别。
-	-  TYPE_SYSTEM_ALERT ：系统窗口级别。比如：显示电量低时弹出的Alert对话框。
-	-  TYPE_SYSTEM_OVERLAY ：系统窗口之上的级别，此级别的控件无法响应点击事件。
+<br>　　如果我们想让`contentView`不随着`Activity`一起隐藏，那么可以这么写：
+``` android
+public class MainActivity extends Activity {
 
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        // 传递Application对象过去。
+        addViewToScreen(getApplication());
+        // 3秒后关闭当前Activity。
+        new Handler().postDelayed(new Runnable() {
+            public void run() {
+                finish();
+            }
+        }, 3000);
+    }
 
+    private void addViewToScreen(Context context){
+        WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+        params.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        // 为type字段赋值。
+        params.type = WindowManager.LayoutParams.TYPE_PHONE;
+        View view = LayoutInflater.from(context).inflate(R.layout.inflate_tv, null);
+        manager.addView(view, params);
+    }
+}
+```
+    语句解释：
+    -  本范例中主要修改了两处代码，这两处缺一不可：
+       -  将传递给addTextViewToScreen()方法的Activity对象改为Application对象。
+       -  将params.type属性赋值为TYPE_PHONE（其它取值的含义稍后会介绍）。
+    -  创建浮动窗需要添加下面这个权限：
+       -  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
+<br>　　我们来总结一下`context`对象与`type`属性的配对关系：
 
-下面列出常见的type：
+	-  若context是一个Activity对象，则：
+	   -  若我们也没有为type属性赋值，那么View将被放到Activity中。当Activity被切到后台或销毁时，View将会随着Activity一起消失。
+	   -  若我们为type属性赋值为TYPE_PHONE(或更高)，那么View仍然会被放到Activity中。当Activity被切到后台或销毁时，View也会随着Activity一起消失。但是如果Activity被销毁了，程序还会抛出异常，因为我们使用Activity对象加载的布局文件和获取的WindowManager对象，因此可能导致Activity对象泄漏。
+	-  若context是一个Application对象，则：
+	   -  若我们也没有为type属性赋值，那么程序运行的时候将会抛出异常(请自行测试分析)。
+	   -  若我们为type属性赋值了TYPE_PHONE(或更高)，那么当Activity消失或销毁时，View仍会显示在屏幕上。
+　　简单的说，如果想做出`悬浮窗`的效果，那么就需要使用`application`对象和`type`属性，且值要是`TYPE_PHONE`(或更高)。
+　　所谓`悬浮窗`就是在设备屏幕上添加一个`View`，即便随后我们的应用程序被切换到后台了，这个`View`依然能悬浮在屏幕上。
 
-因为被添加当屏幕上的View也是有优先级的，我们可以使用WindowManager.LayoutParams的`type`的属性来改变这种行为：
+## 优先级 ##
+　　事实上`WindowManager`中可以放置很多个`View`（控件），控件之间有优先级之分，`优先级高的控件将被放到优先级低的控件上面`。若最高优先级控件的宽高是`“MATCH_PARENT”`，则其下面的控件都将被完全遮住，`若优先级相同则后加入的会被放到上面显示`。
+<br>　　我们来看一下下面的代码：
+``` android
+public class MainActivity extends Activity {
 
-有很多作用，但是我们通常用它来实现。所谓`悬浮窗`就是在设备屏幕上添加一个`View`，即便随后我们的应用程序被切换到后台了，这个`View`依然能悬浮在屏幕上。
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_PHONE, "Phone1");
+        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_PHONE, "Phone2");
+        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY, "Overlay");
+        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, " Alert ");
+        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_PHONE, "Phone3");
+        new Handler().postDelayed(new Runnable() {
+            public void run() {
+                finish();
+            }
+        }, 3000);
+    }
+
+    static int offsetY;
+
+    private void addTextViewToScreen(Context context, int type, String text){
+        WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+        params.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.type = type;
+        // 设置View在y轴上的坐标值，相应的也可以设置x值。
+        params.y = offsetY;
+        offsetY += 60;
+        TextView textView = (TextView) LayoutInflater.from(context).inflate(R.layout.inflate_tv, null);
+        textView.setText(text);
+        manager.addView(textView, params);
+    }
+}
+```
+<br>　　程序的运行效果为：
+
+<center>
+![](/img/android/android_b09_01.png)
+</center>
+
+<br>　　从上图可以看出：
+
+	-  Phone2与Phone1是同级别的，但是Phone2却在Phone1上面。
+	-  Overlay的级别最高，所以它压在了Phone2上面。
+	-  Alert的级别第二高，虽然是在Overlay之后添加的，但是它任然被放到了Overlay下面。
+	-  Phone3被压在了Alert下面。
+
+<br>　　值得注意的是，对于小米等手机而言，可能不允许添加`TYPE_SYSTEM_OVERLAY`类型的控件(笔者没去测试)，不过`TYPE_PHONE`足够我们使用了。
+
+<br>　　还有几个知识点：
+``` java
+// 设置控件的背景色为纯透明。
+params.format = PixelFormat.TRANSLUCENT;
+// 设置控件显示到屏幕的左上角。这里说的左上角也就是状态栏的下面。
+params.gravity = Gravity.LEFT | Gravity.TOP;
+// 设置控件在x和y轴的偏移量。 即控件最终的位置将由gravity和x、y共同决定。
+params.x = 10;
+params.y = 10;
+// 设置一些附加信息，多个flag之间使用“|”间隔。
+params.flags = 
+    // 控件将不会接收触摸事件。
+    LayoutParams.FLAG_NOT_TOUCH_MODAL |
+    // 控件将不会获取焦点。   
+    LayoutParams.FLAG_NOT_FOCUSABLE;
+```
+
+## 拖拽 ##
+　　接下来
 
 <br>**本节参考阅读：**
-- [OnGlobalLayoutListener获得一个视图的高度](http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2014/0731/1640.html)
+- [Android桌面悬浮窗效果实现，仿360手机卫士悬浮窗效果](http://blog.csdn.net/guolin_blog/article/details/8689140)
 
 
 <br><br>
