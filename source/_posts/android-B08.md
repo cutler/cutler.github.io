@@ -66,8 +66,6 @@ public class MainActivity extends Activity {
 }
 ```
 
-
-
 ## View ##
 　　既然完全定制的组件的第一步就是继承`View`类，那么我们自然得先介绍一下它。
 

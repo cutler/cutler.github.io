@@ -164,11 +164,40 @@ params.flags =
     LayoutParams.FLAG_NOT_FOCUSABLE;
 ```
 
-## 拖拽 ##
-　　接下来
+## 删除和更新 ##
+
+<br>　　范例1：从屏幕中移除一个已经存在的控件。
+``` android
+windowManager.removeView(destView);
+```
+
+<br>　　范例2：更新屏幕中一个已经存在的控件。
+``` android
+// 让y轴坐标偏移100个像素
+mParams.y += 100;
+// 依据最近的mParams中的信息（x、y、width、height等）来重新设置view的显示效果。
+mWindowManager.updateViewLayout(view, mParams);
+```
+    语句解释：
+    -  这里所说的更新控件，其实就是再更新控件的LayoutParams对象。
+
+## 百度安全卫士 ##
+　　接下来，笔者仿写了一个百度安全卫士内存清理动画的`Demo`，程序运行效果如下：
+
+<center>
+![](http://img.blog.csdn.net/20150602150418233?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvZ2l0aHViXzI4NTU0MTgz/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
+</center>
+
+　　从上图中可以看出，仿写的效果和正牌还是有一些差距的，但是通过这个`Demo`可以让大家更深刻的理解`WindowManager`类可以做哪些事情。
+
+　　[点击下载源码](http://download.csdn.net/detail/github_28554183/8764099)
+
+　　如果你没有`AndroidStudio`环境，那么可以去`AndroidTest\app\build\outputs\apk`目录找到`apk`直接安装运行效果。
+
 
 <br>**本节参考阅读：**
 - [Android桌面悬浮窗效果实现，仿360手机卫士悬浮窗效果](http://blog.csdn.net/guolin_blog/article/details/8689140)
+- [Android桌面悬浮窗进阶，QQ手机管家小火箭效果实现](http://blog.csdn.net/guolin_blog/article/details/16919859)
 
 
 <br><br>
