@@ -1,4 +1,4 @@
-title: UI篇　第八章 自定义控件
+title: UI篇　第八章 自定义控件（一）
 date: 2015-2-5 18:59:50
 create: 2015-4-29 11:41:12
 categories: Android
@@ -88,23 +88,32 @@ public class MainActivity extends Activity {
 
 <br>　　范例1：重写构造方法。
 ``` android
-public class MyView extends View{
+public class MyView extends View {
+
     // 当通过代码来创建View对象时（通过new关键字），调用此方法初始化View。
     public MyView(Context context) {
         super(context);
     }
-    // 当从XML文件中inflating一个View时，调用此方法。当所有子View都被加载完毕后，会继续调用onFinishInflate()方法。
+
+    // 当通过XML标签来创建View对象时，调用此方法。
     public MyView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
+
+    // 若当前View是一个部件，则View(Contex, AttributeSet)构造方法执行完毕后会立刻调用它的onFinishInflate()方法。
+    // 若它是一个布局，则将在所有子View的onFinishInflate()方法都调用完成后，才会调用它的onFinishInflate()方法。
     protected void onFinishInflate() {
         super.onFinishInflate();
+        //   一个比较常见的应用场景是：
+        //   你自定义了一个ViewGroup，它支持在XML文件中使用，这就不可避免的在它的标签里包含其它子标签。
+        //   如果你想在代码中获取到它的子标签的引用，那么就应该在这个方法里写，而不是在构造方法里。
+        //   这是因为，当ViewGroup的此方法被调用时，意味着它所包含的所有子控件也都加载完了（只是加载完毕，宽高什么的都没测量）。 
+        //   比如：  ImageView img = findViewById(R.id.img); 就可以获取XML中当前ViewGroup标签下的id为img的子标签的引用。
     }
 }
 ```
     语句解释：
     -  在View类中没有提供public的无参的构造器，因此在其所有的子类中都必须显式的调用其一个有参的构造器。
-    -  若当前View是一个部件，则View (Contex, AttributeSet)构造方法执行完毕后会立刻调用它的onFinishInflate()方法，若它是一个布局，则将在所有子View的onFinishInflate()方法都调用完成后，才会调用它的onFinishInflate()方法。
 
 <br>
 #### 布局阶段 ####
@@ -137,12 +146,15 @@ protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
 <br>　　范例2：重写`onMeasure`方法。
 ``` android
 public class MyView extends View {
+
     public MyView(Context context) {
         super(context);
     }
+
     public MyView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
+
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         // 什么都不干，直接设置MyView的宽高为300*300像素，注意此处的单位是px，而不是dp。
         setMeasuredDimension(300, 300);
@@ -201,6 +213,7 @@ protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     setMeasuredDimension(getMeasuredLength(widthMeasureSpec, true), getMeasuredLength(heightMeasureSpec, false));
 }
+
 private int getMeasuredLength(int length, boolean isWidth) {
     int specMode = MeasureSpec.getMode(length);
     int specSize = MeasureSpec.getSize(length);
@@ -283,6 +296,7 @@ public void layout(int l, int t, int r, int b) {
     mPrivateFlags3 |= PFLAG3_IS_LAID_OUT;
 }
 
+//  参数 changed 表示当前ViewGroup的尺寸或者位置是否发生了改变，也就是说ViewGroup的尺寸和位置没有发生变化时，此方法也有可能被调用。
 protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
 }
 ```
@@ -1223,92 +1237,6 @@ public class MyView extends View {
 - [Android Canvas绘制图片层叠处理方式porterduff xfermode](http://blog.csdn.net/shichaosong/article/details/21239221)
 
 
-# 第二节 开源项目 #
-　　相信您也看多过`Github`上的各类`Android`开源项目，里面有各种绚丽的特效，笔者也看的眼馋，虽然咱们的原则是`“可以不会写，但必须得会改”`，但是每每看到里面的特效，笔者都想知道它们是如何实现的，并希望自己能学会。因此从本节开始，笔者将以各个开源项目为例，来讲自定义控件相关的知识。 当然我们不会去完整的分析每个项目，只是会去看它们关键代码。
-
-## Android-PullLayout ##
-　　这个项目提供了两个功能：`仿U天气下C拉`和`微信下拉眼睛`，`Github`地址：https://github.com/BlueMor/Android-PullLayout 。
-
-<br>　　其中的`微信下拉眼睛`功能，咱们通过上一节学到的`Xfermode`就可以实现。笔者运行了这个项目，在它的`微信下拉眼睛`功能上发现两个缺点：
-
-	-  第一，功能依赖于API Lavel 11中的新API，即程序运行在Android2.2系统中，会有黑框出现。
-	-  第二，项目中的EyeView继承自FrameLayout类，不知道作者出于什么考虑，其实完全可以继承ImageView或者View类。
-
-<br>　　因此，笔者优化后的`EyeView`代码为：
-``` android
-public class EyeView extends View {
-
-    private int mRadius;
-    private int maxRadius;
-    private Bitmap mEyeBitmap;
-
-    public EyeView(Context context) {
-        super(context);
-        mEyeBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.eye);
-        maxRadius = Math.max(mEyeBitmap.getWidth(), mEyeBitmap.getHeight())/2+1;
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        Bitmap mDstB = Bitmap.createBitmap(mEyeBitmap.getWidth(), mEyeBitmap.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas tmpCanvas = new Canvas(mDstB);
-        tmpCanvas.drawCircle(mEyeBitmap.getWidth() / 2, mEyeBitmap.getHeight() / 2, mRadius, paint);
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        tmpCanvas.drawBitmap(mEyeBitmap, 0, 0, paint);
-        paint.setXfermode(null);
-        canvas.drawBitmap(mDstB, 200, 200, paint);
-    }
-
-    public void setRadius(int radius){
-        if (radius >= 0) {
-            // 更新半径，然后执行重绘。
-            mRadius = radius;
-            if(radius > maxRadius){
-                mRadius = maxRadius;
-            }
-            invalidate();
-        }
-    }
-}
-```
-    语句解释：
-    -  本范例中所涉及的知识我们都已经讲过了，不再冗述。并且本范例可以完美运行在Android2.2版本的系统中。
-
-<br>　　另外，它的`仿U天气下C拉`功能是通过属性动画实现的，并使用了`NineOldAndroids`动画库，关于属性动画请参看笔者写的另一篇文章《媒体篇　第三章 动画》，在此就不再冗述了。
-
-<br>　　在这个项目中还涉及到一个小知识点，我们知道在`Activity`的`onCreate()`方法中调用`View`类的`getWidth()`和`getHeight()`方法无法获得`View`的高度和宽度，这是因为`View`组件布局要在`Activity`的`onResume()`回调后完成。我们可以通过下面的代码解决这个问题：
-``` android
-public class MainActivity extends Activity {
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        final TextView textView = (TextView) findViewById(R.id.text);
-        // 通过textView来获取一个ViewTreeObserver对象，然后将一个回调接口添加到其中。
-        textView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            public void onGlobalLayout() {
-                System.out.println(textView.getWidth());
-                System.out.println(textView.getHeight());
-                System.out.println(textView.getLineCount());
-                // 但是需要注意的是OnGlobalLayoutListener可能会被多次触发，因此在得到了高度之后，要将OnGlobalLayoutListener注销掉。
-                textView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-            }
-        });
-
-    }
-}
-```
-    语句解释：
-    -  程序运行时，回调调用两次printTextViewInfo()方法，第一次调用只会打印出来0，第二次调用时则就有值了。
-    -  ViewTreeObserver有多个内部类：
-       -  OnGlobalLayoutListener：当视图树中全局布局发生改变或者视图树中的某个视图的可视状态发生改变时，所要调用的回调函数的接口类。
-       -  OnPreDrawListener：当视图树将要绘制时，所要调用的回调函数的接口类。
-       -  OnScrollChangedListener：当视图树中的一些组件发生滚动时，所要调用的回调函数的接口类。
-       -  OnTouchModeChangeListener：当视图树的触摸模式发生改变时，所要调用的回调函数的接口类。
-
-<br>**本节参考阅读：**
-- [OnGlobalLayoutListener获得一个视图的高度](http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2014/0731/1640.html)
 
 
 <br><br>

@@ -120,7 +120,7 @@ jarsigner -verbose -keystore debug.keystore -signedjar signed.apk newDecode.apk 
 	   -  目前Android程序使用Java语言来开发，因而不可避免的会使用JVM来运行程序。但实际上JVM对移动设备的支持并没有想象中的那么完美，因而Google公司自己设计了一个用于Android平台的虚拟机，即Dalvik。
 	-  Dalvik和JVM是一样的，用来解释执行Java字节码文件，但Dalvik解析的字节码文件的后缀名为.dex，而不是JVM的.class。
 	   -  这也就是说，Android系统中的应用程序是运行在Android自身的Dalvik虚拟机上的，而不是运行在Java VM之上。
-	-  对于Android来说，一个Apk文件内部只有一个classes.dex文件，而这个.dex文件内部其实保存着多个.class文件。
+	-  对于Android来说，通常情况下一个Apk文件内部只有一个classes.dex文件，而这个.dex文件内部其实保存着多个.class文件。
 
 <br>　　然后再介绍一下`Smali`语言的概念：
 
@@ -290,7 +290,7 @@ iput-object v3, p0, Lcom/cutler/decode/HelloWorld;->objString:Ljava/lang/String;
 - [APK反编译之一：基础知识](http://blog.csdn.net/lpohvbe/article/details/7981386)  
 
 ## MainActivity.smali ##
-　　通过上一节我们了解了Smali语言的基础语法，但是仅仅了解那几个语法还是远远不够的，本节则通过分析MainActivity.smali文件来介绍Smali语言的其它语法。
+　　通过上一节我们了解了`Smali`语言的基础语法，但是仅仅了解那几个语法还是远远不够的，本节则通过分析`MainActivity.smali`文件来介绍`Smali`语言的其它语法。
 
 <br>　　范例1：onCreate()方法分析。
 ``` smali
@@ -325,7 +325,7 @@ Toast.makeText(this, "世界，你好！", Toast.LENGTH_SHORT).show();
 ```
 <br>　　那么问题来了，虽然我们之前讲解的东西都很容易懂，但是现在让我们真刀真枪的上去干，还是不会写啊，怎么办？ 
 　　简单，那就自己建立一个Android项目，在Android中把这行代码给写出来，然后再反编译它，就得到了我们想要的代码了，这种方法对于那些比较复杂的情况也照样适用，最多在代码使用之前我们稍微改改而已。
-　　写代码不会写，尼玛改代码还不会么？？？？
+　　`写代码不会写，尼玛改代码还不会么？？？？`
 
 <br>　　范例2：添加Toast输出。
 ``` smali
@@ -376,7 +376,7 @@ Toast.makeText(this, "世界，你好！", Toast.LENGTH_SHORT).show();
 　　由于修改`so`库的技术含量比较高，因此本节只会讲解如何破解使用`Cocos2d-x`、`Unity3D`游戏引擎开发的单机游戏的支付、分享等逻辑。
 
 <br>**思路是这样的**
-　　以国内游戏为例，通常游戏会接入支付宝、银联等支付SDK，接入微信、新浪微博等分享SDK，而这些SDK的厂家都是通过jar包的形式对外提供SDK的，这就好办多了，我们通过前三节学习的知识完全可以完成破解工作（也许你还需要再学习一些指令，比如if指令）。
+　　以国内游戏为例，通常游戏会接入支付宝、银联等支付SDK，接入微信、新浪微博等分享SDK，而这些SDK的厂家都是通过`jar`包的形式对外提供SDK的，这就好办多了，我们通过前三节学习的知识完全可以完成破解工作（也许你还需要再学习一些指令，比如`if`指令）。
 　　我们以分享为例，通常游戏需要进行分享时，开发人员的做法会是：
 
 	-  当玩家在游戏中点击分享按钮时，游戏会调用Android中的某个类（假设它叫ShareUtil）的某个方法（假设它叫share）中执行分享操作。
@@ -698,7 +698,7 @@ invoke-virtual {v1}, Lcom/heitao/mp/listener/HTMPPayListener;->onHTPayCompleted(
 <br>**将辅助项目合并到游戏中**
 　　第一步，运行`XmxxDecode`项目。虽然不会成功，但是会生成一个apk，接着将`bin\XmxxDecode.apk`复制出来，反编译。
 　　第二步，把在`XmxxDecode\smali`下的所有文件覆盖到`PopStarxiaomiexingxingguan_401\smali`目录下。
-　　第三步，把在文`XmxxDecode\res`下的所有件覆盖到`PopStarxiaomiexingxingguan_401\res`目录下。
+　　第三步，把在`XmxxDecode\res`下的所有文件覆盖到`PopStarxiaomiexingxingguan_401\res`目录下。
 　　第四步，把接入`PaySDK`时所需要的权限、组件等都复制到`PopStarxiaomiexingxingguan_401\AndroidManifest.xml`中。
 　　第五步，将`PopStarxiaomiexingxingguan_401`文件夹打包、签名。
 
