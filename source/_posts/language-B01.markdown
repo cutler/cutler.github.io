@@ -1,9 +1,11 @@
 ---
 layout: post
-title: "第一章 概述"
+title: "Cocos2dx篇　第一章 概述"
 date: 2014-08-26 22:16:54 +0800
 comments: true
-categories: Cocos2dx-lua
+categories: 编程语言
+tags:
+- Cocos2dx
 ---
 # 第一节 游戏引擎 #
 ## 起源 ##

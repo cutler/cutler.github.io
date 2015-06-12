@@ -1,9 +1,11 @@
 ---
 layout: post
-title: "第六章 多媒体"
+title: "Cocos2dx篇　第六章 多媒体"
 date: 2015-1-7 15:21:49
 comments: true
-categories: Cocos2dx-lua
+categories: 编程语言
+tags:
+- Cocos2dx
 ---
 　　本章将介绍一下`Cocos2d-x`中的多媒体部分，包括：动画（Action、粒子动画、骨骼动画）、滤镜、音视频播放等等。
 

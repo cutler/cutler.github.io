@@ -1,9 +1,11 @@
 ---
 layout: post
-title: "第四章 基础入门"
+title: "Cocos2dx篇　第四章 基础入门"
 date: 2014-12-16 22:15:42
 comments: true
-categories: Cocos2dx-lua
+categories: 编程语言
+tags:
+- Cocos2dx
 ---
 　　所谓工欲善其事必先利其器，深刻的了解并大范围的覆盖了官方的`API`的使用方法，对于开发、调试来说无疑是有很大益处的。 笔者可以毫不负责任的说，开发其实就是`逻辑+API`。API掌握的越多、逻辑思维越厉害，开发也就越轻松。
 
