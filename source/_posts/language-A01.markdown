@@ -2231,6 +2231,1648 @@ main(){
     -  然后，要知道，int类型的指针变量只能保存int类型变量的地址。不能保存其他类型的变量地址，否则，编译时，出警告，执行时，数据会不正确。
     -  接着，要知道，咱们在scanf()函数中就使用“&”符号将变量的地址取出。在此也是如此。
 
+<br>　　范例3：好吧，咱们输出！。
+``` c
+#include <stdio.h>
+main(){
+	int *p;
+	int i = 10;
+	p = &i;
+	printf("%d\n",*p);
+}
+
+```
+    语句解释：
+    -  使用“&”符号用来获取变量的地址(指针)。
+    -  使用“*”符号用来获取 指针变量所指向的 内存空间中的 值。
+       -  本例中，指针变量p指向变量i所代表的内存空间。
+       -  因此*p 就代表 将变量i的值取出来。
+
+　　提示：
+
+	-  如果有 p = &a 则：&a == &*p ；
+	-  其实这很好证明：
+	   -  将“p = &a”代入到“&a == &*p ；”中得：
+	   -  &a == &*&a
+	   -  等式两边同时约掉& 得： a == *&a
+	   -  由于：&和*是互逆运算，因此化简得： a == a
+
+<br>　　范例4：比较大小。
+``` c
+#include <stdio.h>
+main(){
+	int a,b,*p1,*p2,*temp;
+	printf("请输入2个数,比较大小(空格间隔):");
+	scanf("%d%d",&a,&b);
+	p1 = &a;  // p1指向a
+	p2 = &b;  // p2指向b
+	if(*p1>*p2){  // 如果a的值比b大
+		temp = p1;   // 则让p1指向b
+		p1 = p2;     // p1总是指向值小的变量。
+		p2 = temp;
+	}
+	printf("从小到大排序为：%d,%d\n",*p1,*p2);
+}
+```
+
+<br>　　范例5：指针变量与函数参数。
+``` c
+#include <stdio.h>
+void change(int *p){
+    *p = 100;
+}
+main(){
+	int a = 10;
+    change(&a);
+	printf("a=%d\n",a);
+}
+
+```
+    语句解释：
+    -  以前，如果函数的实参不是数组名，则进行的是值传递。形参值改变了，不会影响到实参。
+    -  现在，使用了指针后，传递的是地址。此时，实参和形参指向同一个内存空间，当形参的值改变时，实参的值也会随着改变。
+
+<br>　　范例6：不会有人范的错误。
+``` c
+#include <stdio.h>
+void change(int *p){
+	int i = 100;
+    p = &i;
+}
+main(){
+	int a = 10,*p;
+	p = &a;
+    change(p);
+	printf("a=%d\n",*p);
+}
+
+```
+    语句解释：
+    -  形参指针改变指向不会影响到实参指针。  请仔细体会这一点。
+
+## 指针与数组 ##
+问：什么是数组指针？
+答：所谓的数组指针，说白了，就是一个指针变量。它指向数组中的第一个元素在内存中的地址。
+
+问：什么是指针数组？
+答：所谓的指针数组，就是它就一个数组。但是这个数组有点特殊，其内的每一个元素都是一个指针变量。
+
+<br>　　范例1：数组指针。
+``` c
+#include <stdio.h>
+main(){
+	int a[] = {1,2,3,4},*p;
+	p = a;
+}
+
+```
+    语句解释：
+    -  前面说了，数组名就代表数组中第一个元素的内存地址。
+    -  因此，可以将一个数组名赋值给一个指针变量。此时，指针p就指向了数组a中的第一个元素，a[0]的地址。
+    -  “p = a” 和“p = &a[0]”是等价的。
+
+<br>　　范例2：遍历数组—下标法。
+``` c
+#include <stdio.h>
+main(){
+	int a[] = {1,2,3,4},*p,i;
+	p = a;
+    for(i=0;i<4;i++){
+		printf("%d ",p[i]);
+	}
+	putchar('\n');
+}
+
+```
+    语句解释：
+    -  此时和使用a[i] 是一个意思。
+
+<br>　　范例3：遍历数组—地址法。
+``` c
+#include <stdio.h>
+main(){
+	int a[] = {1,2,3,4},*p,i;
+	p = a;
+    for(i=0;i<4;i++){
+		printf("%d ",*(p+i));
+	}
+	putchar('\n');
+}
+
+```
+    语句解释：
+    -  首先，要知道，指针变量+1 不是简单的+1 而是加上 数据类型所占的字节数。
+    -  本例中，p是int型的，假设int型占4个字节，那么p+1 就意味着跳过4个字节。
+       -  p的值始终没有改变。程序中只是不断的在p的基础上，增加一个位移量，来达到遍历数组的目的。
+       -  使用下标法遍历的时候，其实就是先将下标p[i] 转换成*(p+i) 后，在输出的。
+
+<br>　　范例4：遍历数组—指针法。
+``` c
+#include <stdio.h>
+main(){
+	int a[] = {1,2,3,4},*p;
+    for(p=a;p<a+4;p++){
+		printf("%d ",*p);
+	}
+	putchar('\n');
+}
+
+```
+    语句解释：
+    -  请仔细体会。
+
+<br>　　范例5：遍历数组—指针法2.0。
+``` c
+#include <stdio.h>
+main(){
+	int a[] = {1,2,3,4},*p,i;
+	p = a;
+    for(i=0;i<4;i++){
+		printf("%d ",*p++);
+	}
+	putchar('\n');
+}
+
+```
+    语句解释：
+    -  “*”和“++”的优先级都是2，它们的运算方向是 自右向左。因此先执行后加，然后在执行取值操作。
+
+<br>　　范例6：数组名作为函数参数。
+``` c
+#include <stdio.h>
+void print(int *p){
+	int i ;
+    for(i=0;i<4;i++){
+		printf("%d ",*p++);
+	}
+	putchar('\n');
+}
+main(){
+	int a[] = {1,2,3,4};
+	print(a);
+}
+
+```
+    语句解释：
+    -  提示：编译系统不会为形参数组开辟数组空间，而是为其开辟一个指针空间。
+
+<br>　　范例7：这是二维数组。
+``` c
+#include <stdio.h>
+main(){
+	int a[][2] = {1,2,3,4},*p;
+	for(p=a[0];p<a[0]+4;p++){
+		printf("%d ",*p);
+	}
+}
+
+```
+    语句解释：
+    -  二维数组在内存中也是顺序存放的。如，一个2行2列的二维数组a，a[0][1]后面紧跟着就是a[1][0] 。
+    -  所以可以使用一个普通的指针变量遍历二维数组。
+    -  二维数组中a[0] 和 &a[0][0] 和 a的地址是相同的。
+
+<br>　　范例8：指向一维数组的指针变量。
+``` c
+#include <stdio.h>
+main(){
+	int a[][2] = {1,2,3,4},(*p)[2],i,j;
+	p = a;
+	for(i=0;i<2;i++){
+		for(j=0;j<2;j++){
+			printf("%d ",*(*(p+i)+j));
+		}
+		putchar('\n');
+	}
+}
+
+```
+    语句解释：
+    -  本例中“(*p)[2]”代表：建立一个int类型的指针变量，它指向一个一维数组，并且这个一维数组，每行中的元素的个数都是2 。
+    -  关于指针，在本节的最后，会有一个总结，如果有兴趣，可以现在就去看看。
+
+<br>　　范例9：字符串指针变量。
+``` c
+#include <stdio.h>
+main(){
+	char *p = "张三：你好！";
+	puts(p);
+}
+
+```
+    语句解释：
+    -  将一个字符串常量，赋给一个字符指针，其实就是将字符串中首字母的内存地址赋值给这个指针变量。
+    -  当使用puts()输出这个指针变量的时候，会从第一个位置开始，输出字符，直到遇到‘\0’为止。
+
+<br>　　范例10：错误的范例。
+``` c
+#include <stdio.h>
+main(){
+	char p[22] ;
+	p = "张三：你好！";
+	puts(p);
+}
+
+```
+    语句解释：
+    -  数组名代表一个地址常量，不可以被赋值。
+    -  但是如果把“char p[22]”换成 “char  *p” 则不会出现问题了。因为指针变量是一个变量。
+    -  如果没有为数组初始化，则数组名指向的位置是不确定的。
+
+<br>　　范例11：字符串指针变量做函数参数。
+``` c
+#include <stdio.h>
+void print(char *p){
+	puts(p);
+}
+main(){
+	print("张三：你好！");
+	print("李四：你好！");
+}
+
+```
+    语句解释：
+    -  无
+
+
+<br>　　范例12：字符串复制。
+``` c
+#include <stdio.h>
+main(){
+	char str1[20] ;
+	char str2[] = "12345678";
+	char *p1,*p2;
+	p1 = str1;
+	p2 = str2;
+	while(*p1++=*p2++);
+	puts(str1);
+}
+
+```
+    语句解释：
+    -  非0即为真。 如果str2到达串尾，则会将‘\0’赋值给str1 ，此表表达式的值为0 。因此循环也就结束了。
+
+<br>　　范例13：指针数组。
+``` c
+#include <stdio.h>
+main(){
+	char *p[4]={"张三","李四","王五","赵六"};
+	int i ;
+	for(i=0;i<4;i++){
+		puts(*(p+i));
+	}
+}
+
+```
+    语句解释：
+    -  指针数组主要是为了同时处理多个字符串。
+    -  本类中char *p[4] 用来定义一个具有4的元素的指针数组。由于[]的优先级比*号高，所以p先和[]结合，组成一个数组。然后再和*结果，最终成为一个指针数组。
+
+<br>　　范例14：无语级、指向指针变量的指针变量。
+``` c
+#include <stdio.h>
+main(){
+	char *p="张三";
+	char **p1;	
+	char ***p2;
+	p1 = &p;
+	p2 = &p1;
+	puts(**p2);
+}
+
+```
+    语句解释：
+    -  使用2个*号来定义一个指向指针变量的指针变量。
+    -  使用3个*号来定义一个指向指向指针变量的指针变量的指针变量。这个…有点不常见。
+
+<br>　　范例15：指针数组排序。
+``` c
+#include <stdio.h>
+#include <string.h>
+void sort(char *p[4],int n){
+	int i , j , k;
+	char *temp;
+	for(i=0;i<n-1;i++){
+		k = i;
+		for(j=i+1;j<n;j++){
+			if(strcmp(p[k],p[j])>0){
+				k = j;
+			}
+		}
+		if(k != i){
+			temp = p[k];
+			p[k] = p[i];
+			p[i] = temp;
+		}
+	}
+}
+main(){
+	char *p[4]={"a张三","c李四","d王五","b赵六"};
+	int i ;
+	sort(p,4 );
+	for(i=0;i<4;i++){
+		puts(*(p+i));
+	}
+}
+
+```
+
+<br>　　范例16：使用 指向指针变量的指针变量 遍历数组。
+``` c
+#include <stdio.h>
+main(){
+	char *p[4]={"张三","李四","王五","赵六"};
+	char **p1 ;
+	for(p1=p;p1<p+4;p1++){
+		puts(*p1);
+	}
+}
+
+```
+
+<br>　　**小结：**
+
+　　首先，要知道，指针一共有几种形态：
+``` c
+形式	                                解释
+int  * p                          普通的指针变量。
+int  (*p)[4]                      指向一维数组的指针变量。
+int  *p[4]                        指针变量数组。
+int  **p                          指向指针变量的指针变量。
+
+```
+　　然后，咱们分别来讨论：
+
+   • 普通的指针变量：int  * p1 。
+|-  如果a是一个普通的变量。
+|-  p1可以保存a的地址： int *p1 = &a ；
+|-  如果a是一个普通的数组。
+|-  p1也可以保存a的首地址： int *p1 = a ；
+|-  如果a是一个二维数组。
+|-  p1甚至可以指向二维数组。int *p1 = *a(或者a[0]) ；
+   |-  a 是a[0]的地址，a[0]是a[0][0]的地址。其实a和a[0]的值是相同的，但是含义不同。 p只是一个普通的指针，最多只能指向一排数据。
+
+   • 指向一维数组的指针变量：int  (*p2)[4]
+      |-  如果a是一个普通的变量。
+|-  p2保存的是一维数组的地址。因此它不可以指向一个普通变量的地址。
+      |-  如果a是一个普通的数组。
+|-  它可以指向一个一维数组：int  (*p2)[4] = &a
+|-  输出数组中具体的元素的时候，使用：*(*p2+i)
+      |-  如果a是一个二维数组。
+|-  它也可以指向一个二维数组: int  (*p2)[4] = a
+|-  由于二维数组名代表起始地址，因此可以按上面的写法来给p赋值。
+         |-  输出数组中具体的元素的时候，使用：*(*(p2+i)+j)
+
+• 指针数组：int  *p3[4]
+   |-  指针数组是若干个连续的指针变量组成的集合。每一个元素都保存一个地址。
+   |-  用法：
+      |-  char *p3[] = {“张三”,”李四”,”王五”,”赵六”}
+      |-  int *p3[]= {&a[0], &a[1], &a[2], &a[3]}
+|-  其中 int a[] = {1，2，3，4}
+ 
+• 指向指针变量的指针变量：int  **p4
+   |-  咱们就称他为二级指针吧。(本人私下的叫法，别出去乱传啊!)
+   |-  二级指针只能指向指针变量的地址。
+      |-  p4 = &p1；
+		 |-  p4 = &p2；
+      |-  p4 = p3；p3是指针数组名，代表数组的起始地址。
+• 小结中的总结：
+   |-  以下都是个人说法
+      |-  int *p 与一维数组是平级的，因为可以将一维数组名直接赋值给p。
+      |-  int (*p)[4] 与一个二维数组是平级的，因为可以将二维数组名直接赋值给p。
+      |-  二级指针和指针数组是平级的，因为可以将指针数组名直接赋值给二级指针。
+关于指针，本人只能总结到这个份上了。 
+
+
+## 指针与函数 ##
+问：什么是函数指针？
+答：顾名思义，函数指针就是一个指针变量，它指向一个函数在内存中的入口地址。
+
+问：什么是指针函数？
+答：所谓的指针函数，就是指一个函数，它的返回值是一个指针变量。
+
+
+函数指针的基本语法：`函数返回值类型 (*指针名)()`
+
+
+
+<br>　　范例1：函数指针。
+``` c
+#include <stdio.h>
+void print(char *str){
+    puts(str);
+}
+main(){
+   void (*p)();
+   p = print;
+   (*p)("Tomcat-1");
+   p("Tomcat-2");
+}
+
+```
+    语句解释：
+    -  本例中定义一个函数指针。 指向一个没有返回值 (void型) 的函数。
+    -  语句“p = print;”将函数print的入口地址赋给指针变量p。 此时，p+1是无意义的。
+    -  调用函数的时候，直接使用指针名或者(*指针名)都可以调用。
+
+<br>　　范例2：函数指针作为形参。
+``` c
+#include <stdio.h>
+int add(int a,int b){
+	return a+b;
+}
+int minus(int a, int b){
+	return a-b;
+}
+int calls(int a,int b,int (*p)()){
+	return p(a,b) ;
+}
+main(){
+   printf("add=%d\n",calls(5,4,add));
+   printf("minus=%d\n",calls(5,4,minus));
+}
+
+```
+    语句解释：
+    -  无
+
+指针函数的基本语法：`函数返回值类型 *函数名(参数表)`
+
+
+<br>　　范例3：指针函数。
+``` c
+#include <stdio.h>
+int* plus(int a,int b){
+	int c,*p;
+	c = a+b;
+	p = &c;
+	return  p;
+}
+main(){
+   printf("plus=%d\n",*plus(5,5));
+}
+
+```
+    语句解释：
+    -  本例中定义一个返回int*类型的函数。因此在输出的时候需要使用*号。
+
+<br>　　范例4：main()函数参数。
+``` c
+#include <stdio.h>
+main(int count,char* args[]){
+   int i;
+   for(i=0;i<count;i++){
+		puts(*(args+i));
+   }
+}
+// 此处有一张图，请去word文档中获取
+```
+    语句解释：
+    -  此时找到编译、连接后生成的.exe文件，然后从cmd中进入到这个文件夹中。
+    -  输入这个.exe文件的名称，然后再传递参数，两个参数之间用空格间隔。如果参数中间有空格存在，则可以使用双引号。
+    -  其中第一个参数是.exe文件的名称。
+    -  指针变量可以有空值 ： int *p = NULL。在stdio.h文件中就有NULL的宏定义。
+    -  #define NULL 0
+    -  可以定义一个void类型的指针变量，即不指定它是指向哪一种类型数据的。
+    -  ANSIC标准规定用动态存储分配函数时返回void指针，它可以用来指向一个抽象的类型的数据，在将它的值赋给另一个指针变量时，要进行强制类型转换使之适合于被赋值的变量的类型。
+    -  void * p2;  char * p1;  p1 = (char *)p2;
+
+# 第八节 结构体与共用体 #
+
+## 定义结构体 ##
+　　有很多时候，需要在程序中表示一个现实中的事物，比如，一个学生管理系统，需要在程序中模拟一个学生的实体。 此时就可以使用结构体。
+
+<br>　　范例1：一个学生。
+``` c
+#include <stdio.h>
+struct Student{
+	char name[20];
+	int  age;
+	char sex[3];
+};
+main(){
+}
+
+```
+    语句解释：
+    -  使用struct关键字来定义一个结构体。本例中结构体的名称为：struct Student 。
+    -  name、age、sex都称为是结构体的成员、域、字段。
+    -  这个结构体所占的字节数，是所有成员所占字节数的总和。
+    -  虽然一个汉字占2个字节，但是sex中还要保存一个‘\0’。
+
+<br>　　范例2：定义结构体变量 --1。
+``` c
+#include <stdio.h>
+struct Student{
+	char name[20];
+	int  age;
+	char sex[3];
+};
+main(){
+	struct Student stu ;
+}
+
+```
+    语句解释：
+    -  先定义完结构体之后，再定义结构体变量。
+
+<br>　　范例3：定义结构体变量 --2。
+``` c
+#include <stdio.h>
+struct Student{
+	char name[20];
+	int  age;
+	char sex[3];
+}stu1,stu2;
+main(){
+}
+
+```
+    语句解释：
+    -  定义结构体的同时，定义结构体变量。
+
+<br>　　范例4：定义结构体变量 --3。
+``` c
+#include <stdio.h>
+struct {
+	char name[20];
+	int  age;
+	char sex[3];
+}stu1;
+main(){
+}
+
+```
+    语句解释：
+    -  直接定义一个结构体变量。不为结构体指定名称。此结构体只能使用一次。
+    -  结构体中的成员也可以是一个结构体。
+    -  成员名可以和程序中的变量名相同，它们代表的意义是不一样的。
+
+<br>　　范例5：初始化变量。
+``` c
+#include <stdio.h>
+struct Student{
+	char name[20];
+	int  age;
+	char sex[3];
+};
+void print(struct Student stu){
+	printf("姓名：%s\t年龄：%d\t性别：%s\n",stu.name,stu .age,stu.sex);
+}
+main(){
+	struct Student stu ={"张三",40,"男"};	
+	print(stu);
+}
+
+```
+    语句解释：
+    -  引用成员的格式为：结构体变量名.成员名。
+    -  如果结构体的程序本身也是一个结构体，则需要一级一级的找下去：stu.birthday.day
+    -  结构体变量中的成员和普通变量一样，进行各种运算(加、减、乘、除等)。
+
+<br>　　范例6：定义的同时初始化变量。
+``` c
+#include <stdio.h>
+struct Student{
+	char name[20];
+	int  age;
+	char sex[3];
+}stu ={"张三",40,"男"};
+void print(struct Student stu){
+	printf("姓名：%s\t年龄：%d\t性别：%s\n",stu.name,stu.age,stu.sex);
+}
+main(){
+	print(stu);
+}
+
+```
+
+## 结构体数组 ##
+<br>　　范例1：鸟枪换炮。
+``` c
+#include <stdio.h>
+#define SIZE 3
+struct Student{
+	char name[20];
+	int  age;
+	char sex[3];
+};
+void print(struct Student stu){
+	printf("姓名：%s\t年龄：%d\t性别：%s\n",stu.name,stu.age,stu.sex);
+}
+main(){
+	struct Student stu[SIZE] = {
+		{"张三",40,"男"},
+		{"李四",43,"男"},
+		{"王五",41,"男"}
+	};
+	int i ;
+	for(i=0;i<SIZE;i++){
+		print(stu[i]);
+	}
+}
+
+```
+    语句解释：
+    -  前面一直都是在main()方法中混，现在终于出来了。
+
+<br>　　范例2：定义的同时初始化。
+``` c
+#include <stdio.h>
+struct Student{
+	char name[20];
+	int  age;
+	char sex[3];
+}stu[] = {
+		{"张三",40,"男"},
+		{"李四",43,"男"},
+		{"王五",41,"男"}
+};
+void print(struct Student stu){
+	printf("姓名：%s\t年龄：%d\t性别：%s\n",stu.name,stu.age,stu.sex);
+}
+main(){
+	int i ;
+	for(i=0;i<3;i++){
+		print(stu[i]);
+	}
+}
+
+```
+    语句解释：
+    -  本例中没有指定数据的长度。
+
+## 指针与结构体 ##
+<br>　　范例1：结构体变量指针。
+``` c
+#include <stdio.h>
+struct Student{
+	char name[20];
+	int  age;
+	char sex[3];
+};
+void print(struct Student *p){
+	printf("姓名：%s\t年龄：%d\t性别：%s\n",(*p).name,(*p).age,(*p).sex);
+}
+main(){
+	struct Student stu  = {"张三",40,"男"};
+	print(&stu);
+}
+
+```
+    语句解释：
+    -  使用指针引用结构体变量的成员的语法：(*指针名).成员名。
+
+
+<br>　　范例2：换种方式吧。
+``` c
+#include <stdio.h>
+struct Student{
+	char name[20];
+	int  age;
+	char sex[3];
+};
+void print(struct Student *p){
+	printf("姓名：%s\t年龄：%d\t性别：%s\n",p->name,p->age,p->sex);
+}
+main(){
+	struct Student stu  = {"张三",40,"男"};
+	print(&stu);
+}
+
+```
+    语句解释：
+    -  指针变量可以使用“->”(一个减号加一个大于号)来引用成员。
+
+<br>　　范例3：指向结构体数组。
+``` c
+#include <stdio.h>
+struct Student{
+	char name[20];
+	int  age;
+	char sex[3];
+};
+void print(struct Student *p){
+	printf("姓名：%s\t年龄：%d\t性别：%s\n",p->name,p->age,p->sex);
+}
+main(){
+	struct Student stu[] = {
+		{"张三",40,"男"},
+		{"李四",43,"男"},
+		{"王五",41,"男"}
+	},*p;
+	for(p=stu;p<stu+3;p++){
+		print(p);
+	}
+}
+
+```
+    语句解释：
+    -  别忘了，咱们前面总结的，int *p 和一维数组是平级的。
+    -  记住p+1，意味着跳过n个字节。 这个n是根据指针p的类型来决定的。如果p是char类型的指针，则跳1个字节。在本例中p是struct Student类型的指针，因此跳过的是27个字节(int占4个字节)。
+
+<br>　　范例4：也许并是不27字节。
+``` c
+#include <stdio.h>
+struct Student{
+	char name[20];
+	int  age;
+	char sex[3];
+};
+void print(struct Student *p){
+	printf("姓名：%s\t年龄：%d\t性别：%s\n",p->name,p->age,p->sex);
+}
+main(){
+	printf("%d\n",sizeof(struct Student));
+}
+
+```
+    语句解释：
+    -  使用sizeof关键字来计算一个类型所占的字节数。指针类型的数据类型，所占的字节数与当前操作系统所支持的内存的容量有关。32位操作系统中，sizeof(int*)通常占4字节。
+    -  在VC++6.0中结果返回的是28字节。 而且仔细试了试，发现每增加4个字节，结果才变一次。
+    -  这个sizeof关键字，很邪乎，在VC++6.0中：
+       -  printf("%d\n",sizeof(double));  输出8
+       -  printf("%d\n",sizeof(double *)); 输出4
+	-  如果有兴趣，可以去探索一下，为什么这么邪乎，不过，我没兴趣。
+	-  不管是27字节还是28字节，只要知道p+1的含义即可。至于跳多少字节，还是老话，自己探索。
+
+<br>　　范例5：它们并不是一回事。
+``` c
+#include <stdio.h>
+struct Student{
+	char name[20];
+	int  age;
+	char sex[3];
+};
+main(){
+	struct Student stu[] = {
+		{"张三",40,"男"},
+		{"李四",43,"男"},
+		{"王五",41,"男"}
+	},*p;
+    p = (struct Student *)&stu[0].age;
+	printf("年龄：%d\n",*p);
+	p++;
+	printf("年龄：%d\n",*p);
+}
+
+```
+    语句解释：
+    -  语句“p = (struct Student *)&stu[0].age;”指向的是结构体中的一个成员的地址。
+    -  但是由于age是int类型的变量，而p是struct Student类型的指针，他们不兼容，因此进行了强制类型转换。
+    -  此时p+1 就意味着跳到下一个学生的age成员上面。
+    -  因此说，p指向一个结构体和指向一个结构体中的成员，是不同的。至少，咱们书写的代码是不同的。
+
+## 链表 ##
+
+<br>　　范例1：简单链表。
+``` c
+#include <stdio.h>
+struct Student{
+	char name[20];
+	int  age;
+	char sex[3];
+	struct Student *next;
+};
+struct Student*  insert(struct Student *head,struct Student *temp){
+	struct Student *p1,*p2;
+	p1 = p2 =head;
+	while(p2!=NULL){
+		p1 = p2;
+		p2 = p2->next;
+	}
+	if(head == NULL){
+		head = temp;
+	}else{
+		temp->next = NULL;
+		p1->next = temp;
+	}
+	return head;
+}
+void print(struct Student *head){
+	struct Student *p = head;
+	while(p != NULL){
+		printf("姓名：%s\t年龄：%d\t性别：%s\n",p->name,p->age,p->sex);
+		p = p->next;
+	}
+}
+main(){
+	struct Student *head=NULL,stu[] = {
+		{"张三",40,"男"},
+		{"李四",43,"男"},
+		{"王五",41,"男"}
+	};
+	head = insert(head,&stu[2]);
+	head = insert(head,&stu[0]);
+	print(head);
+	putchar('\n');
+	head = insert(head,&stu[1]);
+	print(head);
+}
+
+```
+    语句解释：
+    -  学习编程要始终记住一句话：想创新，先模仿。
+    -  最开始学C的时候，就是照着老谭的链表“模仿”。
+    -  对咱们这行来说，前人的经验都是，各位前辈知识精华，所以，不要怀疑咱们前辈们的智商。但是，也不要一直走不出自己的风格来。
+    -  链表属于《数据结构》的范畴。 在此不对其深入讲解。
+
+
+提示：补充几个函数。
+|-  这几个函数存在于<malloc.h>头文件中。
+• void* malloc(unsigned int size)
+   |-  在内存中开辟一个指定大小的空间。如果开辟失败，则返回NULL。
+• void* realloc(void*p,unsigned int size)
+   |-  重新为p设置内存空间的大小  。
+• void* calloc(unsigned n ,unsigned size)
+   |-  在内存中开辟n个连续的指定大小的空间。如果开辟失败，则返回NULL。
+• vod  free(void* p)
+   |-  释放p指向的内存区域。
+• vod  free(void* p)
+
+## 共用体 ##
+　　一块内存空间 被多个变量共同使用，就是所谓的共用体。
+<br>　　范例1：定义共用体。
+``` c
+#include <stdio.h>
+union data{
+	int age;
+	float score;
+	char name[20];
+}
+main(){
+}
+```
+    语句解释：
+    -  使用union关键字来定义一个共用体。
+
+<br>　　范例2：定义变量。
+``` c
+#include <stdio.h>
+union data{
+	int age;
+	float score;
+	char name[20];
+}
+main(){
+	union data e1;
+	e1.age=20;
+	e1.score=98;
+	printf("年龄：%d\t成绩：%f\n",e1.age,e1.score);
+}
+
+```
+    语句解释：
+    -  共用体定义变量的语法 和 结构体定义变量的语法 类似。
+    -  共用体引用成员的语法 也和结构体类似。
+    -  共用体变量中的所有成员共同使用一块空间。 也就是说，共用体变量所占的字节数，由其成员中占最大字节数的那个成员来决定。
+    -  共用体中的所有成员，在同一时间中，只有一个成员有效。
+    -  本例中，先给成员age赋值，后给score赋值。则此时age中的值就无效了，内存中，目前保存的是score变量的值。
+    -  共用体变量中起作用的成员是最后一次存放数据的成员。在为某一成员存入一个新值后，原有的成员就失去作用了。
+    -  共用体变量的地址和它的各成员的地址都是相同的。
+    -  不能把共用体变量作为函数的参数，也不能使函数带回共用体变量，但可以使用指向公用体变量的指针。
+    -  共用体类型可以出现在结构体中，也可以定义共用体数组。反之，结构体也可以出现在共用体中。
+
+## 枚举类型 ##
+　　枚举类型是C语言的基本数据类型。
+
+<br>　　范例1：定义枚举类型。
+``` c
+#include <stdio.h>
+enum Color{
+	BLUE,
+	RED,
+	GREEN 
+}
+main(){
+	enum Color color = RED;
+	printf("%d\n",color);
+}
+
+```
+    语句解释：
+    -  使用enum关键字来定义一个枚举类型。
+    -  枚举类型中的成员，被称为“枚举常量”。枚举常量间用逗号间隔，最后一个常量后面不需要逗号。
+    -  建立一个枚举变量，语法和结构体类似。
+    -  每个枚举常量都有一个编号，从0开始依次排列。
+
+<br>　　范例2：赋值数字。
+``` c
+#include <stdio.h>
+enum Color{
+	BLUE,
+	RED,
+	GREEN 
+}
+main(){
+	enum Color color = (enum Color)2;
+	printf("%d\n",color);
+}
+
+```
+    语句解释：
+    -  将2强制类型转换为(enum Color)类型。
+
+<br>　　范例3：改变顺序。
+``` c
+#include <stdio.h>
+enum Color{
+	BLUE=100,
+	RED,
+	GREEN 
+}
+main(){
+	enum Color color = RED;
+	printf("%d\n",color);
+}
+
+```
+    语句解释：
+    -  此时RED的编号就是101 。
+
+## Typedef关键字 ##
+　　Typedef关键字，说白了，就是给一个已经存在的数据类型，设置一个别名。
+
+<br>　　范例1：改名Integer。
+``` c
+#include <stdio.h>
+typedef int Integer;
+main(){
+	Integer i = 5;
+	printf("%d\n",i);
+}
+
+```
+    语句解释：
+    -  就是相当于给int换了一个名字而已。然后用这个新名字去定义一个int类型的变量….
+
+<br>　　范例2：谁说不好用的？
+``` c
+#include <stdio.h>
+typedef struct{
+	char name[20];
+	int  age ;
+	char sex[3];
+} Student;
+main(){
+    Student stu = {"张三",40,"男"};
+	printf("姓名：%s\t年龄：%d\t性别：%s\n",stu.name,stu.age,stu.sex);
+}
+
+```
+    语句解释：
+    -  关键字typedef在结构体中，最常用。 此时定义变量的时候，就可以省写很多字符了。
+
+范例3：没有代码。
+• 首先，先按定义变量的方法写出定义体。 如：int i 。
+• 然后，将变量名换成新类型名。如：将int  i换成   int Integer。
+• 接着，在最前面加上typedef关键字。如typedef int Integer。
+• 最后，此时就产生了一个新类型。
+
+<br>　　范例4：定义一个数组类型。
+``` c
+#include <stdio.h>
+typedef int Integer[3];
+main(){
+    Integer i ={1,2,3};
+	int x;
+	for(x=0;x<3;x++){
+		printf("%d ",i[x]);
+	}
+}
+
+```
+    语句解释：
+    -  typedef不是在定义新类型，只是给已有的类型起一个别名。
+
+# 第九节 位运算 #
+
+**位运算符**
+``` c
+运算符	              含义	运算符	含义
+&	与                      	~	取反
+|	或	            <<	左移
+^	异或	       >>	右移
+
+```
+
+<br>　　范例1：与运算。
+``` c
+#include <stdio.h>
+main(){
+	printf("%d ",1&1);
+}
+/*
+   00000000 00000001
+   00000000 00000001
+---------------------------------
+   00000000 00000001
+*/
+```
+    语句解释：
+    -  与运算，参与运算的两位数，同为1，则结果才为1 。
+
+<br>　　范例2：或运算。
+``` c
+#include <stdio.h>
+main(){
+	printf("%d ",3|4);
+}
+/*
+00000000 00000011
+   00000000 00000100
+---------------------------------
+   00000000 00000111
+
+*/
+```
+    语句解释：
+    -  或运算，参与运算的两位数，有一个为1，则结果就为1 。
+
+<br>　　范例3：非运算。
+``` c
+#include <stdio.h>
+main(){
+	printf("%d ",~ -1);
+}
+
+/*
+11111111 11111111
+   ---------------------------------
+   00000000 00000000
+
+*/
+```
+    语句解释：
+    -  非运算，按位取反，1变0，0变1。
+
+<br>　　范例4：异或运算。
+``` c
+#include <stdio.h>
+main(){
+	printf("%d ",3^6);
+}
+
+/*
+00000000 00000011
+   00000000 00000110
+---------------------------------
+   00000000 00000101
+
+*/
+```
+    语句解释：
+    -  异或运算，参与运算的两位数，相同则为0，不同则为1 。
+
+<br>　　范例5：左移运算。
+``` c
+#include <stdio.h>
+main(){
+	printf("%d ",3<<2);   //将3左移2位。
+}
+
+/*
+00000000 00000011
+---------------------------------
+   00000000 00001100
+
+*/
+```
+    语句解释：
+    -  在数据不溢出的前提下，左移一位，相当于乘以2 。位运算不能对float和double型常量进行操作。
+
+<br>　　范例6：右移运算。
+``` c
+#include <stdio.h>
+main(){
+	printf("%d ",12>>2);  //将12右移2位。
+}
+
+/*
+00000000 00001100
+---------------------------------
+    00000000 00000011
+
+*/
+```
+    语句解释：
+    -  在数据不溢出的前提下，右移一位，相当于除以2 。
+    -  如果不能整除2，则小数部分直接舍弃。如11>>2
+    -  11/2  等于5
+    -  5/2   等于2
+    -  因此11>>2的最终结果为2 。
+
+# 第十节 文件操作 #
+## C文件概述 ##
+在C语言中，根据数据的组织形式，将文件分为：
+|-  ASCII文件：
+   |-  又称为文本文件，他的每一个字节都用来存储一个ASCII字符。
+|-  二进制文件：
+   |-  把内存中数据按其在内存中的存储形式原样输出到磁盘上存储。
+现在，有一个整数10000，在内存中占4个字节，如果按照ASCII码形式输出，则占5个字节(每一位数字都被当作一个字符)。而按二进制输出，在磁盘上只占4个字节。
+
+以前，C语言有两种对文件的处理方法：
+|-  缓冲文件系统：
+   |-  系统自动在内存区中为每一个程序中正在使用的文件开辟一个缓冲区。
+|-  输出数据时：
+|- 从内存向磁盘输出数据必须先送到内存中的缓冲区，装满缓冲区后才一起送到磁盘去。
+           |-  读入数据时：
+           |- 从磁盘向内存读入数据，一次从磁盘文件将一批数据输入到内存缓冲区(直到充满缓冲区)，然后再从缓冲区逐个地将数据送到程序数据区(给程序变量)。缓冲区的大小各个C版本互不相同，一般为512字节。
+|-  非缓冲文件系统：
+   |-  系统不自动开辟确定大小的缓冲区，而由程序为每个文件设定缓冲区。
+|-  一般来说，都是用缓冲文件系统处理字符文件，用非缓冲文件系统处理二进制文件。
+现在，ANSI C标准规定不采用非缓冲文件系统，而只采用缓冲文件系统。
+|-  也就是说：既用缓冲文件系统处理文本文件，也用它来处理二进制文件。
+|-  说白了，就是将缓冲文件系统扩展到可以处理二进制文件。
+在C语言中，没有IO语句，只能通过函数来对文件进行操作。
+
+此处有张图
+
+## 文件指针 ##
+缓冲文件系统中，关键的概念是“文件指针”。
+每一个被使用的文件都会在内存中开辟一个区域，用来存放与该文件的有关信息
+|-  如：文件的名称、状态、文件的当前位置等。
+这个区域由系统定义在stdio.h中的，取名为FILE 的结构体的变量来表示。
+一个文件，对应一个FILE类型的结构体变量。
+一般都使用一个FILE类型指针变量来指向这个FILE结构体变量。由此，通过文件指针变量能够找到与它相关的文件。
+
+<br>　　范例1：文件的打开。
+``` c
+#include <stdio.h>
+main(){
+	FILE *fp = NULL;   //定义
+	fp = fopen("D:\\a.txt","w+");  //初始化
+}
+/*
+文件打开的语法格式：
+FILE *fp；
+fp = fopen(文件所在位置，打开的方式)
+
+*/
+```
+    语句解释：
+    -  fopen()函数带回一个FILE*类型的返回值，此时文件指针fp就指向了这个文件。
+    -  (个人经验)文件指针的定义和初始化要像上面那样,分成两条语句来写。 
+
+<br>　　范例2：文件读写方式。
+``` c
+文件打开方式	含义	文件打开方式	含义
+r            	只读方式
+打开文本文件	r+                  	读写 打开文本
+w             	只写 打开文本	w+                   	读写 新建文本
+a                	追加 打开文本	a+                 	读写 打开文本
+rb                	只读方式
+打开二进制文件	rb+                	读写方式
+打开二进制文件
+wb                	只写 打开二进制	wb+                                                                   	读写 新建二进制
+ab              	追加 打开二进制	ab+                                    	读写 打开二进制
+
+```
+    语句解释：
+    -  用“r”方式打开文件：
+|-  第一，只能从文件中读，不能向文件中写。
+|-  第二，文件必须已经存在，否则就出错。
+• 用“w”方式打开文件：
+   |-  第一，只能向文件中写，不能从文件中读。
+   |-  第二，如果文件不存在，则尝试建立这个文件。如果文件存在，则删除它，然后重新建立一个新文件。
+• 用“a”方式打开文件：
+   |-  第一，a是append的缩写。意味着追加。打开文件时，位置指针自动跳到文件末尾。
+   |-  第二，文件必须已经存在，否则无法追加，而且会报错。
+• 用“r+”、 “w+”、 “a+”方式打开文件：
+   |-  第一，它们都是用读写的方式开打一个文本文件。可以读，也可以写。
+   |-  第二，但是有所不同的是：
+|-  以“r+” 打开， 文件必须存在，否则出错。
+|-  以“w+” 打开，文件如果不存在，则新建，如果存在，则删除重建。
+|-  以“a+” 打开，文件必须存在，否则出错。追加写。
+• 如果不能实现“打开”任务，fopen()函数会返回NULL，意味着文件打开时出错了。
+   |-  错误的原因：以“r”的方式打开一个不存在的文件、磁盘出现故障、磁盘已满无法建立新文件等。
+• 有的C版本不用“r+”、 “w+”、 “a+”方式打开文件，而用“rw”、 “wr”、 “ar”方式打开文件。
+• 在程序开始运行时，系统自动打开3个标准文件：
+|-  标准输入。
+|-  标准输出。
+|-  标准错误输出。
+通常这3个文件都与终端相联系。因此以前我们所用到的从终端输入或输出都不需要打开终端文件。系统自定义了3个文件指针stdin、stdout、stderr分别指向终端输入、终端输出和标准出错输出。如果程序中指定要从stdin所指的文件读入数据，就是指从终端键盘读入数据。
+
+<br>　　范例2：文件关闭。
+``` c
+#include <stdio.h>
+main(){
+	FILE *fp = NULL;
+	fp = fopen("D:\\a.txt","w");
+	if(fp == NULL){
+		puts("the file open lost");
+	}
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  fclose()函数当关闭成功时：返回0 。 关闭失败则返回EOF(即-1)。可以使用ferror函数来测试。关闭文件的之前，会先刷空缓冲区。
+
+## 文件读写 ##
+<br>　　范例1：写一个字符。
+``` c
+#include <stdio.h>
+main(){
+	FILE *fp = NULL;
+	fp = fopen("D:\\a.txt","w");
+	if(fp == NULL){
+		puts("the file open lost");
+	}
+	printf("%c\n",fputc('C',fp));
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  使用fputc(数据,目标文件)函数向文件中写一个字符：
+       -  写入成功，返回，写入的字符。
+       -  写入失败，返回，EOF。 EOF是在stdio.h中定义的符号常量，其值为 -1。
+	-  其实putchar()是一个宏定义，它利用了fputc()函数。putchar()在stdio.h中定义的。
+
+<br>　　范例2：读一个字符。
+``` c
+#include <stdio.h>
+main(){
+	FILE *fp = NULL;
+	fp = fopen("D:\\a.txt","r");
+	if(fp == NULL){
+		puts("the file open lost");
+	}
+	while(!feof(fp)){
+		putchar(fgetc(fp));
+	}
+	putchar('\n');
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  文件读到结尾的时候，会返回-1 。一般可以使用EOF来判断。
+       -  但是，有的时候，在读取的某一个数据的值却可能是-1 ，此时再使用EOF来判断显然是不行的。
+       -  因此以后统一使用feof()函数来判断文件是否到达结尾。如果到达文件结尾，则返回1，否则返回0 。
+	-  使用fgetc()读取一个字符。可以读汉字。
+
+<br>　　范例3：写一个数组。
+``` c
+#include <stdio.h>
+typedef struct{
+	char name[20];
+	int age ;
+	char sex[3];
+}Student;
+main(){
+	FILE *fp = NULL;
+	Student stu[]= {
+		{"张三",40,"男"},
+		{"李四",43,"男"},
+		{"王五",41,"男"}
+	};
+	fp = fopen("D:\\a.txt","wb");
+	if(fp == NULL){
+		puts("the file open lost");
+	}
+    fwrite(stu,sizeof(Student),3,fp);
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  使用fwrite()函数向文件中写一个数组。
+    -  函数原型：fwrite(buffer，size，count，fp)
+       -  buffer 即数据源。  |-  count  写出的单位的个数。
+       -  size 单位数据所占的字节。  |-  fp 目标文件。
+    -  用一段话来解释：从buffer中取出count个size大小的数据，写入到fp所指向的文件中去。
+
+<br>　　范例4：读一个数组。
+``` c
+#include <stdio.h>
+#include <stdlib.h>
+#define COUNT 3
+typedef struct{
+	char name[20];
+	int age ;
+	char sex[3];
+}Student;
+void print(Student stu){
+	printf("姓名：%s\t年龄：%d\t性别：%s\n",stu.name,stu.age,stu.sex);
+}
+main(){
+	FILE *fp = NULL;
+	Student stu[COUNT];
+	int i ;
+	fp = fopen("D:\\a.txt","rb");
+	if(fp == NULL){
+		puts("the file open lost");
+		exit(0);
+	}
+    fread(stu,sizeof(Student),COUNT,fp);
+	for(i=0;i<COUNT;i++){
+		print(stu[i]);
+	}
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  函数exit(0) 代表终止程序执行。 其在stdlib.h中定义。
+    -  使用fread()函数读取数据，用一句话来解释：从fp所指向的文件中读取COUNT个sizeof(Student)大小的数据，存放在stu中。
+    -  一般使用fread()和fwrite()读写字节(二进制)文件。
+
+<br>　　范例5：格式化输出。
+``` c
+#include <stdio.h>
+typedef struct{
+	char name[20];
+	int age ;
+	char sex[3];
+}Student;
+#define COUNT 3
+main(){
+	FILE *fp = NULL;
+	Student stu[]= {
+		{"张三",40,"男"},
+		{"李四",43,"男"},
+		{"王五",41,"男"}
+	};
+	int i ;
+	fp = fopen("D:\\a.txt","wb");
+	if(fp == NULL){
+		puts("the file open lost");
+	}
+	for(i=0;i<COUNT;i++){
+		fprintf(fp,"姓名：%s\t年龄：%d\t性别：%s\r\n",stu[i].name,stu[i].age,stu[i].sex);
+	}
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  fprintf 函数原型：fprintf(文件指针，格式列表，输出列表)
+    -  注意，windows记事本的换行符是“\r\n”而不是单纯的“\n”。
+
+<br>　　范例6：格式化输入。
+``` c
+#include <stdio.h>
+#include <stdlib.h>
+#define COUNT 3
+typedef struct{
+	char name[20];
+	int age ;
+	char sex[3];
+}Student;
+void print(Student stu){
+	printf("姓名：%s\t年龄：%d\t性别：%s\n",stu.name,stu.age,stu.sex);
+}
+main(){
+	FILE *fp = NULL;
+	Student stu[COUNT];
+	int i ;
+	fp = fopen("D:\\a.txt","r");
+	if(fp == NULL){
+		puts("the file open lost");
+		exit(0);
+	}
+    
+	for(i=0;i<COUNT;i++){
+		fscanf(fp,"姓名：%s\t年龄：%d\t性别：%s\n",&stu[i].name,&stu[i].age,&stu[i].sex);
+		print(stu[i]);
+	}
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  记住，要想正确的读入数据，要重写scanf中控制列表中的所有字符。
+
+<br>　　范例7：写一个整数。
+``` c
+#include <stdio.h>
+#include <stdlib.h>
+main(){
+	FILE *fp = NULL;
+	fp = fopen("D:\\a.txt","w");
+	if(fp == NULL){
+		puts("the file open lost");
+		exit(0);
+	}
+	putw(2012,fp);
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  向fp中写入一个字(整数)。putw中的w就是word的意思。
+
+<br>　　范例8：读一个整数。
+``` c
+#include <stdio.h>
+#include <stdlib.h>
+main(){
+	FILE *fp = NULL;
+	fp = fopen("D:\\a.txt","r");
+	if(fp == NULL){
+		puts("the file open lost");
+		exit(0);
+	}
+	printf("%d\n",getw(fp));
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  有的编译系统可能不提供putw()和getw()函数。
+
+<br>　　范例9：写一个字符串。
+``` c
+#include <stdio.h>
+#include <stdlib.h>
+main(){
+	FILE *fp = NULL;
+	fp = fopen("D:\\a.txt","w");
+	if(fp == NULL){
+		puts("the file open lost");
+		exit(0);
+	}
+    fputs("世界,你好!\r\nHello World",fp);
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  函数原型： fputs(字符串,文件指针)
+
+
+<br>　　范例10：读一个字符串。
+``` c
+#include <stdio.h>
+#include <stdlib.h>
+main(){
+	FILE *fp = NULL;
+	char str[50];
+	fp = fopen("D:\\a.txt","r");
+	if(fp == NULL){
+		puts("the file open lost");
+		exit(0);
+	}
+    puts(fgets(str,100000,fp));
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  函数原型 fgets(字符数组，n，fp)
+    -  一句话： 从fp中读取n个字符，将字符存放到字符数组中去。
+    -  如果在读到n个字符之前，遇到了换行符或者EOF，则停止读取。
+    -  函数fgets()，返回值为字符数组的首地址。
+    -  此函数只会读取n-1个字符，然后在最后加一个‘\0’字符。程序一共得到n个字符。
+
+此处有图
+
+## 文件定位 ##
+
+<br>　　范例1：回到文件开头。
+``` c
+#include <stdio.h>
+#include <stdlib.h>
+main(){
+	FILE *fp = NULL;
+	char str[50];
+	fp = fopen("D:\\a.txt","r");
+	if(fp == NULL){
+		puts("the file open lost");
+		exit(0);
+	}
+    puts(fgets(str,100000,fp));
+	rewind(fp);
+	puts(fgets(str,100000,fp));
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  使fp所指向的文件中的位置指针，回到文件的开头。
+
+<br>　　范例2：随机读写。
+``` c
+#include <stdio.h>
+#include <stdlib.h>
+main(){
+	FILE *fp = NULL;
+	char str[50];
+	fp = fopen("D:\\a.txt","r");
+	if(fp == NULL){
+		puts("the file open lost");
+		exit(0);
+	}
+    puts(fgets(str,100000,fp));
+	fseek(fp,2,SEEK_SET);
+	puts(fgets(str,100000,fp));
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  函数原型：fseek(文件指针，位移量，起点)
+       -  一句话：让位置指针回到，从起点开始，位移量个位置处。
+       -  以本例来说：让fp中的位置指针回到，从SEEK_SET开始，位移2个位置处。
+    -  起点有3个：
+       -  SEEK_SET 代表文件头。也可以用数字0代表。
+       -  SEEK_CUR 代表当前位置。也可以用数字1代表。
+       -  SEEK_END 代表文件结尾。也可以用数字2代表。
+	-  文件操作这部分写的有点简略，主要的原因是：
+	   -  我本人是用Java的，因此不需要对C语言了解太深(但是也是学的C语言，入的编程的门)。
+	   -  之所以回来复习C，主要是为了自己和朋友们考程序员。
+	   -  如果您以后是使用C++ 开发，那么就仔细研究一下C语言吧。
+	-  fseek()主要用于二进制文件。
+
+<br>　　范例3：ftell() 。
+``` c
+#include <stdio.h>
+#include <stdlib.h>
+main(){
+	FILE *fp = NULL;
+	char str[50];
+	fp = fopen("D:\\a.txt","r");
+	if(fp == NULL){
+		puts("the file open lost");
+		exit(0);
+	}
+    puts(fgets(str,100000,fp));
+	printf("%d\n",ftell(fp));
+	fclose(fp);
+}
+
+```
+    语句解释：
+    -  ftell() 用来返回当前位置指针所在的位置。 如果返回-1L 则表示出错。
+
+其他：
+
+第一，	C语言共有32个关键字、9种控制语句、34种运算符号。
+第二，	C语言对语法的限制不太严格。如：不检查数组下标越界。
+第三，	C语句可以直接对硬件操作。它兼具高低级语言的功能，既可以编写系统软件也可以编写应用软件。再次强调：“C博大精深,咱们在此讨论的仅仅是皮毛而已!切记！”。
+第四，	C语言是面向过程的语言，C++是面向对象与面向过程相结合的语言。
+第五，	C文件的后缀为：.c 。C++文件的后缀：.cpp 。 p是plus(‘加’的意思)。
+第六，	C++是由C发展而来的，主要用来编写大型软件。
+第七，	C++对C程序是兼容的，因此可以用C++的编译系统编译C程序。
+第八，	在一个常量后面加上u或者U，则此常量就是无符号类型的。
+第九，	其实在文件的头部可以不加<stidio.h> 但是会有警告信息。
+第十，	高级语言的语句用来向计算机系统发出操作指令，一个语句在经过编译后会产生若干条机器指令。
+第十一，	%d和%i功能是一样的。
+第十二，	库函数并不是C语言的组成部分，而是C语言编译系统为方便用户使用而提供的公共函数。
+第十三，	getch()函数从键盘读入一个字符，用户不需要按回车。
+第十四，	结构体变量之间可以相互赋值。如:Student stu={“张三”,32};Student stu2 = stu 。 
+第十五，	函数system(“…”) 用来执行cmd命令，如system(“cls”)这个函数在<stdlib.h>头文件中。
+
+# 附录 #
+
+<br>　　范例1：system函数。
+``` c
+#include<stdio.h>
+#include<stdlib.h>
+main(){	  
+	printf("开始复制\n");
+	system("copy D:\\a.txt D:\\b.txt");
+	printf("复制结束\n");
+}
+
+```
+    语句解释：
+    -  使用system函数可以执行操作系统的命令，如在Window中，此函数可以执行cmd中的所有命令。如：cls(清屏)、pause(暂停)等。
+    -  system函数被定义在stdlib.h头文件中。
+
+<br>　　范例2：执行java类。
+``` c
+#include<stdio.h>
+#include<stdlib.h>
+main(){	  
+	system("java ShowDialog");
+}
+
+```
+    语句解释：
+    -  所有在cmd中可以执行的命令，在C语言中都可以将该命令以字符串的方式传递给system函数来执行。
+
+<br>　　范例2：rand和Sleep函数。
+``` c
+#include<stdio.h>
+#include<stdlib.h>
+#include<windows.h>
+main(){	  
+	int i=0;
+	for(;i<10;i++){
+		printf("%d\n",rand());
+		Sleep(1000);
+	}
+}
+
+```
+    语句解释：
+    -  使用stdlib.h头文件中的rand函数可以随机出一个int类型的整数。
+    -  使用windows.h头文件中的Sleep函数可以让程序暂停执行指定的毫秒数。
+
+
 
 
 <br><br>
