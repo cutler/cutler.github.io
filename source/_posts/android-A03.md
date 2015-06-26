@@ -1,6 +1,5 @@
 title: 入门篇　第三章 Service
 date: 2014-11-12 22:40:14
-create: 2014-11-12 22:40:14
 categories: Android
 ---
 　　一个Service就是一个能够在后台执行长时操作的应用程序组件。Service与Activity不同之处是Service没有用户界面，它运行在程序的后台，通常用来完成一些现不需要用户界面但是需要一直运行的功能，如`处理网络事务(消息推送)`、`播放音乐`、`执行文件I/O`、或者`跟CotentProvider交互`等，所有这些都是在后台完成的。

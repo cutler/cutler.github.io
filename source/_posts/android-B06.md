@@ -1,6 +1,5 @@
 title: UI篇　第六章 Support Library
-date: 2015-2-5 17:58:50
-create: 2015-4-13 11:22:25
+date: 2015-4-13 11:22:25
 categories: Android
 ---
 　　`Android Support Library`是一组代码库，提供向后兼容版本的Android框架`API`，若需要在低版本系统中使用高版本中的功能则只能通过该库的`API`。 目前有多个支持库，每个支持库都是向后兼容某个特定的`Android API`级别。这意味着您的应用程序既可以使用支持库所提供的高版本的特点，并且仍然可以在低版本中运行。

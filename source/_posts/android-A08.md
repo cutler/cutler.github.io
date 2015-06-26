@@ -1,6 +1,5 @@
 title: 入门篇　第八章 Permissions
 date: 2015-1-15 18:51:58
-create: 2015-1-15 18:51:58
 categories: Android
 ---
 　　Android是一种特权分隔的操作系统，每个应用程序都具有各自独立的系统标识（Linux用户ID和组ID），系统各部分有不同的身份标识，因此各个应用程序相互独立且与系统无关。

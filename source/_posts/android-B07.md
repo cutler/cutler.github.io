@@ -1,6 +1,5 @@
 title: UI篇　第七章 ActionBar
-date: 2015-2-5 18:58:50
-create: 2015-4-14 14:09:02
+date: 2015-4-14 14:09:02
 categories: Android
 ---
 　　在`Android 3.0`中除了`Fragment`外，`ActionBar`也是一个重要的内容。`ActionBar`主要是用于代替传统的`标题栏`与`Menu按钮`：

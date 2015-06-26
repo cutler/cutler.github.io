@@ -26,7 +26,7 @@ if (page.archive){
 </div>
 <div id="main" class="archive-part clearfix">
   <div id="archive-page">
-<% page.posts.each(function(item){ %>
+<% page.posts.sort('path').each(function(item){ %>
   <%- partial('_partial/article_row', {item: item, index: true}) %>
 <% }); %>
 <% if (page.total > 1){ %>

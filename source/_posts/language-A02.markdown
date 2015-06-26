@@ -1,8 +1,7 @@
 ---
 layout: post
 title: "入门篇　第二章 Windows批处理"
-date: 2014-1-3 15:21:49
-create: 2015-1-9 15:21:49
+date: 2015-1-9 15:21:49
 comments: true
 categories: 编程语言
 tags:

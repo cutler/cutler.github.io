@@ -1,6 +1,5 @@
 title: 入门篇　第六章 Intent 与 Intent Filters
 date: 2014-12-1 21:39:45
-create: 2014-12-1 21:39:45
 categories: Android
 ---
 　　Android四大组件中有三个组件（Activity、Service、Broadcast Receiver）是通过叫做Intent的对象来激活的。 

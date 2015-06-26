@@ -1,6 +1,5 @@
 title: 入门篇　第四章 Content Provider
 date: 2014-11-23 15:16:35
-create: 2014-11-23 15:16:35
 categories: Android
 ---
 　　在Android中应用程序的数据可以保存在 `SQLite` 数据库、网络或者应用程序可以访问到的任何本地的持久化的存储介质中。如果应用程序需要向外界（即其它应用程序）提供自己的数据，则可以通过`Content Provider`（内容提供者）来完成。通过Content Provider其他的应用程序能够查询或编辑（如果 Content Provider 允许）应用程序的数据。
