@@ -104,7 +104,7 @@ params.flags =
     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
 ```
 
-　　第一，修改`type`属性的值为`TYPE_SYSTEM_OVERLAY`：
+　　第二，修改`type`属性的值为`TYPE_SYSTEM_OVERLAY`：
 ``` android
 // TYPE_SYSTEM_OVERLAY级别的悬浮窗默认就无法被点击，因为不会拦截事件。关于这三个常量的优先级，稍后会详细介绍。
 params.type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
