@@ -2,9 +2,9 @@ title: 实战篇　第四章 Android Studio
 date: 2015-4-15 21:44:35
 categories: Android
 ---
-　　`Android Studio`是谷歌推出的一个Android开发环境，基于`IntelliJ IDEA`。类似`Eclipse ADT`， `Android Studio`提供了集成的Android开发工具用于开发和调试。
+　　`Android Studio`是谷歌推出的一个Android开发环境，基于`IntelliJ IDEA`，它提供了集成的Android开发工具用于开发和调试。
 
-# 第一节 基础应用 #
+# 第一节 基础入门 #
 
 　　在`Google 2013`年`I/O`大会上，`Android Studio`这款开发工具被首次公布，这也是为了方便开发者基于Android开发，目前已经更新到`1.1.0`版本。`Studio`首先解决的一个问题是多分辨率。Android设备拥有大量不同尺寸的屏幕和分辨率，使用`Studio`开发者可以在编写程序的同时看到自己的应用在不同尺寸屏幕中的样子。
 
@@ -21,42 +21,55 @@ categories: Android
 <br>**中文社区**
 　　[Android Studio 中文组](http://android-studio.org/index.php)，是2013年5月16日筹办，5月21号上线的`Android Studio`中文社区网站，对`Android Studio`的安装，配置，调试，`BUG`提交等问题进行经验交流和总结； 中文组还承载着对`Android Studio`进行汉化和教程编写的工作，为中文开发者提供了本地支持！
 
-<br>　　以上是从百度百科中摘抄过来的介绍，猛地一看，没看懂多少，说的太空泛了。
-　　笔者也是被大势所趋，在`2015年4月14日 夜`，突然顿悟，看透天机，明白使用`Android Studio`开发才是正道，未来Android推出的新技术，势必会完全向`Android Studio`靠拢，而不会是`Eclipse`，（开源社区也都越来越偏向`Android Studio`了）。因而在`Android Studio`发布`1.1.0`版本时，笔者决定开始接触它了。接下来我们从环境搭建开始，一步步的揭开`Android Studio`的面纱。
+<br>**为何使用AndroidStudio？**
+　　以上介绍都是从百度百科中摘抄过来的，猛地一看，没看懂多少，说的太空泛了。
+　　笔者也是被大势所趋，在`2015年4月14日 夜`，突然顿悟，看透天机，明白使用`Android Studio`开发才是正道，未来Android推出的新技术，势必会完全向`Android Studio`靠拢，而不会是`Eclipse`（开源社区越来越偏向`Android Studio`了）。
+　　因而在`Android Studio`发布`1.1.0`版本时，笔者决定开始接触它。
+
+　　`Android Studio`中文组在`2015年6月28日`发表了一篇文章，也表明了Google未来的态度：
+
+	-  为了简化Android的开发力度，Google决定将重点建设Android Studio工具，并会在今年年底停止支持其他集成开发环境，比如Eclipse。
+
+<br>　　接下来我们从环境搭建开始，一步步的揭开`Android Studio`的面纱。
 
 ## 环境搭建 ##
-　　第一步，从官方下载界面中下载 [AndroidStudio](https://developer.android.com/sdk/index.html) ，本节将以Mac为例，讲解搭建过程。
-　　第二步，下载完毕后，双击打开，显示的是经典的Mac安装界面，直接将应用图表拖近`Applications`目录就可以了。
-　　第三步，开始安装时会询问你：`“You can import your settings from a previous version of Android Studio”`，由于我们是第一次安装，因此选择第二项 `“I do not ……”`即可。
+<br>　　首先，从官方下载界面中下载 [AndroidStudio](https://developer.android.com/sdk/index.html) ，然后执行下面的步骤。本章是基于`Android Studio 1.2.2`版本进行介绍的。
+
+<br>**Mac平台**
+　　第一步，下载完毕后，双击打开，显示的是经典的`Mac`安装界面，直接将应用图表拖近`Applications`目录就可以了。
+　　第二步，开始安装时会询问你：`“You can import your settings from a previous version of Android Studio”`，由于我们是第一次安装，因此选择第二项 `“I do not ……”`即可。
 
 　　不出意外的话，此时你会遇到第一个问题，`Studio`会卡在`“fetching Android sdk compoment information”`上面，这其实是去获取`android sdk`组件信息，这个过程相当慢（视你的网速而定），甚至是加载失败，进而导致`Studio`启动不起来。之所以这么慢是因为`Google`被墙掉了。同时由于是第一次启动`Studio`，因而`Studio`在获取完毕组件信息后，还会去下载一些东西（可以帮我们省很多事，所以尽量让它去下载），所以这个问题必须解决。
 　　解决这个问题，只需要配置一个代理服务器即可，具体步骤请参阅：[《关于红杏的公益代理，Android Studio以及freso的编译》](http://www.liaohuqiu.net/cn/posts/about-red-apricot-and-compiling-fresco/) 。（这里帮红杏打个广告，笔者是个懒人，能花小钱搞定的事情，绝对不想去花费时间和精力，红杏让我可以用最简单的方式翻墙，所以我很干脆就掏钱了，:）。
 
 <br>**Windows平台**
-　　如果你是在Windows平台，可以这么做：
+　　如果你是在`Windows`平台，可以这么做：
 
 	-  首先，到android studio安装目录，打开bin目录，编辑idea.properties, 在文件末尾添加：
 	   -  disable.android.first.run=true 这将禁用第一次运行。
 	-  然后，打开android studio，在File > Settings > HTTP Proxy settings设置代理相关参数，关闭android studio。
 	-  最后，再次打开idea.properties文件，删除刚刚添加的disable.android.first.run=true，并重新打开studio。
 
+<br>　　设置完代理后，剩下的步骤就没有什么难度了，不值一提。 
+
+
 ## HelloWorld ##
 　　环境搭建完毕后，我们接下来就开始创建一个名为`HelloWorld`的项目，然后运行它。
-　　项目创建的具体过程，可以参阅：[《Android Studio for Mac初体验》](http://blog.csdn.net/keyboardota/article/details/8937384)，笔者就不再冗述了，主要是因为要截很多图，太占博客的空间了。
+　　项目创建的具体过程，可以参阅：[《使用Android Studio开发Android APP》](http://blog.csdn.net/u014450015/article/details/46534567)，笔者就不再冗述了，主要是因为要截很多图，太占博客的空间了。
 
-　　进入到`Android Studio`后，你会看到如下界面：
+　　进入到`Android Studio`后，你会看到如下界面（可能和你的有点不同，但是不影响）：
 
 <center>
 ![](/img/android/android_d04_01.jpg)
 </center>
 
-　　上面的那一个红框里的按钮，都是我们常用的功能键，比如第二个和第三个分别是`运行`和`Debug`，倒数第二个和倒数第一个分别是，`SDK Manager`和`Android Device Monitor`（即原来Eclipse中的`DDMS`视图）。
-　　下面的那一个红框里的按钮，用来切换项目的展示方式，一共有三种：`Project`、`Packages`、`Android`，它们的区别请自行查看，比较常用的展示方式是`Android`。
+　　右面的那一个红框里的按钮，都是我们常用的功能键，比如第二个和第三个分别是`运行`和`Debug`，倒数第二个和倒数第一个分别是，`SDK Manager`和`Android Device Monitor`（即原来Eclipse中的`DDMS`视图）。
+　　左面的那一个红框里的按钮，用来切换项目的展示方式，常用的一共有三种：`Project`、`Packages`、`Android`，它们的区别请自行查看，开发的时候都是用`Android`。
 
 <br>**运行项目**
 　　项目创建完毕后，接下来我们就要运行它了。 首先要做的是打开`Android Device Monitor`窗口，创建一个模拟器，或者连接真机。
 
-　　假设我们的项目的包名为`com.cutler.helloworld`，然后点击上面说的`运行`（绿色的三角）按钮后，你可能会遇到这个错误：
+　　假设我们的项目的包名为`com.cutler.helloworld`，然后点击上面说的`运行按钮`（绿色的三角）后，你可能会遇到这个错误：
 ``` c
 Installing com.cutler.helloworld
 DEVICE SHELL COMMAND: pm install -r "/data/local/tmp/com.cutler.helloworld"
@@ -75,11 +88,11 @@ Failure [INSTALL_FAILED_OLDER_SDK]
 　　在`Android Studio`中，不再存在工作空间的概念了（但创建项目时可以设置保存的位置），也不再像`Eclipse`那样可以同时将工作空间的中所有项目导入到程序中，而是一个`Project`对应一个`Studio`窗口，如果想打开多个`Project`，那么只能打开多个`Studio`窗口。
 　　我们都知道，在实际开发中可能会用到第三方提供的`Android library`项目，因而一个完整的项目是由一个主项目+若干`library`项目组成的。`Android Studio`提出了`Module`的概念，`Module`就是指的一个具体的项目，我们刚才说的`主项目`、`library项目`都被称为一个`Module`，即`一个Project由多个Module组成`。
 
-　　每一个`Module`需要有属于自己的`Gradle build file`（当你新建一个`Module`时会自动帮你生成的，当你导入一个Eclipse的项目时需自己创建）。这些`Gradle`文件包含了一些很重要的内容，比如所支持的安卓版本和项目依赖的东西，以及安卓项目中其它重要的数据。
-　　这样一来，我们就能明白为什么要修改上面的`build.gradle(Module:app)`文件了。
+　　每一个`Module`需要有属于自己的`Gradle build file`（当你新建一个`Module`时会自动帮你生成的）。这些`Gradle`文件包含了一些很重要的内容，比如所支持的安卓版本和项目依赖的东西，以及安卓项目中其它重要的数据。
+　　此时各位应该就能明白，刚才为什么要修改上面的`build.gradle(Module:app)`文件了。
 
 <br>**删除项目**
-　　本文使用的是`Android Studio 1.1.0`版本，在该版本中没法很方便的删除一个项目，有位道友折腾了半天也没找到好的方法，他折腾的过程请参见[《Android studio删除工程项目》](http://www.cnblogs.com/smiler/p/3854816.html) 。 
+　　本文使用的是`Android Studio 1.2.2`版本，在该版本中没法很方便的删除一个项目，有位道友折腾了半天也没找到好的方法，他折腾的过程请参见[《Android studio删除工程项目》](http://www.cnblogs.com/smiler/p/3854816.html) 。 
 　　笔者找到一个相对省事的方法，以Mac为例：
 
 	-  首先，右键你的Module并点击“Reveal in Finder”，打开本地文件夹。
@@ -91,14 +104,94 @@ Failure [INSTALL_FAILED_OLDER_SDK]
 - [百度百科 - Android Studio](http://baike.baidu.com/view/10600831.htm)
 - [Android Studio vs Eclipse：你需要知道的那些事](http://mobile.51cto.com/abased-434702.htm)
 
+## API Level ##
+　　考虑到有的读者可能不清楚项目的`编译版本`和`最低运行版本`之间的区别，特此增加这一节专门介绍一下`API Level`相关的知识。
+
+　　Android平台提供了一套框架API，使得应用程序可以与系统底层进行交互。该框架API由以下模块组成：
+
+	-  一组核心的包和类。
+	-  清单(manifest)文件的XML元素和属性声明。
+	-  资源文件的XML元素和属性声明及访问形式。
+	-  各类意图(Intents)。
+	-  应用程序可以请求的各类授权，以及系统中包含的授权执行。
+　　每个版本的Android操作系统以及其提供的框架`API`，都被指定一个`整数`标识符，称为`API Level`。以`Android1.0`系统为例，它的`API`的版本号是`1`，这个数字被保存在操作系统内部，之后Android系统版本的`API Level`依次递增`1`。
+``` c
+操作系统             API等级          操作系统             API等级
+Android1.0	        1            Android1.1              2
+Android1.5	        3            Android1.6              4
+Android2.0	        5            Android2.0.1            6
+Android2.1.x	        7            Android2.2.x            8
+Android2.3,2.3.x       	9            Android2.3.x            10
+Android3.0.x	        11           Android3.1.x            12
+Android3.2              13           Android4.0,4.0.x        14
+Android4.0.3,4.0.4      15           Android4.1,4.1.x        16
+Android4.2,4.2.2	17
+```
+
+<br>**minSdkVersion**
+　　开发程序之前，为了保证程序正确的运行，需要设置App所支持最低`API Level`（`minSdkVersion`）。
+　　当项目设置了`minSdkVersion`后，在用户准备安装这个项目生成的`apk`到手机等Android设备前，操作系统会检查该`apk`所支持的`minSdkVersion`是否和系统内部的`API Level`匹配，当且仅当小于或等于系统中保存的`API Level`时，才会继续安装此程序，否则将不允许安装。
+
+　　警告：
+
+	-  如果你不声明minSdkVersion属性，系统会假设一个默认值“1”，这意味着您的应用程序兼容所有版本的Android。
+	-  如果您的应用程序不兼容所有版本(例如，它使用了API级别3中的接口)并且你没有设置minSdkVersion的值，那么当安装在一个API级别小于3的系统中时，应用程序在运行，并且执行到了调用Android1.5（API级别3级）的API的那句代码时，就会崩溃，即试图访问不可用API(但是程序的其他没有调用该API的地方可以正常运行)。出于这个原因，一定要申报相应的API级别在minSdkVersion属性。
+	-  例如，android.appwidget类包是在API级别3中开始引入的。如果一个应用程序使用了这个API，就必须通过指明minSdkVersion属性为3来声明运行的最低要求。于是，该应用程序就可以在Android 1.5、Android 1.6 (API级别4级)等平台上安装，但是在Android 1.1 (API级别2级)和 Android 1.0 平台(API级别1级)上却是无法安装的。
+
+<br>**targetSdkVersion**
+　　标明应用程序目标`API Level`的一个整数。如果不设置，默认值和`minSdkVersion`相同。
+　　这个属性通知系统，你已经针对这个指定的目标版本测试过你的程序，系统不必再使用兼容模式来让你的应用程序向前兼容这个目标版本。应用程序仍然能在低于`targetSdkVersion`的系统上运行（一直到`minSdkVersion`属性值所指定的版本）。
+
+　　在Android演进的每个新版本中，都会有一些行为甚至外观的改变。但是，如果设备的`API Level`比应用程序声明的`targetSdkVersion`的值大，那么系统就可以启用兼容行为，以便确保应用程序能够继续执行期望的工作。因此，可以通过提高应用程序所运行的目标SDK版本（`targetSdkVersion`）来禁止启用这种兼容行为。
+　　例如，把这个属性值设置为`11`或更大，就会允许系统把新的默认主题应用给在`Android3.0`或更高版本平台之上的应用程序，并且在运行在较大屏幕的设备上时，也禁止使用屏幕兼容模式（因为针对`API Level 11`的支持，暗示着对较大屏幕的支持）。
+　　这个属性在`API Leve 4`中被引入。
+
+　　个人经验：
+
+	-  比如从Android 3.0开始，在绘制View的时候支持硬件加速，充分利用GPU的特性，使得绘制更加平滑(会多消耗一些内存)。若是将targetSdkVersion设置为11或以上，则系统会默认使用硬件加速来绘制，但Android3.0之前版本提供的某些绘图API，在硬件加速下进行绘制时，会抛异常。
+	-  因此，除非你充分测试了，否则不要把targetSdkVersion设置的过高。
+
+<br>**compileSdkVersion**
+　　项目的编译版本（`compileSdkVersion`）和`android:minSdkVersion`属性的值：
+
+	-  compileSdkVersion是指编译当前项目时所使用的SDK平台的版本。
+	-  minSdkVersion属性则是限定了当前项目只能安装在大于等于其指定API等级的设备上。
+
+	-  也就是说，我们可以将项目的compileSdkVersion设置为17，而minSdkVersion属性的值则仅为8 。 
+	-  只要保证在项目中不去调用API等级8中所未提供的API，那么使用API等级17编译出来的项目依然会正常运行在Android2.2的设备上。
+
+<br>　　问：为什么要把项目的编译版本提高呢?
+　　答：它可以让我们的应用程序，既可以使用高版本Android系统中所提供的新功能，同时又能完美的运行在低版本的系统中。以`holo`主题为例，众所周知`holo`主题是`Android3.0`之后的系统中的一个非常大的亮点。如果可以实现“当应用程序运行在3.0之前的系统时使用一般的主题，而运行在3.0之后的系统时则使用holo主题”那可就太好了。
+
+<br>　　范例1：使用`Holo`主题（`styles.xml`）。
+``` xml
+<!-- For API level 11 or later, the Holo theme is available and we prefer that. -->
+<style name="ThemeHolo" parent="android:Theme.Holo">
+</style>
+```
+　　如果项目的当前编译版本低于`3.0`则`Android Studio`就会报错。
+　　因为`Android Studio`在编译Android的`xml`文件时，会依据当前项目的编译版本，去SDK的安装目录下查找其所依赖的所有资源，若未找到则就报错。 本范例中查找`Theme.Holo`主题的目录为：
+　　`SDK\platforms\android-11\data\res\values`
+　　其中`“android-11”`与项目的编译版本相对应。我们进入到`values`目录后，打开`themes.xml`就可以找到`Theme.Holo`主题了。同样的，在项目中引用的其他系统资源(如颜色、尺寸等)在`platforms`目录下面都是可以找到的。
+
+　　然后我们就可以在项目中建立`res\values-v11`目录，并把上面的`styles.xml`放到里面去。当程序运行的时候，系统会检测当前设备的`API Level`，若大于等于`11`则使用`values-v11`目录下的`styles.xml`，否则则使用`values`目录下的。
+
+
+
+　　提示：
+
+	-  高版本Andrdoid平台的框架API与早期版本兼容，即新版本的Android平台大多数都是新增功能，和引进新的或替代的功能。
+	-  对于API的升级，会将老版本的标记为已过时，但不会从新版本中删除，因此现有的应用程序仍然可以使用它们。在极少数情况下，部分旧版本的API可能被修改或删除，通常这种变化是为了保障API的稳定性及应用程序或系统的安全。
+
 # 第二节 Gradle #
-　　新增的`Gradle`将会是你转到`Android Studio`上最大的障碍，和`Maven`一样，`Gradle`只是提供了构建项目的一个框架，真正起作用的是`Plugin`。如果你不知道什么是`构建工具`、`Maven`，那么请参看笔者的另一篇文章《实战篇　第三章 Maven》。
+　　新增的`Gradle`将会是你转到`Android Studio`上最大的障碍，和`Maven`一样，`Gradle`只是提供了构建项目的一个框架，真正起作用的是`Plugin`。如果你不知道什么是`构建工具`、`Maven`，那么请参看笔者的另一篇文章[《实战篇　第三章 Maven》](http://cutler.github.io/android-D03/)。
+
 　　笔者将本节的内容，定位为`“了解”`，也就是说你不需要记住下面所有的知识，只要能看懂范例、理解思路即可。
 
 ## 概述 ##
 <br>**是什么？**
-　　`Gradle`是以`Groovy`语言为基础，面向`Java`应用为主的`自动化构建工具`。它同时继承了`Apache Ant`和`Apache Maven`二者的优点。
-　　当前`Gradle`仅可以用来构建使用`Java`、`Groovy`和`Scala`语言编写的项目，计划未来将支持更多的语言。
+　　`Gradle`是以`Groovy`语言为基础，面向`Java`应用为主的`自动化构建工具`。
+　　`Gradle`同时继承了`Apache Ant`和`Apache Maven`二者的优点。当前`Gradle`仅可以用来构建使用`Java`、`Groovy`和`Scala`语言编写的项目，计划未来将支持更多的语言。
 
 <br>**Groovy**
 　　`Groovy`是`Java`平台上设计的面向对象编程语言。这门动态语言拥有类似`Python`、`Ruby`和`Smalltalk`中的一些特性，可以作为`Java`平台的`脚本语言`使用。它的语法与`Java`非常相似，以至于多数的`Java`代码也是正确的`Groovy`代码。`Groovy`代码动态的被编译器转换成`Java字节码`。由于其运行在`JVM`上的特性，`Groovy`可以使用其他`Java`语言编写的库。
@@ -127,6 +220,7 @@ class Foo {
 ```
 
 <br>**JVM生态圈三大构建工具**
+
 　　最初只有`Make`一种构建工具，后来其发展为`GNU Make`。由于需求的不断涌现，码农的世界里逐渐演化出了千奇百怪的构建工具。当前，JVM生态圈由三大构建工具所统治：
 
 	-  Apache Ant带着Ivy
@@ -135,9 +229,7 @@ class Foo {
 
 　　软件行业新旧交替的速度之快往往令人咂舌，不用多少时间，你就会发现曾经大红大紫的技术已经成为了昨日黄花，当然，`Maven`也不会例外。虽然目前它仍然是`Java`构建的事实标准，但我们也能看到新兴的工具在涌现，比如基于`Groovy`的`Gradle`。
 
-<br>**三大构建工具优缺点**
-
-<br>　　Ant with Ivy
+<br>　　Ant
 
 	-  介绍：Ant是第一个“现代”构建工具，在很多方面它有些像Make。发布于2000年，在很短时间内成为Java项目上最流行的构建工具。在最初的版本之后，逐渐具备了支持插件的功能。
 	-  优点（但不限于）：主要优点在于对构建过程的控制上。随着通过网络进行依赖管理成为必备功能，Ant采用了Apache Ivy。
@@ -153,12 +245,16 @@ class Foo {
 	   -  仍然用XML作为脚本编写格式。在大型项目中，它经常什么“特别的”事还没干就有几百行代码。
 	   -  正是由于Maven的构建规则的可重用性，导致用Maven很难写出复杂、定制化的构建脚本，甚至不如Ant。
 
-<br>　　**Gradle**
-　　`Gradle`结合了前两者的优点，在此基础之上做了很多改进，它既有`Ant`的强大和灵活，又有`Maven`的依赖管理。
-　　`Gradle`不用`XML`，它使用基于`Groovy`的专门的`DSL`，从而使`Gradle`构建脚本变得比用`Ant`和`Maven`写的要简洁清晰。`Gradle`样板文件的代码很少，这是因为它的`DSL`被设计用于解决特定的问题：贯穿软件的生命周期，从编译，到静态检查，到测试，直到打包和部署。
-　　`Gradle`的成就可以概括为：约定好，灵活性也高。 
+<br>　　Gradle
+
+	-  Gradle结合了前两者的优点，在此基础之上做了很多改进，它既有Ant的强大和灵活，又有Maven的依赖管理。
+	-  Gradle不用XML，它使用基于Groovy的专门的DSL，从而使Gradle构建脚本变得比用Ant和Maven写的要简洁清晰。Gradle样板文件的代码很少，这是因为它的DSL被设计用于解决特定的问题：贯穿软件的生命周期，从编译，到静态检查，到测试，直到打包和部署。
+	-  Gradle的成就可以概括为：约定好，灵活性也高。 
 
 　　推荐阅读：[《Java构建工具：Ant vs Maven vs Gradle》](http://blog.csdn.net/napolunyishi/article/details/39345995) 与 [《Gradle, 基于DSL的新一代Java构建工具》](http://www.blogjava.net/wldandan/archive/2012/06/26/381532.html)。
+
+<br>　　当我们成功运行完`HelloWorld`项目后，为了更好的使用`Android Studio`进行开发工作，会不可避免的就会对`build.gradle`文件的语法产生好奇。 接下来笔者将会介绍编写`Gradle`构建脚本的基础知识（虽然一般情况下几乎用不到它们）。
+　　为了理论结合实践，接下来我们要安装一下`Gradle`，这样就能一边写代码一边测试了。
 
 <br>**本节参考阅读：**
 - [维基百科 - Gradle](http://zh.wikipedia.org/zh-cn/Gradle)
@@ -168,6 +264,7 @@ class Foo {
 
 
 ## 环境搭建 ##
+
 　　首先，前往官方下载界面下载`Gradle`安装包，下载地址为：https://gradle.org/downloads/ ，本节将以`2.2.1`版本为例讲解`Gradle`的用法。
 
 　　官方安装教程：http://gradle.org/docs/current/userguide/installation.html 。
@@ -184,8 +281,7 @@ class Foo {
 　　`Gradle`里的任何东西都是基于这两个基础概念：`projects`（项目）、`tasks`（任务）。
 
 　　我们每天对项目进行编译、运行单元测试、生成文档、打包和部署等烦琐且不起眼的工作，都可以说是在对项目进行`构建`。
-　　使用Gradle构建时，可以同时构建一个或多个`project`，一个project到底代表什么依赖于你想用Gradle做什么。举个例子，一个project可以代表一个`JAR`或者一个网页应用。它也可能代表一个发布的`ZIP`压缩包，这个ZIP可能是由许多其他项目的`JARs`构成的。但是一个project不一定非要代表被构建的某个东西。它可以代表一件要做的事，比如部署你的应用。
-　　`每一个project是由一个或多个tasks构成的`。一个`task`代表一些更加细化的构建。它可能是编译一些`classes`，创建一个`JAR`，生成`javadoc`，或者生成某个目录的压缩文件。
+　　使用Gradle构建时，可以同时构建一个或多个`project`，`每一个project是由一个或多个tasks构成的`。一个`task`代表一些更加细化的构建。它可能是编译一些`classes`，创建一个`JAR`，生成`javadoc`，或者生成某个目录的压缩文件。
 <br>
 ### HelloWorld ###
 　　首先，我们先来创建一个名为`gradleTest`的空文件夹。
@@ -213,7 +309,7 @@ gradle -q hello
     -  这里需要注意两点：
        -  由于我们是在Windows命令行中执行这个脚本，因此build.gradle必须是ANSI编码，别用UTF-8编码，否则编译会出错。
        -  gradle命令后面跟着的是task的名称，而不是文件的名称。
-    -  本节之后的内容绝大多数的范例会在命令里加入-q，加上它之后就不会生成Gradle的日志信息，所以用户只能看到tasks的输出。当然也可以不加它。
+    -  本节之后的绝大多数范例会在命令里加入-q，加上它之后就不会生成Gradle的日志信息，所以用户只能看到tasks的输出。当然也可以不加它。
 
 <br>　　范例2：快捷的任务定义。
 ``` gradle
@@ -575,7 +671,7 @@ jar {
 
 <br>**仓库**
 　　本质上说，仓库是一种存放依赖的容器，每一个项目都具备一个或多个仓库。
-　　类似于`Maven`的仓库，仓库可以被用来提取依赖，或者放入一个依赖，或者两者皆可。当`Gradle`需要引用依赖时就会自动去仓库中查找这个依赖。
+　　类似于`Maven`的仓库，仓库可以被用来提取依赖，或者放入一个依赖，或者两者皆可。当`Gradle`需要引用依赖时就会自动去仓库中查找这个依赖（`jar`、`so`等都是依赖）。
 
 　　Gradle支持以下仓库格式：
 
@@ -809,9 +905,7 @@ allprojects {
 - [Android Studio系列教程四--Gradle基础](http://stormzhang.com/devtools/2014/12/18/android-studio-tutorial4/)
 - [IDEA 及 Gradle 使用总结](http://www.jiechic.com/archives/the-idea-and-gradle-use-summary)
 
-## 基础知识 ##
-<br>
-### build.gradle ###
+## build.gradle ##
 　　本节介绍一下Android项目的`build.gradle`中的各种配置的含义。
 ``` gradle
 // 使用android插件构建项目。
@@ -845,98 +939,6 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
 ```
-
-<br>　　在`build.gradle`中，Android项目可以依赖三种类型的`libs`库：
-``` gradle
-// 第一种，依赖jar文件。 我们将jar文件放到module\libs目录下，然后在build.gradle中进行配置：
-compile files('libs/something_local.jar')            // 依赖单个jar文件。
-compile fileTree(dir: 'libs', include: ['*.jar'])    // 依赖libs目录下的所有jar文件。
-
-// 第二种，依赖仓库中的支持包（目前很多好的都在maven进行管理，比如 v4，v7支持包）。
-compile 'com.android.support:appcompat-v7:22.0.0'
-
-// 第三种，依赖当前项目中的其他library module。
-compile project(':jiechic-library')
-```
-　　值得注意的是，当你添加完依赖时，记得执行`Tools -> Android -> Sync Project with Gradle Files`。
-
-<br>
-### API Level ###
-　　考虑到有的读者可能不清楚项目的`编译版本`和`最低运行版本`之间的区别，特此增加这一节专门介绍一下`API Level`相关的知识。
-
-　　Android平台提供了一套框架API，使得应用程序可以与系统底层进行交互。该框架API由以下模块组成：
-
-	-  一组核心的包和类。
-	-  清单(manifest)文件的XML元素和属性声明。
-	-  资源文件的XML元素和属性声明及访问形式。
-	-  各类意图(Intents)。
-	-  应用程序可以请求的各类授权，以及系统中包含的授权执行。
-　　每个版本的Android操作系统以及其提供的框架`API`，都被指定一个`整数`标识符，称为`API Level`。以`Android1.0`系统为例，它的`API`的版本号是`1`，这个数字被保存在操作系统内部，之后Android系统版本的`API Level`依次递增`1`。
-``` c
-操作系统             API等级          操作系统             API等级
-Android1.0	        1            Android1.1              2
-Android1.5	        3            Android1.6              4
-Android2.0	        5            Android2.0.1            6
-Android2.1.x	        7            Android2.2.x            8
-Android2.3,2.3.x       	9            Android2.3.x            10
-Android3.0.x	        11           Android3.1.x            12
-Android3.2              13           Android4.0,4.0.x        14
-Android4.0.3,4.0.4      15           Android4.1,4.1.x        16
-Android4.2,4.2.2	17
-```
-
-　　提示：
-
-	-  高版本Andrdoid平台的框架API与早期版本兼容，即新版本的Android平台大多数都是新增功能，和引进新的或替代的功能。
-	-  对于API的升级，会将老版本的标记为已过时，但不会从新版本中删除，因此现有的应用程序仍然可以使用它们。在极少数情况下，部分旧版本的API可能被修改或删除，通常这种变化是为了保障API的稳定性及应用程序或系统的安全。
-
-<br>**minSdkVersion**
-　　开发程序之前，为了保证程序正确的运行，需要设置App所支持最低`API Level`（`minSdkVersion`）。
-　　当项目设置了`minSdkVersion`后，在用户准备安装这个项目生成的`apk`到手机等Android设备前，操作系统会检查该`apk`所支持的`minSdkVersion`是否和系统内部的`API Level`匹配，当且仅当小于或等于系统中保存的`API Level`时，才会继续安装此程序，否则将不允许安装。
-
-　　警告：
-
-	-  如果你不声明minSdkVersion属性，系统会假设一个默认值“1”，这意味着您的应用程序兼容所有版本的Android。
-	-  如果您的应用程序不兼容所有版本(例如，它使用了API级别3中的接口)并且你没有设置minSdkVersion的值，那么当安装在一个API级别小于3的系统中时，应用程序在运行，并且执行到了调用Android1.5（API级别3级）的API的那句代码时，就会崩溃，即试图访问不可用API(但是程序的其他没有调用该API的地方可以正常运行)。出于这个原因，一定要申报相应的API级别在minSdkVersion属性。
-	-  例如，android.appwidget类包是在API级别3中开始引入的。如果一个应用程序使用了这个API，就必须通过指明minSdkVersion属性为3来声明运行的最低要求。于是，该应用程序就可以在Android 1.5、Android 1.6 (API级别4级)等平台上安装，但是在Android 1.1 (API级别2级)和 Android 1.0 平台(API级别1级)上却是无法安装的。
-
-<br>**targetSdkVersion**
-　　标明应用程序目标`API Level`的一个整数。如果不设置，默认值和`minSdkVersion`相同。
-　　这个属性通知系统，你已经针对这个指定的目标版本测试过你的程序，系统不必再使用兼容模式来让你的应用程序向前兼容这个目标版本。应用程序仍然能在低于`targetSdkVersion`的系统上运行（一直到`minSdkVersion`属性值所指定的版本）。
-
-　　在Android演进的每个新版本中，都会有一些行为甚至外观的改变。但是，如果平台的`API Level`比应用程序声明的`targetSdkVersion`的值大，那么系统就可以启用兼容行为，以便确保应用程序能够继续执行期望的工作。因此，可以通过指定应用程序所运行的目标SDK版本（`targetSdkVersion`）来禁止启用这种兼容行为。
-　　例如，把这个属性值设置为`11`或更大，就会允许系统把新的默认主题应用给在`Android3.0`或更高版本平台之上的应用程序，并且在运行在较大屏幕的设备上时，也禁止使用屏幕兼容模式（因为针对`API Level 11`的支持，暗示着对较大屏幕的支持）。
-　　这个属性在`API Leve 4`中被引入。
-
-　　个人经验：
-
-	-  比如从Android 3.0开始，在绘制View的时候支持硬件加速，充分利用GPU的特性，使得绘制更加平滑(会多消耗一些内存)。若是将targetSdkVersion设置为11或以上，则系统会默认使用硬件加速来绘制，但Android3.0之前版本提供的某些绘图API，在硬件加速下进行绘制时，会抛异常。
-	-  因此，除非你充分测试了，否则不要把targetSdkVersion设置的过高。
-
-<br>**compileSdkVersion**
-　　项目的编译版本（`compileSdkVersion`）和`android:minSdkVersion`属性的值：
-
-	-  compileSdkVersion是指编译当前项目时所使用的SDK平台的版本。
-	-  minSdkVersion属性则是限定了当前项目只能安装在大于等于其指定API等级的设备上。
-
-	-  也就是说，我们可以将项目的compileSdkVersion设置为17，而minSdkVersion属性的值则仅为8 。 
-	-  只要保证在项目中不去调用API等级8中所未提供的API，那么使用API等级17编译出来的项目依然会正常运行在Android2.2的设备上。
-
-<br>　　问：为什么要把项目的编译版本提高呢?
-　　答：它可以让我们的应用程序，既可以使用高版本Android系统中所提供的新功能，同时又能完美的运行在低版本的系统中。以`holo`主题为例，众所周知`holo`主题是`Android3.0`之后的系统中的一个非常大的亮点。如果可以实现“当应用程序运行在3.0之前的系统时使用一般的主题，而运行在3.0之后的系统时则使用holo主题”那可就太好了。
-
-<br>　　范例1：使用`Holo`主题（`styles.xml`）。
-``` xml
-<!-- For API level 11 or later, the Holo theme is available and we prefer that. -->
-<style name="ThemeHolo" parent="android:Theme.Holo">
-</style>
-```
-　　如果项目的当前编译版本低于`3.0`则`Android Studio`就会报错。
-　　因为`Android Studio`在编译Android的`xml`文件时，会依据当前项目的编译版本，去SDK的安装目录下查找其所依赖的所有资源，若未找到则就报错。 本范例中查找`Theme.Holo`主题的目录为：
-　　`SDK\platforms\android-11\data\res\values`
-　　其中`“android-11”`与项目的编译版本相对应。我们进入到`values`目录后，打开`themes.xml`就可以找到`Theme.Holo`主题了。同样的，在项目中引用的其他系统资源(如颜色、尺寸等)在`platforms`目录下面都是可以找到的。
-
-　　然后我们就可以在项目中建立`res\values-v11`目录，并把上面的`styles.xml`放到里面去。当程序运行的时候，系统会检测当前设备的`API Level`，若大于等于`11`则使用`values-v11`目录下的`styles.xml`，否则则使用`values`目录下的。
 
 ## 从Eclipse迁移老项目 ##
 
@@ -1005,6 +1007,58 @@ Android4.2,4.2.2	17
 - [Android Studio 关于SVN的相关配置简介](http://blog.csdn.net/zhouzme/article/details/22790395)
 - [Android Studio 快捷键设置为Eclipse的快捷键](http://www.chenwg.com/android/android-studio%E5%BF%AB%E6%8D%B7%E9%94%AE%E8%AE%BE%E7%BD%AE%E4%B8%BAeclipse%E7%9A%84%E5%BF%AB%E6%8D%B7%E9%94%AE.html)
 - [Android Studio 如果修改LogCat的颜色，默认全是黑色看着挺不舒服的](http://blog.csdn.net/hotlinhao/article/details/9150519)
+
+## 引入类库 ##
+<br>　　前面也说了，实际开发中我们很难写出一个完全不引用第三方类库的项目，因此本节就介绍一下如何在`Android Studio`中引用各种第三方类库。
+
+<br>**依赖本地jar文件**
+　　首先，打开 [Chinese to Pinyin](http://sourceforge.net/projects/pinyin4j/files/) 将`Pinyin4j`的`jar`包下载到本地。
+　　然后，把`jar`包放入到要使用这个`jar`的`Module`下的`libs`目录下。比如`MainProject\app\libs`。
+　　接着，光把`pinyin4j-2.5.0.jar`添加到`libs`目录下还不够，还得再配置一下，即告诉`IDE`当前项目在编译的时候需要也同时编译这个`jar`包。 不过这个配置的过程我们可以省略屌，因为在`app`的`build.gradle`文件中默认就存在了下面的代码：
+``` gradle
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+```
+　　最后，必须得再点击下图所示的按钮，就可以正常使用它了：
+
+<center>
+![Sync project with Gradle files](/img/android/android_d04_04.png)
+</center>
+
+　　相当于让`Android Studio`重新更新一下项目。
+
+<br>**依赖仓库中的jar文件**
+　　就像前面说的那样，我们可以直接从中央仓库中依赖一个`jar`包。
+``` gradle
+dependencies {
+    compile 'com.belerweb:pinyin4j:2.5.0'
+}
+```
+　　同样的，每次修改完毕`build.gradle`文件后，都要执行一下`Sync project with Gradle files`。
+
+<br>**依赖项目的其他Moudle**
+　　我们已经知道一个项目中包含若干个`Module`，可以通过修改项目根目录下的`settings.gradle`文件中的设置，来让编译时同时编译多个项目。但这只是编译过程，如果`ModuleA`想引用`ModuleB`中的类，那么还得需要在`ModuleA`的`build.gradle`文件中进行配置。
+
+　　比如我们新建一个`Library Module`，步骤为：`File > New > New Module... > Android Library`，需要注意的是，此种方法创建出来的`Module`的`build.gradle`文件的内容有些不同：
+
+	-  首先，编译的插件变成了com.android.library。
+	   -  普通Module的编译插件是com.android.application。
+	-  然后，defaultConfig中没有applicationId属性。
+	   -  作为一个Library Module是不需要这个属性的，项目的包名应该由主Module设置。
+
+　　创建完之后，还得在`主调Module`的`build.gradle`文件中引用`被调Module`，代码如下：
+``` gradle
+dependencies {
+    // moduleb就是被调module的名字
+    compile project(':moduleb')
+}
+```
+　　同样的，每次修改完毕`build.gradle`文件后，都要执行一下`Sync project with Gradle files`。
+
+
+<br>**本节参考阅读：**
+- [How to import android project as library and NOT compile it as apk (Android studio 1.0)](http://stackoverflow.com/questions/27536491/how-to-import-android-project-as-library-and-not-compile-it-as-apk-android-stud)
 
 
 <br><br>
