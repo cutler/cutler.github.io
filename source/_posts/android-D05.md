@@ -4,7 +4,7 @@ categories: Android
 ---
 　　设计模式，有非常多的定义，有人会举出`Gang of Four`那本`《Design Patterns》`来解释，而笔者认为：
 
-	-  设计模式是软件开发领域中，是针对特定上下文的特定问题的解决方案。
+	-  设计模式是软件开发领域中针对特定上下文的特定问题的解决方案。
 	-  《Design Patterns》中举出了23种设计模式，它们分别用于不同的场景，当我们处在这23种场景下时，按照对应的设计模式所规定的思路去编程，可以写出结构合理、扩展性很强的代码。
 
 　　本章只会介绍一些常见的设计模式，并且使用的编程语言为`Java`。
@@ -56,12 +56,12 @@ SingleClass.getInstance().getInfo();
 
 　　但是，我们应该如何选择使用哪种方式呢？
 
-	-  如果你的类不提维持任何状态，仅仅是提供全局的访问，这个时候就适合用静态类。
+	-  如果你的类不维持任何状态，仅仅是提供全局的访问，这个时候就适合用静态类。
 	   -  最基本的例子就是在Java中的java.lang.Math类的实现方式，Math类就是用过静态方法来实现的，而不是单例来实现的。
 	-  如果你的类需要维持一些状态，或者需要从线程安全、兼容性上来考虑一些问题，那么选用单例为宜。
 
 ## 单例的各种写法 ##
-　　上一个的范例的写法有个缺点，当`SingleClass`类被加载的时候就会立刻实例化单例对象。
+　　上面的范例的写法有个缺点，当`SingleClass`类被加载的时候就会立刻实例化单例对象。
 　　这意味着如果单例对象里包含了很多属性，那这个对象就会占有很多内存空间，而这块空间我们一时半会可能用不到。因此可以改造一下代码，只有在我们需要使用单例对象的时候才去创建这个单例对象。
 
 <br>　　范例1：懒汉式。
@@ -116,10 +116,69 @@ public class SingleClass {
     -  此种方式也被称为双重校验锁。
     -  也有人将synchronized关键字直接修饰在getInstance()方法上，缺点是每次调用getInstance()方法都需要进行线程同步操作。
 
+<br>　　范例3：静态内部类。
+``` java
+public class SingleClass {
+    private static class SingletonHolder {
+        private static final SingleClass INSTANCE = new SingleClass ();
+    }
+    private SingleClass(){}
+    public static final SingleClass  getInstance() {
+        return SingletonHolder.INSTANCE;
+    }
+}
+```
+    语句解释：
+    -  此种方式利用了静态内部类的特点，即实现了懒加载又不用担心多线程问题。
+    -  但是由于双重校验锁更直观容易理解，因而比此种方式常见。
+
+<br>**有两个问题需要注意：**
+　　1、如果单例由不同的类装载器装入，那便有可能存在多个单例类的实例。
+　　2、如果`Singleton`实现了`java.io.Serializable`接口，那么这个类的实例就可能被序列化和复原。不管怎样，如果你序列化一个单例类的对象，接下来复原多个那个对象，那你就会有多个单例类的实例。
+
+<br>　　范例4：通过反序列化来创建多个对象。
+``` java
+import java.io.*;
+public class Main {
+
+    public static void main(String[] args) throws Exception {
+        // 先输出两遍单例对象，结果它们输出的内存地址是一样的。
+        System.out.println(SingleClass.getInstance());
+        System.out.println(SingleClass.getInstance());	
+		
+        File file = new File("a.txt");
+        // 将单例对象序列化到a.txt文件中。
+        write(file);
+        // 反序列化4次，程序每次输出的内存地址都是不一样的。
+        System.out.println(read(file));
+        System.out.println(read(file));
+        System.out.println(read(file));
+        System.out.println(read(file));
+    }
+	
+    private static void write(File file) throws Exception {
+        ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(file));
+        output.writeObject(SingleClass.getInstance());
+        output.close();
+    }
+	
+    private static SingleClass read(File file) throws Exception{
+        ObjectInputStream input = new ObjectInputStream(new FileInputStream(file));
+        SingleClass inst = (SingleClass)input.readObject();
+        input.close();
+        return inst;
+    }
+
+}
+```
+    语句解释：
+    -  在执行本范例之前，请先让SingleClass实现Serializable接口。
+
+<br>　　解决方案请自行搜索，不过笔者认为，开发的时候使用“双重校验锁”方式就够用的了，单例模式的这两个缺点了解即可。
 
 <br>**本节参考阅读：**
 - [程序设计之---单例模式VS静态方法](http://blog.csdn.net/johnny901114/article/details/11969015)
+- [单例模式的七种写法](http://cantellow.iteye.com/blog/838473)
 
-
-
+# 第二节 MVC模式 #
 <br><br>
