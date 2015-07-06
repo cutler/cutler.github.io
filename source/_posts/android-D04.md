@@ -981,6 +981,7 @@ dependencies {
 
 
 　　如果你是通过向导来导入项目的，那么请选择下图所示的`Import project (Eclipse ADT, Gradle, etc.)`：
+
 <center>
 ![](/img/android/android_d04_05.png)
 </center>
@@ -1002,6 +1003,16 @@ dependencies {
 	   -  第三，双击Foreground后面的框框去选择颜色了。
 
 　　如果你对修改之后的`Logcat`的显示效果仍然不满意，那么可以使用我们前面一开始提到的`“Android Device Monitor”`窗口。
+
+<br>**编译缓慢**
+　　在排除电脑操作系统、内存等问题之后，如果你使用`Android Studio`编译、运行一个`HelloWorld`程序仍然很慢（可能消耗几十秒），那么你可以按照下面的方法修改试试。
+
+　　[点击阅读：Building and running app via Gradle and Android Studio is slower than via Eclipse](http://stackoverflow.com/questions/16775197/building-and-running-app-via-gradle-and-android-studio-is-slower-than-via-eclips)
+
+<center>
+![](/img/android/android_d04_06.png)
+</center>
+
 
 <br>**本节参考阅读：**
 - [Android Studio 关于SVN的相关配置简介](http://blog.csdn.net/zhouzme/article/details/22790395)
@@ -1029,7 +1040,7 @@ dependencies {
 　　相当于让`Android Studio`重新更新一下项目。
 
 <br>**依赖仓库中的jar文件**
-　　就像前面说的那样，我们可以直接从中央仓库中依赖一个`jar`包。
+　　就像前面说的那样，除了可以从本地添加依赖外，我们还可以直接从中央仓库中依赖一个`jar`包。
 ``` gradle
 dependencies {
     compile 'com.belerweb:pinyin4j:2.5.0'
@@ -1054,6 +1065,7 @@ dependencies {
     compile project(':moduleb')
 }
 ```
+　　配置完毕之后，就可以在`主调Module`中引用`moduleb`所提供的类了。
 　　同样的，每次修改完毕`build.gradle`文件后，都要执行一下`Sync project with Gradle files`。
 
 
