@@ -6,7 +6,7 @@ categories: Android
 
 # 第一节 基础入门 #
 
-　　在`Google 2013`年`I/O`大会上，`Android Studio`这款开发工具被首次公布，这也是为了方便开发者基于Android开发，目前已经更新到`1.1.0`版本。`Studio`首先解决的一个问题是多分辨率。Android设备拥有大量不同尺寸的屏幕和分辨率，使用`Studio`开发者可以在编写程序的同时看到自己的应用在不同尺寸屏幕中的样子。
+　　在`Google 2013`年`I/O`大会上，`Android Studio`这款开发工具被首次公布，这也是为了方便开发者基于Android开发。`Studio`首先解决的一个问题是多分辨率。Android设备拥有大量不同尺寸的屏幕和分辨率，使用`Studio`开发者可以在编写程序的同时看到自己的应用在不同尺寸屏幕中的样子。
 
 <br>**架构组成**
 　　在`IntelliJ IDEA`的基础上，`Android Studio`提供：
@@ -184,7 +184,7 @@ Android4.2,4.2.2	17
 	-  对于API的升级，会将老版本的标记为已过时，但不会从新版本中删除，因此现有的应用程序仍然可以使用它们。在极少数情况下，部分旧版本的API可能被修改或删除，通常这种变化是为了保障API的稳定性及应用程序或系统的安全。
 
 # 第二节 Gradle #
-　　新增的`Gradle`将会是你转到`Android Studio`上最大的障碍，和`Maven`一样，`Gradle`只是提供了构建项目的一个框架，真正起作用的是`Plugin`。如果你不知道什么是`构建工具`、`Maven`，那么请参看笔者的另一篇文章[《实战篇　第三章 Maven》](http://cutler.github.io/android-D03/)。
+　　新增的`Gradle`将会是你转到`Android Studio`上最大的障碍，和`Maven`一样，`Gradle`只是提供了构建项目的一个框架，真正起作用的是`Plugin`。如果你不知道什么是`构建工具`、`Maven`，那么请参看笔者的另一篇文章[《实战篇　第三章 Maven》](http://cutler.github.io/android-O03/)。
 
 　　笔者将本节的内容，定位为`“了解”`，也就是说你不需要记住下面所有的知识，只要能看懂范例、理解思路即可。
 
@@ -253,7 +253,7 @@ class Foo {
 
 　　推荐阅读：[《Java构建工具：Ant vs Maven vs Gradle》](http://blog.csdn.net/napolunyishi/article/details/39345995) 与 [《Gradle, 基于DSL的新一代Java构建工具》](http://www.blogjava.net/wldandan/archive/2012/06/26/381532.html)。
 
-<br>　　当我们成功运行完`HelloWorld`项目后，为了更好的使用`Android Studio`进行开发工作，会不可避免的就会对`build.gradle`文件的语法产生好奇。 接下来笔者将会介绍编写`Gradle`构建脚本的基础知识（虽然一般情况下几乎用不到它们）。
+<br>　　当我们成功运行完`HelloWorld`项目后，为了更好的使用`Android Studio`进行开发工作，会不可避免的对`build.gradle`文件的语法产生好奇。 接下来笔者将会介绍编写`Gradle`构建脚本的基础知识（虽然一般情况下几乎用不到它们）。
 　　为了理论结合实践，接下来我们要安装一下`Gradle`，这样就能一边写代码一边测试了。
 
 <br>**本节参考阅读：**
@@ -1005,13 +1005,28 @@ dependencies {
 　　如果你对修改之后的`Logcat`的显示效果仍然不满意，那么可以使用我们前面一开始提到的`“Android Device Monitor”`窗口。
 
 <br>**编译缓慢**
+　　不出意外的话，我们在使用`Android Studio`时会感觉很卡，稍微干点什么事情就得等半天，导致卡的原因有如下两个：
+
+	-  电脑软硬件问题。比如用的是32位的xp系统、内存容量不足、CPU型号老旧等。
+	-  网络问题。Gradle在构建项目时会自动联网查找依赖，如果它访问的网站被墙或者你的网速缓慢，就会导致构建项目的时间变长。
+	
 　　在排除电脑操作系统、内存等问题之后，如果你使用`Android Studio`编译、运行一个`HelloWorld`程序仍然很慢（可能消耗几十秒），那么你可以按照下面的方法修改试试。
 
 　　[点击阅读：Building and running app via Gradle and Android Studio is slower than via Eclipse](http://stackoverflow.com/questions/16775197/building-and-running-app-via-gradle-and-android-studio-is-slower-than-via-eclips)
 
+　　笔者认为导致`Android Studio`卡的最主要原因就是网络问题，可以按照下图所示的操作，把`Offline work`勾上，即将`Gradle`切换到离线工作模式。
+
 <center>
 ![](/img/android/android_d04_06.png)
 </center>
+
+　　当设置为离线模式后，在项目进行`build`时`Gradle`只会从本地查找依赖，若本地没有缓存过那个的库，则将会导致`build`失败。也就是说，之前`build`速度很慢，是因为`Gradle`去网上查找依赖了。
+
+　　所以为了提高`build`的速度，有两个方法：
+
+	-  配置一个靠谱的代理，让Gradle尽情的去网上查吧。
+	-  每当build.gradle文件发生变化时，启用在线模式，把依赖下载到本地之后，再次启动离线模式。
+
 
 
 <br>**本节参考阅读：**
