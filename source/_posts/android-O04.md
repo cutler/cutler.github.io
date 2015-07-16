@@ -966,7 +966,7 @@ dependencies {
 
 　　具体会按照如下步骤执行：
 
-	-  首先，点击“File > Import Project”。
+	-  首先，点击“File > New > Import Project”。
 	-  然后，选择转换后的项目，所要保存的路径。
 	-  接着，保持默认设置，点击“Finish”。
 	-  最后，等待Studio自己完成转换过程。

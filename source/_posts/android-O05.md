@@ -614,11 +614,16 @@ public class MainActivity extends Activity {
 	   -  前面写的MyStudentListView类就属于View。
 	-  Model负责管理数据，当Model的数据有改变，会通知View更新界面。
 	   -  具体的来说，Model里维护了一个观察者列表，在View被初始化的同时，View将自己注册为Model的观察者，当Model的某个字段更新的时候，Model会通知所有侦听了该事件的View。
-	   -  上面写的Student、StudentList类都属于Model，只不过咱们并没有让他们维护一个观察者列表。
+	   -  上面写的Student、StudentList类都属于Model，只不过咱们并没有让它们维护一个观察者列表。
 
 <br>**不是所有代码都需要使用MVC**
 　　当我们需要在界面上来显示一个`Model`（比如`Student`）的完整信息时，最好是封装出一个`View`来专门负责显示，这样以利于代码重用和扩展。
-　　但在实际开发中，很多界面只是一个表单界面，它只包含简单的按钮、图片，我们没必要将它们封装成一个`View`，此时整个代码的结构只包含`M`和`C`没有`V`，也不需要有`V`。
+　　但在实际开发中，很多界面只是一个表单界面，它只包含简单的按钮、文本框，不需要在其它地方重用，我们没必要将它们封装成一个`View`，此时整个代码的结构只包含`M`和`C`没有`V`，也不需要有`V`。
+
+
+<br>**使用ListView搞定一切**
+　　本范例主旨是为了讲解代码的分层思路，实际开发中我们完全可以使用`ListView`来实现这个功能。
+　　`ListView`比我们上面的代码抽象的更合理，它将它所要显示的数据以及每个数据的绘制工作都交给了一个`Adapter`对象，而我们则是默认的将每个数据的绘制工作写死在`MyStudentListView`的构造方法里了。
 
 <br>**本节参考阅读：**
 - [百度百科 - MVC框架](http://baike.baidu.com/view/5432454.htm?fromtitle=MVC%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F&fromid=8160955&type=syn)
