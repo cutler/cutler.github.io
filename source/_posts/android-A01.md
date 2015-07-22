@@ -35,7 +35,7 @@ categories: Android
 	-  Android操作系统是一个多用户的Linux系统，在这个系统中每个应用程序都是一个不同的用户。
 	-  默认情况下，系统给每个应用程序分配一个唯一的Linux用户ID（这个ID只能被系统使用，并且对于应用程序是未知的）。系统给应用程序中的所有文件设置权限，以便只有跟用户ID匹配的应用程序能够访问他们。
 	-  默认情况下，每个应用程序运行在它们自己的Linux进程中，当任何应用程序的组件需要被执行时，Android会启动该组件所对应的进程，在不再需要的时候或系统必须为其他应用程序恢复内存时这个进程将被关闭。
-	-  每个进程都有它们自己的虚拟机，因此应用程序的运行是彼此隔离。
+	-  每个进程都有它们自己的虚拟机，因此应用程序的运行是彼此隔离，某一个进程崩溃不会影响到其他进程。
 
 
 　　但是，还有一些应用程序间共享数据和应用程序访问系统服务的方法：
@@ -45,8 +45,8 @@ categories: Android
 
 <br>**应用程序组件**
 　　应用程序组件是`Android`应用程序的重要基石。
-　　`Android`中有四种不同类型的组件，每种类型服务一个不同的目的。每个组件都是系统进入应用程序的不同入口，对于用户来说，不是所有的组件都是实际的入口，并且有一些是彼此依赖的，但是每一个组件都存在它们自己的实体，并且扮演着特殊的角色（它们都是帮助定义应用程序整体行为的唯一的模块）。 
-　　`Android`中提供了四大组件：`Activity`、`BroadcastReceiver`、`ContentProvider`、`Service`。
+　　`Android`中有四种不同类型的组件，每种类型服务一个不同的目的，每个组件都是系统进入应用程序的不同入口。 
+　　`Android`的四大组件分别是：`Activity`、`BroadcastReceiver`、`ContentProvider`、`Service`。
 
 　　提示：
 
@@ -54,7 +54,7 @@ categories: Android
 	-  我们可以从上面四大组件共有的3个特点来判断Intent到底能不能算是第五大组件：
 	   -  组件需要在AndroidManifest.xml文件中配置。
 	   -  组件可以通过配置，运行在一个独立的进程中。
-	   -  组件可以作为应用程序的入口，用户或者系统可以通过特定的方式来激活某个组件，进而激活组件所隶属的进程。
+	   -  组件可以作为应用程序的入口。用户或者系统可以通过特定的方式来激活某个组件，进而激活组件所隶属的进程。
 
 ##四大组件##
 　　我们已经知道了`Android`中有四大组件，下面来依次介绍一下它们的作用。
@@ -134,7 +134,7 @@ categories: Android
 </center>
 
 <br>**Linux Kernel层**
-　　在`linux`内核层中提供的各种驱动和管理程序都是由`C/C++`语言编写的，这些程序为`Libraries`和`Android Runtime`层的程序提供服务。
+　　在`Linux`内核层中提供的各种驱动和管理程序都是由`C/C++`语言编写的，这些程序为`Libraries`和`Android Runtime`层的程序提供服务。
 
 <br>**Libraries(库)：**
 　　`Android`包含一些`C/C++`库，这些库能被`Android`系统中不同的组件使用。在应用程序框架（`application framework`）层通过`JNI`技术调用`Libraries`提供的函数库，并通过`Java`代码暴露给开发者（`Applications`层）。
@@ -191,14 +191,14 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 　　你可以阅读官方教程[《Creating an Android Project》](http://developer.android.com/training/basics/firstapp/creating-project.html)，也可以自行去搜索其它人写的中文教程，由于过程比较简单因此笔者不再冗述。
 
 <br>　　其中有个`package name`属性表示当前应用程序的核心包的包名。
-	-  此包名就像是人的身份证一样，用于唯一标识一个应用程序。也就说在同一台手机中，只能安装一个核心包的名称为org.cxy.tomcat的应用程序。若设备中已经存在与要安装的应用程序的核心包具有相同名称的应用程序，且它们的数字签名一致，则后安装的会覆盖掉原来的程序，即会先卸载原来的程序。
+	-  此包名就像是人的身份证一样，用于唯一标识一个应用程序。也就说在同一台手机中，只能安装一个核心包的名称为org.cxy.tomcat的应用程序。若设备中已经存在与要安装的应用程序的核心包具有相同名称的应用程序，且它们的数字签名一致，则后安装的会覆盖掉原来的程序。
 
 <br>　　创建并编译完成项目后，会生成一个以`.apk`为后缀名的文件，该文件就是一个`Android`应用程序，安装`Android`手机软件本质上就是将这个`.apk`文件解压到`Android`设备中。
 
 <br>**APK：**
 　　`APK`是`Android Package`的缩写，即`Android`安装包(后缀名为`.apk`)。
 　　`.apk`文件是类似`Symbian`的`.sis`或`.sisx`的文件格式。将`.apk`文件直接传到`Android`模拟器或`Android`手机中执行即可安装。  
-　　`APK`文件本质是一个`zip`文件，但后缀名被修改为`.apk`，使用压缩软件可以直接将它打开，其内包括：
+　　`APK`文件本质是一个`zip`文件，但后缀名被修改为`.apk`，使用压缩软件可以直接将它打开，其内包括（但不限于）：
 
 	-  dex文件。
 	-  AndroidManifest.xml 文件。
@@ -240,7 +240,7 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 ## 基础介绍 ##
 　　清单文件除了声明应用程序组件之外，还做了许多其他的事情，如：
 　　1、	标识应用程序需要的权限。
-　　如当前应用程序使用到了系统内置的应用(如拨打电话、互联网服务、发送短信、GPS服务等等`会产生消费`、`引发安全问题`或`包含用户隐私`的功能)时，`需在AndroidManifest.xml文件中事先声明，程序中使用了这些服务`。 声明之后：
+　　如当前应用程序使用到了系统内置的应用(如拨打电话、互联网服务、发送短信、GPS服务等等`会产生消费`、`引发安全问题`或`包含用户隐私`的功能时，`需在AndroidManifest.xml文件中事先声明，程序中使用了这些服务`。 声明之后：
 
 	-  首先，当用户安装此应用程序时，Android系统会读取应用程序的清单文件。
 	-  然后，Android系统会查看清单文件中声明的，应用程序运行时所需要使用的功能。
@@ -275,7 +275,7 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 　　在`“<manifest>”`标签下面定义了若干个子标签，它们各自用于不同的目的，在后面的章节中会详细介绍它们，在此先介绍几个比较常见的标签。
 
 <br>　　范例3：`<application>`标签。
-　　此标签代表一个`Android`应用程序，程序中开发的四大组件都需要在此标签内部书写，一个清单文件中可以存在多个`<application>`标签。
+　　此标签代表一个`Android`应用程序，程序中开发的四大组件都需要在此标签内部书写。
 ``` android
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -333,7 +333,7 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 
 	<intent-filter>标签是一个意图过滤器，用于匹配意图对象。
 	前面说过，Android四种类型组件中的三种（Activities、Services、Broadcast receivers）是通过被叫做Intent的异步消息激活的。因而在这三种标签内部可以定义意图过滤器，当Android系统接到某个意图对象A后，会使用A依次与系统以及用户自定义的组件中的意图过滤器进行匹配。
-	   -  若是调用Context的startActivity()或startActivityForResult()方法，则系统只会匹配所有Activity，另外两个同理。 
+	   -  若是调用Context的startActivity()或startActivityForResult()方法，则系统只会匹配所有Activity，其它同理。 
 	   -  若意图对象A与某个意图过滤器匹配成功，则系统将调用该意图过滤器所隶属的组件。 
 	   -  若匹配失败，则继续与下一个组件中的意图过滤器进行匹配。
 	   -  若有多个组件的意图过滤器都与意图对象A匹配，则Android系统会给用户弹出一个对话框，要求用户自己选择出，想要调用的组件。
@@ -349,9 +349,7 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 ```
 
 	语句解释：
-	- 第5、6行代码，用来设置当前Activity为入口Activity，入口Activity会被手机的应用列表中，用户点击程序图标时，就会启动入口Activity。
-	- 当安装应用程序时，Android系统自己会产生一个意图，然后从当前应用程序的清单文件中匹配出所有包含上面两行代码的Activity ，然后将它们放到手机的应用列表中。
-
-<br>　　提示：一个`Android`应用程序，可以有多个主`Activity`。 也就是说上面的这四行代码可以写在多个`<activity>`标签中。此时手机中会显示多个图标，虽然有多个主`Activity`，但是默认情况下`Android`系统只会建立一个进程。 
+	- 其中必须要有“android.intent.action.MAIN”否则程序将无法启动，它用来标识当前Activity是应用的入口Activity。
+	- “android.intent.category.LAUNCHER”是可选的，但是通常都会加上。它用来告诉Android系统需要将当前Activity放入到Launcher列表中。 若没有设置此项，也是可以启动入口Activity的，比如通过Eclipse。 
 
 <br><br>
