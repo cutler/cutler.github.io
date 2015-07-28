@@ -23,20 +23,14 @@ categories: Android
 
 <br>　　**onCreate()**
 
-	-  当Activity被创建时调用这个方法，在Activity的生命周期中，仅会调用一次。你应该在这个方法中创建所有的全局资源，如视图、把数据绑定到列表等等。当此方法被调用时，同时会接到一个包含Activity前一个状态的Bundle对象（具体后述）。
+	-  当Activity被创建时调用这个方法，在Activity的生命周期中，仅会调用一次。你应该在这个方法中创建所有的全局资源，如视图、把数据绑定到列表等等。当此方法被调用时，同时会接到一个Bundle对象（具体后述）。
 	-  提示：操作系统启动一个Activity时，会先通过反射的方式实例化出该Activity的一个实例。然后调用其构造方法、为其设置Context对象等，一切完毕后才会调用onCreate()方法。跟随其后的总是onStart()方法。
 
-<br>　　**onRestart()**
+<br>　　**onRestart()、onStart()、onResume()**
 
-	-  在Activity被onStop()之后且重启之前调用这个方法，跟随其后的总是onStart()方法。
-
-<br>　　**onStart()**
-
-	-  在Activity显示对用户可见之前调用这个方法。如果该Activity要显示在前台，那么接下来会调用onResume()方法。
-
-<br>　　**onResume()**
-
-	-  在Activity可以和用户交互之前调用这个方法。此时此刻Activity在堆栈的顶部，能够接受用户的输入。 
+	-  onRestart：在Activity被onStop()之后且重启之前调用这个方法，跟随其后的总是onStart()方法。
+	-  onStart：在Activity显示对用户可见之前调用这个方法。如果该Activity要显示在前台，那么接下来会调用onResume()方法。
+	-  onResume：在Activity可以和用户交互之前调用这个方法。此时此刻Activity在堆栈的顶部，能够接受用户的输入。 
 
 <br>　　**onPause()**
 
@@ -47,7 +41,7 @@ categories: Android
 
 <br>　　**onStop()**
 
-	-  当Activity即将不再对用户可见时调用这个方法。也就是说当Activity被销毁或者因为另一个Activity（既可以是既存的也可以是新创建的）被恢复并且完全覆盖当前Activity时，这个方法就被调用了。
+	-  当Activity即将不再对用户可见时调用这个方法。也就是说当Activity被销毁或者因为另一个Activity（既可以是既存的也可以是新创建的）被resume并且完全覆盖当前Activity时，这个方法就被调用了。
 	-  如果随后此Activity从后台返回前台与用户交互，就调用onRestart()方法，如果Activity被清除就调用onDestroy()方法。
 	-  注意：当系统内存不足时系统会将已经调用过onPause()方法Activity给回收掉，也就是说此方法不一定会被调用。
 
@@ -56,26 +50,6 @@ categories: Android
 	-  在Activity被销毁之前调用这个方法，这是Activity收到的最后的调用。
 	-  此方法既可以因为finish()方法的调用而被调用，也可以因为系统临时销毁了这个Activity实例来释放空间而被调用。你能够使用isFinished()方法来区分这两种场景。
 	-  注意：当系统内存不足时系统会将已经调用过onPause()方法Activity给回收掉，也就是说此方法不一定会被调用。
-
-<br>　　依据这七个生命周期方法的调用时机，可将`Activity`的生命周期划分为三种：
-
-　　**完整生命周期：**
-
-	-  从onCreate方法被调用开始，到onDestroy方法被调用之间的时间。完整生命周期包含了Activity生命周期的七个方法。
-	-  你的Activity应该在onCreate方法中执行全局状态创建工作，在onDestroy方法中释放所有的保留的资源。
-	   -  例如，如果你的Activity有一个运行在后台，从网络上下载数据的线程，可以在onCreate方法中创建这个线程，并且在onDestroy方法中终止这个线程。
-
-　　**可视生命周期：**
-
-	-  自onStart调用开始直到相应的onStop调用为止。在这期间，用户能够在屏幕上看到这个Activity。例如，当一个新的Activity启动时，旧Acitivity的onStop方法将被调用，并且该Activity不再可见。
-	   -  可视生命周期涉及到：onStart、onResume、onPause、onStop、onRestart五个方法。
-	-  这onStart和onStop两个方法之间，你能保持显示给用户的Activity所需要的资源。例如，你能够在onStart方法中注册一个广播接收器来监视你的UI的改变，并且在onStop方法中解除注册（用户不能再看到Activity显示的内容）。
-
-
-　　**前台生命周期：**
-
-	-  自onResume调用起，至onPause调用为止。在这期间，这个Activity在屏幕上所有可见的其他Activity之前，并且有用户输入焦点。Activity能够在前台频繁的切入、切出，例如，当设备休眠或对话框风格的Activity显示时，onPause方法被调用。因为这个状态能够经常的转换，因此在这两个方法中代码应该尽量轻量级，以避免过慢的切换而让用户等待。
-
 
 <br>**何时才能被杀死？**
 　　`Activity`的三个方法`onPause()`，`onStop()`和`onDestroy()`被调用后，`Activity`都可能因为在系统内存不足的情况被回收掉，所以`Activity`一旦被创建，在进程被杀死前能够保证被调用的最后的方法就是`onPause()`，而`onStop()`和`onDestroy()`方法就可能不被调用了。
@@ -86,7 +60,7 @@ categories: Android
 # 第二节 状态保存 #
 　　一开始`Activity`被`pause`或`stop`时它所有的成员和信息依然会保留在内存中，但是当系统需要回收内存时，这个`Activity`对象可能就会被销毁了。
 　　为了在`Activity`被销毁之前保存重要信息，你需要重写回调方法`onSaveInstanceState(Bundle)`。
-　　如果系统杀死了你的进程，而用户又导航回到了这个`Activity`，系统会重建这个`Activity`，并且给`onCreate()`和`onRestoreInstanceState()`方法传递这个`Bundle`对象。你能够从`Bundle`对象中提取你保存的状态信息，并且恢复`Activity`的状态。如果没有需要恢复的状态信息，那么会传递给你一个`null`的`Bundle`的对象（`Activity`首次被创建时，这个`Bundle`对象是`null`）。
+　　如果系统杀死了你的进程，而用户又导航回到了这个`Activity`，系统会重建这个`Activity`，并且给`onCreate()`和`onRestoreInstanceState()`方法传递这个`Bundle`对象。你能够从`Bundle`对象中提取你保存的状态信息，并且恢复`Activity`之前的状态。如果没有需要恢复的状态信息，那么会传递给你一个`null`的`Bundle`的对象（`Activity`首次被创建时，这个`Bundle`对象是`null`）。
 
 　　　　　　　　　　　![状态保存回调方法](/img/android/android_2_2.png)
 
@@ -96,8 +70,7 @@ categories: Android
 
 　　注意：
 
-	-  onSaveInstanceState方法的默认实现只是帮助保存UI的状态，因此你应该在重写它时首先调用父类方法的实现，onRestoreInstanceState方法同理。
-	-  onSaveInstanceState不保证被调用，因此你应该只使用它来记录Activity的状态变换（用户界面的状态），而不要用它来保存持久化数据 (用户通过back键返回时不会导致此方法被调用) 。相反，在用户离开Activity时，你应该使用onPause方法来保存持久化数据（如应该保存到数据库中的数据）。
+	-  onSaveInstanceState方法的默认实现只是帮助保存UI的状态，因此在重写它时要先调用父类方法的实现。onRestoreInstanceState方法同理。
 
 <br>　　可以通过旋转设备，让设备的屏幕改变方向来测试你的应用程序状态的恢复。当屏幕的方向改变时，系统为了给新的屏幕配置选择有效的应用资源会销毁`Activity`并且重建一个新的。
 
@@ -424,7 +397,7 @@ public class FragmentA extends ListFragment {
 
 
 ## 生命周期 ##
-　　`Fragment`有自己的生命周期，并且生命周期直接被其所属的宿主`Activity`的生命周期影响。当`Activity`被暂停，那么在其中的所有Fragment也被暂停，当`Activity`被销毁，所有隶属于它的`Fragment`也被销毁。
+　　`Fragment`有自己的生命周期，并且生命周期直接被其所属的宿主`Activity`的生命周期影响。当`Activity`被暂停，那么在其中的所有`Fragment`也被暂停，当`Activity`被销毁，所有隶属于它的`Fragment`也被销毁。
 
 　　管理`Fragment`的生命周期，大多数地方和管理`Activity`生命周期很像，和`Activity`一样。
 　　`Fragment`生命周期各个阶段回调的方法如下图(左)，`Fragment`和`Activity`的生命周期方法对应关系图(右)：
@@ -437,7 +410,7 @@ public class FragmentA extends ListFragment {
 	-  onAttach()
 	   -  当Fragment通过事务对象被绑定到Activity时被调用(宿主Activity的引用会被传入)。在onAttach()方法被调用后，其宿主Activity的onAttachFragment()方法将被调用。
 	-  onCreate()：通常情况下，在宿主Activity的onAttachFragment()方法将被调用后，会调用Fragment的onCreate方法。
-	-  onCreateView()：不论Fragment的onCreate是否调用，都将继续调用onCreateView()方法，在此方法中需要返回Fragment内封装的view的根节点。
+	-  onCreateView()：不论Fragment的onCreate是否调用，都将继续调用onCreateView()方法，此方法需要返回Fragment内封装的view的根节点。
 	-  onActivityCreated()：若Activity的onCreate()方法已经返回，则此方法将会在onCreateView()方法被调用后被调用。
 	-  onStart()、onResume()、onPause()、onStop()：这四个方法的调用情形与Activity一样。
 	-  onDestroyView()：当和Fragment关联的view hierarchy被移除之前会调用此方法，此方法返回后就会执行移除操作。
@@ -510,7 +483,7 @@ public class MyFragment extends Fragment {
 - [Android之Fragment（官网资料翻译）](http://blog.csdn.net/aomandeshangxiao/article/details/7671533)
 
 <br>
-# 第六节 Task #
+# 第四节 Task #
 
 ## 基础知识 ##
 　　`Android`使用`Task`来组织应用程序的所有`Activity`，`Task`是一个栈(`back stack`)结构，各个`Activity`按照栈的特点`“后来居上、后进先出”`依次被被安排在栈中。

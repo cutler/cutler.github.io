@@ -2,7 +2,7 @@ title: 安全篇　第一章 应用程序破解
 date: 2014-12-29 22:10:15
 categories: Android
 ---
-　　本章主要介绍如何使用`ApkTool`工具对Android应用程序（包含游戏）进行破解。
+　　本章主要介绍如何使用`ApkTool`工具对`Android`应用程序（包含游戏）进行破解。
 　　软件破解本就是违法行为，如果市场上充斥着破解软件，那么开发正版游戏、正版软件的公司将难以生存，为了中国软件事业的健康发展，请支持正版。
 　　本章提到的破解技术仅供学习交流，尽可能多的了解软件破解的原理也能让我们写出更安全、优秀的软件。
 
@@ -17,7 +17,7 @@ categories: Android
 <br>**ApkTool**
 　　ApkTool是Google提供的apk编译工具，它不仅可以用来反编译apk，还可以用来将反编译的apk重新编译回apk。反编译时我们需要使用`decode`命令，重新编译时则需要使用`build`命令，这两个命令的具体用法后面会有详细介绍。
 
-　　下载地址：https://code.google.com/p/android-apktool/wiki/Install ，本文档使用的是`2.0.0rc3`版本。
+　　下载地址：http://ibotpeaches.github.io/Apktool/ ，本文档使用的是`2.0.0rc3`版本。
 
 <br>**Apk文件**
 　　在进行破解之前，为了减少我们之间的知识断层，这里先介绍一些apk相关的常识：
@@ -475,7 +475,7 @@ new-instance v6, Landroid/os/Handler;
 .local v2, "wechat":Lcn/sharesdk/framework/Platform;
 invoke-virtual {v2, v1}, Lcn/sharesdk/framework/Platform;->share(Lcn/sharesdk/framework/Platform$ShareParams;)V
 ```
-　　终于找到了我们想要看到的“`share`”函数的调用了，虽然不确定是不是分享，但是从名字上看，`90%`是没错了。假设我们没找错，那也只是能证明“`点击一键分享朋友圈按钮时，程序会调用ShareText函数，并由ShareText函数执行分享操作`”，接下来我们该干什么?
+　　终于找到了我们想要看到的“`share`”函数的调用了，虽然不确定是不是分享，但是从名字上看，`90%`是没错了。假设我们没找错，那也只是能证明“`点击一键分享朋友圈按钮时，程序会调用ShareWebPage函数，并由ShareWebPage函数执行分享操作`”，接下来我们该干什么?
 
 　　我们没必要继续向下追踪了，那里面都是分享SDK相关的代码了，对我们没用。现在就需要回到ShareSDK官方提供的Demo项目中看看当分享成功后它是怎么接到通知的。
 　　从`WechatPage.java`中找到了如下代码：
@@ -642,7 +642,11 @@ invoke-virtual {v1}, Lcom/heitao/mp/listener/HTMPPayListener;->onHTPayCompleted(
 　　下载完毕后打开`doc\百度移动游戏SDK（单机版）接入API参考手册_支付模块.doc`，我们找到了一个名为`invokePayCenterActivity`支付接口，然后全文搜索它，结果找到了我们想要的代码。
 　　从搜索结果中我们可以确定，《消灭星星》接入了百度移动游戏SDK，而在百度SDK中又接入了移动支付的SDK，我们的任务就是搞掉百度的支付SDK就可以了。
 
-　　经过一番比较，我们猜测`PopStarxiaomiexingxingguan_401\smali\com\brianbaek\popstar\popStarA$1.smali`第`245`行是支付代码，为了验证猜测，将那行代码替换为我们万能的`HelloWorld`：
+　　经过一番比较，我们猜测`PopStarxiaomiexingxingguan_401\smali\com\brianbaek\popstar\popStarA$1.smali`第`245`行（由于`ApkTool`的版本不同，你反编译出来的代码行数可能和笔者不同，请以下面的代码为准）是支付代码。
+``` smali
+    invoke-virtual/range {v0 .. v6}, Lcom/duoku/platform/single/DKPlatform;->invokePayCenterActivity(Landroid/content/Context;Lcom/duoku/platform/single/item/GamePropsInfo;Lcom/duoku/platform/single/item/DKCMMdoData;Lcom/duoku/platform/single/item/DKCMMMData;Lcom/duoku/platform/single/item/DKCMGBData;Lcom/duoku/platform/single/callback/IDKSDKCallBack;)V
+```
+　　为了验证猜测，将那行代码替换为我们万能的`HelloWorld`：
 ``` smali
     sget-object v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
     const-string v1, "*********************************** Hello World22"
