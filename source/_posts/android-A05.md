@@ -2,7 +2,7 @@ title: 入门篇　第五章 BroadcastReceiver
 date: 2014-11-29 14:28:35
 categories: Android
 ---
-　　在现实世界中发生一个新闻后，广播电台会广播这个新闻给打开收音机的人，对这个新闻感兴趣的人会关注，可能会拿笔记下。 Android 也提供了类似的机制，它将`系统开关机`、`时间变更`、`屏幕变暗`、`电池电量不足通知`、`抓图通知` 、 `手机接到外界的电话` 、`短信` 等等事件封装成一个广播，当这些事件发生时它就会通知所有关注该事件的应用软件。
+　　在现实世界中发生一个新闻后，广播电台会广播这个新闻给打开收音机的人，对这个新闻感兴趣的人会关注，可能会拿笔记下。`Android`也提供了类似的机制，它将`系统开关机`、`时间变更`、`屏幕变暗`、`电池电量不足通知`、`抓图通知` 、 `手机接到外界的电话` 、`短信` 等等事件封装成一个广播，当这些事件发生时它就会通知所有关注该事件的应用软件。
 
 　　`Broadcast Receivers` （广播接收者）是应用程序中用来接收广播的一个组件。
 　　事实上广播既可以是系统发出的，也可以是当前或者其他应用程序(`委托系统`)发出的。一个应用程序内部可以定义多个广播接收者。当系统中有广播产生时，每个应用程序内定义的广播接收者都会查看该广播是否是其所需要的，若是，则广播接收者将会接收该广播。
@@ -12,11 +12,11 @@ categories: Android
 	-  广播接收者是静止的，它不会主动做任何事情，而总是等待着广播的到来。
 	-  广播接收者可以接收来自用户自定义的广播和来自系统的广播。
 	-  可以简单的理解：广播接收者是一个时刻等待冲锋的士兵，而广播就是一个信号。士兵接到信号后就可以做一些事情了。
-	-  事实上，广播接收者并不是一个随便的人，它也会对外界传来的广播进行筛选，他所不喜欢的，他不会去接收。
+	-  事实上，广播接收者并不是一个随便的人，它也会对外界传来的广播进行筛选，它所不需要的，它不会去接收。
 
 # 第一节 基础知识 #
-　　在Android中一个类若继承了`BroadcastReceiver`那么它就是一个广播接收者。
-　　在Android中使用一个Intent对象来代表`广播`，用户或系统发送广播时，发送的就是Intent对象，与广播相关的数据都被保存在Intent对象中了。
+　　若一个类继承了`BroadcastReceiver`那么它就是一个广播接收者。
+　　我们使用一个`Intent`对象来代表`广播`，用户或系统发送广播时，发送的就是`Intent`对象，与广播相关的数据都被保存在`Intent`对象中了。
 
 <br>　　范例1：简单的广播接收者。
 ``` android
@@ -34,15 +34,15 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 }
 ```
     语句解释：
-    -  当一个广播产生时，系统会拿广播Intent依次和所有已经注册到系统中的广播接收者匹配。
+    -  当一个广播产生时，系统会拿广播依次和所有已经注册到系统中的广播接收者匹配。
     -  当某个广播接收者匹配成功后，系统都会创建该广播接收者的实例，然后调用该实例的onReceive方法，同时将广播Intent传入给onReceive方法。
     -  当onReceive方法执行完毕后，广播接收者的实例会被销毁。
-    -  广播接收者的onReceive方法由主线程调用，因此在此方法中不要做一些耗时超过10秒的操作，否则系统将提示ANR(Application Not Responding)。
+    -  onReceive方法由主线程调用，因此在此方法中不要做一些耗时超过10秒的操作，否则系统将提示ANR(Application Not Responding)。
     -  使用onReceive方法中的context参数不能弹出一个Dialog，但是可以Toast。 
 
-　　做为Android中的四大组件之一，广播接收者同样需要在清单文件中进行声明。
+<br>　　做为`Android`中的四大组件之一，广播接收者同样需要在清单文件中进行声明。
 
-<br>　　范例2：AndroidManifest.xml。
+<br>　　范例2：配置接收者。
 ``` android
 <receiver android:name="com.example.androidtest.MyBroadcastReceiver">
     <intent-filter>
@@ -74,13 +74,13 @@ public class MainActivity extends Activity {
     -  当MainActivity被启动后就可以在屏幕上看到一个Toast消息“Hi Tom”。
 
 # 第二节 无序广播和有序广播 #
-　　广播分为：无序广播(Normal broadcasts)和有序广播(Ordered broadcasts)。
+　　广播分为：无序广播(`Normal broadcasts`)和有序广播(`Ordered broadcasts`)。
 
 　　**无序广播：**
 　　广播的发送者会将广播同时发送给所有符合条件的广播接收者。
 
 　　**有序广播：**
-　　广播的发送者会按照广播接收者的优先级将广播发送给所有符合条件的广播接收者，广播最初会被发送给符合条件的、优先级最高的接收者，然后广播会从优先级最高的接收者手中开始，在所有符合条件组成的接收者集合中，按照优先级的高低，被依次传递下去。若多个接收者具有相同的优先级，则广播会被先传递给Android系统最先找到的那个接收者。
+　　与无序广播不同的是，广播最初会被发送给符合条件的、优先级最高的接收者，然后广播会从优先级最高的接收者手中开始，在所有符合条件组成的接收者集合中，按照优先级的高低，被依次传递下去。若多个接收者具有相同的优先级，则广播会被先传递给Android系统最先找到的那个接收者。
 
 　　有序广播和无序广播最明显的区别在于发送它们时所调用的方法不同：
 
@@ -208,7 +208,7 @@ public class MainActivity extends Activity {
 ```
     语句解释：
     -  发送任何广播时都可以往Intent中设置附加数据，以供接收者使用。 
-    -  发送有序广播时除了可以往Intent对象中设置数据外，还可以将数据放在一个Bundle对象中，然后通过sendOrderedBroadcast方法发送数据。 毕竟亲兄弟都还明算账呢，何况Intent中除了存数据外还会存储action、flag等数据，比较混杂，所以为接收者创建一个专属的Bundle对象，只用来存数据是完全可以的。
+    -  发送有序广播时除了可以往Intent对象中设置数据外，还可以将数据放在一个Bundle对象中，然后通过sendOrderedBroadcast方法发送数据。
 
 <br>　　范例8：接收数据。
 ``` android
@@ -236,7 +236,7 @@ public class MyBroadcastReceiver2 extends BroadcastReceiver{
         setResultData("from receiver 2");
         intent.putExtra("string", "from receiver 2");
         getResultExtras(true).putString("string", "from receiver 2");
-		abortBroadcast();
+        abortBroadcast();
     }
 }
 ```
@@ -247,11 +247,11 @@ public class MyBroadcastReceiver2 extends BroadcastReceiver{
 <br>　　范例10：广播的发送者，你也得证明你是个好人。
 ``` android
 <receiver 
-	android:name="com.example.androidtest.MyBroadcastReceiver2"
-	android:permission="org.cxy.permission.TEST">
-	<intent-filter android:priority="888">
-		<action android:name="myAction" />
-	</intent-filter>
+    android:name="com.example.androidtest.MyBroadcastReceiver2"
+    android:permission="org.cxy.permission.TEST">
+    <intent-filter android:priority="888">
+        <action android:name="myAction" />
+    </intent-filter>
 </receiver>
 ```
     语句解释：
@@ -299,7 +299,7 @@ public class MainActivity extends Activity {
 # 第四节 应用范例 #
 ## 开机启动广播 ##
 <br>**最简单的用法：**
-　　开机广播需要监听BOOT_COMPLETED动作：
+　　开机广播需要监听`BOOT_COMPLETED`动作：
 ``` android
 <receiver android:name="com.example.androidtest.BootReceiver" >
     <intent-filter>
@@ -313,15 +313,15 @@ public class MainActivity extends Activity {
 ```
 
 <br>**但现实并非如此简单：**
-　　从Android 3.1开始的Android加入了一种保护机制，这个机制导致程序接收不到某些系统广播，其中就包含了开机启动广播。
+　　从`Android 3.1`开始的Android加入了一种保护机制，这个机制导致程序接收不到某些系统广播，其中就包含了开机启动广播。
 　　系统为Intent添加了两个flag，`FLAG_INCLUDE_STOPPED_PACKAGES`和`FLAG_EXCLUDE_STOPPED_PACKAGES`，用来控制Intent是否要对处于`stopped`状态的App起作用，如果一个App`安装后未启动过`或者`被用户在管理应用中手动停止`（强行停止）的话，那么该App就处于`stopped`状态了。
 
 　　顾名思义：
 
-	-  FLAG_INCLUDE_STOPPED_PACKAGES：表示包含未启动的App
-	-  FLAG_EXCLUDE_STOPPED_PACKAGES：表示不包含未启动的App
+	-  FLAG_INCLUDE_STOPPED_PACKAGES：表示包含stopped的App
+	-  FLAG_EXCLUDE_STOPPED_PACKAGES：表示不包含stopped的App
 
-　　对于系统开机启动广播来说则是添加了一个flag（FLAG_EXCLUDE_STOPPED_PACKAGES），这样的结果就是一个处于`stopped`状态的App就不能接收系统开机的广播。这样就可以防止病毒木马之类的恶意程序。
+　　对于系统开机启动广播来说则是添加了一个flag（`FLAG_EXCLUDE_STOPPED_PACKAGES`），这样的结果就是一个处于`stopped`状态的App就不能接收系统开机的广播。这样就可以防止病毒木马之类的恶意程序。
 
 　　如果你的App没有处于`stopped`状态（被启动过并且没有在系统设置界面被强行停止）那么当用户重启手机的时候，你的App就可以接收到开机启动广播了。
 
