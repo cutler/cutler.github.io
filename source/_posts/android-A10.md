@@ -2,10 +2,10 @@ title: 入门篇　第十章 网络编程
 date: 2015-3-9 10:38:36
 categories: Android
 ---
-　　本章来讲解一下Android开发中网络编程相关的知识。
+　　本章来讲解一下`Android`开发中网络编程相关的知识。
 
-# 第一节 Http协议 #
-
+# 第一节 HTTP协议 #
+　　本节简单的介绍一些`http`协议的基础知识，如果你没有任何网络编程的经验，那么你不适合阅读本文。
 ## 基础知识 ##
 　　超文本传送协议 (`HTTP-Hypertext transfer protocol`) 是一个基于请求与响应模式的、无状态的、应用层的通信协议，它工作在`TCP/IP`协议体系中的`TCP`协议上。 
 
@@ -15,27 +15,23 @@ categories: Android
 ![](/img/android/android_7_1.png)
 </center>
 
-　　`http`协议是万维网（`world wide web`）交换信息的基础。它允许将超文本标记语言(`HTML`)网页从服务器传送到`Web`浏览器(如`IE`等)。
-　　`HTML`是一种用于创建网页文档的标记语言，使用HTML语言可以编写出`.html`类型的静态网页文件。您可以单击`.html`网页文件内的一个链接来访问其它文档、图像或多媒体对象，并获得关于链接项的附加信息。
+　　`http`协议是万维网（`world wide web`）交换信息的基础，它允许将超文本标记语言(`HTML`)网页从服务器传送到`Web`浏览器(如`IE`等)。
 
 <br>**特点**
 　　`http`协议是无状态的。
 
-	无状态是指协议对于事务处理没有记忆能力。缺少状态意味着如果后续处理需要前面的信息，则它必须重传，这样可能导致每次连接传送的数据量增大。另一方面，在服务器不需要先前信息时它的应答就较快。 如：用户登录，若第一次登录密码输入错误，则在第二次登录时，同样需要再次提供账号和密码，而不是只提供密码。
+	-  无状态是指协议对于事务处理没有记忆能力。
+	-  也就是说如果后续处理需要前面的信息，则它必须重传，这样可能导致每次连接传送的数据量增大。如：用户登录，若第一次登录密码输入错误，则在第二次登录时，同样需要再次提供账号和密码，而不是只提供密码。
 
 　　基于请求/应答模式的。
 
-	服务器端总是等待客户端发来的请求，服务器端响应完客户端的请求后，就断开二者之间的连接。服务器端不会主动的向客户端发送请求。
+	-  客户端发送一个请求(request)给服务器，服务器在接收到这个请求后执行相应的操作，并在操作完成后生成一个响应(response)返回给客户端。
+	-  用户在浏览器地址栏中输入一个网址(URL)，就是在向服务器端发送一个请求，请求查看网页的内容。
+	-  服务器端总是等待客户端发来的请求，而不会主动的向客户端发送请求。
 
 <br>**作用**
 　　`http`能做什么?
 　　浏览网页是`http`的主要应用，但是这并不代表`http`就只能应用于网页的浏览。 `http`是一种协议，只要通信的双方都遵守这个协议，`http`就能有用武之地。
-
-<br>**工作方式**
-　　`HTTP`协议是基于请求与响应模式的。
-　　客户端发送一个请求(`request`)给服务器，服务器在接收到这个请求后执行相应的操作，并在操作完成后生成一个响应(`response`)返回给客户端。
-
-　　用户在浏览器地址栏中输入一个网址(`URL`)，就是在向服务器端发送一个请求，请求查看网页的内容。 
 
 <br>**URI和URL**
 　　URL是URI的子集。
@@ -45,14 +41,12 @@ categories: Android
 
 　　比如：`“http://www.baidu.com/test/a.txt”`是一个URL，它也是一个URI 。
 
-<br>　　URL 的一般形式是：`<URL的访问方式>://<主机>:[端口][路径]`，比如：`http://www.baidu.com/test/a.txt`。其中：
+<br>　　URL 的一般形式是：`<URL的访问方式>://<主机>:[端口][路径]`，比如：`http://www.baidu.com:8080/test/a.txt`。其中：
 
-	-  “http://”表示要通过HTTP协议来定位网络资源。常见的访问方式有：http、ftp、news等。
+	-  “http”表示要通过http协议来定位网络资源，常见的访问方式有：http、ftp、news等。
 	-  “www.baidu.com”表示资源所在的地址，它是一个合法的Internet主机域名或者IP地址。
-	-  若省写了端口则默认访问80端口。此处就是省写了端口号。
-	-  “/test/a.txt”表示资源在服务器端的存放路径。若URL中没有给出[路径]，那么当这个URL作为请求时，必须以“/”的形式给出，通常这个工作浏览器自动帮我们完成。如输入www.baidu.com，浏览器自动转换成：http://www.baidu.com/。
-
-<br>　　关于请求和响应的具体细节，后面会详细描述。
+	-  “8080”表示端口号，若省写了端口则默认访问80端口。
+	-  “/test/a.txt”表示资源在服务器端的存放路径。
 
 <br>**协议版本号**
 　　超文本传输协议已经演化出了很多版本，它们中的大部分都是向下兼容的。
@@ -100,7 +94,6 @@ categories: Android
 ``` 
 GET / books/java.html  HTTP/1.1
 ```
-　　以GET方式发送请求和POST方式发送请求的区别：向服务器传送的参数的方式不同。
 
 <br>　　`GET`方式：将需要传递给服务器的数据直接写在URL后面。
 
@@ -138,7 +131,6 @@ Cache-Control: no-cache
     -  请求头Accept：告知服务器，客户端浏览器可接受的文件的类型。如：
        -  Accept:image/gif，表明客户端希望接受 gif 图象。
        -  Accept:text/html，表明客户端希望接受 html 文本。
-    -  请求头Accept-Charset：告知服务器，浏览器可接受的字符集。
     -  请求头Accept-Encoding：告知服务器，客户端浏览器可接受的数据压缩编码。
     -  请求头Accept-Language：告知服务器，客户端浏览器当前语言环境(用于国际化程序设计)。
     -  请求头Host：告知服务器，客户端浏览器要访问的主机。必须要提供此请求头。
@@ -147,7 +139,6 @@ Cache-Control: no-cache
     -  请求头Cookie：告知服务器，客户端浏览器中的Cookie 。
     -  请求头Connection：取值有两个“Keep-Alive和close” 。
     -  请求头Date：告知服务器，客户端浏览器发送请求的时间。
-    -  请求头Authorization 用于证明客户端有权查看某个资源。当浏览器访问一个页面时，如果收到服务器的响应代码为 401 （未授权），可以发送一个包含 Authorization 请求报头域的请求，要求服务器对其进行验证。
     -  请求头Content-Length：告知服务器，请求中的请求正文的长度。
 
 ## HTTP响应 ##
@@ -205,7 +196,7 @@ Hi Tomcat!
     -  响应头Server：包含了服务器用来处理请求的软件信息。与 User-Agent 请求报头域是相对应的。
     -  响应头Content-Length：指出返回的“回应正文”的长度。
     -  响应头Date：服务器回应的时间，和咱们东八区有8个小时的时差。
-    -  响应头Location：告知客户端浏览器，需要将浏览器窗口 重定位 到其指向的页面中。只有响应码为302时,浏览器窗口才会重定位当前浏览器窗口 。
+    -  响应头Location：告知客户端浏览器，需要将浏览器窗口重定位到其指向的页面中。只有响应码为302时，浏览器才会执行重定位。
     -  响应头Content-Encoding：告知客户端浏览器，数据(回应正文)的压缩格式。
     -  响应头Content-Type：告知浏览器，服务器返回给浏览器的数据，是什么格式的。即MIME类型。
     -  响应头Refresh：告知浏览器，定时刷新页面。
@@ -283,29 +274,6 @@ xml文件                       text/xml;charset=UTF-8
 	      -  form-data;name=”请求参数的名称”;filename=”待上传文件的名称”。
 	      -  对于上传文件，还应该再为其指定一个Content-Type属性，标识文件的类型。
 
-<br>　　范例3：获取网页文件。
-``` android
-public String getHTML()throws Exception{
-    String html = null;
-    URL url = new URL("http://192.168.1.108/Web/index.jsp");
-    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-    conn.setConnectTimeout(5000);
-    if(conn.getResponseCode() == 200){
-        // 截取出content-type头字段中指定的charset属性。
-        String content_type = conn.getContentType();
-        content_type = content_type.substring(content_type.indexOf("charset=")+8);
-        // 获取InputStream,然后读取文件的内容。具体代码和上面相同,此处省略。
-        // ... ...  
-        // 根据charset指定的编码,将array(byte类型的数组)转成字符串。
-        html = new String(array,content_type);
-    }
-    return html;
-}
-```
-    语句解释：
-    -  对于JSP文件来说，它的content-type的值一般为：text/html;charset=UTF-8
-    -  对于HTML文件来说，它的content-type的值一般为：text/html 。即HTML文件的content-type属性中不会包含charset属性，所以对于HTML文件来说，本范例的解码操作并不合适。
-
 <br>**网络图片查看器**
 
 <br>　　范例1：实现步骤。 
@@ -315,7 +283,7 @@ public String getHTML()throws Exception{
 	-  接着，只有在状态码为200的时候，才处理请求。
 	-  然后，获取数据的输入流，将数据写入到内存流中。
 	-  使用BitmapFactory根据一个字节数组来构造一个Bitmap对象，Bitmap对象代表一张位图图片。
-	-  将图片显示在<ImageView>组件中。
+	-  将图片显示在ImageView组件中。
 
 <br>　　范例2：下载图片。
 ``` android
@@ -357,7 +325,7 @@ public void onClick(View view){
 <uses-permission android:name="android.permission.INTERNET"/>
 ```
 
-<br>　　扩展：多线程断点下载。
+<br>　　扩展：断点下载。
 
 	-  向服务器发送请求时，需要设定如下头字段：
 	   -  conn.setRequestProperty("range", "bytes="+start+"-"+end);
@@ -373,7 +341,7 @@ public void onClick(View view){
 <br>**是什么?**
 　　`HttpClient`是`Apache Jakarta Common`下的子项目，用来提供高效的、最新的、功能丰富的支持HTTP协议的客户端编程工具包，简单地说它就是用来接收和发送HTTP消息的。并且它支持HTTP协议最新的版本和建议。HttpClient已经应用在很多的项目中，比如`Apache Jakarta`上很著名的另外两个开源项目`Cactus`和`HTMLUnit`都使用了`HttpClient`。
 
-　　`HttpClient`的下载地址：http://hc.apache.org/downloads.cgi (本文档基于`4.1.2`版本)。不过，在Android SDK中已经提供了`HttpClient`中所有的类，因此开发Android应用程序时不需要另外下载`HttpClient`了。
+　　`HttpClient`的下载地址：http://hc.apache.org/downloads.cgi (本文基于`4.1.2`版本)。不过，在Android SDK中已经提供了`HttpClient`中所有的类，因此开发Android应用程序时不需要另外下载`HttpClient`了。
 
 <br>**不是什么?**
 　　HttpClient不是一个浏览器，它是一个客户端的HTTP通信实现库，主要用来`发送和接收HTTP报文`。它不会去缓存内容、执行嵌入在HTML页面中的`javascript`代码、猜测内容类型，或者其它和HTTP运输无关的功能。
@@ -588,7 +556,7 @@ public void test() {
 　　在HttpClient中还提供了另一种遍历头字段的方法，可以使用`HeaderIterator`接口来完成遍历。
 
 <br>　　范例3：迭代器遍历。
-``` android
+``` java
 public void test() {
     HttpGet get = new HttpGet(URI.create("http://www.google.com.tw"));
     HttpResponse response = client1.execute(get);

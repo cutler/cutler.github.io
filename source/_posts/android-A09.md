@@ -3,19 +3,19 @@ date: 2015-3-5 16:19:10
 categories: Android
 ---
 　　Android设备中，存在着各种各样的文件（如`数据库文件`、`偏好配置文件`等），它们被保存在`手机内部存储`或`外部存储设备`（如SD卡）中。
-　　通过Eclipse我们可以查看Android手机的文件系统的结构，打开`DDMS`视图找到`FileExplorer`（文件浏览器），我们可能会看到很多文件夹，其中`system`、`data`、`mnt`三个文件夹比较重要。
+　　通过`Eclipse`或`AndroidStudio`我们可以查看手机的文件系统的结构，打开`DDMS`视图找到`FileExplorer`（文件浏览器），我们可能会看到很多文件夹，其中`system`、`data`、`mnt`三个文件夹比较重要。
 
 	-  system：用于保存系统文件。
 	-  data ： 用于保存与应用程序有关的数据。
 	-  mnt ：是一个影射目录，一些手机的外设(如sd卡)的存储数据的文件夹，都在其内部出现。
 
 　　即`system`和`data`目录是放在`手机内部存储`里的，而sd卡等`外部存储设备`的根目录会出现在`mnt`目录下。
-<br>　　本章将详细介绍Android中数据存取相关的知识。
+<br>　　本章将详细介绍`Android`中数据存取相关的知识。
 
 # 第一节 数据存储 #
 　　应用程序在运行的时候会产生各种数据文件，它们通常被保存在`/data/data/packagename/`目录下面，每种类型的文件占据一个子目录：
 
-	-  普通文件：用于保存常见的文本、图片信息。如：.txt、.jpg等文件。
+	-  普通文件：用于保存常见的文本、图片信息。如：txt、jpg等文件。
 	   -  被保存在/data/data/packagename/files目录。
 	-  配置文件：用于保存用户的个性化设置，配置文件是xml类型的。
 	   -  被保存在/data/data/packagename/shared_prefs目录。
@@ -43,7 +43,7 @@ public abstract FileInputStream openFileInput(String name)
 public abstract FileOutputStream openFileOutput(String name, int mode)
 
 // 返回当前应用程序的/data/data/packagename/cache目录。
-public abstract File getCacheDir ()
+public abstract File getCacheDir()
 
 // 返回当前应用程序的/data/data/packagename/files目录。如：/data/data/org.cxy.file/files。
 public abstract File getFilesDir()
@@ -125,15 +125,20 @@ public class ViewTextActivity extends Activity {
 ```
 
 <br>**扩展：**
-　　Adroid有一套自己的安全模型，在`.apk`被安装时系统就会分配给该应用程序一个`userid`。当它要去访问某个资源(比如文件)的时候，就需要与文件的`userid`匹配。默认情况下，任何应用创建的文件、`sharedpreferences`、数据库都应该是私有的，其他程序无法直接访问。
+　　`Android`有一套自己的安全模型，在`.apk`被安装时系统就会分配给该应用程序一个`userid`。当它要去访问某个资源(比如文件)的时候，就需要与文件的`userid`匹配。默认情况下，任何应用创建的文件、`sharedpreferences`、数据库都应该是私有的，其他程序无法直接访问。
 　　除非在创建时指定了`MODE_WORLD_READABLE`和`MODE_WORLD_WRITEABLE`，只有这样其他程序才能正确访问。
 
 ## 存储卡文件 ##
-　　一般来说，手机本身的存储容量是很小的，但是手机中往往都会存储一些容量较大的音乐、视频等文件，此时可以单独购买一个SD卡（SD卡就相当于`移动硬盘`或`U盘`）。 
-　　所有兼容Android的设备都支持一个可共享的`“外部存储(external storage)”`，可用来保存文件。这可以是一个可移动的存储设备（比如SD卡）或者一个内部的（不可移动的，即直接安装到手机内部了，不可拆卸，比如`小米手机`）存储。
+　　一般来说，手机本身的存储容量是很小的，但是手机中往往都会存储一些容量较大的音乐、视频等文件，此时可以单独购买一个SD卡。 
+　　所有兼容`Android`的设备都支持一个可共享的`“外部存储(external storage)”`，可用来保存文件。值得注意的是：
+
+	-  不同的手机情况会有所不同：
+	   -  有的手机提供了一个卡槽，你可以自己购买一个SD卡插进去。
+	   -  有的手机直接就集成了一个SD卡在手机里，你没法把它拆下来，比如小米手机。
+	-  但是不论是哪种，它们都算是外部存储。
 　　注意：保存在外部存储的文件，没有强制的安全措施。所有的应用都可以读/写这些文件，用户也能够删除它们，因此重要的文件请不要保存在外部存储设备上。
 
-<br>　　相应的，Android也为我们提供了操作外部存储设备上的文件的API。
+<br>　　相应的，`Android`也为我们提供了操作外部存储设备上的文件的`API`。
 
 <br>　　范例1：Environment类。
 ``` android
@@ -168,11 +173,9 @@ if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
     -  向存储卡写数据之前应该先判断一下，用户手机是否成功安装了存储卡。
     -  文件会自动被写到SDCard的根目录下面。
 
-　　应用程序向存储卡写数据是需要权限的，因此需要在清单文件的根节点下面声明，如下两个权限：
+　　应用程序向存储卡写数据是需要权限的，因此需要在清单文件的根节点下面声明，如下权限：
 
 ``` xml
-<!-- 在SDCard中创建与删除文件权限 -->
-<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
 <!-- 往SDCard写入数据权限 -->
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 ```
@@ -210,10 +213,10 @@ if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
 　　在你的外部文件目录中放置包括一个空的文件，命名为`.nomedia`(注意文件名前缀的点)。这会阻止Android的媒体扫描器读取你的媒体文件，如`Gallery`或者`Music`这样的应用。
 
 ## 偏好设置 ##
-　　在Android中可以使用`SharedPreferences`类管理软件的偏好(`hào`)设置。所谓的偏好设置就是指用户对软件进行的一些个性化配置。如：软件使用的主题、皮肤等设置。
-　　`SharedPreferences`类提供了一个通用的框架，可以保存和检索以持久化的键值对形式存储的原始数据类型。 你可以使用`SharedPreferences`保存任意类型的原始数据：布尔（`boolean`），浮点（`float`），整型（`int`），长整型（`long`）和字符串（`string`）。这些数据将会存放在用户会话中（即使你的应用程序已经退出）。
+　　在`Android`中可以使用`SharedPreferences`类管理软件的偏好(`hào`)设置。所谓的偏好设置就是指用户对软件进行的一些个性化配置。如：软件使用的主题、皮肤等设置。
+　　`SharedPreferences`类提供了一个通用的框架，可以保存和检索以持久化的键值对形式存储的原始数据类型。 你可以使用`SharedPreferences`保存任意类型的原始数据：布尔（`boolean`），浮点（`float`），整型（`int`），长整型（`long`）和字符串（`string`）。
 
-　　Andriod偏好设置默认使用`xml`文件来保存用户的。这个xml文件会自动会保存到`“/data/data/packagename/shared_prefs”`目录中。
+　　`Andriod`偏好设置默认使用`xml`文件来保存用户的。这个`xml`文件会自动会保存到`“/data/data/packagename/shared_prefs”`目录中。
 
 <br>　　范例1：`SharedPreferences`接口。
 ``` android
@@ -223,7 +226,7 @@ if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
 // -  除了此方法外，还有：getInt、getLong、getBoolean、getFloat四个方法，它们同样要求value的值与方法返回值的类型相同，否则就抛ClassCast Exception，并且终止程序执行。
 public abstract String getString(String key, String defValue);
 
-// 获取当前对象的SharedPreferences.Editor对象，该对象代表SharedPreferences对象的编辑器，可以想SharedPreferences文件中添加数据。
+// 获取当前对象的SharedPreferences.Editor对象，该对象代表SharedPreferences对象的编辑器，可以向SharedPreferences文件中添加数据。
 public abstract SharedPreferences.Editor edit();
 
 // 返回当前对象中的所有的key-value。
@@ -293,18 +296,18 @@ public class MainActivity extends Activity {
 　　数据库编程：
 
 	-  首先，在Android手机中使用的数据库是SQLite，使用android.database.sqlite.SQLiteDatabase类来操作数据库。
-	-  然后，在操作数据库之前，需要先创建一个数据库。在服务器端开发中，数据库都是在服务器端建立、维护的。而在客户端开发，则数据库就需要在客户端建立了。但是，由于无法获取用户的手机，因此创建数据库的任务，只能通过代码完成。
+	-  然后，在操作数据库之前，需要先创建一个数据库。
 
 <br>
 ### 创建数据库 ###
-　　在Android中使用`SQLiteOpenHelper`类来创建/打开数据库。
+　　在`Android`中使用`SQLiteOpenHelper`类来创建/打开数据库。
 
 <br>　　范例1：SQLiteOpenHelper类。
 ``` android
-// -  context ：上下文对象。
-// -  name ：数据库的名称。
-// -  factory：游标工厂，若为null，则使用Android系统默认的游标工厂。通常都为null 。
-// -  version ：数据库的版本号，具体作用后述。
+// context ：上下文对象。
+// name ：数据库的名称。
+// factory：游标工厂，若为null，则使用Android系统默认的游标工厂。通常都为null 。
+// version ：数据库的版本号，具体作用后述。
 public SQLiteOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version);
 
 // 以只读的方式打开当前对象所指向的数据库。前程序可以对打开的数据库进行读写操作。若数据库不存在，则创建数据库。 
@@ -323,10 +326,10 @@ public abstract void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion
 <br>　　范例2：创建数据库。
 ``` android
 SQLiteOpenHelper helper = new SQLiteOpenHelper(this,"data.db",null,1){
-	public void onCreate(SQLiteDatabase db) {
-		db.execSQL("CREATE TABLE person(id int primary key,name varchar(20))");
-	}
-	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
+    public void onCreate(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE person(id int primary key,name varchar(20))");
+    }
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
 };
 SQLiteDatabase db = helper.getReadableDatabase();
 ```
@@ -350,8 +353,8 @@ SQLiteDatabase db = helper.getReadableDatabase();
 
 <br>　　提示：
 
-	-  在SQLite数据库中表的列可以不指定数据类型。即便指定了，也不起作用。
-	-  若表的主键列是integer类型，则主键列的值会自动增长。主键不能重复。
+	-  在SQLite数据库中表的列可以不指定数据类型，即便指定了也不起作用。
+	-  若表的主键列是integer类型，则主键列的值会自动增长，主键不能重复。
 
 <br>
 ### 操作数据库 ###
@@ -372,7 +375,7 @@ public Cursor rawQuery(String sql, String[] selectionArgs)
 public void close()
 ```
 
-<br>　　范例2：数据库更新操作。
+<br>　　范例2：插入数据。
 ``` android
 SQLiteOpenHelper helper = new SQLiteOpenHelper(this,"data.db",null,1){
     public void onCreate(SQLiteDatabase db) {
@@ -432,12 +435,12 @@ public int update(String table, ContentValues values, String whereClause, String
 
 ```
 
-<br>
+<br>**关于nullColumnHack**
 　　在SQL中是不允许执行一个类似于`insert into emp() values()`的语句。但是，使用拼接的方式组织`sql`插入语句时若`values==null`或者`values.size<0`，则最终组织成的`sql`语句就是上面的语句。
 　　因此，需要指定一个列，当`values`为`null`或`size=0`时，默认为其自动赋值为`null`。如`insert("person","id",null)`拼接后的SQL语句为：`insert into(id) values(null)`。
-　　但是若`insert`方法的`values`的`size>0`，则第二个参数将不起作用。 
+　　但是若`insert`方法的`values`的`size>0`，则参数`nullColumnHack`将不起作用。 
 
-<br>　　范例6：更新操作-2。
+<br>　　范例6：更新操作。
 ``` android
 SQLiteOpenHelper helper = new SQLiteOpenHelper(this,"data.db",null,1){
     public void onCreate(SQLiteDatabase db) {
@@ -631,7 +634,7 @@ public void xmlWrite()throws Exception{
     -  也可以直接StringBuilder一个字符串，通过输出流将输出写出去。
 
 # 第二节 数据访问 #
-　　Android项目中有三个比较重要的文件夹：`src`、`assets`、`res`，本节将依次介绍如何获取上述三个文件夹内的文件。
+　　`Android`项目中有三个比较重要的文件夹：`src`、`assets`、`res`，本节将依次介绍如何获取上述三个文件夹内的文件。
 
 ## ClassLoader ##
 　　在JavaSE中通常都会使用`ClassLoader`(类加载器)来访问`src`文件夹下的某个文件。在Android中也是同样如此。
@@ -759,10 +762,10 @@ public class AndroidTestActivity extends Activity {
        -  如：/data/data/org.cxy.file/files/a.txt 。
 
 ## AssetManager ##
-　　在Android中可以使用`AssetManager`类来访问`assets`目录下的文件。`assets`目录的特点：
+　　在`Android`中可以使用`AssetManager`类来访问`assets`目录下的文件。`assets`目录的特点：
 
 	-  首先，assets文件夹内单个文件的大小必须<=1MB 。
-	-  然后，assets文件夹内的文件不会被注册到R文件中，这意味着程序的运行效率将会有所提高。
+	-  然后，assets文件夹内的文件不会被注册到R文件中。
 	-  接着，assets文件夹内可以任意自定义子文件夹。
 	-  最后，assets文件夹主要用于保存一些“容量小且固定不变”的文件，如：游戏音乐等。所谓的“固定不变”指的是在程序运行的时候，该文件仅会被程序读取而不会去修改其内容。 
 
@@ -781,7 +784,7 @@ public void close()
 <br>　　范例2：`ContextWrapper`类。
 ``` android
 // 获取当前应用程序的AssetManager实例。
-public AssetManager getAssets ()
+public AssetManager getAssets()
 ```
 
 <br>　　范例3：获取输入流。
@@ -821,7 +824,7 @@ public void test(){
     -  将文件的路径path与list方法返回的文件的名称组合在一起后，就可以调用open方法获取该文件的输入流了。
 
 ## Resources ##
-　　在Android中可以使用`Resources`类来访问`res`目录下的文件。 `res`目录下常见的子目录为：
+　　在`Android`中可以使用`Resources`类来访问`res`目录下的文件。 `res`目录下常见的子目录为：
 ```
 目录名称                       作用
 drawable                      存放图片资源。
@@ -906,7 +909,7 @@ public abstract void close()
 ```
 
 <br>
-　　`res/raw`目录用于存放应用使用到的原始文件，如音效文件等。与assets目录比较：
+　　`res/raw`目录用于存放应用使用到的原始文件，如音效文件等。与`assets`目录比较：
 
 	-  相同点：在编译项目时，这些数据不会被编译，它们被直接加入到程序安装包里。
 	-  不同点：此目录下的文件都会在R文件中注册，若在其内自定义子目录，则子目录中的文件不会被注册到R文件中。自由度较assets目录略低。
@@ -931,6 +934,6 @@ public abstract void close()
 	-  保存应用程序的唯一容器经过一个随机产生的密钥进行加密。该密钥只能由最初安装该程序的设备解密。因此，安装在SD卡上的应用程序只能在某一个固定的设备上运行。
 	-  用户可以通过系统设置将应用程序移动到内存上。
 
-　　注意：当用户使用`USB大容量存储器`与计算机共享文件时，或通过系统设置卸载SD卡时，外部存储设备将从本设备卸载，并且所有在该外部存储设备中运行的应用程序将立刻被关闭。
+　　注意：当用户使用`USB大容量存储器`与计算机共享文件时，或通过系统设置卸载SD卡时，外部存储设备将从本设备卸载，并且所有在该外部存储设备中安装的应用程序将立刻被关闭。
 
 <br><br>
