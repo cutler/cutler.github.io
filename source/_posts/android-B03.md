@@ -3,21 +3,16 @@ date: 2015-1-27 14:53:50
 create: 2015-1-27 14:53:50
 categories: Android
 ---
-　　本章将介绍一下Android中的输入事件。
+　　本章将介绍一下`Android`中的输入事件。
 
 # 第一节 基础知识 #
-　　当Android系统中当产生了一个输入事件（触摸、按键等）时，事件通常会被系统（通过回调方法）发送给与用户正在交互的View手中。这些回调方法被定义在View类里。
-　　例如，当触摸一个View对象（如一个按钮）时，该对象的`onTouchEvent()`方法会被调用。
-
-　　按照目前的思路，为了截获这个事件（以便在事件发生时能执行执行你的代码），你必须继承这个View类，并重写这个方法。然而为了处理这类事件而扩展每个View对象是不切实际的。这就是为什么View类还包含了一个带有让你更容易定义回调方法的嵌套接口集合，这些叫做`事件监听器`的接口是用于捕获用户跟UI交互的入口。
-
-　　虽然多数情况下，你会使用事件监听器来监听与用户的交互，但是，有些时候为了创建一个定制的组件，你要扩展一个View类。比如你可能想要扩展`Button`类使它更精致，在这种情况中，你就应该重写View类的事件回调方法了。
+　　当`Android`系统中当产生了一个输入事件（触摸、按键等）时，事件通常会被系统（通过回调方法）发送给与用户正在交互的View手中，这些回调方法被定义在View类里。
+　　例如，当触摸一个`View`对象（如一个按钮）时，该对象的`onTouchEvent()`方法会被调用。
 
 ## 触摸模式 ##
 　　当用户用`方向键`或`鼠标滚轮`（比如Android电视需要使用遥控器操作）浏览一个用户界面时，程序就需要给可操作的项目一个焦点（如按钮高亮显示），以便用户能够看到界面在接收输入。但是，如果设备有触摸的能力，并且用户通过触摸的方式来与界面进行交互，那么就不再需要高亮显示项目，或是把焦点给一个特殊的View对象。这样，就有了名叫`“触摸模式(touch mode)”`的交互模式。
 
-　　对于一个有触摸能力的设备，一旦用户触摸屏幕，这个设备就会进入`触摸模式`。从这点开始，只有`isFocusableInTouchMode()`方法的返回值是`true`的那个View对象才是`可聚焦`的，如`EditText`。其他的View对象是`可触摸`的，如Button在触摸它的时候不需要焦点，它们只是简单的在被点击的时候触发`onClick`监听器。
-
+　　对于一个有触摸能力的设备，一旦用户触摸屏幕，这个设备就会进入`触摸模式`。
 　　任何时刻，只要用户点击了一个方向键或滚动了鼠标滚轮，设备就会退出触摸模式，同时系统会查找一个需要焦点的View对象，并给予其焦点。
 
 　　触摸模式状态是被整个系统保持的（所有的窗口和Activity）。你能够调用`isInTouchMode()`来查看设备当前是否是触摸模式。
@@ -66,14 +61,17 @@ public class ExampleActivity extends Activity implements OnClickListener {
 <br>　　我们注意到，上例代码中的`onClick()`回调方法没有返回值，但是其他的一些事件监听器方法必须要返回一个布尔值。其原因要依赖具体的事件。以下是原因说明：
 　　Android产生的事件是由上到下依次传递到目标View的，事件可以在传递的途中被某个View给消化掉，从而终止事件向下传递。
 
-	onLongClick()：
-	这个方法返回一个布尔值，用来指明是否因你已经使用了这个事件而不应该执行进一步的动作。也就是说，如果返回true，表明你已经处理了这个事件，并且事件应该就此停止；如果返回false，表明没有处理这个事件，因而这个事件应该继续传递给任何其他的onLongClick监听器。
+	boolean onLongClick()：
+	-  若返回true，表明你已经处理了这个事件，系统应该就此停止继续向下传递事件。
+	-  若返回false，表明你没有处理这个事件，因而这个事件应该继续传递给任何其他的onLongClick监听器。
 
-	onKey()：
-	这个方法返回一个布尔值，用来指明是否因你已经使用了这个事件而不应该执行进一步的动作。也就是说，如果返回true，表明你已经处理了这个事件，并且事件应该就此停止；如果返回false，表明你没有处理这个事件，并且这个事件应该继续传递给任何其他的onKey监听器。
+	boolean onKey()：
+	-  若返回true，表明你已经处理了这个事件，并且事件应该就此停止。
+	-  若返回false，表明你没有处理这个事件，并且这个事件应该继续传递给任何其他的onKey监听器。
 
-	onTouch()：
-	这个方法返回一个布尔值，用来指明你的监听器是否使用这个事件。重要的是这个事件能够有多个彼此跟随的动作。因此，如果在接收到按下动作事件时返回了false，表明你不使用这个事件，并且对来自这个事件的后续动作也不感兴趣（系统将不会把后续动作传递给onTouch方法）。因此，你将不会调用这个事件中的任何其他动作，如手势或事件的最终动作。
+	boolean onTouch()：
+	-  若在接收到按下动作事件时返回了true，表明你处理了这个事件，并且还会接收后续的事件（如手指滑动等）。
+	-  若在接收到按下动作事件时返回了false，表明你不使用这个事件，并且对来自这个事件的后续动作也不感兴趣（系统将不会把后续动作传递给onTouch方法）。
 
 ## 处理焦点 ##
 　　Android框架会处理焦点的移动来响应用户的输入，这包括在View对象被删除或隐藏，或一个新View对象变成有效时焦点的改变。
@@ -91,7 +89,6 @@ public class ExampleActivity extends Activity implements OnClickListener {
 ```
 
 <br>　　通常，在这个垂直布局中，从第一个Button的向上浏览不会去任何地方，同样从第二个Button的向下浏览也不会去任何地方。现在，top按钮把bottom按钮定义为下一个焦点获得者（反之亦然），这样浏览焦点就会在这两个按钮之间来回切换。
-　　如果你喜欢在UI中声明一个View对象作为可聚焦对象（传统的不会这样），就要把`android:focusable`的XML数据添加给对应的View对象，并在布局声明中把属性值设置为`true`。在触屏模式中，你也能够用`android:focusableInTouchMode`属性把一个View对象设置为可聚焦对象。
 　　调用`requestFocus()`方法给一个特定的View对象设置焦点。
 　　使用`onFocusChange()`方法来监听焦点事件（当一个View对象接受或失去焦点时会发出通知）。
 
@@ -110,10 +107,8 @@ public class ExampleActivity extends Activity implements OnClickListener {
 //           事件对象封装了一些与“触摸事件”有关的数据。如：事件产生时，用户手指在屏幕的X、Y坐标等。
 //  返回值：
 //    用于告知Android系统，当前事件是否被成功处理。
-//    若返回true则意味着成功处理，成功处理则意味着，系统将继续不再将事件向下传递。同时处理该事件的View，将继续接收下一个类型的事件。
 //
 //    如：通常“触摸事件”的基本顺序为：“手指按下”、 “手指拖拽”、 “手指抬起”。
-//    若当前事件是“手指按下”且用户随后会在View上执行拖动操作，试图触发“手指拖拽”事件：
 //    若手指按下时方法返回false，则即便随后用户在View上拖动手指，系统也不会触发“手指拖拽”事件。
 //    若手指按下时方法返回true，则系统会触发“手指拖拽”事件，且会终止事件向下传递。
 public abstract boolean onTouch(View v, MotionEvent event)
@@ -124,19 +119,19 @@ public abstract boolean onTouch(View v, MotionEvent event)
 <br>　　范例2：MotionEvent类。
 ``` android
 //  描述：获取当前产生的事件的类型。
-//  返回值：
+//  常用返回值：
 //    MotionEvent.ACTION_DOWN：手指按下。
 //    MotionEvent.ACTION_MOVE：手指按下后(此时手指没有抬起)，接着在View上拖动手指。
 //    MotionEvent.ACTION_UP：手指抬起。
 public final int getAction()
 
 //  当在View产生了MotionEvent事件时，这两个方法可以获取用户手指相对于该View的左上角坐标的偏移量。 
-public final float getX ()
-public final float getY ()
+public final float getX()
+public final float getY()
 
 //  当在View产生了MotionEvent事件时，这两个方法可以获取用户手指相对于屏幕左上角坐标的偏移量。屏幕左上角就是状态栏的左上角的那个点。 
-public final float getRawX ()
-public final float getRawY ()
+public final float getRawX()
+public final float getRawY()
 ```
 
 <br>　　范例3：触发事件。
@@ -446,7 +441,7 @@ imageView.setOnTouchListener(new OnTouchListener() {
 ![](/img/android/android_3_13.png)
 </center>
 
-　　在`ACTION_DOWN`执行完后，后面的一系列`Action`都不会得到执行了。这又是为什么呢？因为`ImageView`和按钮不同，它是默认不可点击的，因此在`onTouchEvent`的判断时无法进入到if的内部，直接跳到第`91`行返回了`false`，也就导致后面其它的`Action`都无法执行了。
+　　在`ACTION_DOWN`执行完后，后面的一系列`Action`都不会得到执行了。这又是为什么呢？因为`ImageView`和`Button`不同，它是默认不可点击的，因此在`onTouchEvent`的判断时无法进入到`if`的内部，直接返回了`false`，也就导致后面其它的`Action`都无法执行了。
 
 <br>　　问：`onTouch`和`onTouchEvent`有什么区别，又该如何使用？
 　　答：从源码中可以看出，这两个方法都是在View的`dispatchTouchEvent`中调用的，`onTouch`优先于`onTouchEvent`执行。如果在`onTouch`方法中通过返回`true`将事件消费掉，`onTouchEvent`将不会再执行。

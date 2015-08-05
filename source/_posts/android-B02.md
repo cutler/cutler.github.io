@@ -3,13 +3,13 @@ date: 2015-1-25 14:37:55
 create: 2015-1-25 14:37:55
 categories: Android
 ---
-　　本章将介绍一下Android中常用的控件，如：TextView、Button、RadioButton等。
+　　本章将介绍一下`Android`中常用的控件，如：`TextView`、`Button`、`RadioButton`等。
 
 # 第一节 简单控件 #
 ## TextView ##
-　　TextView是一个文本控件，用来显示一行文本，在文本中可以包含图片、超链接、HTML代码等。
+　　`TextView`是一个文本控件，用来显示一行文本，在文本中可以包含图片、超链接、HTML代码等。
 
-　　在XML文件中使用`<TextView>`标签可以构建出一个文本控件，每个`<TextView>`标签都对应于TextView类的一个实例。
+　　在XML文件中使用`<TextView>`标签可以构建出一个文本控件，每个`<TextView>`标签都对应于`TextView`类的一个实例。
 
 <br>　　范例1：`<TextView>`标签。
 ``` xml
@@ -31,15 +31,6 @@ android:text                指出标签所要显示的数据，可直接指定�
 	-  当前组件在其父组件中所占据的宽度和高度的值可以是： 
 	   -  具体的数值。如：89dp 。
 	   -  关键字：match_parent、fill_parent、wrap_content。
-
-<br>　　组件常用的尺寸单位：
-``` xml
-单位                                         描述
-px (pixels)                像素。
-dip或dp                    设备独立像素。根据当前屏幕分辨率，自动调节控件的大小。
-pt                         点，一般用于设置字体的大小。
-sp                         一般用于设置字体的大小，常用。
-```
 
 <br>　　范例2：响应点击事件。
 ``` xml
@@ -64,7 +55,7 @@ android:onClick    在当前组件被点击时，应该调用的处理点击事�
 android:clickable  设置当前View是否可以接收点击事件，若设置为false则android:onClick属性的值将被忽略。
 ```
 
-<br>　　在代码中可以通过调用TextView类的`setText()`和`getText()`方法，来设置和获取TextView对象所显示的文字。
+<br>　　在代码中可以通过调用`TextView`类的`setText()`和`getText()`方法，来设置和获取`TextView`对象所显示的文字。
 
 <br>　　范例3：背景色、单行显示、字体大小、文字对其方式。
 ``` xml
@@ -86,7 +77,7 @@ android:textSize    设置字体的大小，通常的单位为sp。
 android:gravity     设置标签上的文字在当前标签控件所占据的空间中的对齐方式。
 ```
 
-<br>　　TextView是支持滚动条滑动的，当TextView的内容超出了其宽或高则就可以使用其内置滚动条了。
+<br>　　`TextView`是支持滚动条滑动的，当`TextView`的内容超出了其宽或高则就可以使用其内置滚动条了。
  
 <br>　　范例4：启用内置水平、垂直滚动条。
 ``` xml
@@ -168,7 +159,7 @@ android:shadowRadius      设置文字的阴影半径(范围)。
     -  使用android:lines="1" 是不会显示出“…”的。
 
 ## ImageView ##
-　　ImageView是一个用来显示图片的控件，在XML文件中使用`<ImageView>`标签表示。
+　　`ImageView`是一个用来显示图片的控件，在XML文件中使用`<ImageView>`标签表示。
 
 <br>　　范例1：`<ImageView>`标签。
 ``` xml
@@ -210,7 +201,7 @@ public class ViewTextActivity extends Activity {
 ```
 
 ## ProgressBar ##
-　　ProgressBar是一个进度条控件，在XML文件中使用`<ProgressBar>`标签定义一个进度条。
+　　`ProgressBar`是一个进度条控件，在XML文件中使用`<ProgressBar>`标签定义一个进度条。
 
 <br>　　范例1：进度条。
 ``` xml
@@ -266,14 +257,14 @@ class UpdateBar extends Thread{
     -  进度条的实现原理：通过线程不断的调用进度条的setProgress方法来更新进度条。
 
 ## SeekBar ##
-　　SeekBar是一个可拖动的进度条。用户可以通过拖动手柄，来调整进度条的当前位置。一般用于音乐、视频播放器中。
+　　`SeekBar`是一个可拖动的进度条。用户可以通过拖动手柄，来调整进度条的当前位置。一般用于音乐、视频播放器中。
 
 
 <center>
 ![SeekBar预览图](/img/quick-cocos2d-x/quick_5_12.png)
 </center>
 
-　　SeekBar是ProgressBar的间接子类，因此可以按照操作ProgressBar的方式，操作SeekBar。
+　　`SeekBar`是`ProgressBar`的间接子类，因此可以按照操作`ProgressBar`的方式，操作`SeekBar`。
 
 <br>　　范例1：SeekBar标签。
 ``` xml
@@ -352,7 +343,7 @@ public abstract void onStopTrackingTouch (SeekBar seekBar)
 　　输入控件是应用程序的用户接口的一种交互式组件。Android提供了大量的可供人们在UI中使用的控件，比如按钮、文本区域、(带滑块的)进度条、复选框、缩放按钮以及切换按钮等等。
 
 ## Button ##
-　　Button表示一个按钮，按钮可以包括文字或者图标，或者两者兼而有之，当用户触摸到按钮时就会触发事件。
+　　`Button`表示一个按钮，按钮可以包括文字或者图标，或者两者兼而有之，当用户触摸到按钮时就会触发事件。
 
 <center>
 ![Button](/img/android/android_3_3.png)
@@ -457,7 +448,6 @@ button.setOnClickListener(new View.OnClickListener() {
     android:onClick="sendMessage"
     android:background="@drawable/button_custom"  />
 ```
-　　对于此XML语法的更多详细信息，后面章节会有介绍。
 
 ## EditText ##
 　　文本框允许用户在应用程序中输入文本。它们可以是单行的，也可以是多行的。点击文本框后显示光标，并自动显示键盘。除了输入，文本框还包含其它操作，比如文本选择（剪切，复制，粘贴）以及自动完成的数据查找。
@@ -525,12 +515,6 @@ button.setOnClickListener(new View.OnClickListener() {
     android:inputType="text"
     android:text="actionSearch" />
 ```
-　　将`android:imeOptions`设置为`actionSearch`后，效果如图所示：
-
-<center>
-![](/img/android/android_3_7.png)
-</center>
-
 
 　　如果你不明确指定一个输入动作(`action`)，当用户点击右下角的按钮时，系统将尝试确定是否有任何后续的`android:focusable`属性动作。
 　　如果发现了有`android:focusable`属性动作，那么这个系统适用于在当前的EditText的action则为`actionNext`，这样使用户可以选择“下一步”或移动到下一个字段。

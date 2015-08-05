@@ -694,8 +694,6 @@ private void setRetryTimes(DefaultHttpClient httpclient) {
 	-  然后，找到“国内手机号码归属地查询WEB服务”。
 	-  最后，点击“getMobileCodeInfo”，通过此接口可以获取国内手机号码归属地省份、地区和手机卡类型信息。
 
-　　通过查阅网页得知，使用`POST`方式发送请求时，需要按照如下代码列出的数据，向服务器发送数据。
-
 <br>　　范例2：阅读发送规范。
 ```
 POST /WebServices/MobileCodeWS.asmx/getMobileCodeInfo HTTP/1.1
@@ -913,32 +911,29 @@ public class Test {
 
 ## 基本用法 ##
 <br>**问题的起源：**
-　　在Android网络编程中，用户的手机通常会需要从服务器下载、上传一些数据。由于上传(下载)操作所消耗的时间过长，所以都会使用进度条控件来告知用户当前上传(下载)进度。
-　　对于任何一个线程来说，它同一时间只可以做一件事，主线程也不例外。并且`主线程的主要任务就是响应用户的操作`。在Android中若应用程序长时间(`5秒以上`)无法响应用户的请求，则Android系统会弹出`ANR`(应用程序无响应)对话框，询问用户是否强行关闭该应用。
-　　因此若直接使用主线程完成上传、下载的任务，则在上传下载执行完毕之前，则主线程是无法响应用户的操作的。
+　　对于任何一个线程来说，它同一时间只可以做一件事，主线程也不例外，并且主线程的主要任务就是`响应用户在UI上的操作`。
+　　因此，若我们还让主线程去执行上传、下载等耗时的任务，那么在任务执行完毕之前，主线程是无法响应用户的操作的，如果这个过程超过了`5`秒，则`Android`系统会弹出`ANR`(应用程序无响应)对话框，询问用户是否强行关闭该应用。
+
 　　于是，对于那些耗时的操作来说，只有开启子线程去执行了。
 　　但是，这和`Handler`有什么关系? 
 
 
 <br>　　在继续向下讲解之前需要知道，线程和控件的关系。
 
-	-  Android中的控件通常只可以被创建其的线程所修改，否则将程序抛出CalledFromWrongThreadException异常。注意，此处说的是“通常”，原因在后面的章节会讲。
-	-  父线程可以修改子线程中定义的控件。
+	-  Android中的控件通常只可以被创建其的线程所修改，否则将程序抛出CalledFromWrongThreadException异常。
+	-  父线程可以修改子线程中定义的控件，由于主线程是程序中所有线程的父线程，因此它可以操作在任何子线程中创建的控件。
 	-  在子线程中仅可以简单的修改父线程中的少数几个控件。
 	   -  如ProgressBar、SeekBar、ProgressDialog等。所谓的简单的修改，就是只能调用这些控件的某些方法(如setProgress()等)，若调用其他方法，则仍然会抛异常。
-	   -  通常子线程中不可以修改父线程中的其他控件(如TextView、Button等)。
-	-  由于主线程是程序中所有线程的父线程，因此它可以操作在任何子线程中创建的控件。
 
-<br>　　问题来了，耗时操作通常是在子线程中执行，而Activity等所显示的View都是在主线程中创建的，那么子线程执行完耗时操作后，就不能直接修改主线程(也称`UI线程`)中的控件了。
-　　此时唯一的解决方法就是，在子线程执行完毕耗时操作后，`想办法通知主线程一下`，然后借助主线程来修改View。  
-　　而使用`Handler`就可以完成子线程和父线程之间的通信。
-<br>　　既然知道了Handler的作用，那么就赶快 **搞起来啊!**
+<br>　　问题来了，耗时操作需要在子线程中执行，而`Activity`等所显示的`View`都是在主线程中创建的，那么子线程执行完耗时操作后，就不能直接修改主线程(也称`UI线程`)中的控件了。
+　　此时问题就变成了，在子线程执行完毕耗时操作后，`想办法通知主线程一下`，然后借助主线程来修改`View`。  
+　　而使用`Handler`就可以完成子线程向父线程发送通知的需求，既然知道了`Handler`的作用，那么就赶快 **搞起来啊!**
 
 <br>**Handler的大致工作原理：**
-　　Handler是基于消息机制的，消息机制类似于常说的`“回调”`，当子线程执行完毕后，就发送一个消息对象给父线程，父线程接到消息后再做出相应的操作。
-　　消息被封装成一个`Message`类。 子线程要传递给父线程的数据可以保存在该对象中。
+　　`Handler`是基于消息机制的，当子线程执行完毕后，就发送一个`“消息”`对象给父线程，父线程接到消息后再做出相应的操作。
+　　`“消息”`被封装成一个`Message`类。 子线程要传递给父线程的数据可以保存在该对象中。
 
-　　Handlel的使用方法：
+　　`Handler`的使用方法：
 
 	-  首先，在父线程中创建一个Handler对象。
 	-  然后，开启一个子线程去执行耗时的任务，执行完毕后子线程就发送一个Message对象给其父线程中的那个Handler对象，Handler接收到Message对象后，再根据其内的信息，来执行相应的操作。
@@ -947,7 +942,7 @@ public class Test {
 
 <br>　　范例1：`Handler`类。
 ``` android
-// 默认情况下，当父线程的Handler接到子线程传递来的消息后，就会回调此方法。因此通常会重写此方法。
+// 默认情况下，当父线程的Handler接到子线程传递来的消息后，就在此方法里处理该消息。
 // @param msg ：当前要处理的消息。
 public void handleMessage(Message msg);
 
@@ -984,9 +979,9 @@ public class TestActivity extends Activity {
 }
 ```
     语句解释：
-	-  本范例中，使用Handler对象调用它自己的sendMessage方法，给它自己发送消息，虽然看起来很怪异，但是是有原因的，具体原因后述。现在先说说Message对象：
+	-  本范例中，使用Handler对象的sendMessage方法，给它自己发送消息。
 	-  Message类用来封装一个消息，在Message对象中可以保存一些数据，以供Handler使用。
-	   -  若需要传递给Handler的数据是int类型的，则可以使用Message类提供的两个int类型的属性arg1、arg2，他们方便使用且会更节约系统资源。
+	   -  若需要传递给Handler的数据是int类型的，则可以使用Message类提供的两个int类型的属性arg1、arg2，它们方便使用且会更节约系统资源。
 	   -  若需要传递一个Object类型的数据，则可以使用Message类提供的obj属性。
 	   -  若需要传递多个Object类型的数据，则可以使用Bundle对象。当然也可以仍然使用obj属性，万物皆对象嘛。
 
@@ -1055,16 +1050,18 @@ public void sendMessage() {
     }.start();
 }
 // 接收数据：
-public void handleMessage(Message msg) {
-    switch(msg.what){
-    case 1:
-        System.out.println("更新进度条"+msg.obj);
-        break;
-    case 2:
-        System.out.println("打印数据"+msg.obj);
-        break;
+public Handler mHandler = new Handler() {
+    public void handleMessage(Message msg) {
+        switch(msg.what){
+        case 1:
+            System.out.println("更新进度条"+msg.obj);
+            break;
+        case 2:
+            System.out.println("打印数据"+msg.obj);
+            break;
+        }
     }
-｝
+};
 ```
     语句解释：
 	-  父线程中创建的Handler对象可以接收来自其n个子线程中发送过来的消息。
@@ -1073,12 +1070,12 @@ public void handleMessage(Message msg) {
 
 ## 运行原理 ##
 　　现在知道了在子线程中如何将数据封装成`Message`对象了，接下来咱们就需要研究一下`Message`对象到底是如何被发送给其他线程中创建的`Handler`的。
-　　Handler机制中主要牵扯到了`Handler`、`Message`、`MessageQueue`、`Looper`四个类。
+　　`Handler`机制中主要牵扯到了`Handler`、`Message`、`MessageQueue`、`Looper`四个类。
 
 <br>　　它们四者的身份：
 
 	-  Message表示一个消息对象，它封装了子线程想要做的事情。
-	-  MessageQueue表示一个消息队列，队列中的每个元素都是一个Message对象。各个子线程发送给Handler的消息，都会先被放到消息队列中排队等待处理。
+	-  MessageQueue表示一个消息队列，队列中的每个元素都是一个Message对象，各个子线程发送给Handler的消息，都会先被放到消息队列中排队等待处理。
 	-  Looper：表示一个循环器，它会不断的从MessageQueue的头部获取Message对象，然后将该Message对象交给Handler去处理。
 	-  Handler：表示一个处理器，用于处理Message对象。
 
@@ -1088,16 +1085,16 @@ public void handleMessage(Message msg) {
 	-  Looper类中定义了一个MessageQueue(消息队列)对象。
 	-  MessageQueue是一个链队，链队中的每个节点都是一个Message对象，每个Message对象的next域指向下一个Message对象。
 
-<br>　　在Handler中必须要存在一个`Looper`对象，不然整个Handler机制是无法运行的。因此在构造Handler对象的时候就需要同时为Handler对象指定一个Looper。
-　　通过构造方法`public Handler(Looper looper)`可以为Handler设置Looper。若用户构造Handler对象时调用的是Handler的无参的构造器，则Handler的无参构造器会试图从当前线程中获取一个Looper对象，若获取不到，则程序将抛异常并终止。
-　　总之，`Looper`是在Handler创建的同时被设置到Handler中的。
-　　但是，在上面的例子中在实例化Handler对象时，并没有为其提供Looper对象，为什么没有报错呢？`在Main线程中默认存在了Looper对象`，因此主线程中的Handler对象在创建时不会有任何问题。
+<br>　　在`Handler`中必须要存在一个`Looper`对象，不然整个`Handler`机制是无法运行的，因此在构造`Handler`对象的时候就需要同时为它指定一个`Looper`。
+　　通过构造方法`public Handler(Looper looper)`可以为`Handler`设置`Looper`，若用户构造`Handler`对象时调用的是`Handler`的无参的构造器，则`Handler`的无参构造器会试图从当前线程中获取一个`Looper`对象，若获取不到，则程序将抛异常并终止。
+　　总之，`Looper`是在`Handler`创建的同时被设置到`Handler`中的。
+　　但是，在上面的例子中在实例化`Handler`对象时，并没有为其提供`Looper`对象，为什么没有报错呢？`在Main线程中默认存在了Looper对象`，因此主线程中的`Handler`对象在创建时不会有任何问题。
 
 <br>**消息的发送流程**
 　　假设现在Main线程中创建了一个Handler对象。子线程A要向Main线程中的Handler发送消息。发送的流程如下：
 
 	-  首先，当Handler对象被创建后，其内的Looper对象也将被设置完成，然后Looper对象开始不断的从其内部的MessageQueue中读取Message 。若MessageQueue中没有任何消息，则Looper将不执行任何操作，然后继续执行下一轮循环。 
-	-  构造完Handler对象后准备工作就算完毕了，接着线程A就可以向Handler发送消息了。(其实就是将消息发送到Handler的Looper对象内的MessageQueue对象中)。
+	-  构造完Handler对象后准备工作就算完毕了，接着线程A就可以向Handler发送消息了。
 	-  线程A发送Message对象的方式有两种：
 	   -  第一种：通过Handler类中提供的sendMessage()等方法，间接的将Message对象发送到MessageQueue中。
 	   -  第二种：先获取Looper对象中的MessageQueue对象，然后调用MessageQueue类提供的方法，将Message直接添加到消息队列中去。
@@ -1110,8 +1107,6 @@ public void handleMessage(Message msg) {
 	   -  若当前Handler对象的callback属性不为null，则调用当前Handler对象的callback属性的handleMessage(Message)方法。
 	   -  若上面两个条件都不满足，则调用当前Handler对象的handleMessage(Message)方法去处理。
 
-<br>　　此时，就实现了线程A和主线程的通信。即线程A的工作是上述的整个过程的前半部分(发送消息)， Main线程的工作则是后半部分(处理消息)。这样一来，Message对象将在父线程中被处理。
-
 　　为什么每个`Message`对象要存在一个`target`属性呢?  
 
 	-  父线程A中创建的Handler对象可以接收从多个子线程发送来的消息。
@@ -1121,7 +1116,7 @@ public void handleMessage(Message msg) {
 　　提示：为了更好的理解上述过程，请您参看`Handler`、`MessageQueue`、`Looper`、`Message`类的源代码。
 
 <br>**Looper对象**
-　　接下来咱们再来谈谈`Looper`对象，随后将会给出一个更新进度条的范例，帮助您更好的理解Handler机制。
+　　接下来咱们再来谈谈`Looper`对象，随后将会给出一个更新进度条的范例，帮助您更好的理解`Handler`机制。
 
 <br>　　范例1：Looper类。
 ``` android
@@ -1256,17 +1251,17 @@ public class TestActivity extends Activity {
             while( (len = input.read(array)) != -1){
                 output.write(array,0,len);
                 Message msg = new Message();
-                // 每下载一次数据都去更新进度条。
                 Thread.sleep(100);
                 msg.what = UPDATE_PROGRESS;
                 msg.arg1 = progress.getProgress()+len;
+                // 每下载一次数据都去更新进度条。
                 handler.sendMessage(msg);
             }
             input.close();
-            // 下载完成后,在主线程中将下载的数据输出。
             Message msg = new Message();
             msg.what = PRINT_STRING;
             msg.obj = output.toString();
+            // 下载完成后,在主线程中将下载的数据输出。
             handler.sendMessage(msg);
             // 关闭流。
             output.close();
