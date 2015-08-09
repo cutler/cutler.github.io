@@ -1,6 +1,6 @@
 title: 入门篇　第六章 Intent 与 Intent Filters
 date: 2014-12-1 21:39:45
-categories: Android
+categories: android
 ---
 　　`Android`四大组件中有三个组件是通过叫做`Intent`的对象来激活的，因此接下来将介绍`Intent`对象。
 

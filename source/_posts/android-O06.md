@@ -1,6 +1,6 @@
 title: 实战篇　第六章 Android5.0开发
 date: 2015-7-17 19:05:35
-categories: Android
+categories: android
 ---
 　　`Android 5.0`（Lollipop）是`Google`于`2014/10/15`日（美国太平洋时间）发布的全新`Android`操作系统。
 　　它是迄今为止规模最大、最为雄心勃勃的`Android`版本，它不仅为用户推出了各种崭新的新功能，为开发者则提供了数千个新的`API`，还将`Android`的疆土扩展得更远，小到`手机`、`平板电脑`和`穿戴式设备`，大到`电视`和`汽车`，都可以是它活跃的领地。

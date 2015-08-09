@@ -1,6 +1,6 @@
 title: 入门篇　第九章 数据存取
 date: 2015-3-5 16:19:10
-categories: Android
+categories: android
 ---
 　　Android设备中，存在着各种各样的文件（如`数据库文件`、`偏好配置文件`等），它们被保存在`手机内部存储`或`外部存储设备`（如SD卡）中。
 　　通过`Eclipse`或`AndroidStudio`我们可以查看手机的文件系统的结构，打开`DDMS`视图找到`FileExplorer`（文件浏览器），我们可能会看到很多文件夹，其中`system`、`data`、`mnt`三个文件夹比较重要。

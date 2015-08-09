@@ -1,6 +1,6 @@
 title: 实战篇　第一章 屏幕适配
 date: 2015-3-12 16:44:50
-categories: Android
+categories: android
 ---
 　　`Android`的屏幕适配一直以来都在折磨着我们这些开发者，本篇文章以`Google`的官方文档为基础，全面而深入的讲解了`Android`屏幕适配的原因、重要概念、解决方案及最佳实践，我相信如果你能认真的学习本文，对于`Android`的屏幕适配，你将有所收获！
 

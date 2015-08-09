@@ -1,6 +1,6 @@
 title: 实战篇　第五章 设计模式
 date: 2015-6-29 17:15:30
-categories: Android
+categories: android
 ---
 　　设计模式，有非常多的定义，有人会举出`Gang of Four`那本`《Design Patterns》`来解释，而笔者认为：
 

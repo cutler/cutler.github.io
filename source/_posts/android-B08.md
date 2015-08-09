@@ -1,6 +1,6 @@
 title: UI篇　第八章 自定义控件（一）
 date: 2015-4-29 11:41:12
-categories: Android
+categories: android
 ---
 　　Android平台提供了一套完备的、功能强大的组件化模型用于搭建用户界面，这套组件化模型以`View`和`ViewGroup`这两个基础布局类为基础。平台本身已预先实现了多种用于构建界面的`View`和`ViewGroup`子类，他们被分别称为部件（`widget`）和布局（`layout`）。
 

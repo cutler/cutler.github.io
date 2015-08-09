@@ -1,7 +1,7 @@
 title: UI篇　第三章 输入事件
 date: 2015-1-27 14:53:50
 create: 2015-1-27 14:53:50
-categories: Android
+categories: android
 ---
 　　本章将介绍一下`Android`中的输入事件。
 

@@ -1,6 +1,6 @@
 title: 入门篇　第八章 Permissions
 date: 2015-1-15 18:51:58
-categories: Android
+categories: android
 ---
 　　Android 是一种特权分隔的操作系统，本章介绍一下权限相关的知识。
 

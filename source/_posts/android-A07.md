@@ -1,6 +1,6 @@
 title: 入门篇　第七章 Process 与 Thread
 date: 2015-1-15 16:35:14
-categories: Android
+categories: android
 ---
 　　当`应用程序A`请求启动`应用程序B`的某个组件时：
 

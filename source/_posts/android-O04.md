@@ -1,6 +1,6 @@
 title: 实战篇　第四章 Android Studio
 date: 2015-4-15 21:44:35
-categories: Android
+categories: android
 ---
 　　`Android Studio`是谷歌推出的一个Android开发环境，基于`IntelliJ IDEA`，它提供了集成的Android开发工具用于开发和调试。
 

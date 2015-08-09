@@ -1,10 +1,9 @@
 title: UI篇　第五章 样式和主题
 date: 2015-2-4 17:58:50
 create: 2015-2-4 17:58:50
-categories: Android
+categories: android
 ---
-　　`Styles`是用于指定`View`或`Window`的外观和格式的一系列属性的集合。比如指定高（`height`）、填补（`padding`）、字体颜色、字体大小、背景颜色等等属性。
-　　Android中的`Styles`与网页设计中的`CSS`有着相似的原理——允许你将设计从内容中分离出来。在Android中可以像`CSS`那样，预先定义一些`Styles`，然后用这些`Styles`美画各种控件，这样做可以减少大量的重复代码。
+　　`Android`中的`Styles`与网页设计中的`CSS`相似，允许你将设计从内容中分离出来，即可以预先定义一些`Styles`，然后用这些`Styles`美画各种控件，这样做可以减少大量的重复代码。
 
 <br>　　例如，使用一个`style`，你可以将下面这个布局：
 ``` xml
@@ -24,7 +23,8 @@ categories: Android
     语句解释：
     -  本范例将一些可以公用的属性从XML布局中移出，放到一个名为CodeFont的style定义中，然后各个TextView控件都可以使用style属性引用它。你将在下面章节中看到此style的定义。
 
-<br>　　`Theme`是一个应用于整个Activity或整个App中的`style`，而不是某一个单独的View。当一个`style`被作为`theme`来应用时，Activity或应用中的每个View都会使用`style`的所有属性。 例如，你能把`CodeFont style`作为`theme`应用于一个Activity，那么这个Activity中所有文本都将是绿色等宽字体。
+<br>　　当一个`style`被作到`Activity`或者`Application`上时，我们就称它为`theme`。
+　　例如，你能把`CodeFont style`作为`theme`应用于一个`Activity	`，那么这个`Activity`中所有文本都将是绿色等宽字体。
 
 # 第一节 样式 #
 　　若想创建`style`，则需保存一个XML文件到你的工程的`res/values/`目录下，这个XML文件的名称可以随便定义，但必须使用`.xml`作为后缀，且要保存在`res/values/`文件夹中。
@@ -65,10 +65,10 @@ categories: Android
 <br>　　范例2：使用样式。
 ``` xml
 <TextView
-   	style="@style/.20STYLE"
- 	android:layout_width="wrap_content"
- 	android:layout_height="wrap_content"
- 	android:text="周•杰伦\n崔•杰伦/>
+    style="@style/.20STYLE"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="周•杰伦\n崔•杰伦/>
 ```
     语句解释：
     -  使用控件的style属性可以为当前控件设置一个style。在本范例中TextView控件的字体的颜色为FF0000字体的大小为20sp。
@@ -103,12 +103,13 @@ categories: Android
 <br>　　范例4：就近优先原则。
 ``` xml
 <Button
-  	style="@style/STYLE_TEXT"
-  	android:textColor="#00FF00"
-	android:text="崔•杰伦\n崔•杰伦"/>
+    style="@style/STYLE_TEXT"
+    android:textColor="#00FF00"
+    android:text="崔•杰伦\n崔•杰伦"/>
 ```
     语句解释：
-    -  若在style和控件中同时对某个一个属性指定了值，则按照就近优先原则。这和CSS是一样的。本范例中，字体最终的颜色为绿色。
+    -  若在style和控件中同时对某个一个属性指定了值，则按照就近优先原则，这和CSS是一样的。
+    -  本范例中，字体最终的颜色为绿色。
 
 <br>　　范例5：属性继承2.0。
 ``` xml
@@ -137,12 +138,8 @@ categories: Android
 # 第二节 主题 #
 　　用于Activity或者整个应用程序的`style`我们称之为主题(`Theme`)。
 
-　　有两种方式来设置style：
-	-  对一个独立的View，则使用style属性。
-	-  对一个Activity或整个应用，则需要在<activity>或<application>元素中使用android:theme属性。
-
 <br>　　当你应用一个`style`到布局中一个单独的View上时，由此`style`定义的属性会仅应用于那个View。
-　　如果一个`style`应用到一个`ViewGroup`上，那么子View元素并不会继承应用此`style`属性(只有你直接应用了`style`的元素才会应用其属性)。然而，你可以通过将它作为一个`theme`来应用到所有View元素上。
+　　如果一个`style`应用到一个`ViewGroup`上，那么子View元素并不会继承应用此`style`属性(只有你直接应用了`style`的元素才会应用其属性)。
 
 　　将一个style作为一个`theme`来应用，你必须在`Android manifest`中将其应用到一个`<activity>`或`<application>`中。
 　　当你这样做，此Activity或应用中的每个View都将应用其所支持的属性。例如，如果你应用前面示例中的`CodeFont style`到一个Activity，那么支持此文本`style`属性的所有View元素都将应用它们。所有View所不支持的属性都会被忽略。如果一个View仅支持某些属性，那么它就只应用那些属性。

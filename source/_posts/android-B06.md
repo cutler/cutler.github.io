@@ -1,6 +1,6 @@
 title: UI篇　第六章 Support Library
 date: 2015-4-13 11:22:25
-categories: Android
+categories: android
 ---
 　　`Android Support Library`是一组代码库，提供向后兼容版本的Android框架`API`，若需要在低版本系统中使用高版本中的功能则只能通过该库的`API`。 目前有多个支持库，每个支持库都是向后兼容某个特定的`Android API`级别。这意味着您的应用程序既可以使用支持库所提供的高版本的特点，并且仍然可以在低版本中运行。
 
@@ -106,7 +106,7 @@ categories: Android
 　　`RecyclerView`的特性（但不限于）如下：
 
 	-  支持设置横向和纵向显示Item。
-	-  默认情况下,删除或者增加IteM的时候有动画，当然也可以自定义。
+	-  默认情况下，删除或者增加IteM的时候有动画，当然也可以自定义。
 
 　　这个库放在：`<sdk>/extras/android/support/v7/recyclerview/`目录下。它的具体用法此处就不在展开介绍了。
 

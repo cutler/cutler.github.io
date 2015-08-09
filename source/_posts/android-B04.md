@@ -1,13 +1,13 @@
 title: UI篇　第四章 通知
 date: 2015-1-29 14:30:28
 create: 2015-1-29 14:30:28
-categories: Android
+categories: android
 ---
 　　有几种类型的场景可能会要求你把应用程序中发生的事件通知给用户，这些事件有的需要用户响应，有的则不需要。如：
 
 	-  当像文件保存完成时，就应该显示一个短消息，提示用户保存成功了。
 	-  如果应用程序正在后台运行，并且需要用户的关注，那么应用程序就应该创建一个允许用户方便响应的Notification。
-	-  如果应用程序正在执行用户必须等待的工作（如装载文件），那么应用程序就应该显示一个悬停的进度对话框。
+	-  如果应用程序正在执行用户必须等待的工作（如装载文件），那么应用程序就应该显示一个进度对话框。
 
 <br>　　在Android中提供了三种不同的技术来通知用户事件的发生： 
 
@@ -16,7 +16,7 @@ categories: Android
 	3. 对话框通知，主要针对Activity相关的通知。
 
 <br>**土司通知（Toast）**
-　　土司通知是在屏幕上弹出一个消息（如下图所示）。它仅填充了消息要求的空间大小，并且依然保留当前Activity的可先性和交互性。这种类型的通知自动的渐入渐出，而且不接受交互事件。因为土司通知是由后台服务创建的，即使你的应用程序不可见，它也会显示。
+　　土司通知是在屏幕上弹出一个消息（如下图所示）。它仅填充了消息要求的空间大小，并且依然保留当前Activity的可先性和交互性。这种类型的通知自动的渐入渐出，而且不接受交互事件。即使你的应用程序不可见，它也会显示。
 
 <center>
 ![](/img/android/android_3_21.png)
@@ -25,7 +25,7 @@ categories: Android
 　　当你完全将注意力集中在屏幕上时，那么`Toast`通知是最好的提示简短消息的方式（例如文件保存成功提醒）。这种通知不接受用户的交互事件，但假如你想让用户去响应和做出动作，你可以考虑使用状态栏通知来代替。
 
 <br>**状态栏通知（Status Bar）**
-　　状态栏通知是将图标添加到系统的状态栏（其后带有一个可选的滚动文本消息）（如下面第一张图所示），并把一个可点击的消息添加到`“通知”`窗口中（如下面第二张图所示）。当用户点击这个消息时，Andriod会触发一个由`“通知”`定义的`Intent`对象（通常是要启动一个Activity）。你也能够在设备上给`“通知”`配置一个声音、震动、屏幕闪亮等效果以提醒用户。
+　　状态栏通知是将图标添加到系统的状态栏（如下面第一张图所示），并把一个可点击的消息添加到`“通知”`窗口中（如下面第二张图所示）。当用户点击这个消息时，Andriod会触发一个由`“通知”`定义的`Intent`对象（通常是要启动一个Activity）。
 
 <center>
 ![](/img/android/android_3_22.png)
@@ -39,13 +39,10 @@ categories: Android
 
 <br>**对话框通知（Dialog）**
 　　对话框通常是显示在当前Activity前面的一个小窗口。它下面的Activity会失去焦点(注意此处不是指的`onPause()`方法被调用)，并且对话框会接受所有的用户交互。
-　　当你需要显示一个进度条或者一个需要用户确认的短消息（例如带有`“确定”`和`“取消”`按钮的提醒）时，你可以利用对话框来实现。你也能够把对话框作为集成应用程序组件的UI界面来使用。
-
-
+　　当你需要显示一个进度条或者一个需要用户确认的短消息（例如带有`“确定”`和`“取消”`按钮的提醒）时，你可以利用对话框来实现。
 
 # 第一节 Toast #
-　　	`Toast`通知是在屏幕表面弹出的一个简短的小消息。它只填充消息所需要的空间，并且用户当前的Activity依然保持可见性和交互性。这种通知可自动的淡入淡出，且不接受用户的交互事件。
-　　	例如，在你的电子邮件发送之前，你导航到了其他界面，此时就会触发程序弹出一个`“草稿已保存”`的`Toast`，让你知道稍后你可以继续编辑，另外弹出的`Toast`在显示一段时间后，就自动关闭。
+　　	`Toast`通知是在屏幕表面弹出的一个简短的小消息，它只填充消息所需要的空间，并且用户当前的Activity依然保持可见性和交互性，这种通知可自动的淡入淡出，且不接受用户的交互事件。
 
 ## 基础应用 ##
 　　最简单的`Toast`通知是仅显示一行文本消息。我们可以使用`Toast.makeText()`方法实例化一个`Toast`对象。
@@ -63,7 +60,7 @@ Toast.makeText(context, text, duration).show();
 ```
     语句解释：
     -  Activity是Context的子类，因此可以使用Activity的对象，初始化第一个参数。
-    -  在Toast类中提供了两个常量, makeText方法的第三个参数的取值可以为二者之一：
+    -  在Toast类中提供了两个常量，makeText方法的第三个参数的取值可以为二者之一：
        -  LENGTH_SHORT ：对话框显示的时间稍短。常量的值等于0 。
        -  LENGTH_LONG ：对话框显示的时间稍长。常量的值等于1 。
 
@@ -118,7 +115,7 @@ public class AndroidTestActivity extends Activity {
     -  若需要显示一个丰富多彩的提示信息，可以通过new来手动创建一个Toast对象。
 
 # 第二节 Dialogs #
-　　对话框通常是一个显示在当前Activity之前的小窗口，常用于通知用户做出选择或输入信息。一个对话框不填满屏幕，并且是模式对话框(即不处理对话框则无法操作其他界面)。
+　　对话框通常是一个显示在当前Activity之前的小窗口，常用于通知用户做出选择或输入信息。
 　　常见的对话框如下图所示：
 
 <center>
@@ -780,14 +777,14 @@ NotificationManager mgr = (NotificationManager) this.getSystemService(Context.NO
 ```
 
 <br>　　**3. Notification**
-　　`Notification`类的一个实例代表一个通知。虽然通知中提供了各种属性的设置，但是一个通知对象，有几个属性是必须要设置的，其他的属性均是可选的，必须设置的属性如下：
+　　`Notification`类的一个实例代表一个通知。虽然通知中提供了各种属性的设置，但是一个通知对象，有几个属性是必须要设置的，其他的属性均是可选的，必须设置的属性如下（具体后述）：
 
 	-  小图标，使用setSamllIcon()方法设置。
 	-  标题，使用setContentTitle()方法设置。
 	-  文本内容，使用setContentText()方法设置。 
 
 <br>　　**4. 更新与移除通知**
-　　在使用`NotificationManager.notify()`发送通知的时候，需要传递一个标识符，用于唯一标识这个通知。对于有些场景，并不是无限的添加新的通知，有时候需要更新原有通知的信息，这个时候可以重新构建一个`Notification`对象，而使用与之前通知相同标识符来发送通知，这个时候旧的通知就被被新的通知所取代，起到更新通知的效果。
+　　在使用`NotificationManager.notify()`发送通知的时候，需要传递一个标识符，用于唯一标识这个通知。
 
 　　对于一个通知，当展示在状态栏之后，如何取消呢？Android为我们提供两种方式移除通知：
 　　第一种是`Notification`自己维护，使用`setAutoCancel()`方法设置是否维护，传递一个`boolean`类型的数据。
@@ -802,7 +799,7 @@ mNotificationManager.cancel(0);
 <br>　　**5. PendingIntent**
 　　对于一个通知而言，它显示的消息是有限的，一般仅用于提示一些概要信息。但是一般简短的消息，并不能表达需要告诉用户的全部内容，所以需要绑定一个意图，当用户点击通知的时候，调用一个意图展示出一个Activity（或其它组件）用来显示详细的内容。而`Notification`中，并不使用常规的`Intent`去传递一个意图，而是使用`PendingIntent`。
 
-　　先来说说`Intent`和`PendingIntent`的区别，`PendingIntent`是对`Intent`的包装，通过名称可以看出`PendingIntent`可以译为`“延期意图”`，它用于处理即将发生的意图，而`Intent`用来处理马上发生的意图。而对于通知来说，它是系统级的全局通知，并不确定这个意图被执行的时间。当在应用外部执行`PendingIntent`时，因为它保存了触发应用的`Context`，使得外部应用可以如在当前应用中一样，执行`PendingIntent`里的`Intent`，就算执行的时候响应通知的应用已经被销毁（但此时进程没被杀死，若进程死了，则状态栏的通知也就跟着消失了）了，也可以通过存在`PendingIntent`里的`Context`照常执行它，并且还可以处理`Intent`所带来的额外信息。
+　　`PendingIntent`是对`Intent`的包装，通过名称可以看出`PendingIntent`可以译为`“延期意图”`，它用于表示即将发生的意图，而`Intent`用来表示马上发生的意图，对于通知来说，它是系统级的全局通知，并不确定这个意图被执行的时间。
 
 　　`PendingIntent`提供了多个静态的`getXxx()`方法，用于获得适用于不同场景的`PendingIntent`对象。一般需要传递的几个参数都很常规，这里只介绍一个`flag`参数，用于标识`PendingIntent`的构造选择：
 
@@ -876,7 +873,7 @@ public class MainActivity extends Activity {
 
 　　`setStyle()`传递一个`NotificationCompat.Style`对象，它是一个抽象类，Android为我们提供了三个实现类，用于显示不同的场景。分别是：
 
-	-  NotificationCompat.BigPictureStyle, 在细节部分显示一个256dp高度的位图。
+	-  NotificationCompat.BigPictureStyle，在细节部分显示一个256dp高度的位图。
 	-  NotificationCompat.BigTextStyle，在细节部分显示一个大的文本块。
 	-  NotificationCompat.InboxStyle，在细节部分显示多行文本。
 
@@ -979,7 +976,7 @@ public class MainActivity extends Activity {
     -  只要把setProgress方法的第三个参数改为true，就可以显示一个不确定的进度条。
 
 ## 自定义通知 ##
-　　和`Toast`一样，通知也可以使用自定义的XML来自定义样式，但是对于通知而言，因为它的全局性，并不能简单`inflate`出一个View，因为可能触发通知的时候，响应的App已经关闭，无法获取当指定的XML布局文件。所以需要使用单独的一个`RemoteViews`类来操作。
+　　和`Toast`一样，通知也可以使用自定义的XML来自定义样式，但是对于通知而言，因为它的全局性，并不能简单`inflate`出一个View，需要使用单独的一个`RemoteViews`类来操作。
 
 　　`RemoteViews`描述了一个视图层次的结构，可以显示在另一个进程，这个类提供了一些基本的操作求改其`inflate`的内容。
 　　`RemoteViews`提供了多个构造函数，一般使用`RemoteViews(String packageName, int layoutId)`。第一个参数为包的名称，第二个为layout资源的Id。当获取到`RemoteViews`对象之后，可以使用它的一系列`setXxx()`方法通过控件的Id设置控件的属性。
@@ -1033,12 +1030,9 @@ public class MainActivity extends Activity {
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
    <style name="NotificationText" parent="android:TextAppearance.StatusBar.EventContent" />
-   <style
-    name="NotificationTitle" parent="android:TextAppearance.StatusBar.EventContent.Title" />
+   <style name="NotificationTitle" parent="android:TextAppearance.StatusBar.EventContent.Title" />
 </resources>
 ```
-
-<br>　　现在，当运行在`2.3`版本以上时，在你的界面中，文本都会是同一种颜色-系统为默认通知界面定义的颜色。这很重要，能保证你的文本颜色是高亮的，即使背景色是意料之外的颜色，你的文本页也会作出适当的改变。
 
 <br>**代码实现**
 ``` android

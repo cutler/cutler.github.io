@@ -1,6 +1,6 @@
 title: 入门篇　第十一章 应用程序资源
 date: 2015-2-27 12:56:41
-categories: Android
+categories: android
 ---
 
 # 第一节 概述 #

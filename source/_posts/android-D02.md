@@ -1,6 +1,6 @@
 title: 媒体篇　第二章 图片
 date: 2015-3-29 17:43:45
-categories: Android
+categories: android
 ---
 
 # 第一节 高效的显示图片 #

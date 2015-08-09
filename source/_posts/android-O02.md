@@ -1,6 +1,6 @@
 title: 实战篇　第二章 内存分析
 date: 2015-3-10 10:40:53
-categories: Android
+categories: android
 ---
 　　本章来讲解一下Android开发中内存管理相关的知识。
 

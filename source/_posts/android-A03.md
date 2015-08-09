@@ -1,6 +1,6 @@
 title: 入门篇　第三章 Service
 date: 2014-11-12 22:40:14
-categories: Android
+categories: android
 ---
 　　`Service`运行在程序的后台且没有用户界面，通常用来完成一些现不需要用户界面但是需要一直运行的功能，如`处理网络事务(消息推送)`、`播放音乐`等。
 　　既然讲到`Service`了，那么就不得不说一下它和`Thread`的区别。
@@ -818,7 +818,7 @@ public class MainActivity extends Activity {
 ```
 
 ### ActivityInfo ###
-　　ActivityInfo类描述的是AndroidManifest文件中的`<activity>`标签。
+　　`ActivityInfo`类描述的是`AndroidManifest`文件中的`<activity>`标签。
 <br>　　范例1：获取ActivityInfo的基本信息。
 ``` android
 public class MainActivity extends Activity {
@@ -862,8 +862,9 @@ public class MainActivity extends Activity {
        -  ActivityInfo.LAUNCH_SINGLE_INSTANCE ：值为3。
        -  若需要获取其它类型的信息，请自行查阅API 
 
-<br>　　范例2：元数据。在Android中可以在AndroidManifest文件里面为Activity、BroadcastReceiver、Service配置参数，这些参数被称为“元数据”。
-``` android
+<br>　　范例2：元数据。
+　　在`AndroidManifest`文件里面为`Activity`、`BroadcastReceiver`、`Service`配置参数，这些参数被称为“元数据”。
+``` xml
 <activity android:name=".MainActivity" android:label="@string/app_name">
     <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -877,7 +878,7 @@ public class MainActivity extends Activity {
 ```
 
     语句解释：
-    -  使用<meta-data>标签为组件配置元数据,元数据是一个key/value。 
+    -  使用<meta-data>标签为组件配置元数据，元数据是一个key/value。 
     -  使用android:name属性指出元数据的key，使用android:value属性指出元数据的value 。其中元数据的value可以是一个常量，也可以从资源文件中引用。
     -  元数据value的类型可以是：boolean、int、String、float类型的。
 
@@ -909,7 +910,7 @@ public class MainActivity extends Activity {
     -  在程序运行的时候，通过ActivityInfo的metaData属性可以获取组件的元数据，元数据被保存在一个Bundle对象中。
 
 <br>　　范例4：元数据 -- 图片资源。
-``` android
+``` c
 // 假设在Activity标签内配置了这个元数据：
 <meta-data android:name="img" android:value="@drawable/icon"/>
 
@@ -938,7 +939,7 @@ setContentView(img);
     -  元数据的value也可以使用android:resource属性为其赋值，android:resource保存资源数据的ID。在程序运行时，使用Bundle对象的getInt方法可以获取该资源数据的ID。
 
 ### ApplicationInfo ###
-　　ApplicationInfo类描述的是应用程序的`<application>`标签。
+　　`ApplicationInfo`类描述的是应用程序的`<application>`标签。
 <br>　　范例1：用户程序和系统程序。
 ``` android
 public class MainActivity extends Activity {
@@ -1030,7 +1031,7 @@ public class MainActivity extends Activity {
 	   -  返回当前组件所在的应用程序的包名。
 
 ### MemoryInfo ###
-　　MemoryInfo表示当前Android系统的内存信息。
+　　`MemoryInfo`表示当前Android系统的内存信息。
 <br>　　范例1：获取当前系统的内存使用情况。
 ``` android
 public class MainActivity extends Activity {
@@ -1061,7 +1062,7 @@ public class MainActivity extends Activity {
     -  android.text.format.Formatter类是提供的用于格式化各类文本的工具类。
 
 ### RunningAppProcessInfo ###
-　　RunningAppProcessInfo用来描述当前内存中的一个进程的信息。
+　　`RunningAppProcessInfo`用来描述当前内存中的一个进程的信息。
 <br>　　范例1：获取当前系统中的所有进程的信息。
 ``` android
 public class MainActivity extends Activity {
