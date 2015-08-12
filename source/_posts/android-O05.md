@@ -1,632 +1,482 @@
-title: 实战篇　第五章 设计模式
-date: 2015-6-29 17:15:30
+title: 实战篇　第五章 Android5.0开发
+date: 2015-7-17 19:05:35
 categories: android
 ---
-　　设计模式，有非常多的定义，有人会举出`Gang of Four`那本`《Design Patterns》`来解释，而笔者认为：
+　　`Android 5.0`（Lollipop）是`Google`于`2014/10/15`日（美国太平洋时间）发布的全新`Android`操作系统。
+　　它是迄今为止规模最大、最为雄心勃勃的`Android`版本，它不仅为用户推出了各种崭新的新功能，为开发者则提供了数千个新的`API`，还将`Android`的疆土扩展得更远，小到`手机`、`平板电脑`和`穿戴式设备`，大到`电视`和`汽车`，都可以是它活跃的领地。
 
-	-  设计模式是软件开发领域中针对特定上下文的特定问题的解决方案。
-	-  《Design Patterns》中举出了23种设计模式，它们分别用于不同的场景，当我们处在这23种场景下时，按照对应的设计模式所规定的思路去编程，可以写出结构合理、扩展性很强的代码。
+　　要深入了解面向开发者的新`API`，请参阅[ Android 5.0 API ](http://developer.android.com/intl/zh-cn/about/versions/android-5.0.html)概述，本章只会介绍一些`Android5.0`中已经被广泛使用的技术。
 
-　　本章只会介绍一些常见的设计模式，并且使用的编程语言为`Java`。
 
-# 第一节 单例模式 #
-## 何为单例？ ##
-　　所谓的单例(`Singleton`)设计模式，就是指一个类只允许有一个对象。如果我们的某个类不需要存在多个对象，那么就可以考虑把这个类写成单例模式的。
+# 第一节 界面新特性 #
+　　`Android 5.0`将`Material design`设计引入`Android`系统，您可以借助`Material design`设计创建应用，使其呈现动态的视觉效果并为用户提供自然的界面元素过渡效果。此支持包括：
 
-　　单例设计模式的实施步骤：
+	-  素材主题背景
+	-  视图阴影
+	-  RecyclerView 小部件
+	-  可绘制的动画和样式效果
+	-  Material Design 设计动画和活动过渡效果
+	-  基于视图状态的视图属性动画生成器
+	-  可自定义的界面小部件和应用栏（含您可以控制的调色板）
+	-  基于 XML 矢量图形的动画和非动画图形内容
 
-	1、使用private修饰构造方法。这样外界就不可以通过new关键字来创建该类的对象了，但本类中的代码仍然可以创建。
-	2、在本类中建立一个静态的本类的对象。
-	3、建立一个静态方法用来返回此对象的引用。
+　　要详细了解如何向您的应用添加`Material Design`设计功能，请参阅[ Material Design ](http://developer.android.com/intl/zh-cn/training/material/index.html)设计。
 
-<br>　　范例1：最简单的单例模式。
-``` java
-public class SingleClass {
-    private static SingleClass instance = new SingleClass();
+　　上面这些文字都是从百度、`Google`官方文档上复制过来的，说的很抽象，不过没关系，我们接下来将分多个小结依次介绍`Android5.0`在界面上新增的内容。
 
-    private SingleClass() {
-        // 默认提供的构造方法是public的，因此在此需要自定义一个无参的构造，并将访问权限该为private的。
-    }
+## CardView ##
+　　`Android5.0`中增加了一个全新的控件`CardView`，它是`FrameLayout`类的子类，并在`FrameLayout`基础上添加了`圆角`和`阴影`效果。
+　　也就是说，从此以后我们可以方便的通过代码来实现`圆角`和`阴影`的效果，而不再像以前那样依赖于美工做图了（而且给的图不易进行微调）。
 
-    public static SingleClass getInstance() {
-        return instance;
-    }
-
-    // 定义一个实例方法，以供外界调用。
-    public void getInfo() {
-        System.out.println("single");
-    }
+<br>　　`Google`已经将`CardView`放到一个名为[ v7 cardview library ](http://developer.android.com/intl/zh-cn/tools/support-library/features.html#v7-cardview)的支持库中了，我们可以在`Android2.1`之上的任何版本中使用它。在项目中添加对该库的依赖：
+``` gradle
+dependencies {
+    compile 'com.android.support:cardview-v7:21.0.0'
 }
 ```
 
+<br>　　`CardView`的使用方法十分简单，添加完项目依赖后，直接修改咱们的布局文件即可。
 
-<br>　　上面就是一个最简单的单例模式的写法，不过它并不是最优的写法，后面我们会继续完善它。
-
-<br>　　当程序运行的时候，我们可以通过下面的代码来调用`SingleClass`类的`getInfo`方法：
-``` java
-// 不需要创建任何SingleClass类的对象，就可以在程序的任何地方调用getInfo()方法。
-SingleClass.getInstance().getInfo();
-```
-
-## 单例与静态 ##
-　　我们在设计程序经常会有这种需求，某个类里的方法能够全局访问。在这种情况下有两种实现方案：
-
-	-  单例模式(Singleton)
-	-  静态方法
-
-　　但是，我们应该如何选择使用哪种方式呢？
-
-	-  如果你的类不维持任何状态，仅仅是提供全局的访问，这个时候就适合用静态类。
-	   -  最基本的例子就是在Java中的java.lang.Math类的实现方式，Math类就是用过静态方法来实现的，而不是单例来实现的。
-	-  如果你的类需要维持一些状态，或者需要从线程安全、兼容性上来考虑一些问题，那么选用单例为宜。
-
-## 单例的各种写法 ##
-　　上面的范例的写法有个缺点，当`SingleClass`类被加载的时候就会立刻实例化单例对象。
-　　这意味着如果单例对象里包含了很多属性，那这个对象就会占有很多内存空间，而这块空间我们一时半会可能用不到。因此可以改造一下代码，只有在我们需要使用单例对象的时候才去创建这个单例对象。
-
-<br>　　范例1：懒汉式。
-``` java
-public class SingleClass {
-    private static SingleClass instance;
-
-    private SingleClass() { }
-
-    public static SingleClass getInstance() {
-        if(instance == null){
-            instance = new SingleClass();
-        }
-        return instance;
-    }
-
-    // 定义一个实例方法，以供外界调用。
-    public void getInfo() {
-        System.out.println("single");
-    }
-}
-```
-
-<br>　　不过懒汉式的写法依然存在问题，当多个线程同时访问`getInstance`方法时，会导致创建多个`SingleClass`类的对象。 
-
-<br>　　范例2：懒汉式（线程安全）。
-``` java
-public class SingleClass {
-    private static SingleClass instance;
-
-    private SingleClass() { }
-
-    public static SingleClass getInstance() {
-        if(instance == null){
-            // 此处加个线程同步。
-            synchronized (SingleClass.class) {
-                if(instance == null){
-                    instance = new SingleClass();
-                }
-            }
-        }
-        return instance;
-    }
-
-    // 定义一个实例方法，以供外界调用。
-    public void getInfo() {
-        System.out.println("single");
-    }
-}
-```
-    语句解释：
-    -  此种方式也被称为双重校验锁。
-    -  也有人将synchronized关键字直接修饰在getInstance()方法上，缺点是每次调用getInstance()方法都需要进行线程同步操作。
-
-<br>　　范例3：静态内部类。
-``` java
-public class SingleClass {
-    private static class SingletonHolder {
-        private static final SingleClass INSTANCE = new SingleClass ();
-    }
-    private SingleClass(){}
-    public static final SingleClass  getInstance() {
-        return SingletonHolder.INSTANCE;
-    }
-}
-```
-    语句解释：
-    -  此种方式利用了静态内部类的特点，即实现了懒加载又不用担心多线程问题。
-    -  但是由于双重校验锁更直观容易理解，因而比此种方式常见。
-
-<br>**有两个问题需要注意：**
-　　1、如果单例由不同的类装载器装入，那便有可能存在多个单例类的实例。
-　　2、如果`Singleton`实现了`java.io.Serializable`接口，那么这个类的实例就可能被序列化和复原。不管怎样，如果你序列化一个单例类的对象，接下来复原多个那个对象，那你就会有多个单例类的实例。
-
-<br>　　范例4：通过反序列化来创建多个对象。
-``` java
-import java.io.*;
-public class Main {
-
-    public static void main(String[] args) throws Exception {
-        // 先输出两遍单例对象，结果它们输出的内存地址是一样的。
-        System.out.println(SingleClass.getInstance());
-        System.out.println(SingleClass.getInstance());	
-		
-        File file = new File("a.txt");
-        // 将单例对象序列化到a.txt文件中。
-        write(file);
-        // 反序列化4次，程序每次输出的内存地址都是不一样的。
-        System.out.println(read(file));
-        System.out.println(read(file));
-        System.out.println(read(file));
-        System.out.println(read(file));
-    }
-	
-    private static void write(File file) throws Exception {
-        ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(file));
-        output.writeObject(SingleClass.getInstance());
-        output.close();
-    }
-	
-    private static SingleClass read(File file) throws Exception{
-        ObjectInputStream input = new ObjectInputStream(new FileInputStream(file));
-        SingleClass inst = (SingleClass)input.readObject();
-        input.close();
-        return inst;
-    }
-
-}
-```
-    语句解释：
-    -  在执行本范例之前，请先让SingleClass实现Serializable接口。
-
-<br>　　解决方案请自行搜索，不过笔者认为，开发的时候使用“双重校验锁”方式就够用的了，单例模式的这两个缺点了解即可。
-
-<br>**本节参考阅读：**
-- [程序设计之---单例模式VS静态方法](http://blog.csdn.net/johnny901114/article/details/11969015)
-- [单例模式的七种写法](http://cantellow.iteye.com/blog/838473)
-
-# 第二节 MVC模式 #
-
-## 问题引入 ##
-　　我们现在有个任务，实现下图所示的界面：
+<br>　　范例1：`activity_main.xml`。
 
 <center>
-![](/img/android/android_o05_01.png)
+![运行效果](/img/android/android_o06_01.png)
 </center>
 
-　　也就是说，我们要从一个`JSON`串中解析出一个列表，列表一共三行数据，每一行对应一个学生的信息。
+``` xml
+<android.support.v7.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="20dp"
+    card_view:cardCornerRadius="5dp"
+    card_view:cardElevation="2dp">
 
-<br>　　需求很简单，我们现在就列一下执行步骤：
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="HELLO" />
 
-	-  第一步，解析JSON串，然后将JSON串里的数据封装成一组Student对象。
-	-  第二步，依次使用每个Student对象来创建表的一行。
-	-  第三步，将创建出来的行添加到界面上。
+</android.support.v7.widget.CardView>
+```
+    语句解释：
+    -  由于CardView的父类是FrameLayout，因而它的使用方法和FrameLayout是一样的。
+    -  本范例中定义了android和card_view两个命名空间，CardView所提供的属性都放到了card_view中，也是不多说。
+    -  属性解释：
+       -  cardCornerRadius：设置CardView的圆角半径，值越大圆角就越明显。
+       -  cardElevation：设置CardView的阴影高度，值越大阴影就月明显。
+       -  cardBackgroundColor：设置CardView的背景色。
+       -  contentPadding、contentPaddingLeft、contentPaddingRight、contentPaddingTop、contentPaddingBottom：你懂的。
 
-<br>　　有了执行步骤后就可以动手写代码了，下面的`activity_main.xml`用来作为`Activity`的布局文件。
+<br>　　范例2：显示层级。
+
+<center>
+![运行在Android5.0设备上的效果](/img/android/android_o06_02.png)
+</center>
+
+``` xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        card_view:cardBackgroundColor="#ff0000"
+        card_view:cardCornerRadius="10dp"
+        card_view:cardElevation="3dp" />
+
+    <android.support.v7.widget.CardView
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        card_view:cardBackgroundColor="#00ff00"
+        card_view:cardCornerRadius="10dp"
+        card_view:cardElevation="2dp" />
+
+</RelativeLayout>
+```
+    语句解释：
+    -  Android5.0中View在绘制的时候增加一个z轴的概念（即显示层级），层级高的View将显示在层级低的View的上面。
+    -  CardView的cardElevation属性既是用来设置阴影高度，也是用来设置显示层级的，按照以往的情况，由于绿色的CardView是后添加的，因而它会被放到上面显示，但由于它的cardElevation值低，因此最终它被放到了下面去显示。
+      -  注意，显示层级是Android5.0提出的，也就是说这段代码只有运行在Android5.0的设备上时，红色的才会盖在绿色上面，否则仍然是绿色在上。
+
+## RecyclerView ##
+　　`Android5.0`中增加了另一个重要的控件就是`RecyclerView`，它用来取代现有的`ListView`和`GridView`控件。
+
+<br>**问题是这样的**
+
+　　在开发中，我们都或多或少的会对`ListView`的性能有所要求，以便给用户提供流畅的滑动体验，常见的优化方案有如下几个：
+
+	-  第一，使用convertView来重用现有的Item。
+	-  第二，使用ViewHolder来减少findViewById方法的调用次数。
+	-  第三，尽可能的降低getView方法内对象产生的数量以及大小。如果Item中包含图片那么应该进行异步加载。
+
+<br>　　而且除了效率上的要求，我们还希望`ListView`能实现：
+
+	-  第一，能实横向、纵向、九宫格、瀑布流等各种布局那就太好了。
+	-  第二，能在添加和删除每个Item的时候，都播放一个动画那就太好了。
+
+<br>　　现实的情况是，不论是效率还是功能，`ListView`都不是最优的，因而`Google`提出了`RecyclerView`。
+
+<br>**是什么、能做什么？**
+　　从类名上看，`RecyclerView`代表的意义是只管`回收和复用View`，其他的功能由你自己去完成，给予你充分的定制自由，实现了高度的解耦。在结构上`RecyclerView`与`ListView`的区别在于：
+
+	-  ListView：
+	   -  数据由Adapter提供。
+	   -  Item的创建/重用由ListView来完成。
+	   -  Item的排列方式（只支持垂直）由ListView来控制。
+	-  RecyclerView：
+	   -  数据由Adapter提供。
+	   -  每个Item的创建/重用由RecyclerView来完成。
+	   -  Item的排列方式（垂直、水平、瀑布流等任意方式）由LayoutManager来完成。如果你想自定义自己的排列方式，那么只需要自定义一个LayoutManager类即可。
+
+<br>　　`RecyclerView`在提升效率方面上做了如下操作（但不限于）：
+
+	-  第一，强制使用ViewHolder。
+	   -  Android推荐（非强制）LisView使用ViewHolder来减少findViewById()的使用以提高效率。
+	   -  在RecyclerView中变成了必须使用的模式，Adapter要求返回的值也从普通的View变成了ViewHolder。
+	-  第二，使用局部更新。
+	   -  当LisView的数据改变时会更新整个列表，而RecyclerView既支持整体刷新也支持局部刷新（只会更新发生变化的View）。
+
+　　同时，`RecyclerView`在功能方面上已经实现了刚才我们提到的两点：自定义`Item`排列方式和`Item`动画。
+<br>　　提示：如果你想阅读各个`support`库的源码，请点击[ platform_frameworks_support ](https://github.com/android/platform_frameworks_support)。
+
+<br>**开始使用**
+　　同样的`Google`也已经将`RecyclerView`放到一个名为[ v7 recyclerview library ](http://developer.android.com/intl/zh-cn/tools/support-library/features.html#v7-recyclerview)的支持库中了，我们可以在`Android2.1`之上的任何版本中使用它。在项目中添加对该库的依赖：
+``` gradle
+dependencies {
+    compile 'com.android.support:recyclerview-v7:21.0.0'
+}
+```
 
 <br>　　范例1：`activity_main.xml`。
 ``` xml
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/rootView"
-    android:orientation="vertical"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-</LinearLayout>
-```
-    语句解释：
-    -  使用LinearLayout作为根节点，垂直方向上排列布局。
 
-<br>　　范例2：`Student`类。
-``` android
-public class Student {
-    private String name;
-    private int age;
-    private String sex;
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/my_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public String getSex() {
-        return sex;
-    }
-
-    public void setSex(String sex) {
-        this.sex = sex;
-    }
-}
+</RelativeLayout>
 ```
 
-<br>　　范例3：`MainActivity`。
+<br>　　`RecyclerView`与`AdapterView`类似，实现了数据和视图的分离，数据仍然是使用`Adapter`来提供。`RecyclerView`的使用步骤为：
+
+	-  第一，获取RecyclerView对象。
+	-  第二，为RecyclerView设置Item的排列方式。
+	-  第三，为RecyclerView设置Adapter。
+
+<br>　　范例2：`MainActivity`。
 ``` android
 public class MainActivity extends Activity {
-
-    String json = "[{\"name\":\"张三\",\"age\":24,\"sex\":\"boy\"},{\"name\":\"李四\",\"age\":25,\"sex\":\"girl\"},{\"name\":\"王五\",\"age\":26,\"sex\":\"boy\"}]";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 获取根控件的引用。
-        LinearLayout rootView = (LinearLayout) findViewById(R.id.rootView);
+        // 第一，获取RecyclerView对象。
+        List<String> data = Arrays.asList("Android","ios","jack","tony","window","mac");
+        RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
 
-        // 将json数据解析成一个Student数组
-        List<Student> studentList = new ArrayList<Student>();
-        try {
-            JSONArray jsonArr = new JSONArray(json);
-            for (int i = 0; i < jsonArr.length(); i++) {
-                JSONObject jsonObject = jsonArr.getJSONObject(i);
-                Student student = new Student();
-                student.setName(jsonObject.getString("name"));
-                student.setAge(jsonObject.getInt("age"));
-                student.setSex(jsonObject.getString("sex"));
-                studentList.add(student);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        // 第二，为RecyclerView设置Item的排列方式。下面的代码使用线性布局排列子元素，垂直排列。
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
+        mLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        mRecyclerView.setLayoutManager(mLayoutManager);
 
-        // 手动创建每一个学生的控件，然后将他们添加到界面中去。
-        LinearLayout.LayoutParams params;
-        for (Student student : studentList) {
-            LinearLayout layout = new LinearLayout(this);
-            layout.setOrientation(LinearLayout.HORIZONTAL);
-            // 姓名
-            TextView nameTV = new TextView(this);
-            params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT);
-            params.weight = 1;
-            nameTV.setText(student.getName());
-            layout.addView(nameTV,params);
-            // 年龄
-            TextView ageTV = new TextView(this);
-            params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT);
-            params.weight = 1;
-            ageTV.setText(String.valueOf(student.getAge()));
-            layout.addView(ageTV,params);
-            // 性别
-            TextView sexTV = new TextView(this);
-            sexTV.setText(student.getSex());
-            params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT);
-            params.weight = 1;
-            layout.addView(sexTV,params);
-            // 将它们三个控件添加到主布局中
-            rootView.addView(layout, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT));
-        }
-
-    }
-}
-```
-
-<br>　　虽然`onCreate()`方法中的代码有点多，但至少我们已经实现需求了。
-
-　　不过如果你是一个有经验的开发人员，可能就会发现这段代码不利于重用，也就是说如果在其它界面也需要显示这个列表，我们就得把这一整段代码给`copy`过去，这是不能忍的。
-　　因此，我们接下来要对这段代码进行重构。
-
-## 代码重构 ##
-
-### 重构Model ###
-　　首先，我们从解析`JSON`这块入手。 
-
-　　问题是这样的：如果在项目的多个地方都需要将一个`JSON`转换成`Student`对象，那我们就得把上面的解析代码（`15~27`行）`copy`多份，如果某一天服务端同事告诉我们说`Student`的某个字段名要修改，同时项目中有`11`个地方都存在这段代码，那么我们就得依次将每个地方的代码都修改一遍，有任何一个遗漏的都会导致程序出`bug`。
-
-<br>　　第一步，修改`Student`类，代码如下：
-``` android
-public class Student {
-    private String name;
-    private int age;
-    private String sex;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public String getSex() {
-        return sex;
-    }
-
-    public void setSex(String sex) {
-        this.sex = sex;
-    }
-
-    // 此方法用来从一个JSONObject对象中解析出一个Student对象。
-    public static Student parseJSON(JSONObject jsonObject) {
-        Student student = new Student();
-        try {
-            student.name = jsonObject.getString("name");
-            student.age = jsonObject.getInt("age");
-            student.sex = jsonObject.getString("sex");
-        } catch (Exception e) {
-            // 如果解析失败则打印出日志，并将对象置null。
-            e.printStackTrace();
-            student = null;
-        }
-        return student;
+        // 第三，为RecyclerView设置Adapter。
+        mRecyclerView.setAdapter(new MyRecyclerAdapter(data));
     }
 }
 ```
     语句解释：
-    -  以后我们就可以在项目的任何地方都调用这个静态方法，就算服务端返回的字段名改变了我们也可以很方便的适配。
-    -  请注意举一反三，本范例这个方法接收的是JSONObject的类型的参数，你可以通过方法重载等其它方式来达到你的需求。
+    -  系统内置的Item布局方式还有网格（GridView）和瀑布流两种，稍后会介绍它们。
 
-<br>　　第二步，增加一个`StudentList`类。它用来表示一组`Student`对象，代码如下：
+<br>　　范例3：`MyRecyclerAdapter`。
 ``` android
-public class StudentList {
-    private int maxCount;   // 用来分页。 咱们暂时不使用它。
+// 注意：MyRecyclerAdapter的父类是RecyclerView.Adapter类型的。
+public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.ViewHolder> {
+    private List<String> items;
 
-    private List<Student> studentList;
-
-    public List<Student> getStudentList() {
-        return studentList;
+    public MyRecyclerAdapter(List<String> items) {
+        this.items = items;
     }
 
-    public static StudentList parseJSON(String json){
-        StudentList inst = new StudentList();
-        try {
-            inst.studentList = new ArrayList<Student>();
-            JSONArray jsonArr = new JSONArray(json);
-            for (int i = 0; i < jsonArr.length(); i++) {
-                Student student = Student.parseJSON(jsonArr.getJSONObject(i));
-                if(student != null){
-                    inst.studentList.add(student);
-                }
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return inst;
-    }
-}
-```
-    语句解释：
-    -  在Student类中有一个maxCount属性暂时没用到，当需要分页显示学生信息时会用到它，这里之所以加它是为了向读者展示StudentList类可以扩展很多属性。
-
-
-<br>　　第三步，更新`MainActivity`。
-``` android
-public class MainActivity extends Activity {
-
-    String json = "[{\"name\":\"张三\",\"age\":24,\"sex\":\"boy\"},{\"name\":\"李四\",\"age\":25,\"sex\":\"girl\"},{\"name\":\"王五\",\"age\":26,\"sex\":\"boy\"}]";
-
+    // 此方法相当于ListView的getView()方法，当需要返回控件时会调用它。
+    // 注意此方法的返回值被强制要求返回RecyclerView.ViewHolder类型的。
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recyclerview, parent, false);
+        return new ViewHolder(v);
+    }
 
-        LinearLayout rootView = (LinearLayout) findViewById(R.id.rootView);
+    // 当需要更新holder所对应的Item中的信息时，会调用此方法。
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        String item = items.get(position);
+        holder.text.setText(item);
+        // 下面这行代码为了以后能方便通过holder.itemView来获取到这个item对象，稍后会介绍holder.itemView是什么。
+        holder.itemView.setTag(item);
+    }
 
-        // 从json中解析出一个StudentList对象。
-        StudentList sList = StudentList.parseJSON(json);
+    // 返回适配器中的元素个数。
+    @Override
+    public int getItemCount() {
+        return items.size();
+    }
 
-        // 手动创建每一个学生的控件，然后将他们添加到界面中去。
-        LinearLayout.LayoutParams params;
-        for (Student student : sList.getStudentList()) {
-            LinearLayout layout = new LinearLayout(this);
-            layout.setOrientation(LinearLayout.HORIZONTAL);
-            // 姓名
-            TextView nameTV = new TextView(this);
-            params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT);
-            params.weight = 1;
-            nameTV.setText(student.getName());
-            layout.addView(nameTV,params);
-            // 年龄
-            TextView ageTV = new TextView(this);
-            params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT);
-            params.weight = 1;
-            ageTV.setText(String.valueOf(student.getAge()));
-            layout.addView(ageTV,params);
-            // 性别
-            TextView sexTV = new TextView(this);
-            sexTV.setText(student.getSex());
-            params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT);
-            params.weight = 1;
-            layout.addView(sexTV,params);
-            // 将它们三个控件添加到主布局中
-            rootView.addView(layout, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT));
+    // 自定义ViewHolder类，注意此类我们用static修饰，可以防止ViewHolder持有Adapter的引用。
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        // 和以前一样，ViewHolder将它所管理的每一个控件都作为一个字段，方便外界访问。
+        public TextView text;
+
+        public ViewHolder(View itemView) {
+            // 调用父类的构造方法，在父类中有一个名为itemView字段，专门用来持有参数itemView的引用的，因为父类在后续操作中会用到。
+            // 而itemView的子控件的引用，则由当前ViewHolder类的属性来持有，具体请参阅源码。
+            super(itemView);
+            // 从View中获取各个子控件的引用，以减少findViewById方法的调用次数。
+            text = (TextView) itemView.findViewById(R.id.text);
         }
-
     }
 }
 ```
     语句解释：
-    -  此时MainActivity中从JSON串里解析出Student对象只需要一行代码了。
-    -  代码重构目的不只是想让原来需要3行完成的功能改成1行，更主要的是要让代码的结构变得更加合理，方便扩展、重用。
-       -  因此虽然现在MainActivity中的代码只有1行，但是在Student等其他地方的代码却多了，不过这没关系，因为代码的可扩展和可重用性变强了。
+    -  如果你没理解holder.itemView的含义，请自行去阅读源码。
 
-### 重构View ###
-　　接下来，我们重构一下`View`这块。
-
-　　从`MainActivity`中我们可以看到，有一个`for`循环依次为每行创建一个`LinearLayout`对象，而`LinearLayout`中又包含`姓名`、`年龄`、`性别`三个子控件，这些控件都是通过代码来创建的，这也不利于代码的重用。
-　　我们可以把这个`LinearLayout`给放到`xml`文件中，这样在项目的其它地方就可以直接通过导入`xml`来使用这三个子控件了。
-
-<br>　　第一步，创建`inflate_student_item.xml`。
+<br>　　范例4：`item_recyclerview.xml`。
 ``` xml
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp"
+    card_view:contentPadding="10dp"
+    card_view:cardCornerRadius="4dp"
+    card_view:cardElevation="3dp">
 
     <TextView
-        android:id="@+id/nameTV"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1" />
+        android:id="@+id/text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
-    <TextView
-        android:id="@+id/ageTV"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1" />
-
-    <TextView
-        android:id="@+id/sexTV"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1" />
-</LinearLayout>
+</android.support.v7.widget.CardView>
 ```
     语句解释：
-    -  Android程序的设计讲究逻辑和视图分离，因而我们应该尽可能的将控件放到xml文件中来写。
-
-<br>　　第二步，更新`MainActivity`。
-``` java
-public class MainActivity extends Activity {
-
-    String json = "[{\"name\":\"张三\",\"age\":24,\"sex\":\"boy\"},{\"name\":\"李四\",\"age\":25,\"sex\":\"girl\"},{\"name\":\"王五\",\"age\":26,\"sex\":\"boy\"}]";
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        LinearLayout rootView = (LinearLayout) findViewById(R.id.rootView);
-
-        // 从json中解析出一个StudentList对象。
-        StudentList sList = StudentList.parseJSON(json);
-
-        // 手动创建每一个学生的控件，然后将他们添加到界面中去。
-        for (Student student : sList.getStudentList()) {
-            LinearLayout layout = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.inflate_student_item, null);
-
-            // 姓名
-            TextView nameTV = (TextView) layout.findViewById(R.id.nameTV);
-            nameTV.setText(student.getName());
-            // 年龄
-            TextView ageTV = (TextView) layout.findViewById(R.id.ageTV);
-            ageTV.setText(String.valueOf(student.getAge()));
-            // 性别
-            TextView sexTV = (TextView) layout.findViewById(R.id.sexTV);
-            sexTV.setText(student.getSex());
-            // 将布局添加到主布局中
-            rootView.addView(layout, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT));
-        }
-
-    }
-}
-```
-    语句解释：
-    -  此时MainActivity中的代码就进一步减少了，不过事情还没完，还可以再进一步优化。
-
-<br>　　虽然我们把控件移动到`xml`中了，但是当其它界面也需要显示这个列表时，我们还是需要将上面的`for`循环中的代码给`copy`过去，还是会有不少的重复代码。 
-　　解决的方法就是：进一步把这个列表给封装成一个控件。
-
-<br>　　第三步，添加`MyStudentListView`类。
-``` android
-public class MyStudentListView extends LinearLayout {
-
-    private StudentList list;
-
-    public MyStudentListView(Context context, StudentList list) {
-        super(context);
-        // 垂直方式排列子元素
-        setOrientation(VERTICAL);
-
-        for (Student student : list.getStudentList()) {
-            LinearLayout layout = (LinearLayout) LayoutInflater.from(context).inflate(R.layout.inflate_student_item, null);
-            // 姓名
-            TextView nameTV = (TextView) layout.findViewById(R.id.nameTV);
-            nameTV.setText(student.getName());
-            // 年龄
-            TextView ageTV = (TextView) layout.findViewById(R.id.ageTV);
-            ageTV.setText(String.valueOf(student.getAge()));
-            // 性别
-            TextView sexTV = (TextView) layout.findViewById(R.id.sexTV);
-            sexTV.setText(student.getSex());
-            // 将它们三个控件添加到主布局中
-            addView(layout, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT));
-        }
-    }
-}
-```
-    语句解释：
-    -  我们把这个Student列表封装成一个View类，这样一来项目的其它地方如果也需要使用这个控件，只需要传递过来一个StudentList对象就可以了。
-
-<br>　　第四步，更新`MainActivity`类。
-``` java
-public class MainActivity extends Activity {
-
-    String json = "[{\"name\":\"张三\",\"age\":24,\"sex\":\"boy\"},{\"name\":\"李四\",\"age\":28,\"sex\":\"girl\"},{\"name\":\"王五\",\"age\":26,\"sex\":\"boy\"}]";
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        LinearLayout rootView = (LinearLayout) findViewById(R.id.rootView);
-
-        // 从json中解析出一个StudentList对象。
-        StudentList sList = StudentList.parseJSON(json);
-
-        // 手动创建每一个学生的控件，然后将他们添加到界面中去。
-        rootView.addView(new MyStudentListView(this, sList));
-    }
-}
-```
-    语句解释：
-    -  此时MainActivity的代码就少很多了，也清晰很多。
-
-<br>　　其实我们现在的代码结构就已经遵循了`MVC`设计模式的规范了，接下来我们就开始具体介绍一下`MVC`模式。
-
-### 模式介绍 ###
-　　`MVC`全名是`Model View Controller`，百度百科上说它不应该称为`设计模式`，而应该称为`框架`，在此我们就不关心到底该称它是什么，只研究它的实现方法。
-
-<br>　　`MVC`把代码分为`3`个核心的模块：模型(`model`)、视图(`view`)、控制器(`controller`)，这三个模块分别担当不同的任务。
-
-	-  Model它负责与领域相关的逻辑处理代码，也可以说是逻辑层，或者领域层。
-	-  View只负责界面显示。
-	-  Controller负责把View和Model联系起来，它的主要职责就是处理用户输入。
-
-<br>　　下图表示它们三者之间的依赖关系：
+    -  使用了CardView作为根节点，其内部只有一个TextView，用来显示一行文字。
 
 <center>
-![MVC关系图](/img/android/android_o05_02.png)
+![运行效果](/img/android/android_o06_03.png)
 </center>
 
-<br>　　它们的运作流程：
+<br>**设置点击事件**
+　　`RecyclerView`没有提供设置点击事件的方法，我们可以直接在`ViewHolder`类上添加事件。
 
-	-  通常Controller会是一个Activity，我们会在Controller里面来实例化Model和View，并持有它们的引用（上图中实线表示强引用）。
-	   -  前面写的MainActivity类就属于Controller。
-	-  View负责界面显示，它所显示的数据是从Model中获取到的，当View里面产生事件时，可以调用Controller进行处理。
-	   -  前面写的MyStudentListView类就属于View。
-	-  Model负责管理数据，当Model的数据有改变，会通知View更新界面。
-	   -  具体的来说，Model里维护了一个观察者列表，在View被初始化的同时，View将自己注册为Model的观察者，当Model的某个字段更新的时候，Model会通知所有侦听了该事件的View。
-	   -  上面写的Student、StudentList类都属于Model，只不过咱们并没有让它们维护一个观察者列表。
+<br>　　范例1：点击和长按事件。
+``` android
+public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+    public TextView text;
 
-<br>**不是所有代码都需要使用MVC**
-　　当我们需要在界面上来显示一个`Model`（比如`Student`）的完整信息时，最好是封装出一个`View`来专门负责显示，这样以利于代码重用和扩展。
-　　但在实际开发中，很多界面只是一个表单界面，它只包含简单的按钮、文本框，不需要在其它地方重用，我们没必要将它们封装成一个`View`，此时整个代码的结构只包含`M`和`C`没有`V`，也不需要有`V`。
+    public ViewHolder(View itemView) {
+        super(itemView);
+        text = (TextView) itemView.findViewById(R.id.text);
+        text.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Toast.makeText(v.getContext(),"text click", Toast.LENGTH_SHORT).show();
+            }
+        });
+        // 给根View设置点击和长按事件。
+        itemView.setOnClickListener(this);
+        itemView.setOnLongClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        Toast.makeText(v.getContext(),"itemView click", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        Toast.makeText(v.getContext(),"itemView long click", Toast.LENGTH_SHORT).show();
+        return true;
+    }
+}
+```
+    语句解释：
+    -  直接在构造方法内部给itemVIew设置事件监听器即可。
+
+<br>**Item排列方式**
+
+<br>　　范例1：网格、瀑布流。
+``` android
+// 线性布局排列
+mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+
+// 网格布局排列
+mRecyclerView.setLayoutManager(new GridLayoutManager(this, 2, GridLayoutManager.VERTICAL, false));
+
+// 交错网格布局，类似于网格布局，但每个格子的高度或者长度可以不一样。
+mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+```
+    语句解释：
+    -  LinearLayoutManager构造方法的三个参数：
+       -  context：也是不多说。
+       -  orientation：布局的排列方向，取值有LinearLayoutManager.VERTICAL和LinearLayoutManager.HORIZONTAL。
+       -  reverseLayout：是否反转布局。即元素将从下到上显示，效果参看微信、QQ等软件的聊天界面。
+    -  GridLayoutManager构造方法的第二个参数：
+       -  spanCount：设置每一排上元素的个数。
+    -  StaggeredGridLayoutManager构造方法的第一个参数也是spanCount，与GridLayoutManager一样。
 
 
-<br>**使用ListView搞定一切**
-　　本范例主旨是为了讲解代码的分层思路，实际开发中我们完全可以使用`ListView`来实现这个功能。
-　　`ListView`比我们上面的代码抽象的更合理，它将它所要显示的数据以及每个数据的绘制工作都交给了一个`Adapter`对象，而我们则是默认的将每个数据的绘制工作写死在`MyStudentListView`的构造方法里了。
+<br>　　下图展示了`GridLayoutManager`（左）和`StaggeredGridLayoutManager`（右）排列方式的区别：
+<center>
+![运行效果](/img/android/android_o06_04.png)
+</center>
+
+<br>**数据更新**
+　　`RecyclerView`提供了两种数据更新的方式：
+
+	-  全部更新：让整个RecyclerView所有正在显示的控件都更新。
+	   -  调用RecyclerView.Adapter类的notifyDataSetChanged()方法即可。
+	-  局部更新：如果你往Adapter中“增加、删除、更新”了一个或多个Item，那么就可以调用对应的方法来只刷新这几个Item，从而提升效率。
+	-  添加：notifyItemInserted(position)、notifyItemRangeInserted(position, itemCount)。
+	   -  前者告诉RecyclerView，当前往position位置上插入了1个新元素，后者是从position位置开始，加入了itemCount个元素。
+	-  删除：notifyItemRemoved(position)、notifyItemRangeRemoved(position, itemCount)。
+	-  更新：notifyItemChanged(position)、notifyItemChanged(position, itemCount)。
+
+<br>　　范例1：局部更新。
+``` android
+public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.ViewHolder> {
+    private List<String> items;
+
+    public MyRecyclerAdapter(List<String> items) {
+        this.items = items;
+    }
+
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_recyclerview, parent, false);
+        // 注意此处把MyRecyclerAdapter的引用传递了过去。
+        return new ViewHolder(v, this);
+    }
+
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        String item = items.get(position);
+        holder.text.setText(item);
+    }
+
+    @Override
+    public int getItemCount() {
+        return items.size();
+    }
+
+    // 添加
+    public void appendData(List<String> newItems){
+        if (newItems != null && newItems.size() > 0) {
+            items.addAll(newItems);
+            notifyItemRangeInserted(items.size()-newItems.size(), newItems.size());
+        }
+    }
+
+    public void removeData(int position) {
+        if (position >= 0 && position < items.size()) {
+            items.remove(position);
+            notifyItemRemoved(position);
+        }
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        // 弱引用
+        private SoftReference<MyRecyclerAdapter> mAdapter;
+
+        public TextView text;
+
+        public ViewHolder(View itemView, MyRecyclerAdapter adapter) {
+            super(itemView);
+            mAdapter = new SoftReference<MyRecyclerAdapter>(adapter);
+            text = (TextView) itemView.findViewById(R.id.text);
+            itemView.setOnClickListener(this);
+        }
+
+        public void onClick(View v) {
+            if (mAdapter != null && mAdapter.get() != null) {
+                // 调用RecyclerView.ViewHolder类的getPosition()获取当前位置
+                mAdapter.get().removeData(getPosition());
+            }
+        }
+    }
+}
+```
+    语句解释：
+    -  如果一个对象被两个地方引用，一个是弱引用，一个是强引用，那么在强引用被释放之前，弱引用会始终有值。
+
+
+<br>**下拉刷新**
+　　我们也可以很容易的给`RecyclerView`加上下来刷新功能。
+
+<br>　　范例1：`SwipeRefreshLayout`。
+``` xml
+<android.support.v4.widget.SwipeRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/refreshLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/my_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</android.support.v4.widget.SwipeRefreshLayout>
+```
+    语句解释：
+    -  使用v4包中的SwipeRefreshLayout类将需要下拉刷新的控件包裹一下就可以了。
+
+
+<br>　　范例2：设置下拉事件监听器。
+``` android
+final SwipeRefreshLayout mRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.refreshLayout);
+// 调用此方法设置下拉监听器，当用户触发下拉刷新时，会在主线程中回调onRefresh()方法。
+mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+    @Override
+    public void onRefresh() {
+        // 1.5秒后将下拉刷新的状态置为false。
+        new Handler().postDelayed(new Runnable() {
+            public void run() {
+                mRefreshLayout.setRefreshing(false);
+            }
+        }, 1500);
+    }
+});
+```
+    语句解释：
+    -  你也可以直接调用setRefreshing(true);来触发下拉刷新的动画，但是不会导致onRefresh方法被调用。
+    -  下拉刷新的箭头颜色等都是可以修改的。
+
+
+<br>　　[点击下载源码 ](http://download.csdn.net/detail/github_28554183/8920585)
+　　如果你没有`AndroidStudio`环境，可以在`MateriaDesign\app\build\outputs\apk`目录中找到`apk`文件。
+
+<br>**其它特性**
+　　`RecyclerView`还支持`Item分割线`、`多种Item类型`等功能，由于篇幅关系（同时也很容易在网上搜索到答案），笔者暂时就不介绍了。
 
 <br>**本节参考阅读：**
-- [百度百科 - MVC框架](http://baike.baidu.com/view/5432454.htm?fromtitle=MVC%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F&fromid=8160955&type=syn)
+- [百度百科 - Android 5.0](http://baike.baidu.com/view/5930831.htm)
+- [Android Lollipop](http://developer.android.com/intl/zh-cn/about/versions/lollipop.html)
+- [RecyclerView体验简介](http://blog.iderzheng.com/first-date-with-recyclerview/)
 
 
 <br><br>
+
+
