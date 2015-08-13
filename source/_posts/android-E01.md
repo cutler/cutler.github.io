@@ -12,7 +12,7 @@ categories: android
 
 # 第一节 包结构的划分 #
 　　当我们在`IDE`中创建了一个全新的`Android`项目后，相信不少人接下来要做的就是，把老项目的代码`copy`过来、添加各种开源库等，避免重复造轮子。
-　　这么做没有任何问题，但是不应该把它排在第一步，第一步要做的是划分包结构。
+　　这么做没有任何问题，但是笔者认为不应该把它排在第一步，第一步要做的是划分包结构。
 
 　　假设我们的包名为`com.cutler.demo`，那么笔者使用下面的包结构：
 ``` c
@@ -711,15 +711,18 @@ public class MainActivity extends Activity {
 ![MVC关系图](/img/android/android_o05_02.png)
 </center>
 
-<br>　　它们的运作流程：
+<br>　　图释：
 
 	-  通常Controller会是一个Activity，我们会在Controller里面来实例化Model和View，并持有它们的引用（上图中实线表示强引用）。
 	   -  前面写的MainActivity类就属于Controller。
-	-  View负责界面显示，它所显示的数据是从Model中获取到的，当View里面产生事件时，可以调用Controller进行处理。
+	-  View负责界面显示，它所显示的数据是从Model中获取到的，当用户操作View触发事件时，View会调用Controller进行处理。
 	   -  前面写的MyStudentListView类、xml布局文件都属于View。
 	-  Model负责管理数据，当Model的数据有改变，会通知View更新界面。
 	   -  具体的来说，Model里维护了一个观察者列表，在View被初始化的同时，View将自己注册为Model的观察者，当Model的某个字段更新的时候，Model会通知所有侦听了该事件的View。
 	   -  上面写的Student、StudentList类都属于Model，只不过咱们并没有让它们维护一个观察者列表。
+
+<br>　　`MVC`的其中一个缺点便是没有明确的定义，所以不同的实现（比如`Struts`和`http://ASP.NET MVC`）细节上都是不一样的。
+
 
 <br>**本节参考阅读：**
 - [百度百科 - MVC框架](http://baike.baidu.com/view/5432454.htm?fromtitle=MVC%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F&fromid=8160955&type=syn)
@@ -730,7 +733,7 @@ public class MainActivity extends Activity {
 <br>**问题是这样的：**
 　　前面已经说了`Activity`是`Controller`，`布局文件`和`自定义View`则对应`View`。
 　　但是仔细想想`View`其实能做的事情特别少，实际上关于布局文件中的数据绑定的操作，事件处理的代码都在`Activity`中，造成了`Activity`既像`View`又像`Controller`。
-　　即`Activity`既要去完成`Controller`的职责，又要去完成`View`的部分职责，这违反了咱们所提倡的`单一责任`原则。
+　　`Activity`既要去完成`Controller`的职责，又要去完成`View`的部分职责，这违反了咱们所提倡的`单一责任`原则。
 　　因此，我们索性把`Activity`视为`View`的一部分，让它专注于`View`相关的职责，而把它的`Controller`职责放到另一个类中去。
 
 <br>**登录界面**
@@ -771,6 +774,7 @@ public class LoginPresenter {
         }
     }
 
+    // 此接口中定义了View必须要提供的几个方法，将由LoginActivity实现此接口。
     public static interface LoginView {
         public String getUsername();
 
@@ -782,8 +786,6 @@ public class LoginPresenter {
     }
 }
 ```
-    语句解释：
-    -  LoginView接口中定义了View必须要提供的几个方法，由LoginActivity实现此接口。
 
 <br>　　范例2：`LoginActivity`。
 ``` java
@@ -833,15 +835,35 @@ public class LoginActivity extends Activity implements LoginPresenter.LoginView 
 }
 ```
 
-<br>　　各位应该能发现了，在`MVP`模式的`P`所做的工作和`MVC`中的`C`是一样的。
-　　在上面的代码中，我们实现了`Controller`与`View`之间的解耦，并通过一个接口来限制`View`必须要提供的接口，`View`不会执行任何逻辑操作，它仅处理事件和`UI`相关的操作。
+<br>　　各位应该能发现了，在`MVP`模式的`P`（`LoginPresenter`）所做的工作和`MVC`中的`C`是一样的。
+　　在上面的代码中，我们实现了`Controller`与`View`之间的解耦，并通过一个接口（`LoginView`）来限制`LoginActivity `必须要提供的方法，`LoginActivity `不会执行任何逻辑操作，它仅处理事件和`UI`相关的操作。
 
-　　笔者认为，虽然代码看起来清晰了很多，但是写起来却很麻烦（已有不少人吐槽），所以不需要所有的界面都按照`MVP`模式这种风格来编写，灵活应变即可。
-
+<br>**提示：**
+　　许多时候并不是一种模式不好，而是因为人没办法执行，比如不容易理解，我们就会选择容易理解的方式。
+　　因此笔者认为，在`MVP`中虽然代码看起来清晰了很多，但是写起来却很麻烦（已有不少人吐槽），所以不需要所有的界面都按照`MVP`模式这种风格来编写，灵活应变即可。
 
 <br>**本节参考阅读：**
 - [浅谈 MVP in Android](http://blog.csdn.net/lmj623565791/article/details/46596109)
+- [你对MVC、MVP、MVVM 三种组合模式分别有什么样的理解？](http://www.zhihu.com/question/20148405)
+
+## MVVM ##
+　　`MVVM`是`Model-View-ViewModel`的简写。
+　　`MV-X`本质都是一样的，重点还是在于`MV`的桥梁要靠`X`来牵线，`X`的不同对应着`M`与`V`的数据传递的流程不同。
+
+<center>
+![MVVM关系图](/img/android/android_e01_01.png)
+</center>
+
+　　`MVVM`模式使用的是`数据绑定`基础架构，即数据绑定是将一个用户界面元素（控件）的属性绑定到一个类型（对象）实例上的某个属性的方法。
+　　例如，如果你有一个`User`对象，那么就可以把`User`的`“name”`属性绑定到一个`TextView`的`“text”`属性上，随后对`TextView`的`text`属性的更改将“传播”到`User`的`name`属性，而对`User`的`name`属性的更改同样会“传播”到`TextView`的`text`属性。
+
+<br>　　`MVVM`早已被广泛应用了，现在`Google`为我们封装好了一个开源库，方便我们在`Android`中使用`MVVM`模式，[官方教程](https://developer.android.com/tools/data-binding/guide.html)。
+
+　　笔者推荐阅读[《Android中的Data Binding初探 (一)》](http://aswifter.com/2015/07/04/android-data-binding-1/)和[《AndroidDataBinding-MVVM模式》](http://www.jianshu.com/p/92f0efd695e7)。
+
+<br>**本节参考阅读：**
+- [百度百科 - MVVM](http://baike.baidu.com/view/3507915.htm)
+- [百度百科 - 数据绑定](http://baike.baidu.com/view/159779.htm)
 
 
-　　它是。
 <br><br>
