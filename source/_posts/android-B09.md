@@ -1,21 +1,15 @@
-title: UI篇　第九章 自定义控件（二）
+title: UI篇　第九章 自定义控件（三）之实践
 date: 2015-5-28 16:07:35
 categories: android
 ---
-　　学习要坚持`“以理论为指导，以实践验证理论”`的原则，因而本章将通过一些`实例Demo`、`开源项目分析`来使用上一篇博客中介绍的知识。笔者也始终坚信`“纸上学来终觉浅，绝知此事要躬行”`，只有当你自己亲自写一遍的时候，才会发现一些作者没有写的（因为太琐碎）、细节上的东西，而这些东西才是让程序员之间拉开差距的重点。
+　　本章将通过一些实例来综合运用前面所介绍的知识，当然也会介绍一些新的知识。
+　　笔者也始终坚信`“纸上学来终觉浅，绝知此事要躬行”`，只有当你自己亲自写一遍的时候，才会发现一些作者没有写的（因为太琐碎）、细节上的东西，而这些东西才是让程序员之间拉开差距的重点。
 
-# 第一节 自定义控件实战 #
-
+# 实战2：悬浮窗 #
+　　我们第一个实战是通过`WindowManager`类实现悬浮窗功能。 
+　　所谓的`“悬浮窗”`，简单的说就是一个悬浮在屏幕上的`View`，常见的有`360`、`百度手机管家`等软件都会提供悬浮窗，当他们的程序切入后台时，悬浮窗仍然可以显示在屏幕上。
 
 ## WindowManager ##
-　　笔者本人也是在跟随着前人的脚步来学习的，因而我们第一个实战是`通过WindowManager实现悬浮窗`功能。 本节主要参考下面两篇文章：
-
-- [Android桌面悬浮窗效果实现，仿360手机卫士悬浮窗效果](http://blog.csdn.net/guolin_blog/article/details/8689140)
-- [Android桌面悬浮窗进阶，QQ手机管家小火箭效果实现](http://blog.csdn.net/guolin_blog/article/details/16919859)
-
-
-<br>　　简单的说，我们可以使用`WindowManager`类来向屏幕上添加`View`对象，最重要的是这个`View`可以在我们程序切入后台时仍然显示在屏幕上。具体的效果可以参看`“百度手机卫士”`。
-
 　　接下来，我们先从最简单的范例开始，一步步的介绍`WindowManager`类的用法。
 
 <br>　　范例1：添加一个`TextView`。
@@ -50,7 +44,7 @@ public class MainActivity extends Activity {
 
 <br>　　但是，如果我们在程序运行后，点击`Home`键，那么`contentView`就会随着`Activity`一起被切到后台。导致这个问题有两个原因：
 
-	-  第一，我们传递给和方法的context是一个Activity对象。
+	-  第一，我们传递给addViewToScreen()方法的context是一个Activity对象。
 	-  第二，没有为WindowManager.LayoutParams对象的type属性设置值。
 
 <br>　　如果我们想让`contentView`不随着`Activity`一起隐藏，那么可以这么写：
@@ -119,10 +113,9 @@ params.type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
 	   -  若我们也没有为type属性赋值，那么程序运行的时候将会抛出异常(请自行测试分析)。
 	   -  若我们为type属性赋值了TYPE_PHONE(或更高)，那么当Activity消失或销毁时，View仍会显示在屏幕上。
 　　简单的说，如果想做出`悬浮窗`的效果，那么就需要使用`application`对象和`type`属性，且值要是`TYPE_PHONE`(或更高)。
-　　所谓`悬浮窗`就是在设备屏幕上添加一个`View`，即便随后我们的应用程序被切换到后台了，这个`View`依然能悬浮在屏幕上。
-<br>
-### 优先级 ###
-　　事实上`WindowManager`中可以放置很多个`View`（控件），控件之间有优先级之分，`优先级高的控件将被放到优先级低的控件上面`。若最高优先级控件的宽高是`“MATCH_PARENT”`，则其下面的控件都将被完全遮住，`若优先级相同则后加入的会被放到上面显示`。
+
+## 优先级 ##
+　　事实上`WindowManager`中可以放置很多个`View`（控件），控件之间有优先级之分，`优先级高的将被放到优先级低的上面`。若最高优先级控件的宽高是`“MATCH_PARENT”`，则其下面的控件都将被完全遮住，`若优先级相同则后加入的会被放到上面显示`。
 <br>　　我们来看一下下面的代码：
 ``` android
 public class MainActivity extends Activity {
@@ -179,7 +172,7 @@ public class MainActivity extends Activity {
 ``` java
 // 设置控件的背景色为纯透明。
 params.format = PixelFormat.TRANSLUCENT;
-// 设置控件显示到屏幕的左上角。这里说的左上角也就是状态栏的下面。
+// 设置控件显示到屏幕的左上角（但在状态栏的下面）。
 params.gravity = Gravity.LEFT | Gravity.TOP;
 // 设置控件在x和y轴的偏移量。 即控件最终的位置将由gravity和x、y共同决定。
 params.x = 10;
@@ -192,7 +185,7 @@ params.flags =
     LayoutParams.FLAG_NOT_FOCUSABLE;
 ```
 <br>
-### 删除和更新 ###
+## 删除和更新 ##
 
 <br>　　范例1：从屏幕中移除一个已经存在的控件。
 ``` android
@@ -209,8 +202,8 @@ mWindowManager.updateViewLayout(view, mParams);
     语句解释：
     -  这里所说的更新控件，其实就是再更新控件的LayoutParams对象。
 <br>
-### 百度安全卫士 ###
-　　如果你基础不错的话，通过上面学的知识，就可以模仿`360的小火箭特效`了（具体请参考郭霖大神的博客），笔者仿写了一个百度安全卫士内存清理动画的`Demo`，程序运行效果如下：
+## 百度安全卫士 ##
+　　如果你基础不错的话，通过上面学的知识，就可以模仿`360的小火箭特效`了（具体请参考郭霖的博客），笔者仿写了一个百度安全卫士内存清理动画的`Demo`，程序运行效果如下：
 
 <center>
 ![](http://img.blog.csdn.net/20150602150418233?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvZ2l0aHViXzI4NTU0MTgz/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
@@ -220,16 +213,15 @@ mWindowManager.updateViewLayout(view, mParams);
 
 　　[点击下载源码](http://download.csdn.net/detail/github_28554183/8764099)
 
-　　如果你没有`AndroidStudio`环境，那么可以去`AndroidTest\app\build\outputs\apk`目录找到`apk`直接安装运行。
+　　如果你没有`Android Studio`环境，那么可以去`AndroidTest\app\build\outputs\apk`目录找到`apk`直接安装运行。
 
-## SlidingMenu ##
-<br>　　即将更新，请先移步[《Android双向滑动菜单完全解析，教你如何一分钟实现双向滑动特效》](http://blog.csdn.net/guolin_blog/article/details/9671609)。
-<br><br><br>
-# 第二节 开源项目 #
-　　相信您也看多过`Github`上的各类`Android`开源项目，里面有各种绚丽的特效，笔者也看的眼馋，虽然咱们的原则是`“可以不会写，但必须得会改”`，但是每每看到里面的特效，笔者都想知道它们是如何实现的，并希望自己能学会。因此从本节开始，笔者将以各个开源项目为例，来讲自定义控件相关的知识。 当然我们不会去完整的分析每个项目，只是会去看它们关键代码。
+<br>**本节参考阅读：**
+- [Android桌面悬浮窗效果实现，仿360手机卫士悬浮窗效果](http://blog.csdn.net/guolin_blog/article/details/8689140)
+- [Android桌面悬浮窗进阶，QQ手机管家小火箭效果实现](http://blog.csdn.net/guolin_blog/article/details/16919859)
 
-## Android-PullLayout ##
-　　这个项目提供了两个功能：`仿UC天气下拉`和`微信下拉眼睛`，`Github`地址：https://github.com/BlueMor/Android-PullLayout 。
+# 实战3：Android-PullLayout #
+　　除了自定义控件外，笔者还会介绍一些开源项目的实现原理，本节就来介绍一下`Android-PullLayout`。
+　　这个项目提供了两个功能：`仿UC天气下拉`和`微信下拉眼睛`，[Github地址](https://github.com/BlueMor/Android-PullLayout)。
 
 <br>　　其中的`微信下拉眼睛`功能，咱们通过上一章学到的`Xfermode`就可以实现。笔者运行了这个项目，在它的`微信下拉眼睛`功能上发现两个缺点：
 
@@ -259,7 +251,7 @@ public class EyeView extends View {
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
         tmpCanvas.drawBitmap(mEyeBitmap, 0, 0, paint);
         paint.setXfermode(null);
-        canvas.drawBitmap(mDstB, 200, 200, paint);
+        canvas.drawBitmap(mDstB, 0, 0, paint);
     }
 
     public void setRadius(int radius){
@@ -277,7 +269,7 @@ public class EyeView extends View {
     语句解释：
     -  本范例中所涉及的知识我们都已经讲过了，不再冗述。并且本范例可以完美运行在Android2.2版本的系统中。
 
-<br>　　另外，它的`仿UC天气下拉`功能是通过属性动画实现的，并使用了`NineOldAndroids`动画库，关于属性动画请参看笔者写的另一篇文章《媒体篇　第三章 动画》，在此就不再冗述了。
+<br>　　另外，它的`仿UC天气下拉`功能是通过属性动画实现的，并使用了`NineOldAndroids`动画库，关于属性动画请参看笔者写的另一篇文章[《媒体篇　第三章 动画》](http://cutler.github.io/android-D03/)，在此就不再冗述了。
 
 <br>　　在这个项目中还涉及到一个小知识点，我们知道在`Activity`的`onCreate()`方法中调用`View`类的`getWidth()`和`getHeight()`方法无法获得`View`的高度和宽度，这是因为`View`组件布局要在`Activity`的`onResume()`回调后完成。我们可以通过下面的代码解决这个问题：
 ``` android

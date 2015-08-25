@@ -1,1137 +1,180 @@
-title: UI篇　第四章 通知
-date: 2015-1-29 14:30:28
-create: 2015-1-29 14:30:28
+title: UI篇　第四章 样式和主题
+date: 2015-2-4 17:58:50
+create: 2015-2-4 17:58:50
 categories: android
 ---
-　　有几种类型的场景可能会要求你把应用程序中发生的事件通知给用户，这些事件有的需要用户响应，有的则不需要。如：
+　　`Android`中的`Styles`与网页设计中的`CSS`相似，允许你将设计从内容中分离出来，即可以预先定义一些`Styles`，然后用这些`Styles`美画各种控件，这样做可以减少大量的重复代码。
 
-	-  当像文件保存完成时，就应该显示一个短消息，提示用户保存成功了。
-	-  如果应用程序正在后台运行，并且需要用户的关注，那么应用程序就应该创建一个允许用户方便响应的Notification。
-	-  如果应用程序正在执行用户必须等待的工作（如装载文件），那么应用程序就应该显示一个进度对话框。
-
-<br>　　在Android中提供了三种不同的技术来通知用户事件的发生： 
-
-	1. 土司通知，主要针对来自后台的短消息，不需要用户响应。
-	2. 状态栏通知，主要针对来自后台的并要求用户响应的持续性提醒。
-	3. 对话框通知，主要针对Activity相关的通知。
-
-<br>**土司通知（Toast）**
-　　土司通知是在屏幕上弹出一个消息（如下图所示）。它仅填充了消息要求的空间大小，并且依然保留当前Activity的可先性和交互性。这种类型的通知自动的渐入渐出，而且不接受交互事件。即使你的应用程序不可见，它也会显示。
-
-<center>
-![](/img/android/android_3_21.png)
-</center>
-
-　　当你完全将注意力集中在屏幕上时，那么`Toast`通知是最好的提示简短消息的方式（例如文件保存成功提醒）。这种通知不接受用户的交互事件，但假如你想让用户去响应和做出动作，你可以考虑使用状态栏通知来代替。
-
-<br>**状态栏通知（Status Bar）**
-　　状态栏通知是将图标添加到系统的状态栏（如下面第一张图所示），并把一个可点击的消息添加到`“通知”`窗口中（如下面第二张图所示）。当用户点击这个消息时，Andriod会触发一个由`“通知”`定义的`Intent`对象（通常是要启动一个Activity）。
-
-<center>
-![](/img/android/android_3_22.png)
-</center>
-
-<center>
-![](/img/android/android_3_23.png)
-</center>
-
-　　当用户的应用程序正在一个后台服务中工作，并且需要把一个内部事件通知给用户时，这种类型的通知是非常合适的。假如你需要提醒用户正在发生的事件，且这个事件正持续进行时，你可以考虑使用对话框通知来代替。
-
-<br>**对话框通知（Dialog）**
-　　对话框通常是显示在当前Activity前面的一个小窗口。它下面的Activity会失去焦点(注意此处不是指的`onPause()`方法被调用)，并且对话框会接受所有的用户交互。
-　　当你需要显示一个进度条或者一个需要用户确认的短消息（例如带有`“确定”`和`“取消”`按钮的提醒）时，你可以利用对话框来实现。
-
-# 第一节 Toast #
-　　	`Toast`通知是在屏幕表面弹出的一个简短的小消息，它只填充消息所需要的空间，并且用户当前的Activity依然保持可见性和交互性，这种通知可自动的淡入淡出，且不接受用户的交互事件。
-
-## 基础应用 ##
-　　最简单的`Toast`通知是仅显示一行文本消息。我们可以使用`Toast.makeText()`方法实例化一个`Toast`对象。
-
-<br>　　你可以调用该对象的`show()`方法显示`Toast`通知，例子如下：
-``` android
-//  三个参数依次为：应用程序的上下文Context、要显示的文本消息、Toast通知持续显示的时间。
-Toast toast = Toast.makeText(getApplicationContext(), "Hello toast!", Toast.LENGTH_SHORT);
-toast.show();
-```
-
-　　你也可以用链式组合方法写且避免持有`Toast`对象的引用，向下面这样：
-``` android
-Toast.makeText(context, text, duration).show();
-```
-    语句解释：
-    -  Activity是Context的子类，因此可以使用Activity的对象，初始化第一个参数。
-    -  在Toast类中提供了两个常量，makeText方法的第三个参数的取值可以为二者之一：
-       -  LENGTH_SHORT ：对话框显示的时间稍短。常量的值等于0 。
-       -  LENGTH_LONG ：对话框显示的时间稍长。常量的值等于1 。
-
-<br>　　范例1：Toast类。
-``` android
-//  指定当前Android应用程序的上下文、要显示的文本数据、显示的时间。
-public static Toast makeText (Context context, CharSequence text, int duration);
-
-//  指定字符串类型数据的资源ID。
-public static Toast makeText (Context context, int resId, int duration);
-
-//  设置当前Toast对象要显示的控件。View可以是一个布局。
-public void setView (View view);
-
-//  设置当前Toast对象要显示在屏幕的哪个位置。
-public void setGravity (int gravity, int xOffset, int yOffset);
-```
-
-## Toast定位 ##
-　　标准的`Toast`通知水平居中显示在屏幕底部附近，可以通过`setGravity(int, int, int)`方法来重新设置显示位置。这个方法有三个参数：
- 
-	1. Gravity常量（详细参照Gravity类）。
-	2. X轴偏移量。
-	3. Y轴偏移量。
-　　例如：如果你想让`Toast`通知显示在屏幕的左上角，可以这样设置`setGravity(int ,int ,int )`方法：
-``` android
-//  多个位置参数之间使用“|”符号间隔。
-toast.setGravity(Gravity.TOP|Gravity.LEFT, 0, 0);
-```
-　　如果想让位置向右移，可以增加第二个参数的值，要向下移动，可以增加最后一个参数的值。
-
-## 自定义Toast ##
-　　如果一个简单的文本消息不能满足显示的需要，你可以给`Toast`通知创建一个自定义的布局(`layout`)。要创建一个自定义的布局(`layout`)，可以在XML文件或程序代码中定义一个`View`布局，然后把(根)View对象传递给`setView(View)`方法。
-
-<br>　　范例1：显示一个控件。
-``` android
-public class AndroidTestActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-		
-        Button btn = new Button(this);
-        btn.setText("我是一个按钮");
-		
-        Toast toast = new Toast(this);
-        toast.setView(btn);
-        toast.show();
-    }
-}
-```
-    语句解释：
-    -  若需要显示一个丰富多彩的提示信息，可以通过new来手动创建一个Toast对象。
-
-# 第二节 Dialogs #
-　　对话框通常是一个显示在当前Activity之前的小窗口，常用于通知用户做出选择或输入信息。
-　　常见的对话框如下图所示：
-
-<center>
-![](/img/android/android_3_24.png)
-</center>
-
-<br>　　`Dialog`类是所有对话框的基类，但你应该避免直接实例化`Dialog`。相反，应该使用以下子类：
-
-	-  AlertDialog：可以显示0~3个按钮的对话框，并且能够包含一个单选或多选按钮列表。AlertDialog是最常用的对话框。
-	-  ProgressDialog：显示一个进度滚轮或进度条的对话框。它是AlertDialog的子类，所以也支持按钮。进度条对话框影响用户体验，已不推荐使用。
-	-  DatePickerDialog和TimePickerDialog：一个有预定义用户界面的对话框，允许用户选择一个日期或时间。
-
-<br>　　范例1：Dialog类。
-``` android
-//  将Dialog从屏幕中移除，同时释放掉Dialog对象所占据的资源。
-public void dismiss();
-
-//  设置是否允许用户通过点击手机中的回退按钮来关闭对话框。默认为true。
-public void setCancelable(boolean flag);
-
-//  设置对话框窗口的标题。此方法有重载setTitle(int) 其中参数为String类型的资源ID。
-public void setTitle(CharSequence title);
-
-//  在屏幕上启动并显示出对话框。
-public void show();
-
-//  将指定的View添加到向Dialog中。
-public void addContentView(View view, ViewGroup.LayoutParams params);
-```
-
-<br>　　注意：
-
-	-  在实例化各种Dialog时，需要为其构造方法传递一个Context对象。
-	-  在Android中，当应用程序开启时，系统会为该应用程序创建一个全局Context对象。在程序中的某个Activity被创建时，系统会将该Context对象设置到Activity对象中，然后Activity会再次把该全局Context对象进行封装。
-	-  最初的全局Context对象通过ContextWrapper类的getApplicationContext()方法可以获得。
-	-  在构造对话框对象时，为其构造方法传递的Context对象，不能是最初的那个全局Context对象。而只能是Activity封装后的Context对象，也就是可以直接把Activity对象传递给Dialog。
-	-  但是Toast对象则没有这个要求，它可以接收任何Context对象，因为它不依赖与某个Activity。
-	-  在非main线程中是不可以Toast和显示Dialog的。
- 
-## AlertDialog ##
-　　警告对话框`AlertDialog`是Dialog最常用的一个子类。一个警告对话框有三个地区，如下图所示：
-
-<center>
-![](/img/android/android_3_25.png)
-</center>
-
-　　**1. 标题** 
-　　这是可选的。如果你需要显示一个简单的信息或问题的状态(如下图)，则你就不需要使用标题。
-
-<center>
-![](/img/android/android_3_26.png)
-</center>
-
-　　**2. 内容区域。 **
-　　对话框的正文部分。这里可以显示一个文本消息，一个列表，或其他自定义布局。
-
-　　**3. 动作按钮。 **
-　　用户可点击的按钮，在`AlertDialog`对话框中最多只支持三个按钮。
-
-<br>　　构建警告对话框需要使用`AlertDialog`的静态内部类`AlertDialog.Builder`类。去构造一个`AlertDialog`最简单的步骤：
-``` android
-// 1. 通过构造方法实例化一个AlertDialog.Builder对象。
-AlertDialog.Builder builder = new AlertDialog.Builder(context);
-
-// 2. 调用各个set方法为对话框设置不同的数据。
-builder.setMessage(R.string.dialog_message).setTitle(R.string.dialog_title);
-
-// 3. 调用create()方法创建AlertDialog对象。
-AlertDialog dialog = builder.create();
-```
-
-<br>　　范例1：`AlertDialog.Builder`类。
-``` android
-//  下面三个方法，依次用来设置对话框的标题栏上的图标、标题、消息正文。
-public AlertDialog.Builder setIcon(int iconId);
-public AlertDialog.Builder setTitle(CharSequence title);
-public AlertDialog.Builder setMessage(CharSequence messageId);
-
-
-//  描述：在警告对话框中最多可以存在三个Button对象，下面三个方法依次用来设置对话框的三个按钮。
-//    positiveButton对应最左边的按钮。
-//    neutralButton对应中间的按钮。
-//    negativeButton对应最右边的按钮。
-//  参数：
-//    text ：按钮所要显示的文本。
-//    listener是一个监听器，当用户点击该按钮时，会触发相应的事件。
-public AlertDialog.Builder setPositiveButton(CharSequence text, DialogInterface.OnClickListener listener);
-public AlertDialog.Builder setNeutralButton(CharSequence text, DialogInterface.OnClickListener listener);
-public AlertDialog.Builder setNegativeButton(CharSequence text, DialogInterface.OnClickListener lis);
-
-
-//  描述：显示一个列表对话框。此方法有重载setItems(String[]) 。
-//  参数：
-//    itemsId：对话框所要显示的数据的资源ID。数据应该是一个数组类型的。
-//    listener是一个监听器，当用户点击该对话框中的某个Item时，会触发相应的事件。
-public AlertDialog.Builder setItems(int itemsId, DialogInterface.OnClickListener listener);
-
-
-//  描述：显示一个单选按钮对话框。此方法有setSingleChoiceItems(CharSequence[]) 等多个重载。
-//  参数：
-//    itemsId：对话框所要显示的数据的资源ID。数据应该是一个数组类型的。
-//    checkedItem默认选中项，下标从0开始计算，若取值为-1则将没有默认选中项。 
-public AlertDialog.Builder setSingleChoiceItems(int itemsId, int checkedItem, DialogInterface.OnClickListener listener);
-
-
-//  描述：显示一个多选按钮对话框。此方法有setMultiChoiceItems(CharSequence[]) 等多个重载。
-//  参数：
-//    itemsId：对话框所要显示的数据的资源ID。数据应该是一个数组类型的。
-//    checkedItem 设置每个选项的当前状态，若被选中，则值为True 。
-public AlertDialog.Builder setMultiChoiceItems (int itemsId, boolean[] checkedItems, DialogInterface.OnMultiChoiceClickListener listener)
-```
-
-<br>　　范例2：`DialogInterface.OnClickListener`接口。
-``` android
-//  描述：当用户点击了对话框中的按钮时，会触发此监听器，并调用此方法。
-//  参数：
-//    itemsId：对话框所要显示的数据的资源ID。数据应该是一个数组类型的。
-//    whick ：产生事件的按钮。AlertDialog有三个常量与之对应：
-//    -  AlertDialog.BUTTON_POSITIVE ：第一个按钮 。值为 -1 。
-//    -  AlertDialog.BUTTON_NEUTRAL ：第二个按钮。值为 -2 。
-//    -  AlertDialog.BUTTON_NEGATIVE ：第三个按钮。值为 -3 。
-public abstract void onClick (DialogInterface dialog, int which)
-```
-
-<br>　　范例3：添加按钮。
-　　调用`set…Button()`方法可以为按钮指定一个文本标签，也可以为按钮设置事件监听器对象(`DialogInterface.OnClickListener`类型的)，当用户点击按钮时会回调对应的方法。
-　　你最多可以在对话框中设置三个动作按钮：
-
-	-  Positive：你应该使用这个按钮来表示“接受”或“继续”动作。
-	-  Negative：你应该使用这个按钮来表示“取消”动作。
-	-  Neutral：你应该使用它表示“用户不想处理”动作，不一定表示取消。它在positive和negative按钮之间显示，比如这个按钮可能显示“稍后提醒”。
-　　这三种类型的按钮每个类型在AlertDialog只能设置一个，也就是说你无法在对话框中设置两个`positive`按钮。
-　　当对话框中的某个按钮被点击后，对话框会自动被关闭。
-
-``` android
-public void onClick(View view) {
-    // 创建一个事件监听器。
-    OnClickListener listener = new OnClickListener() {
-        public void onClick(DialogInterface dialog, int which) {
-            switch (which) {
-                case AlertDialog.BUTTON_POSITIVE:
-                    Toast.makeText(getApplicationContext(),"POSITIVE",0).show();
-                break;
-            }
-        }
-    };
-    // 创建一个对话框。
-    AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-    dialog.setIcon(R.drawable.icon);
-    dialog.setTitle(R.string.title);
-    dialog.setMessage(R.string.content);
-    dialog.setPositiveButton("哈哈,知道了!", listener);
-    dialog.setNegativeButton("...", listener);
-    dialog.setNeutralButton("哦,是吗!", listener);
-    dialog.show();
-}
-```
-
-<br>　　范例4：添加列表。
-　　使用`AlertDialog`提供的API可以添加三种类型的列表：
-
-	-  传统的单一选择列表。
-	-  单选列表(包含多个单选按钮)。
-	-  多选列表(包含多个多选按钮)。
-　　创建一个像下图所示的传统的单一选择列表需要调用`setItems()`方法：
-
-<center>
-![](/img/android/android_3_27.png)
-</center>
-
-　　由于这个列表显示在对话框的内容区域中，所以你不可以同时显示文本消息和列表，也就是说`AlertDialog.Builder`类的`setItems()`方法和`setMessage()`方法不可以同时使用。
-``` android
-public void onClick(View view) {
-    final String[] array = { "A", "B", "C", "D" };
-    // 创建一个事件监听器。
-    OnClickListener listener = new OnClickListener() {
-        public void onClick(DialogInterface dialog, int which) {
-            if (AlertDialog.BUTTON_POSITIVE == which) {
-                Toast.makeText(getApplicationContext(), "POSITIVE ", 0).show();
-                return;
-            }
-            Toast.makeText(getApplicationContext(), "您点击的 " + array[which], 0).show();
-        }
-    };
-    int i = AlertDialog.BUTTON_NEGATIVE;
-    // 创建一个对话框。
-    AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-    dialog.setIcon(R.drawable.icon);
-    dialog.setTitle(R.string.title);
-    dialog.setCancelable(false);
-    dialog.setPositiveButton("哈哈,知道了!", listener);
-    dialog.setItems(array, listener);
-    dialog.show();
-}
-```
-    语句解释：
-    -  对话框中的按钮和各个Item项可以共用一个事件监听器。
-    -  当某个Item被点击时，当前对话框同样会自动被关闭，参数which的值就是该Item的下标，下标从0开始计算。
-
-<br>　　范例5：单选对话框。
-``` android
-private String choose = null;
-private String[] array = {"男","女"};
-public void onClick(View view){
-    // 创建一个事件监听器。
-    OnClickListener listener = new OnClickListener(){
-        public void onClick(DialogInterface dialog, int which) {
-            if(AlertDialog.BUTTON_POSITIVE == which){
-                Toast.makeText(getApplicationContext(),"您点击的"+choose,0).show();
-                return;
-            }
-            choose = array[which];
-        }
-    };
-    int i  = AlertDialog.BUTTON_NEGATIVE;
-    // 创建一个对话框。
-    AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-    dialog.setIcon(R.drawable.icon);
-    dialog.setTitle(R.string.title);
-    dialog.setCancelable(false);
-    dialog.setPositiveButton("哈哈,知道了!", listener);
-    dialog.setSingleChoiceItems(array, -1, listener);
-    dialog.show();
-}
-```
-    语句解释：
-    -  使用setSingleChoiceItems方法可以显示一个单选按钮列表。
-    -  注意：此时，当点击对话框中的单选按钮后，对话框并不会被关闭。参数which是用户点击的单选按钮的下标，下标从0开始。
-    -  若3个按钮都没有设置，则只有通过back键才能将对话框关闭，若您又禁用了back键，则就不好办了。
-
-<br>　　范例6：多选对话框。
-``` android
-private boolean[] choose = new boolean[2];
-private String[] array = { "A", "B" };
-public void onClick(View view) {
-    // 创建一个事件监听器。
-    OnClickListener btnlistener = new OnClickListener() {
-        public void onClick(DialogInterface dialog, int which) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < choose.length; i++) {
-                if (choose[i]) {
-                    sb.append(array[i]).append(",");
-                }
-            }
-            Toast.makeText(getApplicationContext(), sb.toString(), 0).show();
-        }
-    };
-    int i = AlertDialog.BUTTON_NEGATIVE;
-    // 创建一个对话框。
-    AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-    dialog.setIcon(R.drawable.icon);
-    dialog.setTitle(R.string.title);
-    dialog.setCancelable(false);
-    dialog.setPositiveButton("哈哈,知道了!", btnlistener);
-    dialog.setMultiChoiceItems(array, choose,
-            new OnMultiChoiceClickListener() {
-                //  描述：用户点击了多选框对话框中的某个Item时，会触发此事件。
-                //  参数：
-                //  -  dialog：产生事件的Dialog对象。
-                //  -  which：产生事件的多选按钮，下标从0开始。
-                //  -  isChecked：产生事件的多选按钮的当前是否被选中。
-                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                    choose[which] = isChecked;
-                }
-            });
-    dialog.show();
-}
-```
-    语句解释：
-    -  使用setMultiChoiceItems方法可以显示一个多选按钮对话框。
-    -  注意：此时，当点击对话框中的多选按钮后，对话框并不会被关闭。
-    -  可以在调用setMultiChoiceItems方法时，指定一个DialogInterface.OnMultiChoiceClickListener类型的监听器，用于监听每一选项。
-
-## ProgressDialog ##
-　　进度条对话框`ProgressDialog`和进度条控件`ProgressBar`的用法十分相似，都是通过线程来不断的更新进度条。
-
-<br>　　范例1：ProgressDialog类 。
-``` android
-//  获取第一进度条的最大值、当前值。若当前Progress是圆形(即未知)进度条，则getProgress()总是返回0 。
-public int getMax(); 
-public int getProgress();
-
-//  设置第一进度条的最大值、当前值。
-public void setMax(int max);
-public void setProgress(int value);
-
-//  设置进度条的显示风格。取值：
-//  -  水平进度条：ProgressDialog.STYLE_HORIZONTAL 。
-//  -  环形进度条：ProgressDialog.STYLE_SPINNER 。
-public void setProgressStyle(int style);
-
-//  设置进度条对话框显示的正文。
-public void setMessage(CharSequence message);
-
-//  设置第二进度条当前值。
-public int setSecondaryProgress();
-```
-
-<br>　　范例2：创建进度条对话框。
-``` android
-public class ViewTextActivity extends Activity {
-    private ProgressDialog dialog;
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        this.dialog = new ProgressDialog(this);
-        this.dialog.setMax(100);
-        this.dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-    }
-    public void onClick(View view) {
-        dialog.show();		
-        new Thread(){
-            int i = 0;
-            public void run(){
-                while(dialog.getProgress()<dialog.getMax()){
-                    dialog.setProgress(i++);
-                    try {
-                        Thread.sleep(30);
-                    } catch (InterruptedException e) {}
-                }
-                dialog.dismiss();
-            }
-        }.start();
-    }
-}
-```
-
-## LayoutInflater ##
-　　通过XML文件来设置Activity的布局，布局中的控件的位置、数量在程序编译的时候都已经是固定的了。
-　　但是在一些特殊的情况下，可能需要在程序运行的时动态的修改布局的内容（比如增删控件），此时就只能通过编码的方式，动态的修改布局中的内容了。
-
-<br>　　范例1：`main.xml`文件。
+<br>　　例如，使用一个`style`，你可以将下面这个布局：
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<TextView
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" 
-    android:id="@+id/rootLayout" >
-</LinearLayout>
+    android:layout_height="wrap_content"
+    android:textColor="#00FF00"
+    android:typeface="monospace"
+    android:text="@string/hello" />
 ```
-
-<br>　　范例2：通过编码的方式添加TextView。
-``` android
-public class MainActivity extends Activity {
-    private LinearLayout rootLayout;
-    private TextView textView;
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        
-        // 初始化控件。
-        this.rootLayout = (LinearLayout) this.findViewById(R.id.rootLayout);
-        this.textView = new TextView(MainActivity.this);
-        this.textView.setText("Hi TextView!");
-        
-        // 将textView添加到rootLayout中。
-        this.rootLayout.addView(this.textView);
-    }
-}
-```
-    语句解释：
-    -  首先，通过资源ID，从当前Activity的xml布局文件中获取LinearLayout的引用。
-    -  然后，创建一个TextView控件，创建TextView对象时需要为其指出一个Context对象。 
-    -  接着，调用LinearLayout继承自ViewGroup类的addView方法，将新控件添加到布局中。
-    -  最后，一个控件只可以有一个父控件，即textView被放入到rootLayout后就不可以再被放入其他布局对象中，否则程序将抛异常。
-
-<br>　　范例3：对象重用。
-``` android
-TextView text1 = (TextView) this.findViewById(R.id.text);
-TextView text2 = (TextView) this.findViewById(R.id.text);
-System.out.println(text1 == text2); //输出true。
-```
-    语句解释：
-    -  若满足“text1 == text2”则意味着它们是同一个控件对象。
-    -  在为Activity调用setContentView()方法设置布局后，就会将xml文件中的根节点实例化出来，而之后调用Activity的findViewById()方法就是在根节点对象内依据id查找子控件。 因此本范例会输出true。
-
-<br>　　Activity类的`findViewById()`方法只能获取当前Activity的XML布局文件中的控件。若想将其他XML文件中的控件添加到当前Activity中就需要使用`LayoutInflater`类了。 
-
-<br>　　范例4：`LayoutInflater`类。
-``` android
-//  描述：从指定的xml文件中获取其根节点(View) ，然后将根节点添加到root中，接着将该根节点的引用返回来。
-//  参数：
-//    resource ：xml文件的id 。如R.layout.main。root的取值可以为空。
-//  返回值：返回resource所对应的布局文件中的根View的引用。
-public View inflate(int resource, ViewGroup root);
-
-//  根据指定的Context对象构造出一个LayoutInflater对象。
-public static LayoutInflater from (Context context)
-```
-
-<br>　　范例5：招募小弟。
-``` java
-//  指定服务的名称，获取一个系统级的服务。此处则是获取一个LayoutInflater对象。
-LayoutInflater inflater = (LayoutInflater) this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-//  获取当前xml文件的根节点。
-LinearLayout layout =(LinearLayout) this.findViewById(R.id.rootLayout);
-//  从other.xml文件中获取其根节点，并将其放入layout中，如果已经存在了则不会再次放入。
-LinearLayout text1 = (LinearLayout) inflater.inflate(R.layout.other, layout);
-LinearLayout text2 = (LinearLayout) inflater.inflate(R.layout.other, layout);
-//  注意： 此处会输出true 。
-System.out.println(text1 ==  text2); 
-```
-    语句解释：
-    -  虽然通过inflate方法向layout中添加了两遍，但是在当前Activity中只会显示添加一个。
-
-<br>　　范例6：招募小弟2.0。
-``` java
-LayoutInflater inflater = (LayoutInflater) this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-LinearLayout layout =(LinearLayout) this.findViewById(R.id.rootLayout);
-LinearLayout text1 = (LinearLayout) inflater.inflate(R.layout.other, null);
-LinearLayout text2 = (LinearLayout) inflater.inflate(R.layout.other, null);
-//  注意： 此处会输出false。
-System.out.println(text1 ==  text2); 
-layout.addView(text1);
-layout.addView(text2);
-```
-    语句解释：
-    -  由于调用inflate方法时并没有将布局文件放入到任何控件中，因此每次inflate时都会返回一个新对象。所以调用ViewGroup的addView方法可以重复添加元素。
-
-<br>　　范例7：父与子。
+　　变成这样：
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" 
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent" 
-    android:id="@+id/rootLayout">
-<TextView 
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content" 
-    android:text="@string/hello" 
-    android:id="@+id/text" />
-</LinearLayout>
-```
-``` android
-public class MainActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        LinearLayout layout = (LinearLayout)this.findViewById(R.id.rootLayout);
-        TextView text = (TextView) layout.getChildAt(0);
-        // 输出true 。
-        System.out.println(text.getParent() == layout);
-    }
-}
+<TextView
+   style="@style/CodeFont"
+   android:text="@string/hello" />
 ```
     语句解释：
-    -  View类的getParent()方法返回值是一个ViewParnet对象，通常可以将ViewParnet进行向下转型为View，但是，这并不意味着返回的ViewParnet一定是个View，仅仅是通常 。
-    -  ViewGroup的getChildAt(int index)方法指定一个下标，获取当前View内部所包含的子View，下标从0开始，若下标越界则返回null。
-       -  提示：在AdapterView中，此方法从当前布局中所有可见的子View 中获取index所对应的View，下标从0开始，若下标越界则返回null 。
+    -  本范例将一些可以公用的属性从XML布局中移出，放到一个名为CodeFont的style定义中，然后各个TextView控件都可以使用style属性引用它。你将在下面章节中看到此style的定义。
 
-<br>**ViewGroup.LayoutParams**
-　　前面已经成功的实现动态向Activity中添加控件了。但是还是有一个缺点：上面的代码在创建完毕控件后，并没有为控件指定宽、高等属性。
+<br>　　当一个`style`被作到`Activity`或者`Application`上时，我们就称它为`theme`。
+　　例如，你能把`CodeFont style`作为`theme`应用于一个`Activity	`，那么这个`Activity`中所有文本都将是绿色等宽字体。
 
-<br>　　范例1：动态添加组件。
-``` android
-public class WebViewActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        
-        // 初始化控件。
-        LinearLayout linear = new LinearLayout(this);
-        TextView username = new TextView(this);
-        Button validate = new Button(this);
-        // 设置文本
-        username.setText("用户名：");
-        validate.setText("验证");
-        // 将Button和TextView添加到LinearLayout中。
-        linear.addView(username);
-        linear.addView(validate);
-        setContentView(linear);
-    } 
-}
-```
-    语句解释：
-    -  本范例就是在程序中动态的添加控件。
-    -  本范例中控件的宽、高、padding、margin等属性的值都没有设置。 这些属性被称为：布局参数。使用ViewGroup.LayoutParams类来表示。 
+# 第一节 样式 #
+　　若想创建`style`，则需保存一个XML文件到你的工程的`res/values/`目录下，这个XML文件的名称可以随便定义，但必须使用`.xml`作为后缀，且要保存在`res/values/`文件夹中。
+　　这个XML文件的根节点必须是`<resources>`。
+　　每个`style`都使用一个`<style>`元素来表示，该元素有一个用来唯一标识该`style`的`name`属性（这个属性是必需的）。 
 
-<br>　　范例2：指定宽、高。
-``` android
-//  设置线性布局的排列方式。取值有：LinearLayout.VERTICAL（垂直排列）和LinearLayout.HORIZONTAL（水平排列）。
-linear.setOrientation(LinearLayout.VERTICAL);
-// 将Button和TextView添加到LinearLayout中，同时为它们指定宽、高。
-linear.addView(username, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-linear.addView(validate, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-setContentView(linear);
-```
-    语句解释：
-    -  在ViewGroup.LayoutParams的构造方法中除了可以使用常量外，也可以指定具体数值。
-    -  在Android中的布局控件(如：LinearLayout、RadioGroup等)都具有一个名为LayoutParams的内部类。
-    -  各个LayoutParams各自提供了不同的布局参数，用于描述该控件不同的属性。它们都派生自ViewGroup.LayoutParams。 
+　　在`style`元素内部可以添加多个属性，每个属性使用一个`<item>`元素表示，该元素也包含一个`name`属性（这个属性是必需的），以及一个使用的值。这个`<item>`的值可以是一个关键字符串、十六进制颜色、到另一个资源类型的引用或其他值，取决于`style`的属性。这里有一个单独`style`的例子：
 
-<br>　　范例3：Margin属性。
-``` android
-public class AndroidTestActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        // 创建一个线形布局。
-        LinearLayout linearLayout = new LinearLayout(this);
-        TextView textView = new TextView(this);
-        textView.setText("Hi Androdi");
-        // 为TextView设置布局参数。
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(100, 50);
-        params.topMargin = 100;
-        params.leftMargin = 100;
-        // 将TextView添加到布局中。
-        linearLayout.addView(textView,params);
-       
-        setContentView(linearLayout);
-    }
-}
-```
-    语句解释：
-    -  使用布局参数的topMargin等属性可以设置当前View与其相邻控件或父控件间的间距。
-    -  本范例中addView()方法将控件textView按照params所指定的参数，将其放置到父控件linearLayout中。
-
-## Custom Dialog ##
-　　在实际中，内置的各种对话框并不能满足应用的需求，因此往往需要自定义对话框。自定义对话框的最终目的就是自定义对话框中显示的控件。
-
-<br>　　自定义对话框的步骤：
-	-  首先，实例化出一个Dialog对象，并设置对话框的初始参数，如标题、图标等。
-	-  然后，自定义一个xml布局文件。
-	-  接着，将xml布局文件导入到程序中。
-	-  最后，调用Dialog对象的setContentView方法，将xml布局文件中所有的控件设置到Dialog对象中去。
-
-<br>　　范例1：自定义布局文件(`layout.xml`)。
-``` xml
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
-    <EditText
-    	android:layout_width="match_parent"
-    	android:layout_height="wrap_content"
-    	android:id="@+id/text"/>
-    <Button
-    	android:layout_width="wrap_content"
-    	android:layout_height="wrap_content"
-    	android:text="点击"
-    	android:id="@+id/btn"/>
-</LinearLayout>
-```
-
-<br>　　范例2：自定义对话框的内容。
-``` android
-Dialog dialog = new Dialog(this);
-// 初始化对话框。
-dialog.setTitle("对话框的标题");
-dialog.setCancelable(false);
-// 获取布局文件的根节点。
-LayoutInflater inflater = LayoutInflater.from(getApplicationContext());;
-LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.layout, null);
-// 获取布局中的控件。
-Button okBtn = (Button) layout.findViewById(R.id.btn);
-EditText input_psw = (EditText) layout.findViewById(R.id.text);
-// 在下面可以为按钮添加OnClickListener 、为TextView设置文本信息。
-// ......
-// 最后，将布局的根节点添加到View中。
-dialog.addContentView(layout, new LinearLayout.LayoutParams(220,150));
-// 显示对话框。
-dialog.show();
-```
-
-## Pickers ##
-　　Android给用户提供了选择`时间`（小时，分钟，上午/下午）或`日期`（月，日，年）的控件，使用这些选择器有助于确保用户可以选择一个有效的、格式正确的时间或日期，并自动调整到用户的所在区域。
-
-<center>
-![](/img/android/android_3_28.png)
-</center>
-
-<br>　　范例1：创建一个时间选择器。
-``` android
-public class MainActivity extends Activity implements OnTimeSetListener {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        final Calendar c = Calendar.getInstance();
-        int hour = c.get(Calendar.HOUR_OF_DAY);
-        int minute = c.get(Calendar.MINUTE);
-        //  创建一个TimePickerDialog对象。构造方法：
-        //  TimePickerDialog(Context context, TimePickerDialog.OnTimeSetListener callBack, int hourOfDay, int minute, boolean is24HourView)
-        //  参数：
-        //  -  callBack：当用户选择完时间后，会调用此接口中定义的回调方法。
-        //  -  hourOfDay、minute ：时间选择器默认的小时、分钟。
-        //  -  is24HourView：是否按24小时制。
-        Dialog d = new TimePickerDialog(this, this, hour, minute, DateFormat.is24HourFormat(this));
-        d.show();
-    }
-    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        // TODO Auto-generated method stub
-    }
-}
-```
-
-<br>　　范例2：创建一个日期选择器。
-``` android
-public class MainActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        Dialog d = new DatePickerDialog(this, new OnDateSetListener() {
-            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                Toast.makeText(getApplicationContext(), year + "年" + monthOfYear + "月" + dayOfMonth + "日", 1).show();
-            }
-        }, 2011, 10, 28);
-        d.show();
-    }
-}
-```
-
-<br>　　开发中往往不会直接写死具体日期常量，而是使用`Calendar`工具类。
-
-<br>　　范例3：Calendar抽象类。
-``` android
-Calendar calendar = new GregorianCalendar();
-System.out.println("年: " + calendar.get(Calendar.YEAR));
-System.out.println("月: " + (calendar.get(Calendar.MONTH)+1));
-System.out.println("日: " + calendar.get(Calendar.DAY_OF_MONTH));
-System.out.println("时: " + calendar.get(Calendar.HOUR_OF_DAY));
-System.out.println("分: " + calendar.get(Calendar.MINUTE));
-System.out.println("秒: " + calendar.get(Calendar.SECOND));
-System.out.println("毫秒: " +calendar.get(Calendar.MILLISECOND));
-```
-    语句解释：
-    -  使用java.util包中的Calendar类可以截取出当前Date对象的各个部分。
-
-# 第三节 Notification #
-　　`Notification`(通知)，可以让你在你的应用程序UI的外部（即非Activity中）显示给用户一条可交互的消息，在Android中使用`Notification`类来表示一个通知。
-　　当你向系统发出一个通知时，系统就会将一个图标放在`状态栏`的`通知区域`（如下图所示），然后当用户下拉状态栏时，就可以看到详细的通知。`状态栏`是系统控制的区域，它们不隶属于任何用户程序，用户可以随时查看。
-
-<center>
-![状态栏的通知区域](/img/android/android_3_29.png)
-</center>
-
-　　为了创建通知，你必须用到两个类：`Notification`和`NotificationManager`。
-
-	-  Notification类的一个实例代表一个通知，通知有很多属性，如图标，通知信息和一些其他的设定，如播放的声音。
-	-  NotificationManager是系统服务，用于执行和管理系统中所有通知(Notification)对象。诸如发送、移除通知等操作都由此类来完成，你不需要直接初始化NotificationManager。
-
-<br>　　在正式创建通知之前，需要先了解下面列出的一些概念。
-
-<br>　　**1. 虽然Android发展的很快，但发展的途中也导致了一些兼容性的问题**
-　　对于`Notification`而言`Android3.0`是一个分水岭：
-
-	-  在Android3.0之前，构建Notification推荐使用NotificationCompat.Builder，它位于android.support.v4.app.NotificationCompat.Builder，是一个Android向下版本的兼容包。
-	-  在Android3.0之后，一般推荐使用Notification.Builder构建。
-
-　　本节将使用`NotificationCompat.Builder`进行讲解演示。
-
-<br>　　**2. NotificationManager**
-　　由于状态栏不隶属于任何应用程序，因此向状态栏`发送`、`更新`、`删除`通知需要使用系统对外提供的接口，也就是通过`NotificationManager`类来完成。
-　　`NotificationManager`是通知管理器类，这个对象是由系统维护的服务，是以单例模式的方式存在，通过下面的代码可以获取该类的对象：
-``` android
-// 其中this表示Activity对象。
-NotificationManager mgr = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-```
-
-<br>　　**3. Notification**
-　　`Notification`类的一个实例代表一个通知。虽然通知中提供了各种属性的设置，但是一个通知对象，有几个属性是必须要设置的，其他的属性均是可选的，必须设置的属性如下（具体后述）：
-
-	-  小图标，使用setSamllIcon()方法设置。
-	-  标题，使用setContentTitle()方法设置。
-	-  文本内容，使用setContentText()方法设置。 
-
-<br>　　**4. 更新与移除通知**
-　　在使用`NotificationManager.notify()`发送通知的时候，需要传递一个标识符，用于唯一标识这个通知。
-
-　　对于一个通知，当展示在状态栏之后，如何取消呢？Android为我们提供两种方式移除通知：
-　　第一种是`Notification`自己维护，使用`setAutoCancel()`方法设置是否维护，传递一个`boolean`类型的数据。
-　　第二种是使用`NotificationManager`通知管理器对象来维护，它通过`notify()`发送通知的时候，指定的通知标识`id`来操作通知，可以使用`cancel(int)`来移除一个指定的通知，也可以使用`cancelAll()`移除所有的通知。
-
-``` android
-//  使用NotificationManager移除指定通知示例。
-NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-mNotificationManager.cancel(0);
-```
-
-<br>　　**5. PendingIntent**
-　　对于一个通知而言，它显示的消息是有限的，一般仅用于提示一些概要信息。但是一般简短的消息，并不能表达需要告诉用户的全部内容，所以需要绑定一个意图，当用户点击通知的时候，调用一个意图展示出一个Activity（或其它组件）用来显示详细的内容。而`Notification`中，并不使用常规的`Intent`去传递一个意图，而是使用`PendingIntent`。
-
-　　`PendingIntent`是对`Intent`的包装，通过名称可以看出`PendingIntent`可以译为`“延期意图”`，它用于表示即将发生的意图，而`Intent`用来表示马上发生的意图，对于通知来说，它是系统级的全局通知，并不确定这个意图被执行的时间。
-
-　　`PendingIntent`提供了多个静态的`getXxx()`方法，用于获得适用于不同场景的`PendingIntent`对象。一般需要传递的几个参数都很常规，这里只介绍一个`flag`参数，用于标识`PendingIntent`的构造选择：
-
-	-  FLAG_CANCEL_CURRENT：如果构建的PendingIntent已经存在，则取消前一个，重新构建一个。
-	-  FLAG_NO_CREATE：如果前一个PendingIntent已经不存在了，将不再构建它。
-	-  FLAG_ONE_SHOT：表明这里构建的PendingIntent只能使用一次。
-	-  FLAG_UPDATE_CURRENT：如果构建的PendingIntent已经存在，则替换它，常用。
-
-<br>　　**6. Notification视觉风格**
-　　`Notification`有两种视觉风格，一种是标准视图(Normal view)、一种是大视图（Big view）。标准视图在Android中各版本是通用的，但是对于大视图而言，仅支持`Android4.1+`的版本。
-
-## 标准视图 ##
-　　从官方文档了解到，一个标准视图显示的大小要保持在`64dp`高，宽度为屏幕标准。标准视图的通知主体内容有一下几个：
-
-<center>
-![](/img/android/android_3_30.png)
-</center>
-
-	1. 通知标题（contentTitle）。
-	2. 大图标（largeIcon）。
-	3. 通知内容（contentText）。
-	4. 通知消息（number）。
-	5. 小图标（smallIcon）。
-	6. 通知的时间，一般为系统时间，也可以使用setWhen()设置。
-
-　　下面通过一个示例，模仿上面效果的通知。
-``` android
-public class MainActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(MainActivity.this);
-        mBuilder.setSmallIcon(R.drawable.ic_launcher);
-        mBuilder.setContentTitle("5 new message");
-        mBuilder.setContentText("twain@android.com");
-        //  状态栏通知区域上一闪而过的文本消息。
-        mBuilder.setTicker("New message");
-        mBuilder.setNumber(12);
-        Bitmap btm = BitmapFactory.decodeResource(getResources(),R.drawable.ic_action_download);
-        mBuilder.setLargeIcon(btm);
-        //  自己维护通知的消失
-        mBuilder.setAutoCancel(true);
-        //  构建一个Intent
-        Intent resultIntent = new Intent(MainActivity.this, MainActivity.class);
-        //  封装一个PendingIntent
-        PendingIntent resultPendingIntent = PendingIntent.getActivity(
-                MainActivity.this, 0, resultIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        //  设置通知主题的意图
-        mBuilder.setContentIntent(resultPendingIntent);
-        //  获取通知管理器对象
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(0, mBuilder.build());
-    }
-}
-```
-
-　　显示效果：
-
-<center>
-![](/img/android/android_3_31.png)
-</center>
-
-## 大视图 ##
-　　而对于大视图（Big View）而言，它的细节区域只能显示`256dp`高度的内容，并且只对`Android4.1+`之后（但在之前的版本中也不会报错）的设备才支持，它比标准视图不一样的地方，均需要使用`setStyle()`方法设定，它大致的效果如下：
-
-<center>
-![](/img/android/android_3_32.png)
-</center>
-
-　　`setStyle()`传递一个`NotificationCompat.Style`对象，它是一个抽象类，Android为我们提供了三个实现类，用于显示不同的场景。分别是：
-
-	-  NotificationCompat.BigPictureStyle，在细节部分显示一个256dp高度的位图。
-	-  NotificationCompat.BigTextStyle，在细节部分显示一个大的文本块。
-	-  NotificationCompat.InboxStyle，在细节部分显示多行文本。
-
-<br>　　如果仅仅显示一个图片，使用`BigPictureStyle`是最方便的；如果需要显示一个富文本（或者是不需要换行的长文本）信息，则可以使用`BigTextStyle`；如果仅仅用于显示一个文本（需要换行）的信息，那么使用`InboxStyle`即可。下面会以一个示例来展示`InboxStyle`的使用，模仿上面图片的显示。
-``` android
-public class MainActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        
-        Bitmap btm = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
-        Intent intent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,PendingIntent.FLAG_CANCEL_CURRENT);
-        Notification noti = new NotificationCompat.Builder(this)
-            .setSmallIcon(R.drawable.ic_launcher)
-            .setLargeIcon(btm)
-            .setNumber(13)
-            .setContentText("ContentText")
-            .setContentTitle("ContentTitle")
-            .setContentIntent(pendingIntent)
-            // 设置通知被展开时，所显示的内容。
-            .setStyle(new NotificationCompat.InboxStyle()
-                // 一行行的增加文本。
-                .addLine("M.Twain (Google+) Haiku is more than a cert...")
-                .addLine("M.Twain Reminder")
-                .addLine("M.Twain Lunch?")
-                .addLine("M.Twain Revised Specs")
-                .addLine("M.Twain ")
-                .addLine("Google Play Celebrate 25 billion apps with Goo..")
-                .addLine("Stack Exchange StackOverflow weekly Newsl...")
-                .setBigContentTitle("6 new message")
-                .setSummaryText("mtwain@android.com"))
-        .build();
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(0, noti);
-    }
-}
-```
-
-　　显示效果：
-
-<center>
-![](/img/android/android_3_33.png)
-</center>
-
-　　值得注意的是，不同厂家的手机对大视图风格的通知有不同的展现形式，比如：
-
-	-  在三星S5手机上，当程序向状态栏中添加大视图风格的通知时，默认情况该通知会被折叠起来（即和正常通知的大小一样），用户可以通过滑动来展开通知，通知一旦被展开则无法重新折叠回去。
-	-  在Android4.1的模拟器上，默认直接将大视图的通知给展开，因而用户无法查看到通知的contentTitle、contentText属性的值，同时也无法将通知折叠回去，所以通常情况下我们应该为setContentText和setBigContentTitle传递相似的值。
-
-　　还有一点就是，`Android4.1`之前的设备上是无法显示大视图的通知的，因此为了兼容性考虑，请务必设置通知的`contentTitle`、`contentText`属性的值。
-
-## 进度条样式的通知 ##
-　　对于一个标准通知，有时候显示的消息并不一定是静态的，还可以设定一个进度条用于显示事务完成的进度。
-
-　　`Notification.Builder`类中提供一个`setProgress(int max, int progress, boolean indeterminate)`方法用于设置进度条：
-
-	-  max用于设定进度的最大数。
-	-  progress用于设定当前的进度
-	-  indeterminate用于设定是否是一个不确定进度的进度条。
-　　通过`indeterminate`的设置，可以实现两种不同样式的进度条，一种是有进度刻度的（`true`）,一种是循环流动的（`false`）。
-
-
-<br>　　范例1：有进度刻度。
-``` android
-public class MainActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        
-        final NotificationCompat.Builder builder = new NotificationCompat.Builder(MainActivity.this);
-        builder.setSmallIcon(R.drawable.ic_launcher);
-        builder.setContentTitle("Picture Download");
-        builder.setContentText("Download in progress");
-        builder.setAutoCancel(true);
-        final PendingIntent pendingintent = PendingIntent.getActivity(this, 0, new Intent(), PendingIntent.FLAG_CANCEL_CURRENT);
-        builder.setContentIntent(pendingintent);
-        final NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        //通过一个子线程，动态增加进度条刻度
-        new Thread(new Runnable() {
-            public void run() {
-                int incr;
-                for (incr = 0; incr <= 100; incr += 5) {
-                    builder.setProgress(100, incr, false);
-                    manager.notify(0, builder.build());
-                    try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException e) { }
-                }
-                builder.setContentText("Download complete");
-                builder.setProgress(0, 0, false);
-                manager.notify(0, builder.build());
-            }
-        }).start();
-    }
-}
-```
-    语句解释：
-    -  只有在Android4.0+以后的版本中通知才支持进度条，在更低的版本中通知里是不会包含进度条的。
-    -  只要把setProgress方法的第三个参数改为true，就可以显示一个不确定的进度条。
-
-## 自定义通知 ##
-　　和`Toast`一样，通知也可以使用自定义的XML来自定义样式，但是对于通知而言，因为它的全局性，并不能简单`inflate`出一个View，需要使用单独的一个`RemoteViews`类来操作。
-
-　　`RemoteViews`描述了一个视图层次的结构，可以显示在另一个进程，这个类提供了一些基本的操作求改其`inflate`的内容。
-　　`RemoteViews`提供了多个构造函数，一般使用`RemoteViews(String packageName, int layoutId)`。第一个参数为包的名称，第二个为layout资源的Id。当获取到`RemoteViews`对象之后，可以使用它的一系列`setXxx()`方法通过控件的Id设置控件的属性。
-　　最后使用`NotificationCompat.Builder.setContent(RemoteViews)`方法设置它到一个`Notification`中。
-
-<br>**创建XML文件**
-``` xml
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/layout"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:padding="10dp" >
-    <ImageView android:id="@+id/image"
-        android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_marginRight="10dp" />
-    <TextView android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/image"
-        style="@style/NotificationTitle" />
-    <TextView android:id="@+id/text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/image"
-        android:layout_below="@id/title"
-        style="@style/NotificationText" />
-</RelativeLayout>
-```
-　　注意那两个TextView的`style`属性。在自定义通知界面时，为文本使用`style`文件进行定义是很重要的，因为通知界面的背景色会因为不同的硬件，不同的`os`版本而改变。从`Android2.3(API 9)`开始，系统为默认的通知界面定义了文本的`style`属性。
-　　因此，你应该使用`style`属性，以便于在`Android2.3`或更高的版本上可以清晰地显示你的文本，而不被背景色干扰。
-
-<br>　　例如，在低于`Android2.3`的版本中使用标准文本颜色，应该使用如下的文件`res/values/styles.xml`:
+<br>　　范例1-1：定义样式。
 ``` xml
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="NotificationText">
-      <item name="android:textColor">?android:attr/textColorPrimary</item>
+    <style name="CodeFont">
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#00FF00</item>
+        <item name="android:typeface">monospace</item>
     </style>
-    <style name="NotificationTitle">
-      <item name="android:textColor">?android:attr/textColorPrimary</item>
-      <item name="android:textStyle">bold</item>
-    </style>
-    <!-- If you want a slightly different color for some text, consider using ?android:attr/textColorSecondary -->
 </resources>
 ```
+    语句解释：
+    -  CodeFont就是样式的名称，它内部包含了4个属性。 当某个控件使用此样式时，实际上就是在使用样式内部的各属性的值。
+    -  每个<resources>元素的子节点在编译时都被转换为一个应用程序资源对象，其可通过<style>元素的name属性的值来引用。
 
-<br>　　然后，在高于`Android2.3`的系统中使用系统默认的颜色。如`res/values-v9/styles.xml`：
+<br>　　范例1-2：定义样式2。
 ``` xml
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-   <style name="NotificationText" parent="android:TextAppearance.StatusBar.EventContent" />
-   <style name="NotificationTitle" parent="android:TextAppearance.StatusBar.EventContent.Title" />
+    <style name=".20STYLE">
+        <item name="android:textColor">#FF0000</item>
+        <item name="android:text">20sp</item>
+    </style>
 </resources>
 ```
+    语句解释：
+    -  第5行代码的含义为：将控件的“android:text”属性的值设置为20sp。
 
-<br>**代码实现**
-``` android
-public class MainActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        
-        RemoteViews contentViews = new RemoteViews(getPackageName(), R.layout.custom_notification);
-        //通过控件的Id设置属性
-        contentViews.setImageViewResource(R.id.image, R.drawable.ic_launcher);
-        contentViews.setTextViewText(R.id.title, "Custom notification");
-        contentViews.setTextViewText(R.id.text, "This is a custom layout");
-
-        Intent intent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,PendingIntent.FLAG_CANCEL_CURRENT);
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
-            .setSmallIcon(R.drawable.ic_launcher)
-            .setContentTitle("My notification")
-            .setTicker("new message");
-        mBuilder.setAutoCancel(true);
-        mBuilder.setContentIntent(pendingIntent);
-        mBuilder.setContent(contentViews);
-        mBuilder.setAutoCancel(true);
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(10, mBuilder.build());
-    }
-}
-```
-
-　　显示效果：
-
-<center>
-![](/img/android/android_3_34.png)
-</center>
-
-<br>　　之前也说了，带有进度条的通知只能运行在`Android4.0`系统以上，如果想在`Android4.0`以下使用，则就只能通过自定义通知的方式实现了，当想修改进度条的值时，只需要调用`RemoteViews.setProgressBar()`方法，然后再重新发送一遍通知即可。
-``` android
-contentViews.setProgressBar(R.id.progressbar, 100, curProgress, false);
-contentViews.setTextViewText(R.id.percent, "已下载："+curProgress); 
-mNotificationManager.notify(notifyId, mBuilder.build());
-```
-
-## 设定提示响应 ##
-　　对于有些通知，需要调用一些设备的资源，使用户能更快的发现有新通知，一般可设定的响应有：铃声、闪光灯、震动。对于这三个属性，`NotificationCompat.Builder`提供了三个方法设定：
-
-	-  setSound(Uri sound)：设定一个铃声，用于在通知的时候响应，传递一个Uri的参数。
-	-  setLights(int argb, int onMs, int offMs)：设定前置LED灯的闪烁速率，持续毫秒数，停顿毫秒数。
-	-  setVibrate(long[] pattern)：设定震动的模式，以一个long数组保存毫秒级间隔的震动。
-
-<br>　　大多数时候，我们并不需要设定一个特定的响应效果，只需要遵照用户设备上系统通知的效果即可，那么可以使用`setDefaults(int)`方法设定默认响应参数，在`Notification`中，对它的参数使用常量定义了，我们只需使用即可：
-
-	-  DEFAULT_ALL：铃声、闪光、震动均系统默认。
-	-  DEFAULT_SOUND：系统默认铃声。
-	-  DEFAULT_VIBRATE：系统默认震动。
-	-  DEFAULT_LIGHTS：系统默认闪光。
-
-<br>　　而在Android中，如果需要访问硬件设备的话，是需要对其进行授权的，所以需要在清单文件`AndroidManifest.xml`中增加两个授权，分别授予访问振动器与闪光灯的权限：
+<br>　　范例2：使用样式。
 ``` xml
-<!-- 闪光灯权限 -->
-<uses-permission android:name="android.permission.FLASHLIGHT"/>
-<!-- 振动器权限 -->
-<uses-permission android:name="android.permission.VIBRATE"/>
-```
-
-<br>**添加声音**
-``` android
-// 使用res/raw目录下的音乐文件。
-mBuilder.setSound(Uri.parse("android.resource://"+getPackageName()+"/"+R.raw.system));
-
-// 使用SD卡下的音乐文件。
-mBuilder.setSound(Uri.parse("file://"+Environment.getExternalStorageDirectory()+"/notification/ringer.mp3"));
-
-// 使用系统的默认声音。
-mBuilder.setDefaults(Notification.DEFAULT_SOUND);
-```
-
-<br>**添加震动**
-``` android
-// 使用系统默认的震动
-mBuilder.setDefaults(Notification.DEFAULT_VIBRATE);
-
-// 自定义的方式，要是定义一个long型数组，赋值给vibrate属性。
-mBuilder.setVibrate(new long[] { 100, 200, 300 });
+<TextView
+    style="@style/.20STYLE"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="周•杰伦\n崔•杰伦/>
 ```
     语句解释：
-    -  long型的数组定义了交替振动的方式和振动的时间（毫秒）。第一个值是指振动前的准备（间歇）时间，第二个值是第一次振动的时间，第三个值又是间歇的时间，以此类推。振动的方式任你设定。但是不能够反复不停。
+    -  使用控件的style属性可以为当前控件设置一个style。在本范例中TextView控件的字体的颜色为FF0000字体的大小为20sp。
 
-<br>**添加闪灯**
-``` andriod
-// 使用默认闪灯
-mBuilder.setDefaults(Notification.DEFAULT_LIGHTS);
+<br>　　颜色常量有四种常见的书写格式：
+
+	#RRGGBB
+	-  6位十六进制的数字。其中RR代表红色。GG代表绿色。BB代表蓝色。
+	#AARRGGBB
+	-  8位十六进制的数字。其中AA代表颜色的透明度。 00代表完全透明，FF代表完全不透明。
+	#ARGB
+	-  4位十六进制的数字。
+	#RGB
+	-  3位十六进制的数字。
+
+<br>　　范例3：样式继承。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="STYLE_WH">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="STYLE_TEXT" parent="STYLE_WH">
+        <item name="android:textColor">#FF0000</item>
+    </style>
+</resources>
 ```
+    语句解释：
+    -  使用<style>标签的parent属性，可以为当前style设置一个父style。子style会完全继承父style所设置的属性。
 
-<br>
-**本节参考阅读：**
-- [Android--通知之Notification](http://www.cnblogs.com/plokmju/p/android_notification.html)
-- [Notifications in Android 4.4 and Lower](http://developer.android.com/design/patterns/notifications_k.html)
+<br>　　范例4：就近优先原则。
+``` xml
+<Button
+    style="@style/STYLE_TEXT"
+    android:textColor="#00FF00"
+    android:text="崔•杰伦\n崔•杰伦"/>
+```
+    语句解释：
+    -  若在style和控件中同时对某个一个属性指定了值，则按照就近优先原则，这和CSS是一样的。
+    -  本范例中，字体最终的颜色为绿色。
 
+<br>　　范例5：属性继承2.0。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="STYLE_WH">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="STYLE_WH.STYLE_TEXT">
+        <item name="android:textColor">#FF0000</item>
+    </style>
+</resources>
+```
+    语句解释：
+    -  可以通过改变style名称的写法，来继承指定的style，命名规则为：父style名.当前style名。你可以像这样继续继承很多次，只要修改句点之前的名称。
+    -  若指定的父style不存在，则会报错。范例1-2中的“.” 没有这种含义，它仅仅代表一个字符“.”。
+    -  这种技巧仅适用于将你自己定义的资源链接起来。你不能用这种方式继承Android内建的style。要引用一个诸如TextAppearance的内建style，你必须使用parent属性。
+
+<br>**一些提示：**
+
+	1、如果你对一个View应用了style，而其并不支持此style中某些属性，那么此View将应用那些它支持的属性，并忽略那些不支持的。
+	2、一些style属性只能被当作一个theme来应用，而不支持任何View元素。如用于隐藏应用标题(windowNoTitle)、隐藏状态栏或改变窗口背景(windowBackground)的style属性，它们不属于任何View对象。
+	3、不要忘记对每个<item>元素中的属性冠以“android:”命名空间前缀。如：android:inputType。
+
+# 第二节 主题 #
+　　用于Activity或者整个应用程序的`style`我们称之为主题(`Theme`)。
+
+<br>　　当你应用一个`style`到布局中一个单独的View上时，由此`style`定义的属性会仅应用于那个View。
+　　如果一个`style`应用到一个`ViewGroup`上，那么子View元素并不会继承应用此`style`属性(只有你直接应用了`style`的元素才会应用其属性)。
+
+　　将一个style作为一个`theme`来应用，你必须在`Android manifest`中将其应用到一个`<activity>`或`<application>`中。
+　　当你这样做，此Activity或应用中的每个View都将应用其所支持的属性。例如，如果你应用前面示例中的`CodeFont style`到一个Activity，那么支持此文本`style`属性的所有View元素都将应用它们。所有View所不支持的属性都会被忽略。如果一个View仅支持某些属性，那么它就只应用那些属性。
+
+<br>　　范例1：定义主题。
+``` xml
+<style name="FullScreen">
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:windowFullscreen">true</item>
+</style>
+```
+    语句解释：
+    -  windowNoTitle属性指出Activity是否取消标题栏。
+    -  windowFullscreen属性指出Activity是否全屏显示。
+
+<br>　　范例2：引用主题。
+``` xml
+<activity
+    android:name="org.cxy.web.TowActivity" 
+    android:theme="@style/FullScreen" />
+```
+    语句解释：
+    -  在清单文件中使用<activity>标签的android:theme属性来引用建立好的style。
+    -  若使用<application>标签的android:theme属性引用style，则style将作用于该应用程序内的所有Activity。
+
+<br>　　范例3：引用值。
+``` xml
+<style name="FullScreen">
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:windowFullscreen">?android:windowNoTitle</item>
+</style>
+```
+    语句解释：
+    -  使用“?”可以引用某个属性的值。
+    -  本范例中windowFullscreen属性的值引用了windowNoTitle属性的值。
 
 
 <br><br>

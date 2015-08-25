@@ -1,194 +1,528 @@
-title: UI篇　第六章 Support Library
-date: 2015-4-13 11:22:25
+title: UI篇　第六章 ActionBar
+date: 2015-4-14 14:09:02
 categories: android
 ---
-　　`Android Support Library`是一组代码库，提供向后兼容版本的Android框架`API`，若需要在低版本系统中使用高版本中的功能则只能通过该库的`API`。 目前有多个支持库，每个支持库都是向后兼容某个特定的`Android API`级别。这意味着您的应用程序既可以使用支持库所提供的高版本的特点，并且仍然可以在低版本中运行。
+　　在`Android 3.0`中除了`Fragment`外，`ActionBar`也是一个重要的内容。`ActionBar`主要是用于代替传统的`标题栏`与`Menu按钮`：
 
-# 第一节 概述 #
+	-  标题栏
+	   -  对于Android平板这种大屏幕设备来说，标题如果使用ActionBar来设计，可以展示更多丰富的内容，且方便操控。
+	-  Menu按钮
+	   -  在很多类型的应用程序中，菜单是一个常用的用户界面组件。要提供友好的和前后一致的用户体验：
+	      -  在Android 3.0系统之前，所有的Android手机都有一个专门的Menu按钮用于显示一些设置选项。
+	      -  从Android 3.0系统开始，系统通过引进ActionBar移除了系统对于硬件Menu按钮的依赖，让用户在屏幕的标题栏上直接可以看到各种设置选项。当然，这不意味着OEM厂商们不会继续在手机上提供这个按钮，但从Google的角度来说，Menu按钮已经是过去时了。
 
-## 组成 ##
-　　`Android Support Library`目前包含`5`个库（`v4`、`v7`、`v8`、`v13`、`v17`），其中`‘v’`代表该支持库所支持的`最低版本的API等级`，如`v4`即指最低支持`Android1.6`。每个库支持一个特定范围的Android平台版本和功能集。
-　　一般来说，我们建议包括`v4`和`v7`库到你的应用程序中，因为他们支持广泛的Android版本，并提供`API`推荐用户界面模式。
+　　除了上面两个优点外，`ActionBar`还可以给用户提供一种全局统一的`UI`界面，使得用户在使用任何一款软件时都懂得该如何操作，并且`ActionBar`还可以自动适应各种不同大小的屏幕。
 
-## 下载 ##
-　　`Android Support Library`是对SDK的补充，可以使用`Android SDK Manager`来下载。具体步骤如下：
+# 第一节 V7 appcompat #
 
-	1.  启动SDK Manager，通过SDK安装的根目录下的SDK Manager.exe文件。
-	2.  打开SDK Manager然后滚动到最底部，找到“Extras”文件夹并将其展开。
-	3.  若你使用Eclipse开发项目则需要选择“Android Support Library”，但如果你使用Android Studio开发则需要下载“Android support Repository”。
-	4.  点击“安装”按钮。
- 
-　　下载完毕后，这些文件被放入到`“<sdk>/extras/android/support/”`目录下面。
+　　我们可以从官方的[ Dashboards ](http://developer.android.com/about/dashboards/index.html)中看出来，目前市场上的Android设备的系统版本已经转移到`4.0`左右。虽然如此，我们仍应该保持对低版本的适配，因此本节将以添加`V7 appcompat`库的方式来讲解如何使用`ActionBar`。
 
-## 特点 ##
-　　下面依次介绍这些支持库的应用场景及特点，你可以依据自己的需求来选择使用哪一个支持库。
+<br>　　`ActionBar`有多种形式，你既可以在上面同时放置多个图标、按钮，也可以什么都不放。但对于大多数应用来说，`ActionBar`可以分割为`3`个不同的功能区域，下面是一张使用`ActionBar`的界面截图：
 
-<br>
-### V4 支持库 ###
-　　这个支持库是为`Android1.6`(`API Level 4`)或更高版本的平台设计的。相比其他库它包括更大量的`APIs`。包括应用程序组件、用户接口特性、可访问性、数据处理、网络连通性和编程工具。这里有几个关键的类包含在`v4`库：
+<center>
+![ActionBar示意图](/img/android/android_b07_01.png)
+</center>
 
-	-  应用程序组件：
-	   -  Fragment：增加了支持封装的用户界面和功能的Fragment，使应用程序可以方便的在小和大屏幕设备之间提供布局。
-	   -  NotificationCompat：可以支持丰富的通知功能。
-	   -  LocalBroadcastManager：允许应用程序在其内部很容易注册和接收意图，一个私有的广播。
-	-  用户接口：
-	   -  ViewPager：增加一个ViewGroup来管理布局里的子View，用户可以通过手指左右滑动在子View之间来回切换。
-	   -  PagerTitleStrip：PagerTitleStrip是ViewPager的导航栏（不可以点击）。
-	   -  PagerTabStrip：PagerTitleStrip是ViewPager的导航栏（可以点击）。
-	   -  DrawerLayout：可以支持创建导航抽屉，可以从一个窗口的边缘。
-	   -  SlidingPaneLayout：可以用它实现滑动菜单效果，具体参见 http://my.oschina.net/summerpxy/blog/211835 。
-	-  可访问性：
-	   -  ExploreByTouchHelper、AccessibilityEventCompat。
-	   -  AccessibilityNodeInfoCompat、AccessibilityNodeProviderCompat。
-	   -  AccessibilityDelegateCompat
-	-  数据处理：
-	   -  Loader：可以支持异步加载数据。在V4支持库中也提供了这个类的具体实现，包括CursorLoader和AsyncTaskLoader。
-	   -  FileProvider：可以支持应用程序之间共享的私人文件。
-　　提示：还有许多其他`API`包含在这个库中。更详细的介绍，请参看`android.support.v4`包。这个库放在：`<sdk>\extras\android\support\v4`目录下。
+　　其中，`[1]`是`ActionBar`的图标与标题，`[2]`是两个`action`按钮，`[3]`是`overflow`按钮（就是那三个点，点击后会打开一个列表）。
+<br>　　提示：
 
-<br>
-### V7 支持库 ###
-　　除了`v4`以外，还有一些库设计用于与`Android 2.1`(`API level 7`)或更高的平台。这些库(它们都是以Android库项目的方式存在)提供特定的功能集，可以包含在您的应用程序，并且独立于其他应用程序。
-　　`v7`库下面有多个子库，它们分别用于不同的场景，其中有几个子库体积比较大，因而不再像`v4`包那样合在一起，而是将它们分开发布，下面将依次介绍它们。
+	-  如果你使用的是Eclipse，并且搭建了最新的开发环境，那么在创建新项目的时候，会自动引入v7 appcompat库，如果没有自动引用，可以从<sdk>/extras/android/support/v7/appcompat/中复制一份。
+	-  本文使用的v7 appcompat库的版本号为：Android Support Library, revision 22 (March 2015)，由于此版本支持Android 5.0的Material Design风格，所以该库的编译版本应该设置为5.0以上。
 
-<br>**V7 appcompat 库**
-　　这个库添加了对 [ActionBar](http://developer.android.com/guide/topics/ui/actionbar.html) 的支持，同时也支持`Android5.0`（`Android Lollipop`）提出的`Material Design`风格。
-　　值得注意的是，这个库需要依赖于`v4`库，如果你使用`Ant`或者`Eclipse`，要确保这个库中的类可以引用到`v4`库中的类。
+## 图标和标题 ##
+<br>　　下图展示的是一个新项目的`MainActivity`在`三星S5`手机（左）以及`Android2.2模拟器`（右）中的运行效果。
 
-　　这里有几个关键的类包含在`v7 appcompat`库：
+<center>
+![图1](/img/android/android_b07_02.png)
+</center>
 
-	-  ActionBar：提供了ActionBar的实现。
-	-  ActionBarActivity：需要使用ActionBar的Activity必须派生自此类。
-	-  ShareActionProvider：可以支持一个标准化共享行动(比如电子邮件或发布到社交应用程序)，可以包含在操作栏中。
+<br>　　从上图中我们可以看到，当`ActionBar`运行在`Android3.0`以下的版本中时，标题栏的右上角不会出现`overflow`按钮，但是我们可以通过点击设备的`Menu`按钮来弹出`overflow`菜单。也就是说`Android3.0`中的`overflow`按钮就等价于`Android3.0`之前的`Menu`按钮。（即便系统版本高于`Android3.0`也不一定保证会显示`overflow`按钮，具体后述）。
+　　现在我们要实现如下图所示的一个效果：
 
-　　这个库放在：`<sdk>/extras/android/support/v7/appcompat/`目录下。
+<center>
+![图2](/img/android/android_b07_03.png)
+</center>
 
-<br>**V7 cardview 库**
-　　这个库添加了对`CardView`类的支持，它是`Android 5.0`推出的一个卡片式的`View`组件。卡片化是全新的`Material`风格设计中重要的组成部分之一，卡片设计适合重要信息的展示，以及在`List`中作为一个包含有复杂操作的`item`使用。
-　　`CardView`继承自`FrameLayout`类，同时卡片可以包含圆角、阴影。
-　　经常使用`Google APP`的人应该对卡片式设计非常熟悉，不管是`Google Now`、`Google Email`、`Google+`等都沿用了卡片式设计的风格，非常清新明了，感觉没有任何冗余的信息。它的具体用法此处就不在展开介绍了。
-　　这个库放在：`<sdk>/extras/android/support/v7/gridlayout/ `目录下。
+<br>　　由于`ActionBar`在不同的Android版本中显示的效果是不一样的，因此为了提供统一的视觉效果，我们接下来要修改一下`ActionBar`的背景图片。
+　　范例1：修改背景图片。
+``` android
+public class MainActivity extends ActionBarActivity {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-效果参看：
+        // 修改ActionBar的背景图片。
+        getSupportActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.bg_topbar));
+    }
+    // 以下省略其它代码。
+}
+```
+    语句解释：
+    -  MainActivity继承自android.support.v7.app.ActionBarActivity，上面使用的getSupportActionBar()方法也是继承而来的。
+    -  getSupportActionBar()方法返回一个ActionBar对象，我们可以通过这个对象来修改ActionBar的样式。
+    -  ActionBar的setBackgroundDrawable()方法就是用来修改背景图片的。
 
-- [《Android L中的RecyclerView 、CardView 、Palette的使用》](http://blog.csdn.net/xyz_lmn/article/details/38735117)
-- [《使用CardView实现卡片式Google Plus布局》](http://www.yiqivr.com/2015/01/%E4%BD%BF%E7%94%A8cardview%E5%AE%9E%E7%8E%B0%E5%8D%A1%E7%89%87%E5%BC%8Fgoogle-plus%E5%B8%83%E5%B1%80/)
+<br>　　`ActionBar`支持两个文本标题，在上面的被称为主标题（`title`），在下面的被称为子标题（`subTitle`）。
+　　范例2：修改标题文本。
+``` android
+public class MainActivity extends ActionBarActivity {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-<br>**V7 gridlayout 库**
-　　这个库添加了对`GridLayout`类的支持，它是在`Android 4.0`中，新引入的一个布局控件。`GridLayout`可以用来做一个象`TableLayout`这样的布局样式，但其性能及功能都要比`Tablelayout`要好，比如`GridLayout`的布局中的单元格可以跨越多行，而`Tablelayout`则不行，此外，其渲染速度也比`Tablelayout`要快。它的具体用法此处就不在展开介绍了。
-　　这个库放在：`<sdk>/extras/android/support/v7/gridlayout/`目录下。
+        // 修改ActionBar的背景图片。
+        getSupportActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.bg_topbar));
 
-效果参看：
+        // 修改标题文字。
+        getSupportActionBar().setTitle("店小二。");
+        getSupportActionBar().setSubtitle("陌陌号：18204884");
+    }
+    // 以下省略其它代码。
+}
+```
+    语句解释：
+    -  调用setTitle()方法来设置标题文本。
+    -  调用setSubtitle()方法来设置子标题文本。
+    -  如果不设置子标题，则默认只显示主标题，且是垂直居中。
+    -  调用getSupportActionBar().setDisplayShowTitleEnabled(false);可以同时隐藏两个标题。
+    -  调用getSupportActionBar().setDisplayShowHomeEnabled(true);显示一个图标。
+    -  调用getSupportActionBar().setIcon(R.drawable.ic_launcher);设置一个图标。
 
-- [《Android 4.0开发之GridLayOut布局实践》](http://tech.it168.com/a2011/1213/1287/000001287977.shtml)
+<br>　　仔细观察上面的`图1`可以发现，当程序运行在`三星S5`手机上时，标题的字体颜色为`白色`，而运行在`Android2.2模拟器`时，颜色则为`黒色`。这是不能允许的，需要给它们设置一个统一的颜色。为了方便管理与更新（`V7 appcompat`），我们不会去直接修改`V7 appcompat`库里的属性，而是在自己项目里创建一个`res\values\custom_actionbar.xml`文件，并在该文件中创建一些与`V7 appcompat`库中同名的属性，即用我们的值覆盖掉它们的值。
 
-<br>**V7 mediarouter 库**
-　　这个库添加支持`MediaRouter`，`MediaRouteProvider`以及其他相关的媒体类。
-　　当用户使用无线技术连接电视，家庭影院和音乐播放器时，他们希望`android apps`的内容可以在这些大屏幕的设备上播放。启用这种方式的播放，能把一台设备一个用户模式变为一个乐于分享的、令人激动和鼓舞的多用户模式。
-　　android媒体路由（`mediarouter`）接口被设计成可以在二级设备上呈现和播放媒体。
-　　这个库放在：`<sdk>/extras/android/support/v7/mediarouter/`目录下。注意：该库依赖于`v7 apcompat`库，因此你的项目要同时导入这两个库。
+　　范例3：修改字体颜色。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 主标题的字体颜色 -->
+    <style name="Base.TextAppearance.AppCompat.Title">
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+    <!-- 主标题的字体大小 -->
+    <dimen name="abc_text_size_title_material_toolbar">16dp</dimen>
+    <!-- 子标题的字体颜色 -->
+    <style name="Base.TextAppearance.AppCompat.Subhead">
+        <item name="android:textColor">@android:color/darker_gray</item>
+    </style>
+    <!-- 子标题的字体大小 -->
+    <dimen name="abc_text_size_subtitle_material_toolbar">12dp</dimen>
+</resources>
+```
+    语句解释：
+    -  你可能会问，我是怎么知道修改这些样式就能修改标题的字体大小和颜色的? 没有别的办法，就是去v7库里找，连蒙带猜，不堪回首，蛋碎一地。
+    -  V7库有很多values目录，如果你修改了“v7\res\values”下的文件，那么你可能还需要修改：“v7\res\values-land”下的文件。
 
-参考阅读：
+<br>　　这里有两个知识点要说一下：
 
-- [《media and camera 框架之二： MediaRouter》](http://blog.csdn.net/go_strive/article/details/19973011)
+	-  第一，主项目定义的style可以与库项目定义的style同名。程序运行时，主项目的style的值将会覆盖掉库项目的style的值。
+	-  第二，如果库项目的style定义了textSize、textColor两个属性，但主项目的style中只定义了textSize属性，那么当需要使用textColor属性的值时，依然会使用库项目定义的style的textColor属性的值。
 
+## ActionButton ##
+　　前面已经说了，在`Android3.0`之后菜单被移到了标题栏上，以便用户直接可以看到各种设置选项。而`ActionButton`就相当于之前`Menu`菜单下的一个菜单项（`MenuItem`）。与菜单项一样，`ActionButton`包含一个`图标`和`文字`，它会直接显示在`ActionBar`上。当然，如果按钮过多导致`ActionBar`上显示不完，多出的一些按钮可以隐藏在`overflow`里面，点击一下`overflow`按钮就可以看到全部的`ActionButton`了。
 
-<br>**V7 palette 库**
-　　这个库添加了对`Palette`类的支持，它是`Android 5.0`推出的一个新特性。`Palette` 可以从一张图片中提取颜色，我们可以把提取的颜色融入到`App UI`中，可以使`UI`风格更加美观融洽。比如，我们可以从图片中提取颜色设置给`ActionBar`做背景颜色，这样`ActionBar`的颜色就会随着显示图片的变化而变化。
-　　这个库放在：`<sdk>/extras/android/support/v7/palette/`目录下。
+　　现在我们要实现如下图所示的一个效果：
 
-参考阅读：
-
-- [《Android Lollipop 新特性 - Palette》](http://baoyz.com/android/2014/10/21/android-palette-use/)
-
-<br>**V7 recyclerview 库**
-　　这个库添加了对`RecyclerView`类的支持，它是`Android 5.0`推出的一个新`View`组件，用来取代`ListView`的。
-　　`RecyclerView`的特性（但不限于）如下：
-
-	-  支持设置横向和纵向显示Item。
-	-  默认情况下，删除或者增加IteM的时候有动画，当然也可以自定义。
-
-　　这个库放在：`<sdk>/extras/android/support/v7/recyclerview/`目录下。它的具体用法此处就不在展开介绍了。
-
-<br>
-### V8 支持库 ###
-　　这个库设计用于与`Android 2.2`(`API level 8`)或更高的平台，它增加了对`RenderScript`计算框架的支持，这些`APIs`被包含在`android.support.v8.renderscript`包中。值得注意的是，包含这个支持库到你项目中的方法不同于其他支持库，更多信息请参看`RenderScript`开发手册。
-
-<br>
-### V13 支持库 ###
-　　这个库设计用于与`Android 3.2`(`API level 13`)或更高的平台。它增加了对`FragmentCompat`类的支持，以及更多与`Fragment`相关的支持类。
-　　这个库放在：`<sdk>/extras/android/support/v13/ `目录下。
-
-<br>**本节参考阅读：**
-- [Support Library](http://developer.android.com/tools/support-library/index.html)
+<center>
+![](/img/android/android_b07_04.gif)
+</center>
 
 
-# 第二节 Multidex 支持库 #
-　　随着Android的不断发展，不论是官方还是`Github`上都出现了大量的新功能、新类库。如果你是一名幸运的Android应用开发者，正在开发一个前景广阔的应用，那么当你不断地加入新功能、添加新的类库，并达到一定规模时，就会遇到下面的构建错误，它表明你的应用已经达到了一个Android应用程序构建架构的限制。早期版本的构建系统报告这个错误如下：
-``` c
-Conversion to Dalvik format failed:
-Unable to execute dex: method ID not in [0, 0xffff]: 65536
+<br>　　范例1：创建菜单文件（`res\menu\main.xml`）。
+``` xml
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
+
+    <item
+        android:id="@+id/action_plus"
+        android:icon="@drawable/actionbar_add_icon"
+        android:title="@string/action_plus"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_album"
+        android:icon="@drawable/ofm_photo_icon"
+        android:title="我的相册"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_collection"
+        android:icon="@drawable/ofm_collect_icon"
+        android:title="我的收藏"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_card"
+        android:icon="@drawable/ofm_card_icon"
+        android:title="我的银行卡"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_settings"
+        android:icon="@drawable/ofm_setting_icon"
+        android:title="设置"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_feed"
+        android:icon="@drawable/ofm_feedback_icon"
+        android:title="意见反馈"
+        app:showAsAction="never"/>
+
+</menu>
+```
+    语句解释：
+    -  各个Activity的Actionbar里包含的选项可能是不同的，因而每个Activity会有一个对应的menu.xml文件。在menu.xml中，每一个<item>标签都表示一个ActionButton。
+    -  其中android:id、android:icon、android:title依次表示ActionButton的id、图标、文本标题。注意，它们都是在android命名空间里。
+    -  其中app:showAsAction属性用来设置ActionButton显示的位置，注意这个属性是在app命名空间里的。常用取值为：
+       -  always：表示永远显示在ActionBar中，如果屏幕空间不够则无法显示。
+       -  ifRoom：表示屏幕空间够的情况下显示在ActionBar中，不够的话就显示在overflow中。
+       -  never：则表示永远显示在overflow中。
+
+<br>　　范例2：将菜单添加到Activity的`ActionBar`中。
+``` android
+@Override
+public boolean onCreateOptionsMenu(Menu menu) {
+    // Inflate the menu; this adds items to the action bar if it is present.
+    getMenuInflater().inflate(R.menu.main, menu); 
+    return true;
+}
+```
+    语句解释：
+    -  在MainActivity中重写此方法即可，当Activity检测到它自己没有创建过菜单时，就会调用此方法，此方法只会调用一次。系统会根据方法的返回值做出相应的反应：
+       -  若返回 true 则意味着菜单已经被初始化完毕。系统接到返回值后，会在ActionBar中显示出overflow按钮。
+       -  若返回 false 则意味着菜单没被初始化，此时ActionBar中则不会出现overflow按钮。
+    -  MenuInflater类是一个用来将菜单文件加载并解析为一个Menu对象的工具类。调用Activity的getMenuInflater()方法可以获取一个MenuInflater对象。   
+
+<br>　　范例3：响应菜单项的点击事件。
+``` android
+@Override
+public boolean onOptionsItemSelected(MenuItem item) {
+    // Handle action bar item clicks here. The action bar will
+    // automatically handle clicks on the Home/Up button, so long
+    // as you specify a parent activity in AndroidManifest.xml.
+    int id = item.getItemId();
+    switch(id){
+    case R.id.action_album:
+        Toast.makeText(this, "我的相册", Toast.LENGTH_SHORT).show();
+        break;
+    case R.id.action_plus:
+        Toast.makeText(this, "加号被点击", Toast.LENGTH_SHORT).show();
+        break;
+    }
+    return super.onOptionsItemSelected(item);
+}
+```
+    语句解释：
+    -  当用户选择了选项菜单中的一个菜单项（包括ActionBar中的ActionButton），系统会调用Activity的onOptionsItemSelected()方法。这个方法把用户选择的菜单项作为参数来传递。你能够通过调用getItemId()方法来识别菜单项，这个方法返回了对象菜单项的唯一ID（这个ID是在菜单资源的android:id属性中定义的，或者是传递给add方法的一个整数）。你能够把这个ID与已知的菜单项匹配，让它执行对应的动作。
+    -  在MainActivity中重写此方法即可。
+
+<br>　　前面说了，即使当前设备的系统版本高于`Android3.0`，也不保证在`ActionBar`中一定会显示出`overflow`按钮。
+　　[CSDN 博主 郭霖](http://blog.csdn.net/guolin_blog/article/details/18234477) 找到了原因，即`overflow`按钮的显示情况和手机的硬件情况是有关系的，如果手机没有物理`Menu`键的话，`overflow`按钮就可以显示，如果有物理`Menu`键的话（比如Android模拟器都有物理`Menu`键），`overflow`按钮就不会显示出来。
+
+<br>　　范例4：显示出`overflow`按钮。
+``` android
+private void setOverflowShowingAlways() {
+    try {
+        ViewConfiguration config = ViewConfiguration.get(this);
+        Field menuKeyField = ViewConfiguration.class.getDeclaredField("sHasPermanentMenuKey");
+        menuKeyField.setAccessible(true);
+        menuKeyField.setBoolean(config, false);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
+    语句解释：
+    -  在Activity的onCreate()方法的最后一行调用setOverflowShowingAlways()方法即可。
+    -  在ViewConfiguration这个类中有一个叫做sHasPermanentMenuKey的静态变量，系统就是根据这个变量的值来判断手机有没有物理Menu键的。本范例就是使用反射的方式将sHasPermanentMenuKey的值设置成false。
+
+
+<br>　　如果你此时运行程序，然后点击`overflow`按钮，你会发现里面的`ActionButton`都是只显示文字不显示图标的。这是官方的默认效果，但我们可以通过反射来改变这一默认行为。
+
+<br>　　范例5：让菜单项显示图标。
+``` android
+@Override
+public boolean onMenuOpened(int featureId, Menu menu) {
+    if (featureId == Window.FEATURE_ACTION_BAR && menu != null) {
+        if (menu.getClass().getSimpleName().equals("MenuBuilder")) {
+            try {
+                Method m = menu.getClass().getDeclaredMethod("setOptionalIconsVisible", Boolean.TYPE);
+                m.setAccessible(true);
+                m.invoke(menu, true);
+            } catch (Exception e) {}
+        }
+    }
+    return super.onMenuOpened(featureId, menu);
+}
+```
+    语句解释：
+    -  直接在Activity中重写onMenuOpened()方法即可。
+    -  由MenuBuilder这个类的setOptionalIconsVisible()方法来决定overflow中的ActionButton应不应该显示图标，如果我们在overflow被展开的时候给这个方法传入true，那么里面的每一个ActionButton对应的图标就都会显示出来了。
+    
+<br>　　最后，来我们就要修改一下`overflow`菜单以及其内的各个`ActionButtom`的样式了，比如字体颜色等。
+
+<br>　　范例6：修改样式。
+``` xml
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- overflow弹出菜单的样式 -->
+    <style name="Base.Widget.AppCompat.ListPopupWindow" parent="">
+        <!-- 菜单默认弹出的位置是0，此处将它在垂直方向的偏移量设置为52dp，即让弹出菜单向下移动一些位置 -->
+        <item name="android:dropDownVerticalOffset">52dp</item>
+        <!-- 弹出菜单的背景图片 -->
+        <item name="android:popupBackground">@drawable/bg_dropmenu_topbar</item>
+    </style>
+
+    <!-- overflow弹出菜单内部的样式 -->
+    <style name="Base.Widget.AppCompat.ListView.DropDown" parent="android:Widget.ListView">
+        <!-- overflow弹出菜单内部，每个Item之间的分割线 -->
+        <item name="android:divider">@drawable/ic_divider</item>
+        <!-- overflow弹出菜单内部，每个Item的selector -->
+        <item name="android:listSelector">@drawable/actionbar_item_selector</item>
+    </style>
+
+     <!-- overflow出菜单内部的每个Item的字体颜色与大小 -->
+     <style name="Base.TextAppearance.AppCompat.Menu">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+</resources>
 ```
 
-　　最近版本的Android构建系统会显示一个不同的错误信息，但它们是一个同样的问题:
-``` c
-trouble writing output:
-Too many field references: 131000; max is 65536.
-You may try using --multi-dex option.
+<br>　　范例7：现在我们要实现如下图所示的一个效果：
+
+<center>
+![](/img/android/android_b07_05.png)
+</center>
+
+<br>　　上图中添加了两个新修改，一个是标题栏左边的`“←”`，另一个是`overflow`按钮左边是一个文本的`ActionButton`。
+
+	-  前者，调用getSupportActionBar().setDisplayHomeAsUpEnabled(true);即可。
+	   -  当它被点击时同样会调用onOptionsItemSelected()方法，菜单项id为android.R.id.home。
+	-  后者，在main.xml文件中，只为<item>标签指定android:title属性，而不指定android:icon属性即可。
+
+　　下面是文本`ActionButton`相关的样式：
+``` xml
+// 字体的大小、背景selector
+<style name="Base.Widget.AppCompat.ActionButton" parent="">
+    <item name="android:textSize">14sp</item>
+    <item name="android:background">@drawable/actionbar_text_actionbtn_selector</item>
+</style>
 ```
-<br>　　这两个错误条件显示一个共同的数字：`65536`。这个数字很重要，因为它代表了`方法的总数`。Android平台的Java虚拟机`Dalvik`在执行`DEX`格式的Java应用程序时，使用原生类型`short`来索引`DEX`文件中的方法。这意味着单个`DEX`文件可被引用的方法总数被限制为`65536`。通常`APK`包含一个`classes.dex`文件，因此Android应用的方法总数不能超过这个数量，这个数量是`Android框架`、`第三方类库`和`你自己开发的代码`的总和。如果你已经建立了一个Android应用，并且收到了这个错误，那么恭喜你，你的方法数已经超过了这个限制。
 
-　　这个问题可以通过将一个`DEX`文件分拆成多个`DEX`文件解决。在`Facebook`、`Android Developers`博客等地方，介绍了通过自定义类加载过程的方法来解决此问题，但这些方法有些复杂而且并不优雅。
-　　随着新的`MultiDex支持库`发布，`Google`正式为解决此问题提供`官方支持`，[《Building Apps with Over 65K Methods》](http://developer.android.com/tools/building/multidex.html)介绍了如何使用`Gradle`构建多`DEX`应用。
+<br>　　范例8：修改`ActionButton`的背景范围。
 
-<br>**在Android 5.0是个分水岭**
-　　`Android 5.0`之前版本的平台使用的`Dalvik`执行应用程序代码。默认情况下，`Dalvik`限制每`APK`文件只能有一个`classes.dex`的字节码。为了绕过这个限制，您可以使用`Multidex支持库`，它允许你的`APK`中包含多个`dex`文件。
-　　`Android 5.0`和`更高版本`使用`ART`来执行应用程序代码，它原生支持从`APK`文件加载多个`DEX`文件。在应用安装时，它会执行预编译，扫描`classes(..N).dex`文件然后将其编译成单个`.oat`文件用于执行。
+<center>
+![](/img/android/android_b07_06.png)
+</center>
 
-　　更多关于`ART`的介绍可以参看博文： [《Android运行时ART简要介绍和学习计划》](http://blog.csdn.net/luoshengyang/article/details/39256813) 。
+　　在`V7 appcompat revision 22`中，默认情况下`ActionButton`的按下效果如上图（左），我们可以通过下面的代码，把效果修改为上图（右）：
+``` xml
+<dimen name="abc_action_button_min_height_material">@dimen/abc_action_bar_default_height_material</dimen>
+<dimen name="abc_action_button_min_width_material">@dimen/abc_action_bar_default_height_material</dimen>
+```
 
-<br>**仍需控制项目大小**
-　　虽然`Google`解决了应用总方法数限制的问题，但并不意味着开发者可以任意扩大项目规模。`Multidex`仍有一些限制：
+## ActionView ##
+　　`ActionView`是一种可以在`ActionBar`中替换`ActionButton`的控件，它可以允许用户在不切换界面的情况下通过`ActionBar`完成一些较为丰富的操作。比如说，你需要完成一个搜索功能，就可以将`SeachView`这个控件添加到`ActionBar`中。
 
-	1、DEX文件安装到设备的过程非常复杂，如果第二个DEX文件太大，可能导致应用无响应。此时应该使用ProGuard减小DEX文件的大小。
-	2、由于Dalvik linearAlloc的Bug，应用可能无法在Android 4.0之前的版本启动，如果你的应用要支持这些版本就要多执行测试。
-	3、同样因为Dalvik linearAlloc的限制，如果请求大量内存可能导致崩溃。Dalvik linearAlloc是一个固定大小的缓冲区。在应用的安装过程中，系统会运行一个名为dexopt的程序为该应用在当前机型中运行做准备。dexopt使用LinearAlloc来存储应用的方法信息。Android 2.2和2.3的缓冲区只有5MB，Android 4.x提高到了8MB或16MB。当方法数量过多导致超出缓冲区大小时，会造成dexopt崩溃。
-	4、Multidex构建工具还不支持指定哪些类必须包含在首个DEX文件中，因此可能会导致某些类库（如某个类库需要从原生代码访问Java代码）无法使用。
+　　为了声明一个`ActionView`，我们可以在`menu`资源中通过`actionViewClass`属性来指定一个控件，例如可以使用如下方式添加`SearchView`：
+``` xml
+<item
+    android:id="@+id/action_search"
+    android:icon="@drawable/actionbar_search_icon"
+    android:title="@string/action_search"
+    app:actionViewClass="android.support.v7.widget.SearchView"
+    app:showAsAction="ifRoom|collapseActionView"/>
+```
+    语句解释：
+    -  collapseActionView表明了这个操作视窗应该被折叠到一个按钮中，当用户选择这个按钮时，这个操作视窗展开。
 
-<br>　　避免应用过大、方法过多仍然是Android开发者要注意的问题。`Mihai Parparita`的开源项目[ dex-method-counts ](https://github.com/mihaip/dex-method-counts)可以用于统计`APK`中每个包的方法数量。通常开发者自己的代码很难达到这样的方法数量限制，但随着第三方类库的加入，方法数就会迅速膨胀。因此选择合适的类库对Android开发者来说尤为重要。
+<center>
+![](/img/android/android_b07_07.png)
+</center>
 
-　　开发者应该避免使用`Google Guava`这样的类库，它包含了`13000`多个方法。尽量使用专为移动应用设计的`Lite/Android`版本类库，或者使用小类库替换大类库，例如用`Google-gson`替换`Jackson JSON`。而对于`Google Protocol Buffers`这样的数据交换格式，其标准实现会自动生成大量的方法。采用`Square Wire`的实现则可以很好地解决此问题。
+　　这里所说的`SearchView`是`V7 appcompat`库内置的一个控件，我们把它添加到`ActionBar`中时，默认会显示上图中的（上）所示的界面，当我们点击那个放大镜时，会显示为上图中的（下）所示的界面。
+　　此时可以看到，当`SearchView`被展开时会占满整个`ActionBar`，而其它的`ActionButton`由于将`showAsAction`属性设置成了`ifRoom`，此时都会隐藏到`overflow`当中。
+
+　　如果你还希望在代码中对`SearchView`的属性进行配置（比如添加监听事件等），完全没有问题，只需要在`onCreateOptionsMenu()`方法中获取该`ActionView`的实例就可以了，代码如下所示：
+``` android
+@Override
+public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.main, menu);
+    MenuItem searchItem = menu.findItem(R.id.action_search);
+
+    // 注意此处的SearchView的全名为：android.support.v7.widget.SearchView。
+    SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+
+    searchView.setOnQueryTextFocusChangeListener(new OnFocusChangeListener() {
+        // 当searchView处于可输入状态时，hasFocus等于true。
+        public void onFocusChange(View v, boolean hasFocus) {
+            System.out.println("hasFocus = "+hasFocus);;
+        }
+    });
+    return true;
+}
+```
+
+　　`SearchView`还提供了其他事件监听方法，此处就不再一一介绍了。
+
+## ActionProvider ##
+　　`ActionProvider`与`ActionView`有点类似，它也可以将一个`ActionButton`替换成一个自定义的布局。但不同的是，`ActionProvider`能够完全控制事件的所有行为，并且还可以在点击的时候显示子菜单。
+　　为了添加一个`ActionProvider`，我们需要在`<item>`标签中指定一个`actionViewClass`属性，在里面填入`ActionProvider`的完整类名。我们可以通过继承`ActionProvider`类的方式来创建一个自己的`ActionProvider`，同时，Android也提供好了几个内置的`ActionProvider`，比如说`ShareActionProvider`。
+<br>
+### ShareActionProvider ###
+<br>　　范例1：添加`ShareActionProvider`。
+``` xml
+<item
+    android:id="@+id/action_share"
+    android:title="分享"
+    app:actionProviderClass="android.support.v7.widget.ShareActionProvider"
+    app:showAsAction="ifRoom"/>
+```
+　　接着剩下的事情就是通过`Intent`来定义出你想分享哪些东西了，我们只需要在`onCreateOptionsMenu()`中得到`ShareActionProvider`对象，再通过`setShareIntent()`方法去选择构建出什么样的一个`Intent`就可以了。
+``` android
+@Override
+public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.main, menu);
+
+    MenuItem shareItem = menu.findItem(R.id.action_share);  
+    ShareActionProvider provider = (ShareActionProvider)MenuItemCompat.getActionProvider(shareItem);
+    Intent intent = new Intent(Intent.ACTION_SEND);  
+    intent.setType("text/plain");  
+    intent.putExtra(Intent.EXTRA_SUBJECT, "知乎分享-ActionBar测试");
+    intent.putExtra(Intent.EXTRA_TEXT, "此消息来自虎哥ActionBar测试Demo，没错，虎哥就是这么风骚！");
+    provider.setShareIntent(intent);  
+    return true;
+}
+```
+
+<br>　　从上面的代码可以看到，我们构建了一个`Intent`，该`Intent`表示会将所有可以共享文本的程序都列出来。重新运行一下程序，效果如下图所示：
+
+<center>
+![](/img/android/android_b07_08.png)
+</center>
+
+<br>
+### 自定义ActionProvider ###
+　　除了使用`ShareActionProvider`之外，我们也可以自定义一个`ActionProvider`。我们可以自定义两种`ActionProvider`，第一种是有弹出菜单的，第二种是可以展开的（与`SearchView`的效果一样），具体效果如下图所示：
+
+<center>
+![](/img/android/android_b07_09.gif)
+</center>
+
+　　下面我们来创建两个自定义的`ActionProvider`类。
+
+<br>　　范例1：`TextViewActionProvider`类。
+``` android
+public class TextViewActionProvider extends ActionProvider {
+    public TextViewActionProvider(Context context) {
+        super(context);
+    }
+
+    @Override
+    public View onCreateActionView() {
+        // 在此方法中返回你想要自定义的布局即可。
+        TextView text = new TextView(getContext());
+        text.setText("TextViewActionProvider");
+        return text;
+    }
+}
+```
+
+<br>　　范例2：`SubMenuActionProvider`类。
+``` android
+public class SubMenuActionProvider extends ActionProvider {
+    public SubMenuActionProvider(Context context) {
+        super(context);
+    }
+    public View onCreateActionView() {
+        return null;
+    }
+
+    @Override
+    public boolean hasSubMenu() {
+        // 返回true表名当前SubMenuActionProvider是子菜单类型的。
+        return true;
+    }
+
+    // 当需要初始化菜单项的时候，回调此方法。
+    public void onPrepareSubMenu(SubMenu subMenu) {
+        subMenu.clear();
+        subMenu.add("sub item 1").setIcon(R.drawable.ic_launcher)
+            .setOnMenuItemClickListener(new OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    Toast.makeText(getContext(), "sub item 1", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+            });
+        subMenu.add("sub item 2").setIcon(R.drawable.ic_launcher)
+            .setOnMenuItemClickListener(new OnMenuItemClickListener() {
+                public boolean onMenuItemClick(MenuItem item) {
+                    Toast.makeText(getContext(), "sub item 2", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            });
+    }
+}
+```
+
+　　接着修改`menu`资源，在里面加入`TextViewActionProvider`和`SubMenuActionProvider`的声明：
+``` xml
+<item
+    android:id="@+id/action_search"
+    android:icon="@drawable/icon1"
+    android:title="@string/action_search"
+    app:actionProviderClass="com.example.actionbardemo.SubMenuActionProvider"
+    app:showAsAction="ifRoom|collapseActionView"/>
+<item
+    android:id="@+id/action_share"
+    android:icon="@drawable/icon2"
+    android:title="@string/action_search2"
+    app:actionProviderClass="com.example.actionbardemo.TextViewActionProvider"
+    app:showAsAction="ifRoom|collapseActionView"/>
+```
+
+## 自定义布局 ##
+　　`ActionBar`为用户提供一种熟悉可预测的方式来展示操作和导航，但是这并不意味着你的`app`要看起来和其他`app`一样，我们可以自定义自己的布局。  
+　　将`ActionBar`划分为如下所示的4个区域：
+
+<center>
+![](/img/android/android_b07_10.png)
+</center>
+
+　　其中：
+
+	-  1表示返回按钮和图标。
+	-  2表示标题
+	-  3表示ActionButton、ActionProvider、ActionView。
+	-  4表示Overflow按钮。
+
+<br>　　我们可以通过调用如下代码来自定义`ActionBar`的布局：
+``` android
+getSupportActionBar().setDisplayShowCustomEnabled(true);
+getSupportActionBar().setCustomView(R.layout.common_title);
+```
+    语句解释：
+    -  自定义的布局将显示在上图中“2”的位置，如果你把其他三个位置都给隐藏掉，那么我们自定义的布局将占据整个ActionBar的空间。
+
+## 添加导航Tabs ##
+　　`Tabs`的应用可以算是非常广泛了，它可以使得用户非常轻松地在你的应用程序中切换不同的视图。而Android官方更加推荐使用ActionBar中提供的`Tabs`功能，因为它更加的智能，可以自动适配各种屏幕的大小。比如说，在平板上屏幕的空间非常充足，`Tabs`会和`ActionButton`在同一行显示，而如果是在手机上，屏幕的空间不够大的话，`Tabs`和`ActionButton`则会分为两行显示，即`Tabs`会放到第二行显示。
+
+　　虽然如此，但是它的灵活性不够强，很难做出高要求的`Tab`效果，笔者并不打算继续介绍它。而且`ActionBar Tab`的替代品也很多，我们可以自己写，也可以使用网上现有的开源框架，比如：[PagerSlidingTabStrip](https://github.com/astuetz/PagerSlidingTabStrip) 。
+　　开源框架往往由多个人合力完成，因此不论是在`UI特效`、`执行效率`、`bug搜集与解决`上都比我们自己编写要强很多。不过话还得说回来，虽然 `我们可以不去自己写这些特效，但是必须得会改`。
 
 
-<br>**本节参考阅读：**
-- [Android应用打破65K方法数限制](http://www.infoq.com/cn/news/2014/11/android-multidex)
 
-# 第三节 JIT #
-　　既然在[《Android运行时ART简要介绍和学习计划》](http://blog.csdn.net/luoshengyang/article/details/39256813) 中提到了`JIT`，我们本节就简单介绍一下`JIT`。
+# 第二节 直接使用ActionBar #
+　　仔细想了一下，其实我们没必要使用系统的`ActionBar`，因为`V7 appcompat`库就是Google提供的，`ActionBar`有什么最新的特性也会及时更新到里面去，所以就目前来说`V7 appcompat`库足以够用了。<br><br><br><br>
 
-<br>**序：**
-　　从计算机程序出现的第一天起，对效率的追逐就是程序员天生的、坚定的信仰，这个过程犹如一场没有终点，永不停歇的`F1方程式竞赛`。程序员犹如车手，技术平台则是赛道上飞驰的赛车。
 
-　　`JIT`，即时编译器（`JIT compiler`，`just-in-time compiler`）是一种提高程序运行效率的方法。
-　　通常，程序有两种运行方式：`静态编译`与`动态直译`。`静态编译`的程序(如`C语言`)在执行前全部被翻译为机器码，而`动态直译`执行的则是一句一句边运行边翻译(如`Java`)。而`即时编译器则混合了这二者`，一句一句编译源代码，但是`会将翻译过的代码缓存起来以降低性能损耗`。相对于静态编译代码，即时编译的代码可以处理延迟绑定并增强安全性。
 
-<br>**JVM即时编译器**
-　　以`Java`语言为例，首先，我们大家都知道，通常`javac`将程序源代码编译，转换成`java`字节码，而这个字节码不是编译成与某个特定的处理器硬件平台对应的指令代码（比如，`Intel`的`Pentium`微处理器或`IBM`的`System/390`处理器），因此后续`JVM`还要通过解释字节码将其翻译成对应的机器指令，逐条读入，逐条解释翻译。
-　　当`JVM`发现某个方法或代码块运行特别频繁的时候，就会认为这是`“热点代码”`（`Hot Spot Code`)。为了提高热点代码的执行效率，就会将这些`“热点代码”`编译成与本地机器相关的机器码，进行各个层次的优化。 完成这个任务的编译器就是即时编译器（`JIT`）。因此即时编译器的性能好坏，代码的优化程度高低是衡量一款商用虚拟机优秀与否的最关键指标之一，它是虚拟机最核心最能体现技术水平的部分。
-　　 常见的热点代码有两类：
+<br>**本章参考阅读：**
+- [Android ActionBar使用介绍](http://blog.csdn.net/wangjinyu501/article/details/9360801)
+- [Android ActionBar完全解析，使用官方推荐的最佳导航栏(上)](http://blog.csdn.net/guolin_blog/article/details/18234477)
+- [Android ActionBar完全解析，使用官方推荐的最佳导航栏(下)](http://blog.csdn.net/guolin_blog/article/details/25466665)
+- [How to center align the ActionBar title in Android?](http://stackoverflow.com/questions/12387345/how-to-center-align-the-actionbar-title-in-android)
+- [Android-Action Bar使用方法-活动栏(一)](http://www.oschina.net/question/54100_34400)
 
-	-  多次被调用的方法
-	-  多次被执行的循环体
-
-<br>　　提示1：`Java JIT`工作流程。
-
-	-  首先，Java源码通过编译器转为平台无关的字节码文件。
-	-  然后，在启动Java应用程序后，JVM会在运行时加载编译后的类并通过Java解释器执行适当的语义计算。
-	-  接着，当开启JIT时，JVM会分析Java应用程序的函数调用并且（达到内部一些阀值后）编译字节码为本地更高效的机器码。JIT流程通常为最繁忙的函数调用提供更高的优先级。
-	-  最后，一旦函数调用被转为机器码，JVM会直接执行而不是“解释执行”。
-
-<br>　　提示2：`JIT`不是`Java`专有的。
-
-	-  微软的.NET Framework等语言都依赖即时翻译以提供高速的代码执行。Mozilla Firefox使用的Javascript引擎SpiderMonkey也用到了JIT的技术。Ruby的第三方实现Rubinius和Python的第三方实现PyPy也都通过JIT来明显改善了解释器的性能。
 
 <br><br>
