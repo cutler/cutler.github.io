@@ -60,7 +60,7 @@ categories: android
 　　进入到`Android Studio`后，你会看到如下界面（可能和你的有点不同，但是不影响）：
 
 <center>
-![](/img/android/android_d04_01.jpg)
+![](/img/android/android_o04_01.jpg)
 </center>
 
 　　右面的那一个红框里的按钮，都是我们常用的功能键，比如第二个和第三个分别是`运行`和`Debug`，倒数第二个和倒数第一个分别是，`SDK Manager`和`Android Device Monitor`（即原来Eclipse中的`DDMS`视图）。
@@ -81,7 +81,7 @@ Failure [INSTALL_FAILED_OLDER_SDK]
 　　事实上，使用	`Android Studio`创建的Android项目的`目录结构`已经和Eclipse创建的不一样了，现在我们需要进入到一个名为`build.gradle`的文件中修改，即下图中的`build.gradle(Module:app)`，把里面的`minSdkVersion 21`改为`minSdkVersion 8`即可。
 
 <center>
-![](/img/android/android_d04_02.png)
+![](/img/android/android_o04_02.png)
 </center>
 
 <br>**Poject 与 Module**
@@ -949,7 +949,7 @@ dependencies {
 　　`Android Studio`会使用到`TortoiseSVN`的`“command line client tools”`，但是由于在安装`TortoiseSVN`时，默认是不安装这个工具的，因而即便是你已经安装了`TortoiseSVN`，仍然需要卸载了重新装。
 
 <center>
-![安装时，选择第一项即可](/img/android/android_d04_03.png)
+![安装时，选择第一项即可](/img/android/android_o04_03.png)
 </center>
 
 　　安装完成后，执行如下步骤：
@@ -974,7 +974,7 @@ dependencies {
 　　导入Eclipse格式的项目后，你可能会遇到`“Android Manifest doesn't exists or has incorrect root tag”`的错误，解决的方式是点击下图所示的按钮：
 
 <center>
-![Sync project with Gradle files](/img/android/android_d04_04.png)
+![Sync project with Gradle files](/img/android/android_o04_04.png)
 </center>
 
 　　如果你没有找到这个按钮，请参看 [Android Studio: Android Manifest doesn't exists or has incorrect root tag](http://stackoverflow.com/questions/17424135/android-studio-android-manifest-doesnt-exists-or-has-incorrect-root-tag) 。
@@ -983,7 +983,7 @@ dependencies {
 　　如果你是通过向导来导入项目的，那么请选择下图所示的`Import project (Eclipse ADT, Gradle, etc.)`：
 
 <center>
-![](/img/android/android_d04_05.png)
+![](/img/android/android_o04_05.png)
 </center>
 
 <br>**快捷键设置**
@@ -1017,7 +1017,7 @@ dependencies {
 　　笔者认为导致`Android Studio`卡的最主要原因就是网络问题，可以按照下图所示的操作，把`Offline work`勾上，即将`Gradle`切换到离线工作模式。
 
 <center>
-![](/img/android/android_d04_06.png)
+![](/img/android/android_o04_06.png)
 </center>
 
 　　当设置为离线模式后，在项目进行`build`时`Gradle`只会从本地查找依赖，若本地没有缓存过那个的库，则将会导致`build`失败。也就是说，之前`build`速度很慢，是因为`Gradle`去网上查找依赖了。
@@ -1049,7 +1049,7 @@ dependencies {
 　　最后，必须得再点击下图所示的按钮，就可以正常使用它了：
 
 <center>
-![Sync project with Gradle files](/img/android/android_d04_04.png)
+![Sync project with Gradle files](/img/android/android_o04_04.png)
 </center>
 
 　　相当于让`Android Studio`重新更新一下项目。
