@@ -7,7 +7,7 @@ categories: android
 # 第一节 概述 #
 
 ## 视频 ##
-　　视频技术经历了`模拟视频`和`数字视频`两个阶段，我们接下来就简单的介绍一下它们。
+　　与音频一样，视频技术也经历了`模拟视频`和`数字视频`两个阶段，我们接下来就简单的介绍一下它们。
 
 <br>**模拟视频**
 
@@ -107,11 +107,13 @@ categories: android
 <br>**本节参考阅读：**
 - [百度百科 - 流媒体技术](http://baike.baidu.com/link?url=0Z7BN9dkYwvm69UhTeBqRdt39P3eL3Ux2ZZIydX3YIn3JWYcluurnct_c3WT0F59)
 
-# 第二节 Vitamio #
+# 第二节 视频播放 #
+
+## 各类开源框架 ##
 　　上一节中介绍了视频相关的理论知识，本节我们将使用`Vitamio`来实现`Android`平台的流媒体播放功能。
 　　另外，由于笔者从事的是`Android`开发工作，因而暂时没去了解如何将普通视频转换成流媒体格式视频，这些由服务端的同事完成了，如果你对此有兴趣请自行学习。
 
-## 简介 ##
+
 　　`Vitamio`是一款`Android`与`iOS`平台上的全能多媒体开发框架，全面支持硬件解码与`GPU`渲染，我们可以用它来播放`720P`甚至`1080P`高清的视频。
 
 <br>**流媒体支持**
@@ -157,45 +159,67 @@ MP4
 　　由于目前`Vitamio`官方没有提供`Android Studio`版本的库，所以我们只能自己手动来搭建环境了。
 　　提示：如果你没用过`Android Studio`，请参阅[《实战篇　第四章 Android Studio》](http://cutler.github.io/android-O04/)。
 
-<br>　　第一步，打开`Github`并下载的最新版本：[Android平台](https://github.com/yixia/VitamioBundle/releases) 和 [iOS平台](https://github.com/yixia/Vitamio-iOS/releases)，或者前往[ 中文官网 ](https://www.vitamio.org/Download/)下载，本文档使用的是`4.2.2`版本。
-　　第二步，创建一个名为`VitamioTest`的新`Android Studio`项目。
-　　第三步，依次点击`File -> New -> Import Module..`，并导入`VitamioBundle-4.2.2\vitamio`项目，名称为`:vitamio`。
 
-　　第四步，不出意外的话，当导入任务执行完毕后你会看到如下一个错误：
-``` c
-Error:(7, 0) Could not find property 'ANDROID_BUILD_SDK_VERSION' on project ':vitamio'.
-```
-　　其实`Module`已经导入成功了，只是编译整个项目的时候出错了，解决的方法是：
+为什么不用原生控件？
+http://www.koulianbing.com/?p=97
+播放器方面，Android和IOS理论上是原生支持HLS播放的，不过实际应用过程中适配问题比较多，所以业内一般都使用bilibili开源出来的IJKPlayer，像斗鱼TV之类的都是自己基于IJKPlayer改造的，技术方案比较成熟，稳定性方面比较可靠，使用起来也很简单，项目的编译脚本做的比较简单、灵活。
 
-	-  首先，进入到VitamioTest\app目录下面，打开build.gradle文件。
-	-  然后，进入到VitamioTest\vitamio目录下面，也打开build.gradle文件。
-	-  接着，使用app\build.gradle中的compileSdkVersion、buildToolsVersion、minSdkVersion、targetSdkVersion四个属性的值覆盖掉vitamio\build.gradle文件内的值。
-	-  最后，重启Android Studio。
 
-　　第五步，打开`app`的`build.gradle`文件，在里面加上`compile project(':vitamio')`来引用`Vitamio`。
-　　第六步，修改完毕`build.gradle`文件后，都要点一下`Sync project with Gradle files`按钮。
-
-　　第七步，点完按钮之后，也许你还会遇到下面这个错误：
-``` c
-Error:(7, 9) Attribute application@icon value=(@mipmap/ic_launcher) from AndroidManifest.xml:7:9
-Error:(8, 9) Attribute application@label value=(@string/app_name) from AndroidManifest.xml:8:9
-	is also present at VitamioTest:vitamio:unspecified:17:9 value=(Vitamio)
-	Suggestion: add 'tools:replace="android:label"' to <application> element at AndroidManifest.xml:5:5 to override
-Error:Execution failed for task ':app:processDebugManifest'.
-> Manifest merger failed with multiple errors, see logs
-```
-　　这个错误大体的意思是：`app`和`vitamio`两个`Module`的清单文件的`<application>`标签的`icon`和`label`属性重复了。解决的方法就是把`vitamio`的`<application>`标签的所有属性都给删掉即可。
-
-　　第八步，重新编译、运行这个项目，如果都很一切顺利，则证明咱们已经成功集成了`Vitamio`库了。
-
-<br>**本节参考阅读：**
-- [Vitamio - 帮助文档](https://www.vitamio.org/docs/)
-- [Could not find property 'ANDROID_BUILD_SDK_VERSION'](http://stackoverflow.com/questions/21477884/importing-facebook-library-in-android-studio-could-not-find-property-android-b)
-
-## 开始使用 ##
-　　妈的，老子要玩个大的，等着吧！
 
 <br>**本节参考阅读：**
 - [随笔分类 - 5、Vitamio](http://www.cnblogs.com/over140/category/409230.html)
+## ijkplayer ##
+### 编译 ###
+项目地址：https://github.com/Bilibili/ijkplayer
+为什么
 
+
+
+**配置git**
+先执行`git clone git@github.com:Bilibili/ijkplayer.git`
+``` c
+Cloning into 'ijkplayer'...
+Permission denied (publickey).
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+```
+
+可能是你没配置过，按照这个配置即可：
+https://help.github.com/articles/generating-ssh-keys/#platform-mac
+
+**执行初始化**
+`cd ijkplayer/`
+`git checkout -B latest k0.3.2.1`
+`./init-android.sh`这里会自动下载 ffmpeg 和 android-libyuv 依赖包，其中由于 ffmpeg 仓库在国外，故需要等待较长时间。本人以 15KB/s 的速度下载了两个多小时，等待期间可以做下面的准备。
+
+
+**修改path**
+最直观的方法是：
+cd ~
+open .bash_profile
+这时候就会直接用记事本程序打开这个配置文件，比在终端里那么设置要简单直观多了。
+要注意一点那就是配置文件里的变量是会覆盖的，比如
+export PATH=1
+export PATH=2
+那么后面的2会把前面的1覆盖的。
+修改之后重启中断窗口才能生效。
+
+**下载ndk**
+Download the appropriate package from this page.
+Open a terminal window.
+Go to the directory to which you downloaded the package.
+Run chmod a+x on the downloaded package.
+Execute the package. For example:
+``` c
+ndk$ chmod a+x android-ndk-r10c-darwin-x86_64.bin
+ndk$ ./android-ndk-r10c-darwin-x86_64.bin
+```
+The folder containing the NDK extracts itself.
+You can also use a program like 7z to extract the package.
+
+
+
+http://www.koulianbing.com/?p=97
 <br><br>

@@ -7,9 +7,11 @@ categories: android
 # 第一节 概述 #
 
 ## 引言 ##
-　　移动平台上的开发和内存管理紧密相关。尽管随着科技的进步，现今移动设备上的内存大小已经达到了低端桌面设备的水平，但是现今开发的应用程序对内存的需求也在同步增长。主要问题出在设备的屏幕尺寸上——`分辨率越高需要的内存越多`。熟悉Android平台的开发人员一般都知道垃圾回收器并不能彻底杜绝`内存泄露`问题，对于大型应用而言，内存泄露对性能产生的影响是难以估量的，因此开发人员必须要有内存分析的能力。
+　　尽管随着科技的进步，现今移动设备上的内存大小已经达到了低端桌面设备的水平，但是现今开发的应用程序对内存的需求也在同步增长。
+　　主要问题出在设备的屏幕尺寸上——`分辨率越高需要的内存越多`。
+　　熟悉Android平台的开发人员一般都知道垃圾回收器并不能彻底杜绝`内存泄露`问题，对于大型应用而言，内存泄露对性能产生的影响是难以估量的，因此开发人员必须要有内存分析的能力。
 
-　　从早期`G1`的`192MB RAM`开始，到现在动辄`1G -2G RAM`的设备，为单个App分配的内存从`16MB`到`48MB`甚至更多，但`OOM`从不曾离我们远去。这是因为大部分App中图片内容占据了`50%`甚至`75%`以上，而App内容的极大丰富，所需的图片越来越多，屏幕尺寸也越来越大分辨率也越来越高，所需的图片的大小也跟着往上涨，这在大屏手机和平板上尤其明显。而且还经常要兼容低版本的设备。所以Android的内存管理显得极为重要。
+　　从早期`G1`的`192MB RAM`开始，到现在动辄`1G -2G RAM`的设备，为单个App分配的内存从`16MB`到`48MB`甚至更多，但`OOM`从不曾离我们远去。这是因为大部分App中图片内容占据了`50%`甚至`75%`以上，而App内容的极大丰富，所需的图片越来越多，屏幕尺寸也越来越大分辨率也越来越高，所需的图片的大小也跟着往上涨，这在大屏手机和平板上尤其明显，而且还经常要兼容低版本的设备，所以Android的内存管理显得极为重要。
 <br>　　在本节我们主要讲两件事情：
 
 	-  Gingerbread和Honeycomb中的一些影响你使用内存的变化（heap size、GC、bitmaps）。
@@ -41,13 +43,13 @@ categories: android
 
 <br>**垃圾回收**
 　　首先我们简单回顾下`JAVA`的内存回收机制，内存空间中垃圾回收的工作由垃圾回收器 (`Garbage Collector，GC`) 完成的，它的核心思想是：对虚拟机可用内存空间，即堆空间中的对象进行识别，如果对象正在被引用，那么称其为存活对象，反之，如果对象不再被引用，则为垃圾对象，可以回收其占据的空间，用于再分配。
-　　在垃圾回收机制中有一组元素被称为`根元素集合`，它们是一组被虚拟机直接引用的对象，比如，正在运行的线程对象，系统调用栈里面的对象以及被`system class loader`所加载的那些对象。堆空间中的每个对象都是由一个根元素为起点被层层调用的。因此，一个对象还被某一个存活的根元素所引用，就会被认为是`存活对象`，不能被回收，进行内存释放。因此，我们可以`通过分析一个对象到根元素的引用路径来分析为什么该对象不能被顺利回收`。如果说一个对象已经不被任何程序逻辑所需要但是还存在被根元素引用的情况，我们可以说这里存在内存泄露。
+　　在垃圾回收机制中有一组元素被称为`根元素集合`，它们是一组被虚拟机直接引用的对象，比如，正在运行的线程对象，系统调用栈里面的对象以及被`system class loader`所加载的那些对象。堆空间中的每个对象都是由一个根元素为起点被层层调用的。因此，一个对象还被某一个存活的根元素所引用，就会被认为是`存活对象`，不能被回收和进行内存释放。因此，我们可以`通过分析一个对象到根元素的引用路径来分析为什么该对象不能被顺利回收`。如果说一个对象已经不被任何程序逻辑所需要但是还存在被根元素引用的情况，我们可以说这里存在内存泄露。
 
 <center>
 ![](/img/android/android_8_1.png)
 </center>
 
-　　如上图所示，`GC`会选择一些它了解还存活的对象作为内存遍历的根节点，比方说`thread stack`中的变量，`JNI`中的全局变量，`zygote`中的对象等，然后开始对`heap`进行遍历。到最后，部分没有直接或者间接引用到`GC Roots`的就是需要回收的垃圾，会被`GC`回收掉。如下图蓝色部分：
+　　如上图所示，`GC`会选择一些它了解还存活的对象作为内存遍历的根节点，比方说`thread stack`中的变量，`JNI`中的全局变量，`zygote`中的对象等，然后开始对`heap`进行遍历。到最后，那些没有直接或者间接引用到`GC Roots`的就是需要回收的垃圾，会被`GC`回收掉。如下图蓝色部分：
 
 <center>
 ![](/img/android/android_8_2.png)
@@ -55,7 +57,23 @@ categories: android
 
 　　因此也可以看出，更大的`heap size`需要遍历的对象更多，回收垃圾的时间更长，所以说使用`largeHeap`选项会导致更多的`GC`时间。
 
+　　提示：
+
+	Activity有View的引用，View也有Activity的引用，当Activity被finish掉之后，Activity和View的循环引用已成孤岛，不再引用到GC Roots，无需断开也会被回收掉。
+
 <br>　　在`Gingerbread(Andrid2.3)`之前，`GC`执行的时候整个应用会暂停下来执行全面的垃圾回收，因此有时候会看到应用卡顿的时间比较长，一般来说`>100ms`，对用户而言已经足以察觉出来。`Gingerbread`及以上的版本，`GC`做了很大的改进，基本上可以说是并发的执行，并且也不是执行完全的回收。只有在`GC`开始以及结束的时候会有非常短暂的停顿时间，一般来说`<5ms`，用户也不会察觉到。
+
+
+<br>**常见GC Root**
+　　GC会收集那些不是GC roots且没有被GC roots引用的对象。一个对象可以属于多个root，常见的GC root有几下种：
+
+	-  Class：由系统类加载器加载的对象，这些类是不能够被回收的，他们可以以静态字段的方式保存持有其它对象。
+	-  Thread：已经启动且正在执行的线程。
+	-  JNI Local：JNI方法的local变量或参数。
+	-  JNI Global：全局JNI引用。
+	-  Monitor Used：用于同步的监控对象。
+
+　　参考阅读：[GC Root](http://blog.csdn.net/fenglibing/article/details/8928927) 
 
 <br>**内存结构**
 　　在`Honeycomb(Android3.0)`之前，`Bitmap`的内存分配如下图：
@@ -64,7 +82,7 @@ categories: android
 ![](/img/android/android_8_3.png)
 </center>
 
-　　蓝色部分是`Dalvik heap`，黄色部分是`Bitmap`引用对象的堆内存，而`Bitmap`实际的`Pixel Data`是分配在`Native Memory`中(VM中的另一块地方，与`heap`是平级的)。这样做有几个问题，首先需要调用`reclyce()`来表明`Bitmap`的`Pixel Data`占用的内存可回收，不调用这个方法的话就要靠`finalizer`来让`GC`回收这部分内存，但了解`finalizer`的应该都知道这相当的不可靠；其次是很难进行`Debug`，因为一些内存分析工具是查看不到`Native Memory`的；再次就是不调用`reclyce()`需要回收`Native Memory`中的内存的话会导致一次完整的`GC`，`GC`执行的时候会暂停整个应用。
+　　蓝色部分是`Dalvik heap`，黄色部分是`Bitmap`引用对象的堆内存，而`Bitmap`实际的`Pixel Data`是分配在`Native Memory`中(VM中的另一块地方，与`heap`是平级的)。这样做有几个问题，首先需要调用`reclyce()`来表明`Bitmap`的`Pixel Data`占用的内存可回收，不调用这个方法的话就要靠`finalizer`来让`GC`回收这部分内存，但了解`finalizer`的应该都知道这相当的不可靠；其次是很难进行`Debug`，因为一些内存分析工具是查看不到`Native Memory`的。
 
 <br>　　`Honeycomb`之后，`Bitmap`的内存分配做出了改变，如下图：
 
@@ -100,53 +118,29 @@ GC_CONCURRENT freed 2049K,
 　　`“paused 2ms+2ms”`表明`GC`暂停的时间。从这里你可以看到越大的`heap size`你需要暂停的时间越长。如果是`concurrent gc`你会看到`2`个时间一个开始一个结束，这时间是很短的，但如果是其他类型的`GC`，你很可能只会看到一个时间，而这个时间是相对比较长的。
 
 <br>**内存分析的工具**
-　　有很多工具可以用来帮助检测内存泄露问题，这里列举了两个，并附上一点相应的介绍：
+　　有很多工具可以用来帮助检测内存泄露问题，我们主要使用如下两个工具：
 
 	-  DDMS (Dalvik调试监视服务器) ：
 	   -  和SDK一起推出的调试工具（被放在SDK的tools目录下），提供端口转发服务、截屏、线程监控、堆dump、logcat、进程和无线状态监控以及一些其他功能。
 	-  MAT (内存分析工具)：
 	   -  快速的Java堆分析器，该工具可以检测到内存泄露，降低内存消耗，它有着非常强大的解析堆内存空间dump能力。
 
-<br>提示：
-
-	为了能够使得Android应用程序安全且快速的运行，Android的每个应用程序都会使用一个专有的Dalvik虚拟机实例来运行，它是由Zygote服务进程孵化出来的，也就是说每个应用程序都是在属于自己的进程中运行的。Android为不同类型的进程分配了不同的内存使用上限，如果程序在运行过程中出现了内存泄漏的而造成应用进程使用的内存超过了这个上限，则会被系统视为内存泄漏，从而被Kill掉，这使得仅仅自己的进程被Kill掉，而不会影响其他进程（如果是system_process等系统进程出问题的话，则会引起系统重启）。
+　　接下来我们就分别介绍一下它们的用法。
 
 # 第二节 DDMS #
 　　Android SDK附带一个调试工具称为`Dalvik Debug Monitor Server`(`DDMS`)，它提供了端口转发服务、屏幕捕获、线程和堆信息、进程、`logcat`、网络的状态信息、来电、发送模拟短信等。
 　　本节仅对`DDMS`功能的进行一个简要的讨论，后面内存分析主要使用的工具是`MAT`。
 
-## 运行DDMS ##
-　　`DDMS`既可以连接模拟器也可以连接一个真实的设备。你有两种方式可以启动`DDMS`：
+<br>　　`DDMS`既可以连接模拟器也可以连接一个真实的设备。你有三种方式可以启动`DDMS`：
 
-	-  从Eclipse：DDMS集成到了Eclipse中，点击“Window > Open Perspective > Other.. > DDMS” 。
+	-  从Eclipse：ADT插件把DDMS集成到了Eclipse中，点击“Window > Open Perspective > Other.. > DDMS” 。
 	-  从命令行：通过cmd进入到SDK的tools目录下，然后执行“ddms”命令启动该工具。
+	-  从AndroidStudio：自己去差，满地都是教程。
 
-## DDMS怎样与调试器交互 ##
-　　在Android平台上，每个应用都运行在自己的进程上，同时每个应用也都运行在自己的虚拟机(`VM`)上。每个`VM`公布了唯一的端口号以供调试器连接。
-　　当`DDMS`启动后，会连接到`adb`。当有设备连接上，`VM`监测服务就在`adb`和`DDMS`之间创建，它会通知`DDMS` 设备上的`VM`是启动了还是终止了。一旦`VM`是运行的，`DDMS`就获取`VM`的进程ID（`pid`），通过`adb`和设备上的`adb`守护进程（`adbd`）建立到`VM`调试器的连接。到此，`DDMS`就可以使用约定的线协议与`VM`通信。
-
-　　`DDMS`给设备上的每个VM分配一个调试端口。通常，`DDMS`分配的第一个可调试端口号是`8600`，下一个是`8601`，依次往下类推。当调试器连接到已分配的一个端口时，`VM`上的所有通信都会被关联到调试器。一个调试器只能连接一个单独的端口，但是`DDMS`同时可以处理多个连接的调试器。
-　　默认的，`DDMS`也会监听`DDMS`的“基本端口”（默认为`8700`）。基本端口是一个端口转发端口，可以通过`8700`端口接受来自`VM`所有调试端口的通信并可以发送信息到调试器。这就允许你将调试器连接到`8700`端口，然后可以调试所有设备上的虚拟机。在`DDMS`设备视图下，转发的通信可以被当前所选进程终止。
-
-
-<br>　　接下来的屏幕截图会在Eclipse中显示标准的`DDMS`屏幕视图。如果你是从命令行启动的`DDMS`，截图会略有不同，但绝大部分功能是相同的。注意这个特殊进程`com.android.email`它在模拟器上运行时的调试端口是`8700`，而分配给它的端口是`8606`。这就表明`DDMS`当前将`8606`端口转发到静态调试端口`8700`。
-
-<center>
-![](/img/android/android_8_5.png)
-</center>
-
-　　提示： 如果DDMS已经打开并且手机也连接了电脑，但是在`DDMS`的`Devices`选项卡中并没有显示出你的手机，则可以将`adb`服务给关闭，然后再重启，这需要执行如下两条`adb`命令：
-```
-adb kill-server   // 关闭adb服务。
-adb start-server  // 开启adb服务。
-```
-　　若这两条命令不起作用，则可能是腾讯、360的手机管家启动的自己的`adb`(如腾讯的叫`tadb`)，在Windows的进程管理器中终止它即可。
-
-## 使用DDMS ##
-　　以下部分描述如何使用`DDMS`以及该视图下面的各种标签和窗格的作用。Eclipse版本和命令行版本有轻微UI差异，但功能相同。
+<br>　　接下来介绍一下如何使用`DDMS`以及该视图下面的各种标签和窗格的作用。
 
 <br>**查看进程堆使用情况**
-　　`DDMS`允许您查看一个进程正在使用有多少堆内存。这些信息在跟踪应用程序在特定时刻堆使用情况是十分有用的。
+　　`DDMS`允许您查看一个进程正在使用有多少堆内存，这些信息很重要我们稍后会用到。
 
 <center>
 ![查看进程堆使用情况](/img/android/android_8_6.png)
@@ -185,34 +179,31 @@ adb start-server  // 开启adb服务。
 	3、要把文件复制到设备中，点击文件浏览选项中的Push file按钮
 
 # 第三节 MAT #
-<br>**简介**
-　　`Eclipse Memory Analyzer（MAT）`是著名的跨平台集成开发环境`Eclipse Galileo`版本的`33`个组成项目中之一，它是一个功能丰富的`JAVA`堆转储文件分析工具，可以帮助你发现内存漏洞和减少内存消耗。 本文主要介绍如何安装配置`Memory Analyzer`，并结合一个实例，介绍如何利用`MAT`来进行堆转储文件分析，找到内存泄露的根源。
-
-<br>**概述**
 　　对于大型`JAVA`应用程序来说，再精细的测试也难以堵住所有的漏洞，即便我们在测试阶段进行了大量卓有成效的工作，很多问题还是会在生产环境下暴露出来，并且很难在测试环境中进行重现。`JVM`能够记录下问题发生时系统的部分运行状态，并将其存储在堆转储(`Heap Dump`)文件中，从而为我们分析和诊断问题提供了重要的依据。
-　　通常内存泄露分析被认为是一件很有难度的工作，一般由团队中的资深人士进行。不过，今天我们要介绍的`MAT`（`Eclipse Memory Analyzer`）被认为是一个`“傻瓜式”`的堆转储文件分析工具，你只需要轻轻点击一下鼠标就可以生成一个专业的分析报告。和其他内存泄露分析工具相比，`MAT`的使用非常容易，基本可以实现一键到位，即使是新手也能够很快上手使用。
-　　`MAT`的使用是如此容易，你是不是也很有兴趣来亲自感受下呢，那么第一步我们先来安装`MAT`。
+
+　　`Memory Analyzer（MAT）`是一个功能丰富的`JAVA`堆转储文件分析工具，可以帮助你发现内存漏洞和减少内存消耗。 
+
+　　通常内存泄露分析被认为是一件很有难度的工作，一般由团队中的资深人士进行。不过，今天我们要介绍的`MAT`被认为是一个`“傻瓜式”`的堆转储文件分析工具，你只需要轻轻点击一下鼠标就可以生成一个专业的分析报告。和其他内存泄露分析工具相比，`MAT`的使用非常容易，基本可以实现一键到位，即使是新手也能够很快上手使用。
+　　
 
 ## 安装步骤 ##
-　　我们使用的是 `Eclipse Memory Analyzer V1.3.0`，`Sun JDK 6` 。
+　　`MAT`的使用是如此容易，你是不是也很有兴趣来亲自感受下呢，那么第一步我们先来安装`MAT`。
 
 <br>**安装 MAT**
-　　和其他插件的安装非常类似，`MAT`支持两种安装方式，一种是`“单机版“`的，也就是说用户不必安装`Eclipse IDE`环境，`MAT`作为一个独立的`Eclipse RCP`应用运行；另一种是`“集成版”`的，也就是说`MAT`也可以作为`Eclipse IDE`的一部分，和现有的开发平台集成。
-　　集成版的安装需要借助`Eclipse`的`Update Manager`。
-
-　　如下图所示，首先通过`Help -> Install NewSoftware... `启动软件更新管理向导。
+　　和其他插件的安装非常类似，`MAT`支持两种安装方式，一种是`“单机版”`的，也就是说用户不必安装`Eclipse IDE`环境，`MAT`作为一个独立的`Eclipse RCP`应用运行；另一种是`“集成版”`的，也就是说`MAT`也可以作为`Eclipse IDE`的一部分，和现有的开发平台集成。
+　　集成版的安装需要借助`Eclipse`的`Update Manager`。如下图所示，首先通过`Help -> Install NewSoftware... `启动软件更新管理向导。
 
 <center>
 ![](/img/android/android_8_8.png)
 </center>
 
-　　点击`add`按钮，然后然后按下图所示的方式输入`mat`的更新地址：http://download.eclipse.org/mat/1.2.1/update-site/ 。
+　　点击`add`按钮，然后按下图所示的方式输入`MAT`的更新地址（最新是 http://download.eclipse.org/mat/1.5/update-site/ ） 。
 
 <center>
 ![](/img/android/android_8_9.png)
 </center>
 
-　　由于我已经配置过了所以提示`“Duplicate location”`。 
+　　如果你已经配置过了，则Eclipse就会像上面那样提示`“Duplicate location”`。 
 　　如下图所示，接下来选择你想要安装的`MAT`的功能点，需要注意的是展开项目后有一个`Memory Analyzer (Chart)`，这个功能是一个可选的安装项目（但是推荐安装），它主要用来生成相关的报表，不过如果需要用到这个功能，你还需要额外的安装`BIRT Chart Engine`。
 
 <center>
@@ -221,17 +212,148 @@ adb start-server  // 开启adb服务。
 
 <br>　　如果你打算安装`Memory Analyzer (Chart)`功能，那么上图第二个红框应该勾选，它可以自动搜索并安装MAT所必须依赖的其他插件，在这里就是`BIRT Chart Engine`。
 　　插件安装完毕，你还需要重新启动`Eclipse`的工作平台。
+
 　　比较而言，单机版的安装方式非常简单，用户只需要下载相应的安装包，然后解压缩即可运行，这也是被普遍采用的一种安装方式。在下面的例子里，我们使用的也是单机版的`MAT`。
+　　笔者使用的是`Memory Analyzer V1.5.0.20150527`单机版，[下载地址](http://www.eclipse.org/mat/downloads.php)。
+
+<br>　　接下来我们有两个任务要做：
+
+	-  第一，写一个内存泄漏的代码。
+	-  第二，导出一个堆转储文件，然后分析这个文件。所谓的堆转储文件，就是一个保存了内存中的各种信息的文件，我们通过分析它就可以定位出内存泄漏。
+
+## 常见泄漏 ##
+　　本节先来介绍几个常见的内存年泄漏的范例，以便在以后写代码的时候可以避免掉。
+
+### Handler与Thread ###
+　　`Handler`是造成内存泄露的一个重要的源头。
+<br>　　看一下如下代码：
+``` android
+public class HandlerActivity extends Activity {
+    private final Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            // ...
+        }
+    };
+
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        // 发送一个消息，60秒后处理。
+        mHandler.sendMessageDelayed(Message.obtain(), 60000);
+        // 关闭Activity。
+        finish();
+    }
+}
+```
+<br>　　猛地一看并没有什么问题，但是`Eclipse`或`Android Studio`却会有如下警告：
+
+	This Handler class should be static or leaks might occur (com.example.ta.HandlerActivity.1)
+
+　　大体的意思是：`Handler`应该使用静态声明，不然可能导致`HandlerActivity`被泄露。
+
+<br>　　为啥出现这样的问题呢？这是因为：
+
+	-  首先，当在主线程中初始化Handler时，该Handler会和主线程中的Looper的消息队列关联。
+	-  然后，通过Handler发送的消息，会被发送到Looper的消息队列里，直到消息被处理。
+	-  接着，但是通过Handler对象发送的消息会反向持有Handler的引用，这样系统可以调用Handler#handleMessage(Message)来分发处理该消息。
+	-  最后，由于消息会延迟60秒处理，因此Message对象的引用会被一直持有，同时导致Handler无法回收，又因为Handler是实力内部类，所以最终会导致Activity被泄漏。
+
+<br>　　也许你会说`“我不去执行这种延期的Message不就行了”`，但是：
+
+	-  首先，你不会执行但你不能保证你同事也不会执行。
+	-  然后，由于程序中可以存在多个Handler，并且一般情况下都是在主线程中处理消息，因此你也不能保证在其他地方的Handler对象不会阻塞主线程，进而导致你的Message被迫延迟处理等。
+	-  因此，为了避免这些未知的情况，我们尽量不要这么写代码。
+
+<br>**如何避免呢？**
+　　最简单的方法就是把`Handler`写成一个外部类，不过这样一来就会多出很多文件，也难以查找和管理。
+
+　　另一个方法就是使用`静态内部类+软引用`：
+``` android
+public class HandlerActivity2 extends Activity {
+
+    private static final int MESSAGE_1 = 1;
+    private static final int MESSAGE_2 = 2;
+    private static final int MESSAGE_3 = 3;
+
+    private final Handler mHandler = new MyHandler(this);
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        mHandler.sendMessageDelayed(Message.obtain(), 60000);
+        finish();
+    }
+
+    private static class MyHandler extends Handler {
+        private final SoftReference<HandlerActivity2> mActivity;
+
+        public MyHandler(HandlerActivity2 activity) {
+            mActivity = new SoftReference<HandlerActivity2>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            // 如果当前Activity被GC回收了，则就不处理这个消息了，直接返回。
+            if (mActivity.get() == null) {
+                return;
+            }
+        }
+    }
+}
+```
+    语句解释：
+    -  本范例中创建了一个名为MyHandler的静态内部类，与实例内部类不同的是，静态内部类不会默认持有其外部类的引用。
+    -  在构造MyHandler类的对象时，虽然仍需要传递一个HandlerActivity2的引用过去，但MyHandler类不会持有它的强引用，因而不会阻止HandlerActivity2回收。
+
+<br>**上面这样就可以了吗？**
+　　当`Activity`被`finish`后`Handler`对象还是在`Message`中排队，还是会处理消息，但这些处理已经没有必要了。
+　　我们可以在`Activity`的`onStop`或者`onDestroy`的时候，取消掉该`Handler`对象的`Message`和`Runnable`，代码如下：
+``` java
+public void onDestroy() {
+    mHandler.removeMessages(MESSAGE_1);
+    mHandler.removeMessages(MESSAGE_2);
+    mHandler.removeMessages(MESSAGE_3);
+    mHandler.removeCallbacks(mRunnable);
+}   
+```
+
+<br>**Thread对象也一样**
+　　比如我们有如下代码：
+``` android
+public class ThreadActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        new MyThread().start();
+    }
+
+    private class MyThread extends Thread {
+        public void run() {
+
+        }
+    }
+}
+```
+　　它的问题和`Handler`的问题是一样的，解决的方法同样也是`静态内部累+软引用`。
+
+　　此时你可能会有疑问，在刚才说的`Handler`问题中，`Activity`被泄漏是因为`Handler`对象被持有，但是这里的`Thread`对象是一个匿名对象，没有任何人持有它，为什么也会导致`Activity`泄漏呢？
+　　答：`Thread`对象是`GCRoot`对象，虽然没有被引用，但是一旦它被启动了，那直到它执行完毕，都不会被回收。除非程序被切到后台且因为系统内存不足，该进程被杀掉进而终止线程。
+
+<br>**本节参考阅读：**
+- [Android App 内存泄露之Handler](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8BHandler.md) 
+- [Android App 内存泄露之Thread](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8BThread.md) 
 
 ## 堆转储文件 ##
-　　巧妇难为无米之炊，既然是要分析，那么就得有个分析的目标。因此分析内存之前，我们首先需要获得一个堆转储文件(`dump heap`)，该文件中保存了内存中的各种信息，堆转储文件以`.hprof`为后缀。
+　　在进行分析内存之前，还需要获得一个堆转储文件(`dump heap`)，该文件中保存了内存中的各种信息，堆转储文件以`.hprof`为后缀。
 
 <br>**Heap Dump**
 　　如果你不知道`Java`里面的`Heap`是什么意思，这篇文章可能就不太适合你阅读了。
 　　一个`Heap Dump`是指在某个时刻对一个Java进程所使用的堆内存情况的一次`快照`，也就是在某个时刻把`Java`进程的内存以某种格式持久化到了磁盘上。`Heap Dump`的格式有很多种，而且不同的格式包含的信息也可能不一样。
 　　但总的来说，`Heap Dump`一般都包含了一个堆中的`Java Objects`，`Class`等基本信息。同时，当你在执行一个转储操作时，往往会触发一次`GC`，所以你转储得到的文件里包含的信息通常是有效的内容（包含比较少，或没有垃圾对象了）。
 
-<br>　　我们往往可以在`Heap Dump`以下基本信息（一项或者多项，与`Dump`文件的格式有关）：
+<br>　　我们往往可以在`Heap Dump`看到以下基本信息（一项或者多项，与`Dump`文件的格式有关）：
 
 	-  所有的对象信息：对象的类信息、字段信息、原生值(int, long等)及引用值。
 	-  所有的类信息：类加载器、类名、超类及静态字段。
@@ -241,10 +363,23 @@ adb start-server  // 开启adb服务。
 
 <br>**获取堆转储文件**
 　　首先，您需要了解到，不同厂家的`JVM `所生成的堆转储文件在数据存储格式以及数据存储内容上有很多区别，`MAT`不是一个万能工具，它并不能处理所有类型的堆存储文件。但是比较主流的厂家和格式，例如`Oracle`，`HP`，`SAP`所采用的`HPROF`二进制堆存储文件，以及`IBM`的`PHD`堆存储文件等都能被很好的解析。
-　　安装好`MAT`插件后，获得堆转储文件很容易，连接设备，启动想要监控的应用，点击左边`Devices`窗口上方工具栏的`“Dump HPROF File”`按钮（从左往右数第三个）。 如果Eclipse有安装MAT插件的话，则会自动打开此`dump`文件。
+　　获得堆转储文件很容易，打开`DDMS`，启动想要监控的进程，点击左边`Devices`窗口上方工具栏的`“Dump HPROF File”`按钮。
+
+　　如果你直接使用`MAT`打开刚生成的堆转储文件的话，那么`MAT`通常会报如下错误：
+``` c
+Error opening heap dump 'a.hprof'. Check the error log for further details.
+Error opening heap dump 'a.hprof'. Check the error log for further details.
+Unknown HPROF Version (JAVA PROFILE 1.0.3) (java.io.IOException)
+Unknown HPROF Version (JAVA PROFILE 1.0.3)
+```
+　　原因是: Android的虚拟机导出的`hprof`文件格式与标准的`java hprof`文件格式标准不一样，根本原因两者的虚拟机不一致导致的。
+　　解决方法：使用`sdk\platform-tools\hprof-conv.exe`工具转换就可以了：
+``` c
+hprof-conv 源文件 目标文件
+```
 
 <br>**MAT插件界面概览**
-　　文件加载完成后，你可以看到如下图所示的界面：
+　　文件加载完成后，你可以看到类似如下图所示的界面：
 
 <center>
 ![](/img/android/android_8_11.png)
@@ -253,24 +388,100 @@ adb start-server  // 开启adb服务。
 　　红框括起来了是一些快捷键和功能按钮，如果不小心把某个窗口给关掉后，可以通过这些按钮重新打开对应的界面。
 
 ## 基础应用 ##
+### 问题代码 ###
+　　前面说过`Thread`一旦被启动，那么直到它运行结束都不会被回收（当然若进程被操作系统杀掉了那么线程会中止），你可能会不信，那么咱们现在就创建一个范例，完成后面知识的讲解。
+
+<br>　　范例1：内存泄漏代码。
+``` android
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        new Thread() {
+            public void run() {
+                for (int i = 1; i <= 600; i++) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println(Thread.currentThread().getName() + " = " + i+", " + MainActivity.this);
+                }
+            };
+        }.start();
+    }
+}
+```
+	语句解释：
+	-  每当新建立一个Activity的时候就开启一个线程，并让这个线程运行600秒。
+
+<br>　　程序运行后，我们可以通过不断的横竖屏切换来触发`Activity`重建，来模拟内存泄漏。
+
 <br>
 ### 发现问题 ###
-　　如何才能知道我们的程序是否有内存泄漏的可能性呢？
-　　在`DDMS`视图中的`Heap`选项卡中部有一个`Type`叫做`data object`，即数据对象，也就是我们的程序中大量存在的类类型的对象。在`data object`一行中有一列是`“Total Size”`，其值就是当前进程中所有`Java`数据对象的内存总量，一般情况下，这个值的大小决定了是否会有内存泄漏。
+　　若我们的项目运行一段时间后就变得很慢，那么不出意外的话是有内存泄漏了，但是由于不知道具体在哪里泄漏的，所以可能无从下手，应该怎么办呢？
+　　在`DDMS`视图中的`Heap`选项卡中部有一个`Type`叫做`data object`，即数据对象。
+　　在`data object`一行中有一列是`“Total Size”`，其值就是当前进程中所有`Java`数据对象的内存总量，一般情况下，这个值的大小决定了是否会有内存泄漏。
+
+<br>　　以我们上面的问题代码为例，程序刚启动时内存的信息为：
 
 <center>
-![](/img/android/android_8_12.png)
+![](/img/android/android_o02_12.png)
 </center>
 
-<br>　　可以这样判断：
+　　然后我们不断的横竖屏切换`5~10`次后，内存的信息为：
 
-	-  首先，不断的操作当前应用，同时注意观察data object的Total Size值。
-	-  然后，正常情况下Total Size值都会稳定在一个有限的范围内，也就是说由于程序中的的代码良好，没有造成对象不被垃圾回收的情况，所以说虽然我们不断的操作会不断的生成很多对象，而在虚拟机不断的进行GC的过程中，这些对象都被回收了，内存占用量会会落到一个稳定的水平。反之如果代码中存在没有释放对象引用的情况，则data object的Total Size值在每次GC后不会有明显的回落，随着操作次数的增多Total Size的值会越来越大，直到到达一个上限后导致进程被kill掉。
+<center>
+![](/img/android/android_o02_13.png)
+</center>
+
+　　很明显可以看到，随着我们横竖屏切换的次数增加，`“Count”`和`“Total Size”`两列下的数值也不断的增加，并且不会减少。这基本就可以断定这个界面存在内存泄漏了。
+
+<br>　　因此我们可以这样判断是否存在内存泄漏：
+
+	-  首先，不断打开和关闭应用中的某个界面，同时注意观察data object的Total Size值。
+	-  然后，正常情况下Total Size值都会稳定在一个有限的范围内。
+	   -  也就是说若程序中的代码写的很好，即便不断的操作会不断的生成很多对象，而在虚拟机不断的进行GC的过程中，这些对象都被回收了，内存占用量会会落到一个稳定的水平。
+	   -  反之如果代码中存在没有释放对象引用的情况，则data object的Total Size值在每次GC后不会有明显的回落，随着操作次数的增多Total Size的值会越来越大，直到到达一个上限后导致进程被kill掉。
+	-  提示：我们可以点击DDMS视图里的“Cause GC”按钮来手动触发GC。
+
+<br>
+### Leak Suspects ###
+　　现在，我们已经确定程序存在内存泄漏的问题了，并且也知道是哪个界面存在泄漏了，为了进一步确定是哪块代码出的问题，我们需要将该进程的内存信息导出来，生成一个`.hprof`文件，并加以分析。
+
+　　再次提示：
+
+	-  如果你是使用MAT单机版，那么你需要把IDE导出的堆转储文件转换一下格式。
+
+<br>　　当使用`MAT`打开`.hprof`文件时，会默认打开一个名为`“Leak suspects”（泄露疑点）`的视图，并且生成报告给用户。
+　　`“泄露疑点”`会列出当前内存中的个头大的对象，在这里列出的对象并不一定是真正的内存泄露，但它仍然是检查内存泄露的一个绝佳起点。
+
+　　如下图所示：
+
+<center>
+![](/img/android/android_o02_14.png)
+</center>
+
+　　图释：
+
+	-  android.content.res.Resources：类名称。
+	-  <system class loader>：加载该类的加载器。
+	-  5,309,840 (47.06%)：该类所有对象所占用的内存。
+
+<br>　　我们可以点击上图中的`“Details »”`按钮来查看详细信息。
+　　报告主要包括`到达聚点的最短路径`，这个功能非常有用，它可以让开发人员快速发现到底是哪里让这些对象无法被`GC`回收：
+
+<center>
+![](/img/android/android_8_16.png)
+</center>
+
+<br>　　在继续向下讲解之前，我们需要先插一个知识点。
 
 <br>**浅堆和保留堆**
-　　`MAT`可以根据堆转储文件，以可视化的方式告诉我们哪个类，哪个对象分配了多少内存。使用`MAT`之前有2个概念是要掌握的：`Shallow heap`(浅堆)和`Retained heap`（保留堆）。
+　　`MAT`可以根据堆转储文件，以可视化的方式告诉我们哪个类，哪个对象分配了多少内存。不过要想看懂它们，则需要掌握2个概念：`Shallow heap`(浅堆)和`Retained heap`（保留堆）。
 
-<br>　　`Shallow Heap`是指该对象占用了多少内存（字节），不包含对其他对象的引用，也就是对象头加成员变量的头（不是成员变量的值）的总和。如：
+<br>　　`Shallow Heap`是指该对象占用了多少内存（字节），不包含对其他对象的引用，也就是对象头加成员变量的头的总和。如：
 ``` java
 public class Person {	// 头部8字节
     private int age;	// 整型4字节
@@ -286,7 +497,7 @@ public class Person {	// 头部8字节
 ```
     语句解释：
     -  一个对象的头部往往需要32或64比特(bit)（基于不同的平台实现，该值也会不同），在32位系统上，对象头占用8字节，int占用4字节。这些是JVM规范里规定，但不同JVM实现可以按照自己方式来存储数据。另外，基于不同的Heap Dump格式，这些值也可能会有变化，但往往会更加真实地反应出内存的占用量。
-    -  因此Person对象的浅堆大小为56字节。
+    -  因此这个Person对象的浅堆大小大约为56字节。
 
 <br>　　`Retained Set`指的是一个对象集合。假定一些对象会由于对象`X`被垃圾回收（`GC`）后，也同时需要被`GC`掉，那么这些对象就属于`X`的`Retained Set`。注意，`Retained Set`是包含`X`本身的。
 　　`Retained Heap`可以简单地理解为对象的`Retained Set`中的对象所占用的内存的总和。换句话说，`Retained Heap`是该对象自己的`shallow size`，加上从该对象能直接或间接访问到对象的`shallow size`之和。
@@ -301,7 +512,7 @@ public class Person2 { // 头部8字节
     }
 }
 ```
-　　`Person2`对象的浅堆是`36`字节，经过测试发现`MAT`工具计算出来的浅堆大小总是`8的倍数`，即虽然我们计算的是`36`字节，但是它显示的却是`32`字节，如果在`Person2`中再加一个`int`类型的属性仍会是`32`字节，具体原因暂时不清楚，但误差可以控制在`8`字节之内。
+　　我们计算`Person2`对象的浅堆是`36`字节，就算在你的机器上计算的值与笔者计算的有偏差也不必在乎它们，因为误差不是我们关注重点。事实上，我们只是借助`Person2`类来理解浅堆和保留堆的概念，至于`Person2`类会占多少字节`Who cares?`，只要不是很离谱就可以了。
 
 <br>　　如果程序中有这样的代码：
 ```
@@ -326,11 +537,11 @@ public class MainActivity extends Activity {
 ``` android
 public class MainActivity extends Activity {
     Person2 p2 ;
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
-		p2 = new Person2(new Person());
-	}
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        p2 = new Person2(new Person());
+    }
 }
 ```
 　　则计算出`Person`和`Person2`的浅堆与保留堆的大小如图所示：
@@ -341,51 +552,50 @@ public class MainActivity extends Activity {
 
 　　即`Person2`的保留堆为：`Person2`的浅堆+`Person`的浅堆。
 
-　　这里要说一下的是，`Retained Heap`并不总是那么有效。例如我在`A`里`new`了一块内存，赋值给`A`的一个成员变量。此时我让`B`也指向这块内存。此时，因为`A`和`B`都引用到这块内存，所以`A`释放时，该内存不会被释放。所以这块内存不会被计算到`A`或者`B`的`Retained Heap`中。
+<br>　　这里要说一下的是，`Retained Heap`并不总是那么有效：
 
-<br>
-### Leak Suspects ###
-　　`MAT`自带有一个报告生成系统，他可以自动分析`dump`文件并且生成报告给用户。
+	-  例如，我们new了一块内存，赋值给A的一个成员变量，同时让B也指向这块内存。
+	-  这样一来，由于A和B都引用到这块内存，所以当A释放时，该内存不会被释放。
+	-  所以这块内存不会被计算到A或者B的Retained Heap中。
+	-  因此我们应当只把它当作一个参考值，而不是精确的追求它的每一个字节对应的内容是什么。
 
-	-  第一种叫做“泄露疑点(Leak suspects)”，MAT分析dump文件，检查是否存在一些个头大的对象被一些引用持有保持活动状态，需要注意的是，泄露疑点并不一定是真的内存泄露。
-	-  第二种叫做“顶级组件(Top Components)”，它包括可能的内存浪费信息，占用内存大的对象以及引用的统计信息。此报告对内存优化有很大帮助。
+<br>**话说回来**
+　　介绍完浅堆和保留堆的概念后，咱们回到`“Leak suspects”`上来。
 
-<br>　　泄露疑点报告包括一些潜在的内存泄露信息，再次强调一下，在这里列出的对象并不一定是真正的内存泄露，但它仍然是检查内存泄露的一个绝佳起点。
+　　不过需要说明的是，通常我们从`“Leak suspects”`中是没法直接得到有用的信息的，它只是一个参考界面，在很多时候是没多大屌用的，不过不要慌。
 
-<center>
-![](/img/android/android_8_15.png)
-</center>
+　　分析`.hprof`文件的起点有多个：
 
-　　报告主要包括`到达聚点的最短路径`，这个功能非常有用，它可以让开发人员快速发现到底是哪里让这些对象无法被`GC`回收：
-
-<center>
-![](/img/android/android_8_16.png)
-</center>
+	-  第一，我们确实会从“Leak suspects”开始查看，如果它没直观的提供出有用的信息，那也没关系，再换其他方法。
+	-  第二，使用Dominator Tree视图来继续追踪。
+	-  第三，使用Histogram视图来继续追踪。
 
 <br>
 ### Dominator Tree ###
-　　支配树是一个用来图形化展示对象之间关系，计算`Retained Heap`的工具。
+　　MAT提供了一个称为`支配树`（Dominator Tree）的对象图。支配树体现了对象实例间的支配关系。在对象引用图中，所有指向对象`B`的路径都经过对象`A`，则认为对象`A`支配对象`B`。
+　　简单的说，之所以提出支配树这个概念，就是为了计算对象的`Retained Heap`。
 
 <center>
 ![](/img/android/android_8_17.png)
 </center>
 
-　　所谓`Dominator`，就是`Flow Graph`中从源节点出发到某个节点的的必经节点。那么根据这个概念我们可以从上图左侧的`Flow Graph`构造出右侧的`Dominator Tree`。这样一来很容易就看出每个节点的`Retained heap`了。
-　　以上图为例，对象`A`引用`B`和`C`，`B`和`C`又都引用到`D`。此时要计算`Retained Memory`：
+　　比如我们可以从上图左侧的引用图（对象`A`引用`B`和`C`，`B`和`C`又都引用到`D`）构造出右侧的`Dominator Tree`，计算出来的`Retained Memory`为：
 
 	-  A的包括A本身和B，C，D，E。
-	-  B和C因为共同引用D，所以B的Retained Memory只是他本身。
+	-  B和C因为共同引用D，所以B的Retained Memory只是它本身。
 	-  C是自己和E。
 	-  D、E当然也只是自己。
 
-<br>**界面介绍**
-　　支配树可以算是`MAT`中第二有用的工具，它列出了堆中较大的（不是所有的）对象以及他们之间的引用关系，确定一些对象为什么不会被`GC`。
-　　用户可以直接在`“Overview”`选项页中点击`“Dominator Tree”`进入该工具，也可以在通过的菜单中选择`“immediate dominators”`进入该工具。前者显示`dump`文件中所有的对象，后者会从类的层面上查找并聚合所有支配关系。支配树有以下重要属性：
+<br>　　支配树有以下重要属性：
 
-	-  属于X的子树的对象表示X的保留对象集合。
+	-  X的子树中的所有元素表示X的保留对象集合。
 	-  如果X是Y的持有者，那么X的持有者也是Y的持有者。
-	-  在支配树中表示持有关系的边并不是和代码中对象之间的关系直接对应，比如代码中X持有Y，Y持有Z，在支配树中，X的子树中会有Z。
+	-  在支配树中表示持有关系的边并不是和代码中对象之间的关系直接对应，比如代码中X持有Y，Y持有Z，在支配树中，X的直接子节点中会有Z。
 　　这三个属性对于理解支配树而言非常重要，一个熟练的开发人员可以通过这个工具快速的找出持有对象中哪些是不需要的以及每个对象的保留堆。
+
+<br>**界面介绍**
+　　支配树可以算是`MAT`中第二有用的工具，它依据我们设置的关键字来列出符合条件的、堆中较大的（不是所有的）对象以及它们之间的引用关系
+　　我们可以直接在`“Overview”`选项页中点击`“Dominator Tree”`进入该工具，或者从菜单栏中也可以进入。
 
 <br>　　支配树的界面如下图所示：
 <center>
@@ -394,10 +604,21 @@ public class MainActivity extends Activity {
 
 　　表头依次代表：`类名`、`浅堆大小`、`保留堆大小`、`百分比`，可以通过点击某个表头来按特定的字段进行排序。
 　　第一行用于输入查找条件，支持正则表达式，如需要查找出`MainActivity`相关的类，则可以在`ClassName`列的第一行输入`“MainActivity”`关键字。
-　　第二层级的节点表示被第一层级的节点所引用到的对象，当第一层级对象被回收时，这些对象也将被回收。
+　　
+<br>**检索出相关对象**
+　　如果你泄漏的对象所占据的内存比较大的话，那么通常在打开`Dominator Tree`时就可以看到它被排在前列。
+　　但是，由于前面的范例中只是在`onCreate`方法里创建了线程，并没有执行显示图片等耗内存的操作，因此即便是运行时多执行几次横竖屏切换，泄漏的内存也不会很大，还不至于在`Dominator Tree`视图打开的时候就被列出来，所以我们得通过输入关键字`“MainActivity”`查找后才能看到。
 
-<br>**范例**
-　　我们用`Honeycomb3.0`中的`HoneycombGallery`做一个`Demo`。在工程的`MainActivity`当中加入如下代码：
+　　如下图所示：
+
+<center>
+![](/img/android/android_o02_15.png)
+</center>
+
+　　上图列出了当前内存中存在的、所有符合筛选条件（`*.MainActivity.*`）的对象，可以看出明显存在多个`Thread`对象，这显然是不正常的。
+
+<br>**另一个范例**
+<br>　　当然，在实际操作的时候情况肯定会比上面的要复杂的多。比如我们有这样一段代码：
 ``` android
 public class MainActivity extends Activity {
     static Leaky leak = null;
@@ -416,21 +637,7 @@ public class MainActivity extends Activity {
     // 此处省略了其它代码。
 }
 ```
-　　上面这段代码，对`Java`熟悉的同学都应该了解内部类对象持有了外部类对象引用，而`inst`作为静态变量在非空判断下只产生了一个对象，因此当旋转屏幕时生成新的`Activity`的时候旧的`Activity`的引用依然被持有，如下图：
-
-<center>
-![](/img/android/android_8_19.png)
-</center>
-
-　　通过观察旋转屏幕前后`Log`中`GC`的信息也能看出`heap`的分配往上涨了许多，并且在`GC`执行完`heap`的分配稳定之后并没有降下来，这就是内存泄漏的迹象。
-
-<br>　　我们通过`MAT`来进行分析。在`DDMS`中选中应用对应的进程名，点击`Dump HPROF`按钮，等一小段时间生成`HPROF`文件，如果是`Eclipse`插件的话，`Eclipse`会为这个`HPROF`自动转化成标准的`HPROF`并自动打开`MAT`分析界面，可以看到`Overview`的界面如下图：
-
-<center>
-![](/img/android/android_8_20.png)
-</center>
-
-　　中间的饼状图就是根据我们上文所说的`Retained heap`的概念得到的内存中一些`Retained Size`最大的对象。点击饼状图能看到这些对象类型，但对内存泄漏的分析还远远不够。再看下方`Action`中有`Dominator Tree`和`Histogram`的选项，点开`Dominator Tree`，会看到以`Retained heap`排序的一系列对象，如下图：
+<br>　　并且我们在界面中显示了一些图片。于是我们导出的`Dominator Tree`如下图所示：
 
 <center>
 ![](/img/android/android_8_21.png)
@@ -441,13 +648,13 @@ public class MainActivity extends Activity {
 
 	-  Path To GC Roots 选项用来告诉MAT将当前对象到某个GC根对象之间的所有引用链给列出来。
 	-  exclude weak references选项用来告诉MAT，不用列出weak类型的引用。
-　　然后可以看到下图的情形：
+<br>　　然后可以看到下图的情形：
 
 <center>
 ![](/img/android/android_8_22.png)
 </center>
 
-　　`Bitmap`最终被`leak`引用到，这应该是一种不正常的现象，内存泄漏很可能就在这里了。`MAT`不会告诉哪里是内存泄漏，需要你自行分析，由于这是`Demo`，是我们特意造成的内存泄漏，因此比较容易就能看出来，真实的应用场景可能需要你仔细的进行分析。
+　　`Bitmap`最终被`leak`变量引用到，这应该是一种不正常的现象，内存泄漏很可能就在这里了。`MAT`不会告诉哪里是内存泄漏，需要你自行分析，由于这是`Demo`，是我们特意造成的内存泄漏，因此比较容易就能看出来，真实的应用场景可能需要你仔细的进行分析。
 
 　　如果我们`Path To GC Roots -> with all references`，我们可以看到下图的情形：
 
@@ -459,7 +666,8 @@ public class MainActivity extends Activity {
 
 <br>
 ### Histogram ###
-　　有些同学可能希望根据某种类型的对象个数来分析内存泄漏，此时可以使用`Histogram`视图。 `Histogram`会将堆中较大的（不是所有的）对象所属的类给列出来，那些较小的对象可以通过在第一行的`“ClassName”`列中输入正则进行查找。
+　　支配树用来把当前内存中的、符合筛选条件的对象，按照保留堆从大到小的顺序列出来。如果你希望根据某种类型的对象个数来分析内存泄漏，此时可以使用`Histogram`视图。 
+　　与`Dominator Tree`一样，较小的对象可以通过在第一行的`“ClassName”`列中输入正则进行查找。
 
 　　我们在`Overview`视图中选择`Actions -> Histogram`，可以看到类似下图的情形：
 
@@ -467,54 +675,34 @@ public class MainActivity extends Activity {
 ![](/img/android/android_8_24.png)
 </center>
 
-　　上图展示了内存中各种类型的对象个数(`Objects`列)和`Shallow heap`，我们看到`byte[]`占用`Shallow heap`最多，那是因为`Honeycomb`之后`Bitmap Pixel Data`的内存分配在`Dalvik heap`中。
-　　右键选中`byte[]`数组，选择`List Objects -> with incoming references`：
+　　在上图中，`Objects`列表示内存中该类型的对象个数。
+　　我们看到`byte[]`占用`Shallow heap`最多，那是因为`Honeycomb`之后`Bitmap Pixel Data`的内存分配在`Dalvik heap`中。
 
-	-  With Outgoing References和With Incoming References分别表示该对象的出节点（被该对象引用的对象）和入节点（引用到该对象的对象）。
+　　接下来，我们右键选中`byte[]`数组，选择`List Objects -> with incoming references`，然后可以看到`byte[]`具体的对象列表：
 
 <center>
 ![](/img/android/android_8_25.png)
 </center>
 
-<br>　　然后可以看到`byte[]`具体的对象列表：
+<br>　　提示：
 
-<center>
-![](/img/android/android_8_26.png)
-</center>
+	-  With Outgoing References表示该对象的出节点（被该对象引用的对象）。
+	-  With Incoming References表示该对象的入节点（引用到该对象的对象）。
 
-　　从上图中我们发现第二个`byte[]`的`Retained heap`较大，内存泄漏的可能性较大，因此右键选中这行，`Path To GC Roots -> exclude weak references`，同样可以看到上文所提到的情况，我们的`Bitmap`对象被`leak`所引用到（如下图所示），这里存在着内存泄漏。
+<br>　　从上图中我们发现第一个`byte[]`的`Retained heap`较大，内存泄漏的可能性较大。
+　　右键选中这行，`Path To GC Roots -> exclude weak references`，同样可以看到上文所提到的情况，我们的`Bitmap`对象被`leak`所引用到（如下图所示），这里存在着内存泄漏。
 
 <center>
 ![](/img/android/android_8_27.png)
 </center>
 
-<br>　　在`Histogram`视图中第一行中输入`com.example.android.hcgallery`，过滤出我们自己应用中的类型，如下图：
-
-<center>
-![](/img/android/android_8_28.png)
-</center>
-
-<br>　　我们发现本应该只有一个`MainActivity`现在却有两个，显然不正常。右键选择`List Objects -> with incoming references`，可以看到这两个具体的`MainActivity`对象。
-　　右键选中`Retained heap`较大的`MainActivity，Path To GC Roots -> exclude weak references`，再一次可疑对象又指向了`leak`对象。
-
-<center>
-![](/img/android/android_8_29.png)
-</center>
+<br>　　我们也可以在`Histogram`视图中第一行中输入`MainActivity`，来过滤出我们自己应用中的类型。
 
 <br>**本章参考阅读：**
 - [Memory Analyzer (MAT)](http://www.eclipse.org/mat/) 
 - [使用 Eclipse Memory Analyzer 进行堆转储文件分析](http://www.ibm.com/developerworks/cn/opensource/os-cn-ecl-ma/index.html)
-- [http://www.importnew.com/2433.html - 链接已无效](http://www.importnew.com/2433.html)
-- [http://my.eoe.cn/futurexiong/archive/1299.html - 链接已无效](http://my.eoe.cn/futurexiong/archive/1299.html)
-
-
-<br><br>笔者对MAT部分的介绍并不满意，打算抽时间再整理一下，步骤：
-```
-起点：
-|-  第一起点，通过Leak Suspects开始。
-   |-  观察对象个数是否可疑，可以通过Histogram视图进行查询，列出每一个对象，并依次查询每个对象的引用源头。
-   |-  对于Bitmap也可以通过Histogram视图，查询关键字Bitmap，并按照Retained Heap排序，列出较大的几个bitmap对象，依次展开它们，看看引用情况。
-|-  第一起点完事后，想进一步优化，则运行某一个模块的同时，观察DDMS的对象数量、heap大小是否持续上升。
-```
+- [Android内存泄漏研究](http://jiajixin.cn/2015/01/06/memory_leak/)
+- [Android内存泄露开篇](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8B%E5%BC%80%E7%AF%87.md)
+- [Java程序内存分析：使用mat工具分析内存占用](http://my.oschina.net/biezhi/blog/286223#OSC_h4_7)
 
 <br><br>

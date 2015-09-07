@@ -394,7 +394,7 @@ public static boolean cancelPotentialWork(int data, ImageView imageView{
 }
 
 // 本方法是一个助手方法，在上面用来检索和指定ImageView相关的任务。
-private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView{
+private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView){
    if (imageView != null) {
        final Drawable drawable = imageView.getDrawable();
        if (drawable instanceof AsyncDrawable) {
