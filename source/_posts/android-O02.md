@@ -256,7 +256,7 @@ public class HandlerActivity extends Activity {
 	-  首先，当在主线程中初始化Handler时，该Handler会和主线程中的Looper的消息队列关联。
 	-  然后，通过Handler发送的消息，会被发送到Looper的消息队列里，直到消息被处理。
 	-  接着，但是通过Handler对象发送的消息会反向持有Handler的引用，这样系统可以调用Handler#handleMessage(Message)来分发处理该消息。
-	-  最后，由于消息会延迟60秒处理，因此Message对象的引用会被一直持有，同时导致Handler无法回收，又因为Handler是实力内部类，所以最终会导致Activity被泄漏。
+	-  最后，由于消息会延迟60秒处理，因此Message对象的引用会被一直持有，同时导致Handler无法回收，又因为Handler是实例内部类，所以最终会导致Activity被泄漏。
 
 <br>　　也许你会说`“我不去执行这种延期的Message不就行了”`，但是：
 
@@ -701,7 +701,16 @@ public class MainActivity extends Activity {
 <br>**本章参考阅读：**
 - [Memory Analyzer (MAT)](http://www.eclipse.org/mat/) 
 - [使用 Eclipse Memory Analyzer 进行堆转储文件分析](http://www.ibm.com/developerworks/cn/opensource/os-cn-ecl-ma/index.html)
-- [Android内存泄漏研究](http://jiajixin.cn/2015/01/06/memory_leak/)
+- [Android内存泄漏研究](http://jiajixin.cn/2015/01/0
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 6/memory_leak/)
 - [Android内存泄露开篇](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8B%E5%BC%80%E7%AF%87.md)
 - [Java程序内存分析：使用mat工具分析内存占用](http://my.oschina.net/biezhi/blog/286223#OSC_h4_7)
 

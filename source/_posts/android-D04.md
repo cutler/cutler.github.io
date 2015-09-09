@@ -11,12 +11,10 @@ categories: android
 
 <br>**模拟视频**
 
-	模拟视频是指由连续的模拟信号组成的视频图像，以前所接触的电影、电视都是模拟信号，之所以将它们称为模拟信号，是因为它们模拟了表示声音、图像信息的物理量。
+	模拟视频是指由连续的模拟信号组合而成的视频图像，以前所接触的电影、电视都是模拟信号。
 
 	摄像机是获取视频信号的来源，早期的摄像机以电子管作为光电转换器件，把外界的光信号转换为电信号。摄像机前的被拍摄物体的不同亮度对应于不同的亮度值，摄像机电子管中的电流会发生相应的变化。
 	模拟信号就是利用这种电流的变化来表示或者模拟所拍摄的图像，记录下它们的光学特征（在录像带等介质上），然后通过调制和解调，将信号传输给接收机，通过电子枪显示在荧光屏上，还原成原来的光学图像。
-
-	这就是电视广播的基本原理和过程。模拟信号的波形模拟着信息的变化，其特点是幅度连续(连续的含义是在某一取值范围内可以取无限多个数值)。其信号波形在时间上也是连续的，因此它又是连续信号。
 
 　　模拟视频的特点：
 
@@ -37,7 +35,7 @@ categories: android
 	-  原始的数字视频数据量大，在存储与传输的过程中必须进行压缩编码。
 
 <br>**数字视频的压缩**
-　　虽然数字视频有诸多优点，但是它的数据量非常大，`1分钟`的满屏的真彩色数字视频需要`1.5GB`的存储空间，这显然是无法接受的。因此和音频一样，我们需要对原始的数字视频进行压缩。
+　　虽然数字视频有诸多优点，但是它的数据量非常大，原始的`1分钟`的满屏的真彩色数字视频需要`1.5GB`的存储空间，这显然是无法接受的。因此和音频一样，我们需要对原始的数字视频进行压缩。
 
 　　`问`：那么我们应该压缩视频里的哪些东西呢？
 　　`答`：压缩视频中的那些人的视觉不能感受到的部分。
@@ -96,7 +94,9 @@ categories: android
 　　这种方式不但浪费下载时间、硬盘空间，重要的是使用起来非常不方便。
 　　`流媒体技术`出现后，人们能够`“即点即看”`了，多媒体文件一边被下载一边被播放，极大地减少了用户在线等待的时间，而且也提升了互动性。
 
-　　在流媒体技术中，音视频文件要采用相应的格式，不同格式的文件需要不同的播放器播放，所谓`“一把钥匙开一把锁”`。采用流媒体技术的音视频文件主要有三大`“流派”`：
+　　流媒体技术涉及的范围非常广，在线播放视频、现场直播等都是对它的应用，本章暂时只介绍如何播放在线视频。
+
+　　另外，采用流媒体技术的音视频文件主要有三大“流派”：
 
 	-  微软的ASF，这类文件的后缀是.asf和.wmv，与它对应的播放器是微软公司的 “Media Player”。
 	-  RealNetworks公司的RealMedia，这类文件的后缀是.rm，文件对应的播放器是“RealPlayer”。
@@ -107,16 +107,45 @@ categories: android
 <br>**本节参考阅读：**
 - [百度百科 - 流媒体技术](http://baike.baidu.com/link?url=0Z7BN9dkYwvm69UhTeBqRdt39P3eL3Ux2ZZIydX3YIn3JWYcluurnct_c3WT0F59)
 
-# 第二节 视频播放 #
+# 第二节 播放在线视频 #
 
-## 各类开源框架 ##
-　　上一节中介绍了视频相关的理论知识，本节我们将使用`Vitamio`来实现`Android`平台的流媒体播放功能。
-　　另外，由于笔者从事的是`Android`开发工作，因而暂时没去了解如何将普通视频转换成流媒体格式视频，这些由服务端的同事完成了，如果你对此有兴趣请自行学习。
+　　上一节中介绍了视频相关的理论知识，本节我们将实现`Android`平台的流媒体播放功能。
 
+## 选择框架 ##
+　　总的来说，在目前版本的`Android`系统中，我们有两种方式来播放流媒体视频：
 
-　　`Vitamio`是一款`Android`与`iOS`平台上的全能多媒体开发框架，全面支持硬件解码与`GPU`渲染，我们可以用它来播放`720P`甚至`1080P`高清的视频。
+	-  第一种，使用系统自带的API。
+	-  第二种，使用Github等地方的开源库。
 
-<br>**流媒体支持**
+　　两种方式各有优点，并不是说开源库就一定比系统内置的`API`要好，我们得依据自己的需求来做出决定。笔者接下来详细介绍这两种方式的优缺点，并为您做出明智的选择提出睿智的建议。
+
+<br>**系统自带的API**
+　　使用系统自带的API来播放视频，同样有两种方式：
+
+	-  第一种：MediaPlayer + SurfaceView。
+	   -  优点：功能强大、可以更灵活的对其进行自定义。
+	   -  缺点：使用的难度比较大，需要做很多的操作才能顺利播放出视频。
+	-  第二种：VideoView。
+	   -  它继承自SurfaceView类，且其内部包含了一个MediaPlayer属性，简单的说就是对上面的方法进行进一步封装。
+	   -  优点：方便使用。
+	   -  缺点：封装就意味着规矩多，所以它的灵活性就降低了，不过对于大多数场景来说，使用VideoView是最优的选择。
+
+　　不过上面两种有一个共有的缺点，就是它们支持的流媒体协议、格式比较少，如果你需要播放的流媒体比较特殊，那么就选择使用开源库吧，系统内置的API并不适合。
+
+　　如果你想查看`Android`支持哪些媒体的格式，请阅读：[《Supported Media Formats》](https://developer.android.com/intl/zh-cn/guide/appendix/media-formats.html)。
+
+<br>**mp4格式**
+　　由于`Android`手机默认支持`mp4`编码和解码，所以通常我们会采用`mp4`格式作为视频的存储格式。
+
+　　下面这两段文字摘抄自[《Android视频播放之边缓存边播放》](http://blog.zhourunsheng.com/2012/05/android%E8%A7%86%E9%A2%91%E6%92%AD%E6%94%BE%E4%B9%8B%E8%BE%B9%E7%BC%93%E5%AD%98%E8%BE%B9%E6%92%AD%E6%94%BE/)：
+
+	-  其实最真实的流媒体协议传输格式并不是普通的http方式，而是rtsp，那样的话得搭建专门的流媒体服务器，成本比较高，采用普通的http方式，实现的是一种伪流媒体传输，但是对于常用的视频缓存播放也足够了。
+
+	-  要想实现视频的边缓存边播放，原则上就要求视频的存储格式是分段的，而mp4正好满足这个要求。只要将mp4的整体视频信息放在mp4文件的开头，这样只要加载了mp4文件的头部之后，就能解析出该mp4文件的时长，比特率等等，为后续的视频缓存做初始化设置，然后每加载一段mp4文件的数据流，通过解析头部来或得当前视频流的帧信息，并在播放器中播放，这样就能先加载一段进行播放，同时缓存后续的一段，依此原理就能实现。
+
+<br>**Vitamio**
+　　[ Vitamio ](https://github.com/yixia/VitamioBundle)是一款`Android`与`iOS`平台上的全能多媒体开发框架，全面支持硬件解码与`GPU`渲染，我们可以用它来播放`720P`甚至`1080P`高清的视频。
+
 　　`Vitamio`支持各种常见的流媒体协议，可以点播或者直播音频和视频，例如如下常见协议均能无缝支持：
 ``` c
 MMS
@@ -125,7 +154,6 @@ HTTP progressive streaming
 HLS - HTTP live streaming (M3U8)
 ```
 
-<br>**音频和视频格式** 
 　　`Vitamio`使用了`FFmpeg`做为媒体解析器和最主要的解码器，同时开发了针对不同移动平台的硬解码方案，能够完美支持`H.264/AVC`、`H.263`、`MPEG4`等常见的视频编码，覆盖上百种多媒体格式。下表只是一些最常见的视频格式支持，除特殊标明，全部支持硬件加速：
 ``` c
 DivX/Xvid
@@ -140,86 +168,109 @@ AVI
 MP4
 3GP
 ```
+　　更多关于`Vitamio`的介绍，请点击查看：[官方网站](https://www.vitamio.org/)
 
-<br>　　更详细的信息请[ 点击阅读 ](https://www.vitamio.org/docs/Basic/2013/0429/3.html)
+<br>　　虽然如此，但是经过笔者的调研，发现`Vitamio`有如下三个缺点：
 
-<br>**为什么选 Vitamio？**
-　　首先，虽然`Android`已经内置了`VideoView`组件和`MediaPlayer`类来支持开发视频播放器，但支持格式、性能等各方面都十分有限，为了节省开发成本和周期，笔者决定使用第三方开源音视频库。
+	-  第一，Vitamio for Android已经被标记为DEPRECATED了，即开发团队已经不维护它了。
+	-  第二，Vitamio 对个人开发者免费，对公司收费。但是笔者是给公司干活，所以如果使用的它的话就得交钱。
+	-  第三，Vitamio for Android播放视频时，视频缓冲的很慢，并且它的Android代码写的很差，没有合理的架构不利于扩展。
 
-　　然后，虽然市面上有不少音视频开源库，但笔者从以下几个方面综合考虑后，认为`Vitamio`是最合适的：
+　　由于它存在这三个致命的缺点，所以笔者决定不实用它，也许以前它很火，但廉颇已老！
 
-	-  国内团队开发，且团队实力过硬遇到问题有能力处理。
-	   -  国内团队离我们近，语言没有障碍、文档和Demo齐全。
-	   -  公司团队成员100人左右，来自于暴风影音，酷六，新浪等，拥有多年的视频编解码经验以及业内一流的研发实力。
-	-  迭代过多个版本，稳定且使用广泛。
-	   -  公司在2011年8月成立一直到现在，从Github上就可以看到8个迭代版本。
-	   -  目前酷6、CNTV、321影音、酷狗音乐、天天动听等App都使用了Vitamio库。
+　　也许你会说“我哥们公司就用的它，人家用的好好的呢”，但是`Vitamio`对笔者来说并不友好，所以笔者不想用它。
 
-<br>**准备工作**
-　　由于目前`Vitamio`官方没有提供`Android Studio`版本的库，所以我们只能自己手动来搭建环境了。
-　　提示：如果你没用过`Android Studio`，请参阅[《实战篇　第四章 Android Studio》](http://cutler.github.io/android-O04/)。
+<br>**ijkPlayer**
+　　`Android`内置的`API`不能多路播放，而且实时流媒体延迟过高，因此如果你对流媒体的要求过高，则就无法使用它们了。
 
+　　当今，业内一般都使用`bilibili`开源出来的[ IJKPlayer ](https://github.com/Bilibili/ijkplayer)，像斗鱼TV之类的都是自己基于`IJKPlayer`改造的，技术方案比较成熟，稳定性方面比较可靠，使用起来也很简单，项目的编译脚本做的比较简单、灵活。
 
-为什么不用原生控件？
-http://www.koulianbing.com/?p=97
-播放器方面，Android和IOS理论上是原生支持HLS播放的，不过实际应用过程中适配问题比较多，所以业内一般都使用bilibili开源出来的IJKPlayer，像斗鱼TV之类的都是自己基于IJKPlayer改造的，技术方案比较成熟，稳定性方面比较可靠，使用起来也很简单，项目的编译脚本做的比较简单、灵活。
+	-  优点：
+	   -  支持多种流媒体协议、文件压缩编码，功能强大的同时也可以依据自己的需求定制，灵活性高。
+	   -  在Github上开源已久，项目成熟，各路大牛一起维护，我们为你采坑！
+	   -  免费。
+	-  缺点：
+	   -  生成的安装包略大。笔者运行官方的Demo，在一切保持默认的情况下，打出来的apk有6M多。
 
-
-
+<br>　　稍后笔者会介绍一下自己在编译`ijkPlayer`时候所遇到的坑，节省您的时间。
+　　
 <br>**本节参考阅读：**
-- [随笔分类 - 5、Vitamio](http://www.cnblogs.com/over140/category/409230.html)
+- [HLS直播技术方案及踩过的坑](http://www.koulianbing.com/?p=97)
+
+## 推荐阅读 ##
+　　如果您打算使用`MediaPlayer + SurfaceView`的方式来播放视频，笔者推荐你阅读：[《承香墨影-MediaPlayer》](http://www.cnblogs.com/plokmju/tag/MediaPlayer/)，作者通过三篇博文来介绍`MediaPlayer`的各种特性，很赞。
+
+　　如果您打算`VideoView`的方式来播放视频，笔者推荐你阅读：[《承香墨影-使用VideoView播放视频》](http://www.cnblogs.com/plokmju/p/android_VideoView.html)，同样高品质，并在文章的末尾附有`Demo`。
+
+　　由于笔者只需要简单的播放一下`mp4`格式的流媒体视频，因此通过上面的一番比较，最终决定使用`VideoView`来实现，当然笔者会对`VideoView`进行一些封装。
+
 ## ijkplayer ##
-### 编译 ###
-项目地址：https://github.com/Bilibili/ijkplayer
-为什么
+　　刚才说到了`ijkPlayer`，本节就来简单的说一下`Mac`上编译的流程，由于`ijkPlayer`的版本会不断更新，因此请以[ 官方教程 ](https://github.com/Bilibili/ijkplayer)为准。　
 
-
-
-**配置git**
-先执行`git clone git@github.com:Bilibili/ijkplayer.git`
-``` c
-Cloning into 'ijkplayer'...
-Permission denied (publickey).
-fatal: Could not read from remote repository.
-
-Please make sure you have the correct access rights
-and the repository exists.
-```
-
-可能是你没配置过，按照这个配置即可：
-https://help.github.com/articles/generating-ssh-keys/#platform-mac
-
-**执行初始化**
-`cd ijkplayer/`
-`git checkout -B latest k0.3.2.1`
-`./init-android.sh`这里会自动下载 ffmpeg 和 android-libyuv 依赖包，其中由于 ffmpeg 仓库在国外，故需要等待较长时间。本人以 15KB/s 的速度下载了两个多小时，等待期间可以做下面的准备。
-
-
-**修改path**
-最直观的方法是：
-cd ~
-open .bash_profile
-这时候就会直接用记事本程序打开这个配置文件，比在终端里那么设置要简单直观多了。
-要注意一点那就是配置文件里的变量是会覆盖的，比如
-export PATH=1
-export PATH=2
-那么后面的2会把前面的1覆盖的。
-修改之后重启中断窗口才能生效。
-
-**下载ndk**
-Download the appropriate package from this page.
-Open a terminal window.
-Go to the directory to which you downloaded the package.
-Run chmod a+x on the downloaded package.
-Execute the package. For example:
+<br>　　第一步，安装`git`，如果你没有安装过，请自行搜索，很简单。
+　　第二步，配置`git`，即让`git`和你的`Github`帐号关联起来，[《Mac下的配置教程》](https://help.github.com/articles/generating-ssh-keys/#platform-mac)。
+　　第三步，安装[ NDK r10e ](http://developer.android.com/intl/zh-cn/tools/sdk/ndk/index.html)、[Android SDK and Android Studio](https://developer.android.com/intl/zh-cn/sdk/index.html)，如果你有的话就跳过。
+　　　　　　如果你没法翻墙可以去[ Android Studio 中文组 ](http://android-studio.org/index.php)。
+　　　　　　由于红杏近期被封了，如果你想访问`Google`的话，可以使用[ huhamhire-hosts ](https://github.com/huhamhire/huhamhire-hosts/releases)。
+<br>　　第四步，解压`NDK`。先把文件移动到你的工作目录，然后使用如下代码解压：
 ``` c
 ndk$ chmod a+x android-ndk-r10c-darwin-x86_64.bin
 ndk$ ./android-ndk-r10c-darwin-x86_64.bin
 ```
-The folder containing the NDK extracts itself.
-You can also use a program like 7z to extract the package.
+<br>　　第五步，配置`NDK`和`SDK`的路径，即创建下面两个环境变量：
+``` c
+cd ~
+open .bash_profile
+```
+　　然后在窗口中加上类似如下的代码：
+``` c
+export ANDROID_NDK=/Users/cutler/Programer/ProgramFiles/android/android-ndk-r10e
+export ANDROID_SDK=/Users/cutler/Programer/ProgramFiles/android/android-sdk-macosx
+```
+　　需要注意的是，修改完`.bash_profile`文件之后，我们需要重启终端窗口才能生效。
 
 
+<br>　　第六步，使用下面的代码来下载最新办的代码：
+``` c
+git clone https://github.com/Bilibili/ijkplayer.git ijkplayer-android
+cd ijkplayer-android
+git checkout -B latest k0.3.2.2
+```
+　　笔者此时能看到的最新版就是`k0.3.2.2`，您在执行之前请去官网查看一下最新版的版本号。
 
-http://www.koulianbing.com/?p=97
+<br>　　第七步，依次使用如下代码来初始化、编译`ijkPlayer`，要一条条执行，别一口气都执行了：
+``` c
+cd ijkplayer-android
+#下面这条语句会自动下载 ffmpeg 和 android-libyuv 依赖包。
+#其中由于 ffmpeg 仓库在国外，故需要等待较长时间，本人以 15KB/s 的速度下载了两个多小时。
+./init-android.sh
+
+cd android/contrib
+./compile-ffmpeg.sh clean
+./compile-ffmpeg.sh all
+
+cd ..
+./compile-ijk.sh all
+```
+
+<br>　　第八步，将`android/ijkplayer`导入到`Android Studio`中，并在项目的根`build.gradle`文件中添加如下代码：
+``` c
+ext {
+    compileSdkVersion = 22       // depending on your sdk version
+    buildToolsVersion = "22.0.1" // depending on your build tools version
+}
+```
+　　注意：`compileSdkVersion`和`22`之间是用`=`号相连的，而不是空格，笔者在这卡了很久。
+
+<br>　　最后，就是编译运行项目了，如果你本地没有`platform-22`，那么可以使用`SDK Manager`下载，如果你没法翻墙，那么可以给`SDK Manager`配置如下代理：
+``` c
+代理服务器：mirrors.neusoft.edu.cn
+端口：80
+```
+
+<br>　　提示：
+
+	由于笔者从事的是Android开发工作，因而暂时没去了解如何将普通视频转换成流媒体格式视频，这些由服务端的同事完成了，如果你对此有兴趣请自行学习。
+
+
 <br><br>
