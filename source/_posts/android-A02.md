@@ -7,11 +7,12 @@ categories: android
 　　本章会略过`Activity`的基础知识（创建、配置、传参等），请您自行搜索学习。
 <br>
 # 第一节 生命周期 #
-　　`Activity`从创建到销毁会经历多个阶段，每个阶段都会回调不同的生命周期方法，共有`7`个与生命周期有关的方法：
+　　Activity从创建到销毁会经历多个阶段，每个阶段都会回调不同的生命周期方法，本节将分两部分来介绍它的生命周期。
+
+## 正常生命周期 ##
+　　在正常情况下，Activity会执行下面`7`个生命周期方法：
 
 	onCreate、onStar、onResume、onRestart、onPause、onStop、onDestroy
-
-　　重写这些生命周期方法时，你必须要先调用父类的方法执行相应的操作后，再去做你自己的事情。
 
 <br>　　下图说明了这些生命周期方法之间转换可能的路径：
 
@@ -23,102 +24,20 @@ categories: android
 
 <br>　　**onCreate()**
 
-	-  当Activity被创建时调用这个方法，在Activity的生命周期中，仅会调用一次。你应该在这个方法中创建所有的全局资源，如视图、把数据绑定到列表等等。当此方法被调用时，同时会接到一个Bundle对象（具体后述）。
-	-  提示：操作系统启动一个Activity时，会先通过反射的方式实例化出该Activity的一个实例。然后调用其构造方法、为其设置Context对象等，一切完毕后才会调用onCreate()方法。跟随其后的总是onStart()方法。
+	-  当Activity构造方法返回之后，系统会调用这个方法，创建各种全局资源，如设置界面布局等。
+	-  在Activity的整个生命周期中，此方法仅会调用一次。
 
 <br>　　**onRestart()、onStart()、onResume()**
 
-	-  onRestart：在Activity被onStop()之后且重启之前调用这个方法，跟随其后的总是onStart()方法。
-	-  onStart：在Activity显示对用户可见之前调用这个方法。如果该Activity要显示在前台，那么接下来会调用onResume()方法。
-	-  onResume：在Activity可以和用户交互之前调用这个方法。此时此刻Activity在堆栈的顶部，能够接受用户的输入。 
+	-  onRestart：当Activity从不可见即将变为可见状态时，此方法会被调用。注意上图，一个新创建的Activity不会调用此方法。
+	-  onStart：  当Activity已经可见时，此方法会被调用，此时Activity还无法和用户交互。
+	-  onResume： 当Activity已经可见且可以和用户交互时，此方法会被调用。
 
 <br>　　**onPause()**
 
-	-  当系统开始resuming另外一个Activity时，会调用当前Acitivty的这个方法。通常，用这个方法来提交那些未保存的改变使数据持久化，终止动画和其他的可能消耗CPU的操作等等。无论怎样，它里面的代码都应该被很快的执行完毕，因为另一个Activity在它返回之前，将不会被resumed。
-	-  若接下来当前Activity再次返回到前台时，会调用onResume()方法，若接着被隐藏，则会调用onStop()方法。
-	   -  注意：弹出一个对话框不会导致Activity的onPause方法被调用。
-	-  当操作系统内存不足且需要为高优先级的应用程序分配内存资源时，系统可能销毁处于pause状态的Activity。因此onPause()方法是Activity可以保证一定会执行的最后的一个生命周期方法。
+	-  当Activity可见但不能和用户交互时，此方法会被调用。它强调Activity即将不可见，而onStart强调Activity即将可交互。
+	-  通常，此方法中会进行数据持久化，终止动画等操作。
 
-<br>　　**onStop()**
-
-	-  当Activity即将不再对用户可见时调用这个方法。也就是说当Activity被销毁或者因为另一个Activity（既可以是既存的也可以是新创建的）被resume并且完全覆盖当前Activity时，这个方法就被调用了。
-	-  如果随后此Activity从后台返回前台与用户交互，就调用onRestart()方法，如果Activity被清除就调用onDestroy()方法。
-	-  注意：当系统内存不足时系统会将已经调用过onPause()方法Activity给回收掉，也就是说此方法不一定会被调用。
-
-<br>　　**onDestroy()**
-
-	-  在Activity被销毁之前调用这个方法，这是Activity收到的最后的调用。
-	-  此方法既可以因为finish()方法的调用而被调用，也可以因为系统临时销毁了这个Activity实例来释放空间而被调用。你能够使用isFinished()方法来区分这两种场景。
-	-  注意：当系统内存不足时系统会将已经调用过onPause()方法Activity给回收掉，也就是说此方法不一定会被调用。
-
-<br>**何时才能被杀死？**
-　　`Activity`的三个方法`onPause()`，`onStop()`和`onDestroy()`被调用后，`Activity`都可能因为在系统内存不足的情况被回收掉，所以`Activity`一旦被创建，在进程被杀死前能够保证被调用的最后的方法就是`onPause()`，而`onStop()`和`onDestroy()`方法就可能不被调用了。
-　　因此，你应该使用`onPause()`方法来写关键的持久化数据代码用于保存数据。但是，你应该选择在`onPause()`期间什么信息是必须保留的，因为在这个方法中的任何处理都会锁定系统向下一个`Activity`转换，如果处理比较慢会影响流畅的用户体验。
-　　正常情况下，当除上述三个方法以外的方法被调用后，系统是无法强行回收`Activity`的内存。特殊的情况将在后面章节中介绍。
-
-<br>
-# 第二节 状态保存 #
-　　一开始`Activity`被`pause`或`stop`时它所有的成员和信息依然会保留在内存中，但是当系统需要回收内存时，这个`Activity`对象可能就会被销毁了。
-　　为了在`Activity`被销毁之前保存重要信息，你需要重写回调方法`onSaveInstanceState(Bundle)`。
-　　如果系统杀死了你的进程，而用户又导航回到了这个`Activity`，系统会重建这个`Activity`，并且给`onCreate()`和`onRestoreInstanceState()`方法传递这个`Bundle`对象。你能够从`Bundle`对象中提取你保存的状态信息，并且恢复`Activity`之前的状态。如果没有需要恢复的状态信息，那么会传递给你一个`null`的`Bundle`的对象（`Activity`首次被创建时，这个`Bundle`对象是`null`）。
-
-　　　　　　　　　　　![状态保存回调方法](/img/android/android_2_2.png)
-
-　　注：在`Activity`被销毁之前不能保证`onSaveInstanceState()`方法被调用，因为有些场景中不需要保存状态（如用户使用`“BACK”`键退出时，因为用户明确的要关闭`Activity`就不需要保存状态了）。如果系统需要调用`onSaveInstanceState()`方法，则会在`onStop()`方法和`onPause()`方法之前调用，`onRestoreInstanceState()`方法会在`onResume()`之前被调用。
-
-　　但是，即使你什么也没做并且也没有实现`onSaveInstanceState()`方法，通过`Activity`类默认的`onSaveInstanceState()`方法也能恢复`Activity`的某些状态。特别是布局中的每个`View`默认的实现都会调用相应的`onSaveInstanceState()`方法，它允许每个`View`提供它自己的应该被保存的信息。在Android框架中几乎每个`Widget`都对这个方法做了适当的实现，如当`Activity`被重建时，`EditText`控件保存用户输入的任何文本、`CheckBox`控件保存是否被选中。需要你做的工作只是给每个要保存状态的可视控件提供一个唯一的`ID`（使用`android:id`属性）即可。如果可视控件没有唯一`ID`，那么系统就不保存它们的状态。
-
-　　注意：
-
-	-  onSaveInstanceState方法的默认实现只是帮助保存UI的状态，因此在重写它时要先调用父类方法的实现。onRestoreInstanceState方法同理。
-
-<br>　　可以通过旋转设备，让设备的屏幕改变方向来测试你的应用程序状态的恢复。当屏幕的方向改变时，系统为了给新的屏幕配置选择有效的应用资源会销毁`Activity`并且重建一个新的。
-
-<br>　　范例1：Activity类。
-``` android
-	public class android.app.Activity extends ContextThemeWrapper {
-     // 在Activity被动的摧毁或停止的时候调用(用户主动点击键盘的回退键时不会调用此方法)，用于保存运行数据，可以将数据
-     // 保存在Bundle中。此方法会在pause方法之前调用。
-	    protected void onRestoreInstanceState (Bundle savedInstanceState){}
-
-     // 该方法在Activity被重新绘制的时候调用，例如改变屏幕方向。在onresume之前调用。
-     // 参数outState： Activity的onCreate方法中的参数也是onSaveInstanceState方法的同一个Bundle对象。
-	    protected void onSaveInstanceState (Bundle outState){}
-	}
-```
-
-## 处理配置的改变 ##
-　　某些设备配置能够在运行期间改变（如屏幕方向、键盘的可用性、语言等）。当这些改变发生时，系统会重建正在运行的`Activity`（系统调用`onDestroy()`方法后，立即调用`onCreate()`方法）。
-　　但是你也可以修改这个默认的行为，从而阻止系统重启你的`Activity`，即告诉系统由`Activity`自己来处理配置变化。
-
-　　只需要设置清单文件的`<activity>`元素的`android:configChanges`属性，为你要处理的配置即可。
-　　最常用的值是`orientation`(处理当屏幕的方向变化)，`keyboardHidden`(处理键盘可用性改变)，多个配置的值之间通过`“|”`符号将它们分隔开。
-　　例如，以下代码声明了`Activity`中将同时处理屏幕的方向变化和键盘的可用性变化：
-``` xml
-<activity android:name=".MyActivity"
-    android:configChanges="orientation|keyboardHidden"
-    android:label="@string/app_name">
-```
-　　当这些配置中的一个发生改变时，`MyActivity`不会重新启动。相反，它会接收`onConfigurationChanged()`方法的调用。这个方法传递一个`Configuration`类的对象来表示新的设备配置。通过读取`Configuration`对象的字段，你可以更新你的界面。当这个方法被调用时，你的`Activity`的`Resources`对象会被更新并返回一个基于新配置的`Resources`对象，因此你可以在不用系统重启你的`Activity`的情况下很容易地重置你的UI元素。
-
-　　注意：从`Android3.2`(`API level 13`)开始，当屏幕在横竖屏间切换时也会导致`“screen size”`改变，如果你想在`APILevel 13`或更高的版本中防止运行时重启Activity，你必须同时包含`“screen size”`和`“orientation”`两个值。你也可以将项目的`targetSdkVersion`值设置为`12`或者更低，这样仅设置`orientation`即可。
-
-　　例如，接下来的`onConfigurationChanged()`方法中实现了检查硬件键盘的可用性和当前设备的方向：
-``` android
-public void onConfigurationChanged(Configuration newConfig) {
-    super.onConfigurationChanged(newConfig);
-    // Checks the orientation of the screen
-    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-        Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
-    } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-        Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
-    }
-}
-```
-　　另外，不论你是同时设置`“screen size”`和`“orientation”`还是将`targetSdkVersion`设置为`<=13`，他们都只是会阻止`Activity`的重建，但并不会阻止屏幕的横竖屏切换。 
-　　如果你想让`Activity`支持横屏或竖屏二者之一，那么应该使用`android:screenOrientation`属性。
-
-## 协调Activity ##
 　　当在同一个进程中的两`Activity`之间切换时，它们两个的生命周期都会发生变化，以下是`ActivityA`启动`ActivityB`是发生的操作：
 
 	-  ActivityA的onPause方法被执行。
@@ -126,13 +45,629 @@ public void onConfigurationChanged(Configuration newConfig) {
 	-  如果ActivityA不再屏幕上显示，它的onStop方法就会被执行。
 
 　　这意味着，在`ActivityA`的`onPause`方法返回之前，`ActivityB`的`onCreate`方法不会被调用，因此请不要在`onPause`方法中执行耗时操作。
+　　另外，当操作系统内存不足且需要为高优先级的应用程序分配内存资源时，系统可能销毁处于pause状态的Activity，因此onPause()方法是Activity可以保证一定会执行的最后的一个生命周期方法。
+
+<br>　　**onStop()**
+
+	-  当Activity即将不再对用户可见时调用这个方法。有两种情况：
+	   -  第一，当前Activity被销毁。
+	   -  第二，另一个Activity被显示出来且完全挡住了当前Activity。
+	-  注意：当系统内存不足时系统会将已经调用过onPause()方法Activity给回收掉，也就是说此方法不一定会被调用。
+
+<br>　　**onDestroy()**
+
+	-  在Activity被销毁之前调用这个方法，这是Activity收到的最后的调用。
+	-  注意：当系统内存不足时系统会将已经调用过onPause()方法Activity给回收掉，也就是说此方法不一定会被调用。
 
 <br>
-# 第三节 Fragment #
+## 异常生命周期 ##
+　　上一节我们介绍了`Activity`常见的`7`个生命周期方法，这些方法主要是依靠用户的操作来触发的，比如用户打开一个新的`Activity`，会导致当前界面的`onPause`等方法调用。
+　　但是实际开发时，情况会稍微复杂一些，我们还会涉及到其它几个生命周期方法，本节就来介绍一下它们。
+<br>
+### 设备配置改变 ###
+　　当设备配置在运行期间改变（如屏幕方向、语言等）时，系统会重建正在运行的Activity（系统调用onDestroy()方法后，立即调用onCreate()方法）。
+　　但是你也可以修改这个默认的行为，从而阻止系统重启你的Activity，即告诉系统由Activity自己来处理配置变化。
+
+<br>　　我们只需要设置清单文件的`<activity>`元素的`android:configChanges`属性即可，该属性最常用的值是`orientation`(处理当屏幕的方向变化)，多个配置的值之间通过`“|”`符号将它们分隔开。例如：
+``` xml
+<activity android:name=".MyActivity"
+    android:configChanges="orientation|screenSize"
+    android:label="@string/app_name">
+```
+　　这样一来当屏幕方向发生变化时，`MyActivity`不会重新启动，相反，它的`onConfigurationChanged()`方法会被系统的调用，如果您没这么配置则不会被调用。
+
+　　注意：
+
+	-  从Android3.2(API level 13)开始，当屏幕在横竖屏间切换时也会导致“screenSize”改变。
+	-  因此若想在APILevel 13或更高的版本中防止屏幕方向变化时重启Activity，你必须同时包含“screenSize”和“orientation”两个值。
+
+<br>　　例如，接下来的`onConfigurationChanged()`方法中实现了检查硬件键盘的可用性和当前设备的方向：
+``` android
+// 当这个方法被调用时，你的Activity的Resources对象会被更新并返回一个基于新配置的Resources对象。
+// 因此你可以在不用系统重启你的Activity的情况下很容易地重置你的UI元素。
+public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+
+    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+    } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+        Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+    }
+}
+```
+　　另外，不论你是同时设置`“screen size”`和`“orientation”`还是将`targetSdkVersion`设置为`<=13`，它们都只是会阻止`Activity`的重建，但并不会阻止屏幕的横竖屏切换。 
+　　如果你想让`Activity`支持横屏或竖屏二者之一，那么应该使用`android:screenOrientation`属性。
+<br>
+### 状态保存 ###
+　　程序在运行时会遇到各种各样的突发事件，当这些事件发生时就会导致Activity被重建，除了上面说的屏幕方向改变外，系统内存不足也是一个常见的、导致后台进程中的Activity被杀掉的原因。
+　　也就是说，即便我们避免了屏幕方向改变导致的Activity被重建的情况，但是Activity还会因为其他原因而重建。
+
+<br>　　为了应对这些突发事件，系统在Activity类中为我们提供了如下两个回调方法：
+
+	-  onSaveInstanceState：
+	   -  在Activity有可能被销毁之前，系统会回调此方法。
+	   -  我们重写此方法时，将自己需要保存的数据，存在该方法的参数（一个Bundle对象）中即可。
+	-  onRestoreInstanceState：
+	   -  如果Activity之前存储了数据，则当该Activity再次被显示时，系统会回调此方法。
+	   -  我们重写此方法时，从该方法的参数（一个Bundle对象）中还原我们的数据即可。
+
+<br>　　范例1：保存数据。
+``` android
+public class MainActivity extends Activity {
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // 保存一个int变量到Bundle对象中。
+        outState.putInt("key", 1024);
+    }
+
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        // 从Bundle中读取数据。
+        System.out.println("onRestoreInstanceState " + savedInstanceState.get("key"));
+    }
+
+}
+```
+	语句解释：
+	-  Activity的onCreate方法的Bundle对象与onRestoreInstanceState是同一个。
+	-  如果没有需要恢复的状态信息，那么会传递给onCreate方法一个null的Bundle的对象（Activity首次被创建时）。
+	-  一般情况下，我们推荐在onRestoreInstanceState中执行还原操作。
+
+<br>　　注意：
+
+	-  在Activity被销毁之前不能保证onSaveInstanceState()方法被调用。
+	-  因为有些场景中不需要保存状态，如用户使用“BACK”键退出时，因为用户明确的要关闭Activity就不需要保存状态了。
+	-  如果系统需要调用onSaveInstanceState()方法，则会在onStop()方法和onPause()方法之前调用。
+	-  onRestoreInstanceState()方法会在onResume()之前被调用。
+
+<br>　　但是，如果你没有实现`onSaveInstanceState()`方法，那么Activity类默认的`onSaveInstanceState()`方法也能恢复某些状态：
+
+	-  在Android框架中几乎每个Widget都对onSaveInstanceState()方法做了适当的实现。
+	-  Activity的onSaveInstanceState()方法，会依次调用它自己的布局中的View的onSaveInstanceState()方法，来保存数据。
+	   -  比如当Activity被重建时，EditText控件保存用户输入的文本、CheckBox控件保存是否被选中。
+	-  需要你做的工作只是给每个要保存状态的可视控件提供一个唯一的ID（使用android:id属性）即可。如果可视控件没有唯一ID，那么系统就不保存它们的状态。
+
+# 第二节 Task #
+
+## 基础知识 ##
+　　`Android`使用`Task`来组织应用程序的所有`Activity`，`Task`是一个栈(`Stack`)结构，各个`Activity`按照栈的特点`“后来居上、后进先出”`依次被被安排在栈中。
+　　默认情况下，一个应用程序中的所有`Activity`处于同一个`Task`中，在操作系统中同一时间上会存在多个`Task`。
+　　默认情况下，当一个`Activity`被创建时，就会被压入到`Task`的栈顶，当其销毁时（用户点击`“Back”`键或调用`finish()`方法等），就会从栈顶移除。
+
+<br>　　范例1：图示。
+　　　　　　　　![Task](/img/android/android_2_7.png)
+　　第四个图形描述的是`Activity3`从`Task`中被弹出。
+　　如果用户继续按`“Back”`按钮，那么堆栈中的每个`Activity`会被依次弹出，当所有的`Activity`从堆栈中被删除时，这个`Task`就不再存在了。
+
+<br>　　范例2：前台与后台。
+　　`Task`有前台和后台之分，当某个应用程序被用户切换到前台时，该应用程序所对应的`Task`也将会被移动到前台。
+　　　　　　　　　　　　　　　　　　![TaskB处于前台、TaskA处于后台](/img/android/android_2_8.png)
+
+　　很显然，系统在同一时间可能存在多个后台`Task` ，但只能有一个前台`Task`。
+　　提示：虽然后台可以存在多个`Task`，但是当系统内存不足时，后台`Task`中的`Activity`所占据的内存可能被回收。
+
+<br>　　`Task`的默认行为：
+
+	-  当用户通过按主页(Home)按钮离开一个任务时，当前Task的栈顶Activity会被stop，并且Task会被放入后台，但系统会保留Task中每个Activity的状态。
+	   -  如果用户随后通过选择启动图标来恢复这个任务，那么任务会来到前台，并且恢复了堆栈顶部的Activity。
+	-  如果用户按下回退按钮，当前的Activity会从堆栈中被弹出并且被销毁，堆栈中的前一个Activity会被恢复。
+
+## 启动模式 ##
+　　默认情况下，`Android`会把同一个应用程序的所有`Activity`放到同一个栈里来进行管理，对于大多数应用程序来说这种方法能够很好的工作。
+　　但是实际应用时情况复杂多变，这种默认的行为难以满足需求，不过你可以修改它，即`修改启动模式`。
+
+<br>**修改启动模式：**
+　　启动模式用来告诉系统，当用户请求启动一个`Activity`时，系统应该怎么做。使用以下两种方法可以定义启动模式：
+
+	1、 使用清单文件：即在配置Activity的同时，指定该Activity的启动模式。
+	2、 使用Intent对象：在调用startActivity方法时，通过Intent对象来设置待启动的Activity的启动模式。
+
+<br>　　假设`ActivityA`启动`ActivityB`，并且：
+
+	-  B在清单文件中定义了自己的启动模式。
+	-  同时A又通过在Intent中设置了flag的方式，来为B指定启动模式。
+　　那么此时`A`的请求（在`Intent`中定义的）的优先级要高于`B`的请求（在清单文件中定义的）。
+<br>　　注意：某些在清单文件中有的启动模式在`Intent`类中却没有，同样某些`Intent`类有的启动模式也不能在清单文件中使用。
+<br>
+### 使用清单文件 ###
+　　在清单文件中声明一个`Activity`时，你能够使用`<activity>`元素的`launchMode`属性来指定这个`Activity`的启动模式，该属性有有四种取值：
+
+<br>　　**standard模式**
+
+	-  标准模式，如果你在清单文件中配置Activity时，不为它的launchMode属性赋值，那么该Activity就默认是此种启动模式。
+	-  当启动一个standard模式的Activity时，系统会直接创建一个该Activity的实例，并将该实例放到启动者所在的Task的栈顶。
+	   -  比如ActivityA启动了ActivityB（B是标准模式），那么B就会运行在A所在的栈中，即使A与B不是一个应用程序也不例外。
+	-  如果A启动了5次B，那么A的Task中就有5个B的实例。
+
+　　当我们用`Application`或`Service`对象来启动一个`standard`模式的Activity时，会报如下错误：
+``` c
+Caused by: android.util.AndroidRuntimeException: Calling startActivity() 
+            from outside of an Activity  context requires the FLAG_ACTIVITY_NEW_TASK flag. 
+            Is this really what you want?
+```
+　　这是因为`standard`模式的Activity默认会进入它的启动者的Task中，但是由于Application并没有所谓的Task的概念，所以就出问题了。
+
+<br>　　**singTop模式**
+
+	-  栈顶复用模式。如果打算启动的Activity的实例，已经存在于启动者所在的Task的顶部，那么系统就会通过调用onNewIntent方法把这个Intent传递给这个实例，而不是创建一个新的实例。
+	-  只有启动者所在的栈的顶部的Activity不是该Activity的实例时才会有多个实例存在。
+<br>　　假设现在有一个`Task`，它的栈由`A`、`B`、`C`、`D`四个`Activity`组成，其中`D`在栈顶。
+
+	-  若此时又试图启动一个D类型Activity，那么：
+	   -  若D的启动模式是standard，那么D就会被直接启动，并且此时堆栈变成A-B-C-D-D的组合。
+	   -  若D的启动模式是singleTop，那么既存的D的实例因为它在堆栈的顶部，所以它会接收通过onNewIntent()方法传递的Intent，堆栈仍然保持着A-B-C-D的组合。
+	-  但是，如果是启动一个B类型Activity，那么即使B类型Activity的启动模式是“singleTop”，也会有一个新的B的实例被添加到堆栈中，因为栈顶是D。
+
+<br>　　在讲解`singleTask`启动模式之前，先说明一下什么是`affinity`（译为亲缘关系，不过还是别用中文称呼它了）。
+<br>　　**affinity：**
+　　每个`Task`都有一个`affinity`属性，它相当于`Task`的唯一标识。
+　　每个`<activity>`标签也有一个`taskAffinity`的属性，用来指出当前`Activity`想从属的Task。
+
+	-  若Activity为它的taskAffinity属性设置了值，即告诉系统该Activity希望被放到affinity属性的值与其taskAffinity属性相同的Task中。
+	-  若没有为此属性赋值，则当前Activity的affinity就是<application>标签的taskAffinity属性的值。
+	-  若<application>标签也没有指定taskAffinity属性的值，则就使用包名来作为整个程序所有Activity的taskAffinity。
+	   -  也就是说，默认情况下同一个应用程序中的所有Activity，会运行在同一个Task中。
+
+　　
+　　问：那么亲缘关系在什么情况下会被用到呢?
+　　答：`taskAffinity`属性主要和`singleTask`启动模式或者`allowTaskReparenting`属性配对使用。
+
+<br>　　**singleTask模式**
+　　当启动了一个启动模式为`singleTask`的`Activity`时，系统会执行如下操作：
+
+    -  在整个操作系统中当前正在运行的所有Task中进行查找，查找affinity属性值等于启动模式为singleTask的Activity的taskAffinity属性值的任务是否存在。
+    -  若不存在，则系统会开启一个新的Task，并将该Activity作为根元素。
+    -  若存在，则系统会查看该Task中是否已经存在了该Activity。
+       -  若存在，则将该Activity上的所有Activity都给finish掉，并调用该Activity的onNewIntent()方法，将新的Intent传递过去。
+       -  若不存在，则在该Task顶部启动该Activity。
+　　提示：`singleTask`默认具有`clearTop`的效果。
+
+
+<br>　　范例1：查看所有`Task`。
+``` android
+adb shell dumpsys activity
+```
+　　使用`adb`命令可以查看当前操作系统中存在的所有`Task`。
+``` android
+Running activities (most recent first):
+   TaskRecord{44fbd658 #3 A com.example.androidtest}
+     Run #1: HistoryRecord{45032428 com.example.androidtest/.MainActivity}
+   TaskRecord{4502d408 #2 A com.android.launcher}
+     Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
+```
+　　此时系统中有两个`Task`，若在`MainActivity`中启动`Activity1`，在`Activity1`中启动`Activity2`，则`Task`中的情况如下：
+``` android
+Running activities (most recent first):
+  TaskRecord{4500ff48 #4 A com.example.androidtest}
+    Run #3: HistoryRecord{450ea0a8 com.example.androidtest/.Activity2}
+    Run #2: HistoryRecord{450268f8 com.example.androidtest/.Activity1}
+    Run #1: HistoryRecord{44eb1ea8 com.example.androidtest/.MainActivity}
+  TaskRecord{4502d408 #2 A com.android.launcher}
+    Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
+```
+　　若修改`Activity1`的启动模式为`singleTask`：
+``` android
+<activity android:name=".Activity1" android:launchMode="singleTask" >
+```
+　　则在`MainAcitivity`中启动它后，栈中的情况如下：
+``` android
+Running activities (most recent first):
+   TaskRecord{45008f00 #6 A com.example.androidtest}
+     Run #2: HistoryRecord{45040e18 com.example.androidtest/.Activity1}
+     Run #1: HistoryRecord{44f8eed0 com.example.androidtest/.MainActivity}
+   TaskRecord{4502d408 #2 A com.android.launcher}
+     Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
+```
+　　为什么没有新开启一个`Task`呢?
+　　因为`Activity`的`taskAffinity`属性的值没有设置，因此最终系统将它默认为包名了，这和`MainAcitivity`所处的`Task`的`affinity`属性的值一致，所以没有新开`Task`。
+
+<br>　　范例2：开启新`Task`。
+　　首先为`Activity1`设置`taskAffinity`属性的值。
+``` android
+<activity android:name=".Activity1" android:launchMode="singleTask"
+    android:taskAffinity="ni.die" >
+```
+　　然后在`MainAcitivity`中启动它，此时系统中的`Task`情况如下：
+``` android
+Running activities (most recent first):
+   TaskRecord{44f1e948 #8 A ni.die}
+     Run #2: HistoryRecord{45028690 com.example.androidtest/.Activity1}
+   TaskRecord{4500b308 #7 A com.example.androidtest}
+     Run #1: HistoryRecord{44eb1ea8 com.example.androidtest/.MainActivity}
+   TaskRecord{4502d408 #2 A com.android.launcher}
+     Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
+```
+
+<br>　　**移动整个栈**
+　　这里需要指出一种情况，我们假设目前有2个任务栈，前台栈中有AB，后台栈中有CD，且假设CD的启动模式均为`singleTask`。
+　　然后处于前台栈顶的B：
+
+	-  如果请求启动D：由于D是栈顶，那么整个后台栈都会被切换到前台，此时栈内为ABCD。
+	-  如果请求启动C：由于C不是栈顶，因此请求C时，D会被直接出栈，此时栈内为ABC。
+
+<br>　　**singleInstance模式**
+　　使用此启动模式的`Activity`总是单独占有一个`Task`，若在该`Activity`中又启动了另外一个`Activity`，则新启动的`Activity`将不会和该`Activity`处于同一个`Task`中。
+<br>
+### 使用Intent ###
+　　启动`Activity`时，你能够通过在传递给`startActivity()`方法的`Intent`中包含标识来修改`Activity`的默认启动模式，常用的取值：
+
+	-  FLAG_ACTIVITY_NEW_TASK：与launchMode属性值等于singleTask时具有同样的行为。
+	-  FLAG_ACTIVITY_SINGLE_TOP:与launchMode属性值等于singleTop时具有同样的行为。
+
+<br>　　范例1：设置`Flag`。
+``` android
+Intent intent = new Intent(this,SecondActivity.class);
+intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+this.startActivity(intent);
+```
+	语句解释：
+	-  在非Activity中启动Activity时，必须为Intent设置FLAG_ACTIVITY_NEW_TASK，如在“服务”中。
+
+<br>**清除回退堆栈（笔者未测试）：**
+　　如果用户长时间的离开一个任务，那么系统会清除这个任务根`Activity`以外的所有`Activity`。当用户再次返回这个任务时，只有根`Activity`被存储。这样的系统行为是因为经过长时间以后，用户在返回这个任务之前可能已经放弃它们的作业，而开始了某些新的任务。 你能够使用一些`Activity`属性来修改这种行为：
+
+　　alwaysRetainTaskState
+
+	如果这个属性在一个任务的根Activity中被设置为“true”，那么像上面描述的那样的默认行为就不会发生。即使是长时间之后，这个任务也会在它的堆栈中保留所有的Activity。
+　　clearTaskOnLaunch
+
+	如果这个属性在一个任务的根Activity中被设置为“true”，那么无论用户什么时候离开和返回这个任务，堆栈都会被清除到根Activity的位置。换句话说，它与alwaysRetainTaskState属性相反，用户总是返回到任务的初始状态，即使只离开这个任务一会儿。
+# 第三节 Intent #
+　　`Android`四大组件中有三个组件（不包括内容提供者）是通过叫做`Intent`的对象来激活的，因此接下来将介绍`Intent`对象。
+
+　　Intent被译为意图，一个Intent对象就是一个信息包，我们把一些信息放到Intent中，然后把它交给操作系统，然后操作系统会依据里面的数据来做出相应的操作。
+
+　　Intent中主要有`7`个重要的字段：
+
+	mComponent、mAction、mData、mCategories、mExtras、mType、mFlags
+　　但是我们在使用Intent对象的时候，不需要为这7个属性都赋值，而只需要在不同的情况下为某几个属性赋值即可，稍后会详细介绍如何使用它们。
+
+<br>　　在`Android`中意图分为：`显式意图`和`隐式意图`。
+<br>　　**显式意图**
+　　若在`Intent`对象被发送给操作系统之前，程序为它的`mComponent`属性赋值了，则此`Intent`对象被称为显式意图。显示意图明确的指定了其要启动的组件的所在包名、类名，`Android`系统接到`Intent`对象时，直接去对应的包中反射实例化并初始化目标组件。
+<br>　　**隐式意图**
+　　在程序中没有为`Intent`对象明确指出想要其启动组件（即没有为`mComponent`属性赋值），而是提供一些筛选条件，操作系统会从当前已在系统中注册的所有组件中，筛选出满足要求的组件(可能是一个也可能是多个)，然后予以启动。 
+
+## 显式意图 ##
+　　当操作系统接到`Intent`对象后，会检查`Intent`对象的`mComponent`是否有值：
+	-  若有值：则直接启动mComponent所代表的组件。
+	-  若无值：则按照隐式意图处理。
+
+　　`mComponent`字段是`ComponentName`类型的，用来表示`Intent`所要启动的组件的名字，它只有两个属性：`包名`、`组件名`。
+
+	-  包名：用来指出该组件所在的应用程序。
+	-  组件名：找到应用程序后，再依据组件名，来在该程序中找对应的组件。
+
+
+<br>　　范例1：通过`ComponentName`启动新`Activity`。
+``` android
+public class MainActivity extends Activity {
+
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        ComponentName component = new ComponentName(this, SecondActivity.class);
+        // 输出com.example.androidtest.SecondActivity
+        System.out.println(component.getClassName()); 
+        // 输出com.example.androidtest
+        System.out.println(component.getPackageName()); 
+        // 输出.SecondActivity
+        System.out.println(component.getShortClassName()); 
+        Intent intent = new Intent();
+        // 往Intent中添加数据
+        intent.putExtra("name", "tom");
+        intent.setComponent(component);
+        // 启动SecondActivity
+        startActivity(intent);
+    }
+}
+```
+    语句解释：
+    -  我们可以通过Intent对象的mExtras属性，来将一些参数传递到目标组件中去。
+    -  除了构造ComponentName对象外，我们也可以在创建Intent对象的同时，设置当前Intent对象从何处跳往何处：
+       -  Intent intent = new Intent(MainActivity.this,MyActivity.class);
+
+<br>　　范例2：接收参数。
+``` android
+public class SecondActivity extends Activity{
+
+    protected void onCreate(android.os.Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main2);
+
+        Intent intent = this.getIntent();
+        System.out.println(intent.getStringExtra("name"));
+    };
+}
+```
+    语句解释：
+    -  每个Activity都拥有一个启动自己的Intent对象，可以通过getIntent()方法获取。
+
+## 隐式意图 ##
+　　隐式意图：在程序中没有为`Intent`对象的`mComponent`属性明确指出想要其启动组件。
+　　隐式意图仅仅是为`Intent`对象指出一些筛选条件，然后`Android`系统会取出`Intent`对象中的数据和所有已经注册到系统中的组件进行匹配。
+
+	-  若匹配成功，则系统将激活该组件。
+	-  若有多个组件匹配成功，则系统将弹出一个对话框，要求用户选择所要激活的组件。
+	-  若没有任何组件匹配成功则抛异常。
+
+　　应用程序中定义的`Android`组件都需要在`AndroidManifest.xml`文件中记录。当系统在进行意图匹配时，就会取出`Intent`对象中的筛选条件与所有已注册到系统中的各个组件的`<intent-filter>`标签下定义的数据进行匹配。
+
+　　上面所说的“筛选条件”指的就是`Intent`对象以下三个方面：
+
+	1、动作（mAction）
+	2、数据（mData和mType）
+	3、分类（mCategories）
+
+　　也就是说，我们通过为Intent的上面四个属性赋值，来执行“设置筛选条件”，然后操作系统也会读取这四个属性，并用它们进行匹配。
+
+<br>**动作**
+　　`mAction`：是`String`类型的，用来告诉系统本次请求要执行什么样的动作。如：张三看书、李四唱歌中的`“看”`、`“唱”`就是指动作。在Android中内置的动作有很多，常见的有：
+
+	-  Intent.ACTION_VIEW ：“查看”动作。
+	-  Intent.ACTION_EDIT ：“编辑”动作。
+	-  Intent.ACTION_DELETE ：“删除”动作。
+	-  Intent.ACTION_CALL：“呼叫”动作，通常指打电话。
+	-  Intent.ACTION_MAIN ：标记当前Activity是程序的入口。
+
+<br>**数据**
+　　数据：`“动作”`所要操作的数据，显然不同的动作要跟不同的数据规范类型配合使用，比如：
+	-  如果动作是ACTION_VIEW，那么数据就应该指向一个可被查看的东西，比如网页、图片、视频等。
+	-  如果动作字段是ACTION_EDIT，那么它的数据应该指向它所要编辑的数据。
+	-  如果动作是ACTION_CALL，那么数据就应该是一个呼叫号码。在Android中会使用“tel:呼叫号码”来表示这个数据。
+
+
+　　准确的说数据包括两部分：`mData`和`mType`：
+
+	-  数据的URI(mData)：如file:///tmp/android.txt 。
+	-  数据的类型(mType)：即数据的MIME类型。如：text/html 。
+
+<br>**分类**
+　　`mCategories`：`“动作”`的附加信息（可以有多个）。在Android中内置的类型有：
+
+	-  Intent.CATEGORY_LAUNCHER ：目标Activity能够被列在应用程序启动器上。
+	-  Intent.CATEGORY_BROWSABLE ：目标Activity能够安全的调用浏览器来显示链接所指向的数据（如图片或电子邮件）。
+	-  Intent.CATEGORY_HOME ：目标Activity显示在主屏幕上。
+
+<br>
+### IntentFilter ###
+　　读者应该都知道这三点：
+
+	-  创建完Activity等组件后，还需要在清单文件中配置它们，以便让系统知道这些组件的存在。
+	-  在配置它们的时候，除了ContentProvider之外的另外三个组件都可以配置一个或多个<IntentFilter>，它表示过滤器。
+	-  当我们需要启动一个组件时，整个流程是这样的：
+	   -  首先，我们创建一个Intent对象，然后将它传递给操作系统。
+	   -  然后，系统会检测Intent，若它是显式意图的直接启动目标组件，否则会依据Intent内部的信息进行匹配。
+	   -  接着，如果我们调用的startActivity来启动组件，那么系统会获取当前所有注册到系统中的Activity，并获取它们的<IntentFilter>。
+	   -  最后，让Intent对象和这些Activity的<IntentFilter>进行匹配，匹配成功就会启动该Activity，若有多个Activity都匹配成功，则系统会让用户选择启动哪一个。
+
+
+　　`IntentFilter`类与`<IntentFilter>`标签对应，它有类似于Intent对象的动作、数据、和分类字段，过滤器会用这三个字段来检测一个隐式的Intent对象。
+
+　　由于组件可以有多个`<IntentFilter>`标签，因此只要该组件有一个`IntentFilter`匹配成功，则就能启动。
+
+<br>**Action匹配**
+　　在清单文件中的`<intent-filter>`元素内的`<action>`子元素对应咱们前面说的“动作”。如：
+``` android
+<intent-filter>
+    <action android:name="com.example.project.SHOW_CURRENT" />
+    <action android:name="com.example.project.SHOW_RECENT" />
+    <action android:name="com.example.project.SHOW_PENDING" />
+</intent-filter>
+```
+    语句解释：
+    -  像本例显示的这样，一个过滤器可以列出多个Action。但这个列表不能是空的，一个过滤器必须包含至少一个<action>元素，否则它不会匹配任何Intent对象。
+    -  要通过这个检测，在Intent对象中指定的Action必须跟这个过滤器的动作列表中的某个Action一致匹配。
+
+　　
+　　进行意图匹配时，只有在Intent的`mAction`属性与`<intent-filter>`下的某个`<action>`标签的值匹配成功后，才会去匹配`mCategories`属性。 若意图过滤器中没有定义`mAction`属性，则当前`<intent-filter>`将被直接忽略，系统不会再与之进行匹配。
+
+<br>**Category检测**
+　　`<intent-filter>`元素内的`<category>`子元素对应前面说的“分类”。例如：
+``` android
+<intent-filter>
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+</intent-filter>
+```
+　　对于一个要通过`Category`检测的`Intent`对象，在`Intent`对象中所包含的每个分类，过滤器中都必须得包含，过滤器能够列出Intent中不包含的分类，但是它不能忽略`Intent`对象中的任何分类。
+　　因此，原则上一个没有`category`的`Intent`对象应该始终通过这个检测，而不管过滤器中声明的分类。
+
+　　注意：
+
+	-  所有传递给startActivity()方法的隐式Intent对象，都会至少包含了一个android.intent.category.DEFAULT。
+	-  只有Intent对象的mCategorie里的所有类型都匹配成功后，才会去匹配<data>标签。
+
+<br>**Data检测**
+　　像`Action`、`Category`检测一样，针对`IntentFilter`的“数据”也要包含在一个子元素中，这个子元素能够出现`0~n`次。例如：
+``` android
+<intent-filter>
+    <data android:mimeType="video/mpeg" android:scheme="http" /> 
+    <data android:mimeType="audio/mpeg" android:scheme="http" />
+</intent-filter>
+```
+　　每个`<data>`元素能够指定`URI`和数据类型（`MIME`）对于每个`URI`部分都会有独立的属性：scheme、host、port、path。格式：
+``` c
+<scheme>://<host>:<port>/[<path>|<pathPrefix>|<pathPattern>]
+```
+　　例如，以下URI：
+``` c
+content://com.example.project:200/folder/subfolder/etc
+```
+
+	-  scheme是content
+	-  host  是com.example.project
+	-  port  是200
+	-  path  是folder/subfolder/etc。
+　　其中`host`和`port`一起构成了`authority`，如果没有指定`host`，那么`port`也会被忽略。
+
+<br>
+### 开始匹配 ###
+　　范例1：新建Activity。
+``` android
+<activity android:name="org.cxy.intent.SecondActivity">
+    <intent-filter>
+        <action android:name="act.second"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+    </intent-filter>
+</activity>
+```
+　　在MainActivity中书写如下跳转语句：
+``` android
+Intent intent =  new Intent();
+intent.setAction("act.second"); 
+this.startActivity(intent);
+```
+    语句解释：
+	-  本范例并没有为Intent指定具体要跳转到哪个Activity，而是为Intent指定一个action。
+	-  在调用startActivity方法启动Activity时，该方法会自动为Intent对象设置一个category，即：“android.intent.category.DEFAULT”。
+
+<br>　　范例2：data匹配。
+``` android
+<activity android:name="org.cxy.intent.SecondActivity">
+    <intent-filter>
+        <action android:name="org.cxy.action.Second"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <data android:scheme="http" android:host="www.cxy.com" android:port="80" android:path="/hi.jsp"/>
+    </intent-filter>
+</activity>
+```
+　　在MainActivity中书写如下跳转语句：
+``` android
+Intent intent = new Intent();
+intent.setAction("org.cxy.action.Second");
+intent.setData(Uri.parse("http://www.cxy.com:80/hi.jsp"));
+this.startActivity(intent);
+```
+    语句解释：
+    -  使用scheme属性匹配代码中的协议名，scheme属性的值中不要包含“:”号。
+	-  使用host属性匹配代码中的主机名，使用此属性之前，必须要先指定scheme属性，在代码中scheme和host之间要写上“://”作为间隔。 
+	-  使用port属性匹配代码中的端口号，使用path属性匹配代码中的路径。
+
+<br>　　范例3：数据类型匹配。
+``` xml
+<activity android:name="org.cxy.intent.SecondActivity">
+    <intent-filter>
+        <action android:name="org.cxy.action.Second"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <data android:scheme="http" android:host="www.cxy.com" android:port="80"
+                 android:path="/hi.jsp" android:mimeType="image/gif"/>
+    </intent-filter>
+</activity>
+```
+　　在MainActivity中书写如下跳转语句：
+``` android
+Intent intent = new Intent();
+intent.setAction("org.cxy.action.Second");
+intent.setDataAndType(Uri.parse("http://www.cxy.com:80/hi.jsp"),"image/gif");
+this.startActivity(intent);
+```
+    语句解释：
+    -  使用mimeType属性可以对数据的MIME类型进行限制。
+	-  使用setData方法设置Intent的Uri，使用setType方法设置Intent的MIME类型。
+	-  但是如果你想同时设置这两者，则只能使用setDataAndType方法，因为setData和setType方法中会彼此清除对方的值，具体请查看源码。
+
+<br>　　在`<intent-filter>`中可以不列出`<data>`元素，但是只要列出了，那么`<data>`中所列出的所有属性都得匹配。
+
+<br>　　范例4：假设我们有如下配置：
+``` xml
+<activity android:name=".B">
+    <intent-filter>
+        <action android:name="aa.test.BBBBBB"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <data android:mimeType="image/*"/>
+    </intent-filter>
+</activity>
+```
+　　那么我们可以用如下代码进行匹配：
+``` android
+Intent intent = new Intent();
+intent.setAction("aa.test.BBBBBB");
+intent.setDataAndType(Uri.parse("content://abc"),"image/png");
+startActivity(intent);
+```
+    语句解释：
+    -  也就是说，虽然我们没有为<data>元素设置scheme属性，但是它却存在默认值，会默认匹配“file”、“content”。
+    -  另外，在<data>元素的path和mimeType属性的值中，都可以包含通配符“*”，用来匹配0~n个任意字符。
+
+<br>　　范例5：安装应用程序。
+``` android
+Intent intent = new Intent(Intent.ACTION_VIEW);
+// Uri.fromFile()方法根据文件对象的路径来构造一个Uri。
+intent.setDataAndType(Uri.fromFile(file),"application/vnd.android.package-archive");
+startActivity(intent);
+```
+    语句解释：
+    -  本范例使用系统内置的ACTION_VIEW动作安装APK文件。
+	-  ACTION_VIEW动作所要操作的数据的Uri是通过一个File对象的路径构造出来的。
+	-  ACTION_VIEW动作用于“查看”，该动作会根据其所要查看的数据的MIME类型的不同，来调用不同的应用程序来查看数据。
+	-  APK文件的MIME类型为application/vnd.android.package-archive ，而查看APK文件，其实就是安装APK文件。
+
+<br>　　范例6：卸载应用程序。
+``` android
+Intent intent = new Intent();
+intent.setAction(Intent.ACTION_DELETE);
+intent.setData(Uri.parse("package:"+ this.getPackageName()));
+startActivity(intent);
+```
+    语句解释：
+    -  调用系统内置的ACTION_DELETE动作可以执行删除操作。
+	-  若删除的数据为：“package:应用程序包名”，则相当于卸载该应用程序。 
+	-  调用Activity的getPackageName()方法可以获取当前应用程序的包名称。
+
+<br>　　范例7：启动发送短信Acitivity。
+``` android
+Intent intent = new Intent();
+// 设置意图的动作为“发送”和“发送数据”的MIME类型。
+intent.setAction(Intent.ACTION_SEND);
+intent.setType("text/plain");
+ 
+// 设置要发送的 正文数据。
+intent.putExtra(Intent.EXTRA_TEXT, "Hi 发送短信哦!");
+startActivity(intent);
+```
+    语句解释：
+    -  程序运行时会打开系统发送短信界面。
+
+<br>**扩展：**
+　　`PackageManager`类中有一组`query…()`以及`resolve…()`方法。
+　　前者返回能够接受一个特殊`Intent`对象的所有组件，后者返回最佳匹配结果（即只返回1个结果），例如：
+
+	-  queryIntentActivities()方法返回一个能够执行这个Intent对象要求动作的所有Activity。
+	-  queryIntentServices()方法类似地返回Service列表。
+	-  queryBroadcastReceivers()方法类似地返回Broadcast Receiver列表。
+　　这些方法都不激活组件，它们只是列出能够响应这个`Intent`对象的所有组件。
+
+# 第四节 Fragment #
 　　`Android`在`3.0`中引入了`fragments`的概念，`Android3.0`是基于`Android`的平板电脑专用操作系统。
 ## 背景介绍 ##
 <br>**问题是这样的：**
-　　在一个小屏幕的设备上，一个`Activity`通常占据了整个屏幕，其内显示各种UI视图组件。但是当一个`Activity`被显示在一个大屏幕的设备上时，例如平板，总会显得有些不适应。因为平板的屏幕太大了，UI组件会被拉长、模糊。
+　　在一个小屏幕的设备上，一个`Activity`通常占据了整个屏幕，其内显示各种UI视图组件。但是当一个`Activity`被显示在一个大屏幕的设备上时，例如平板，总会显得有些不适应，因为平板的屏幕太大了，UI组件会被拉长、模糊。
 　　因此若想使`Activity`的UI组件在大屏幕中美观且充满整个屏幕，则就需要在其内添加更多的组件，但是这样一来，视图的层次结构就很复杂了。但层次结构复杂也许并不是问题的关键，对于两个功能相似的`Activity`来说，他们UI界面也会高度相仿，这也就意味着代码的重复量会大大增加(这个问题也存在于手机设备上，只不过在大屏幕设备上更为突出而已)。
 
 　　因此`Android3.0`为了支持更加动态和灵活的UI设计，它引入了`fragments`的概念。
@@ -158,6 +693,16 @@ public void onConfigurationChanged(Configuration newConfig) {
 
 	-  Fragment是在Android3.0中提供的，若想在Android2.x平台上使用Fragment则需要添加android-support-v4.jar库。
 
+<br>　　还有一种应用场景，比如ActionBar上有多个Tab页，切换不同的Tab页时，Activity就显示不同的布局。
+　　在以前，我们可能会把所有布局都放到一个布局文件中，随着Tab的切换而执行setVisibility，这样做有两个问题：
+
+	-  第一，Activity首次加载的控件很多，即便是通过延迟加载延缓解决这个问题，还有下面的问题。
+	-  第二，布局文件里的控件的初始化、事件监听/处理等代码都得写在Activity中，不方便管理和移动。 
+	   -  也许你会说，封装成一个类不久行了。
+	   -  是的，Fragment就是Android帮我们封装好的，我们只需要使用Fragment来实现这几个Tab的界面即可。
+
+　　也就是说，我们并不是只有在多个界面都需要显示相同的布局时才使用Fragment，上面这种情况也应该使用Fragment。
+
 ## 基本应用 ##
 　　要创建一个`Fragment`类，必须让该类继承`Fragment`或其子类 。
 　　`Fragment`类的代码看上去有点象`Activity`，它也包含了`onCreate()`、`onStart()`、`onPause()`和`onStop()`方法。
@@ -179,7 +724,6 @@ public static class MyFragment extends Fragment {
 ```
 	语句解释：
 	-  inflater：一个工具类的对象，可以从一个XML Layout资源文件中读取并生成View。
-	   -  笔者在《UI篇　第四章 通知》中会详细介绍此类的用法。
 	-  container：你的Fragment将被插入的父ViewGroup(来自activity的layout)。
 	-  savedInstanceState：如果Fragment是被恢复的，它提供关于Fragment的之前的实例的数据。
 
@@ -212,7 +756,7 @@ public static class MyFragment extends Fragment {
 
 	-  为android:id属性提供一个唯一ID。
 	-  为android:tag属性提供一个唯一字符串。
-	-  如果以上2个你都没有提供, 系统使用Fragment所在的容器view的ID。
+	-  如果以上2个你都没有提供，系统使用Fragment所在的容器view的ID。
 
 <br>　　范例1：添加Fragment。
 ``` android
@@ -334,7 +878,7 @@ public class MyActivity extends FragmentActivity{
 }
 ```
 	语句解释：
-	-  如果添加多个Fragment到同一个容器, 那么添加的顺序决定了它们在view hierarchy中显示的顺序。 因此f会被放到f2的前面显示。
+	-  如果添加多个Fragment到同一个容器，那么添加的顺序决定了它们在view hierarchy中显示的顺序。 因此f会被放到f2的前面显示。
 	-  本范例使用replace方法会将f给删除，并将f3添加到R.id.layout的末尾位置。
 	-  本范例的三个事务都被加入到事务栈中，当第一次按下BACK键时，f3会被移除，f会被还原。 注意：f会被还原到f3的位置，而不是f2的前面。也就是说，对于addToBackStack()方法，它只会记录fragment的操作，而不会记录fragment当时的位置。当执行还原的时候，会将fragment放到containerView的末尾。
 
@@ -415,30 +959,29 @@ public class FragmentA extends ListFragment {
 	-  onStart()、onResume()、onPause()、onStop()：这四个方法的调用情形与Activity一样。
 	-  onDestroyView()：当和Fragment关联的view hierarchy被移除之前会调用此方法，此方法返回后就会执行移除操作。
 	-  onDestroy()：当Fragment被销毁时被调用。
-	-  onDetach()：
-	   -  当Fragment与宿主Activity解除关联时被调用。
+	-  onDetach()：当Fragment与宿主Activity解除关联时被调用。
 
 ## 销毁重建 ##
 　　`Fragment`的生命周期受其宿主`Activity`的影响，当宿主`Activity`因为某种原因被摧毁(如手机横竖屏切换、内存不足导致后台`Activity`被回收等)，且用户再次导航回来时，接着宿主`Activity`就会执行重建操作，其内部的各个`Fragment`也会跟随着它执行重建。
 
 　　`Activity`的重建，简单的说就是重新实例化一个对象，并将之前被摧毁的对象的各种状态设置到新的对象上，关于重建这一点`Fragment`和其宿主`Activity`的操作是一样的。此时就存在一个问题，重建的操作是系统来完成的，而重建又需要创建新的对象，那么操作系统是如何实例化我们自己定义的`Fragment`类的呢?
-　　答案就是：通过`反射机制`，并调用无参构造方法。
+　　答案就是：通过`反射机制`。
 
 　　由于通常我们创建自己的类时会依据需要自定义若干个构造方法，而操作系统在重建时只会调用无参的构造器(因为有参的构造器所需要的参数，操作系统是不可以自主的随便提供的，否则程序就乱套了)。
 　　因此我们要保证自定义的`Fragment`类必须要有一个无参的构造方法，以便系统对其重建时调用。
-<br>　　那么是系统是如何创建`Fragment`对象的呢？ 找到`Fragment`类看到如下代码：
+<br>　　找到`Fragment`类看到如下代码：
 　　　　　![Fragment类代码片段](/img/android/android_2_6.png)
 　　通过查看源码（此处省略具体步骤）得知，必须要为`Fragment`提供一个无参的构造方法。其实`Activity`也必须要定义一个无参的构造方法，只是由于`Activity`的实例通常由操作系统来创建，所以我们以前并没有涉及到此问题。
 
 <br>**实例化的方法**
 　　现在我们又遇到一个问题： 很多时候我们需要在实例化`Fragment`的同时为其传递一些参数，而系统在重建`Fragment`时只会调用无参的构造方法，也就跳过传参的这一步骤，这必然会导致程序出问题。
 　　这该怎么解决呢?  
-<br>　　这个问题`Fragment`已经替我们解决了，`Fragment`类有一个属性名为`mArguments`，它是`Bundle`类型的。
+<br>　　这个问题`Fragment`已经替我们考虑到了，`Fragment`类有一个属性名为`mArguments`，它是`Bundle`类型的。
 ``` android
 // Construction arguments;
 Bundle mArguments;
 ```
-　　当我们构造完`Fragment`对象后，可以将需要传递给`Fragment`的参数放到这个`Bundle`对象中。这样即便是随后`Fragment`对象被摧毁了也没关系，因为系统会将`Fragment`的`mArguments`属性的值保存起来，当重建的时候也会将`mArguments`属性的值给还原。
+　　当我们构造`Fragment`对象时，可以将需要传递给`Fragment`的参数放到这个`Bundle`对象中。这样即便是随后`Fragment`对象被摧毁了也没关系，因为系统会将`Fragment`的`mArguments`属性的值保存起来，当重建的时候也会将`mArguments`属性的值给还原。
 <br>　　因此对于`Fragment`的初始化操作，我们通常的写法是这样的：
 ``` android
 public class MainActivity extends FragmentActivity {
@@ -481,184 +1024,5 @@ public class MyFragment extends Fragment {
 **本节参考阅读：**
 - [Fragments (Android官方文档中文版)](http://www.eoeandroid.com/thread-71642-1-1.html)
 - [Android之Fragment（官网资料翻译）](http://blog.csdn.net/aomandeshangxiao/article/details/7671533)
-
-<br>
-# 第四节 Task #
-
-## 基础知识 ##
-　　`Android`使用`Task`来组织应用程序的所有`Activity`，`Task`是一个栈(`back stack`)结构，各个`Activity`按照栈的特点`“后来居上、后进先出”`依次被被安排在栈中。
-　　默认情况下，一个应用程序中的所有`Activity`处于同一个`Task`中，在操作系统中同一时间上会存在多个`Task`。
-　　当一个`Activity`被创建时，就会被压入到`Task`的栈顶，当其销毁时（用户点击`“Back”`键或调用`finish()`方法等），就会从栈顶移除。
-
-<br>　　范例1：图示。
-　　　　　　　　![Task](/img/android/android_2_7.png)
-　　第四个图形描述的是`Activity3`从`Task`中被弹出。
-　　如果用户继续按`“Back”`按钮，那么堆栈中的每个`Activity`会被依次弹出，当所有的`Activity`从堆栈中被删除时，这个`Task`就不再存在了。
-
-<br>　　范例2：前台与后台。
-　　`Task`有前台和后台之分，当某个应用程序被用户切换到前台时，该应用程序所对应的`Task`也将会被移动到前台。
-　　　　　　　　　　　　　　　　　　![TaskB处于前台、TaskA处于后台](/img/android/android_2_8.png)
-
-　　提示：虽然后台可以存在多个`Task`，但是当系统内存不足时，后台`Task`中的`Activity`所占据的内存可能被回收。系统在同一时间可能存在多个后台`Task` ，但只能有一个前台`Task`。
-
-<br>　　`Task`的默认行为：
-
-	-  当用户通过按主页(Home)按钮离开一个任务时，当前Task的栈顶Activity会被stop，并且Task会被放入后台，但系统会保留Task中每个Activity的状态。如果用户随后通过选择启动图标来恢复这个任务，那么任务会来到前台，并且恢复了堆栈顶部的Activity。
-	-  如果用户按下回退按钮，当前的Activity会从堆栈中被弹出并且被销毁，堆栈中的前一个Activity会被恢复。
-
-## 管理Task ##
-　　`Android`通过把所有的已启动的`Activity`依次放到同一个后进先出的堆栈里来进行管理，对于大多数应用程序来说这种方法能够很好的工作。但是你可以修改这种默认的行为，即`修改启动模式`。
-
-<br>**修改启动模式：**
-　　启动模式用来告诉系统，当用户请求启动一个`Activity`时，系统应该怎么做。使用以下两种方法可以定义启动模式：
-
-	1、 使用清单文件：即在配置Activity的同时，指定该Activity的启动模式。
-	2、 使用Intent对象：在调用startActivity方法时，通过Intent对象来设置待启动的Activity的启动模式。
-
-<br>　　假设`ActivityA`启动`ActivityB`，并且：
-
-	-  B在清单文件中定义了自己的启动模式。
-	-  同时A又通过在Intent中设置了flag的方式，来为B指定启动模式。
-　　此时`A`的请求（在`Intent`中定义的）的优先级要高于`B`的请求（在清单文件中定义的）。
-<br>　　注意：某些在清单文件中有效的启动模式对`Intent`标识是无效的，同样某些针对`Intent`标识有效的启动模式也不能在清单文件中定义。
-
-### 使用清单文件 ###
-　　在清单文件中声明一个`Activity`时，你能够使用`<activity>`元素的`launchMode`属性来指定这个`Activity`的启动模式，该属性有有四种取值：
-
-<br>　　**standard模式**
-
-	系统会直接创建该Activity的一个新实例，并将该实例放到Task栈顶。
-	也就是说，如果你启动5次使用了此模式的Activity，那么Task中就有5个该Activity的实例。
-	如果你在清单文件中配置Activity时不为它的launchMode属性赋值，那么该Activity就默认是此种启动模式。
-
-<br>　　**singTop模式**
-
-	如果打算启动的Activity的实例在当前Task的顶部已经存在，那么系统就会通过调用onNewIntent方法把这个Intent传递给这个实例，而不是创建一个新的实例。
-	只有栈顶部的Activity不是这个既存的Activity的实例时才会有多个实例存在。
-<br>　　假设现在有一个`Task`，它的栈由`A`、`B`、`C`、`D`四个`Activity`组成，其中`D`在栈顶。
-
-	-  若此时又试图启动一个D类型Activity，那么：
-	   -  若D的启动模式是standard，那么D就会被直接启动，并且此时堆栈变成A-B-C-D-D的组合。
-	   -  若D的启动模式是singleTop，那么既存的D的实例因为它在堆栈的顶部，所以它会接收通过onNewIntent()方法传递的Intent，堆栈仍然保持着A-B-C-D的组合。
-	-  但是，如果是启动一个B类型Activity，那么即使B类型Activity的启动模式是“singleTop”，也会有一个新的B的实例被添加到堆栈中，因为栈顶是D。
-
-<br>　　在讲解`singleTask`启动模式之前，先说明一下什么是亲缘关系。
-<br>　　**亲缘关系(affinities)：**
-　　每个`Task`都有一个`affinity`属性，它相当于`Task`的唯一标识。
-　　每个`<activity>`标签也有一个`taskAffinity`的属性，用来指出当前`Activity`的亲缘关系。
-
-	-  若Activity为它的taskAffinity属性设置了值，即告诉系统该Activity希望被放到affinity属性的值与其taskAffinity属性相同的Task中。
-	-  若没有为此属性赋值，则当前Activity的亲缘关系就是<application>标签的taskAffinity属性的值。
-	-  若<application>标签也没有指定taskAffinity属性的值，则就使用包名来作为整个程序的亲缘关系。
-
-　　默认情况下，同一个应用程序中的所有`Activity`都应该属于同一个`Task`。
-
-　　那么亲缘关系在什么情况下会被用到呢?
-
-<br>　　**singleTask模式**
-　　当启动了一个启动模式为`singleTask`的`Activity`时，系统会执行如下操作：
-
-    -  在整个操作系统中当前正在运行的所有Task中进行查找，查找affinity属性值等于启动模式为singleTask的Activity的taskAffinity属性值的任务是否存在。
-    -  若不存在，则系统会开启一个新的Task，并将该Activity作为根元素。
-    -  若存在，则系统会查看该Task中是否已经存在了该Activity。
-       -  若存在，则将该Activity上的所有Activity都给finish掉。并调用该Activity的onNewIntent()方法，将新的Intent传递过去。
-       -  若不存在，则在该Task顶部启动该Activity。
-　　提示：定义在不同的应用程序中的`Activity`能够共享一个亲缘关系。
-
-<br>　　范例1：查看所有`Task`。
-``` android
-adb shell dumpsys activity
-```
-　　使用`adb`命令可以查看当前操作系统中存在的所有`Task`。
-``` android
-Running activities (most recent first):
-   TaskRecord{44fbd658 #3 A com.example.androidtest}
-     Run #1: HistoryRecord{45032428 com.example.androidtest/.MainActivity}
-   TaskRecord{4502d408 #2 A com.android.launcher}
-     Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
-```
-　　此时系统中有两个`Task`，若在`MainActivity`中启动`Activity1`，在`Activity1`中启动`Activity2`，则`Task`中的情况如下：
-``` android
-Running activities (most recent first):
-  TaskRecord{4500ff48 #4 A com.example.androidtest}
-    Run #3: HistoryRecord{450ea0a8 com.example.androidtest/.Activity2}
-    Run #2: HistoryRecord{450268f8 com.example.androidtest/.Activity1}
-    Run #1: HistoryRecord{44eb1ea8 com.example.androidtest/.MainActivity}
-  TaskRecord{4502d408 #2 A com.android.launcher}
-    Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
-```
-　　若修改`Activity1`的启动模式为`singleTask`：
-``` android
-<activity android:name=".Activity1" android:launchMode="singleTask" >
-```
-　　则在`MainAcitivity`中启动它后，栈中的情况如下：
-``` android
-Running activities (most recent first):
-   TaskRecord{45008f00 #6 A com.example.androidtest}
-     Run #2: HistoryRecord{45040e18 com.example.androidtest/.Activity1}
-     Run #1: HistoryRecord{44f8eed0 com.example.androidtest/.MainActivity}
-   TaskRecord{4502d408 #2 A com.android.launcher}
-     Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
-```
-　　为什么没有新开启一个`Task`呢?
-　　因为`Activity`的`taskAffinity`属性的值没有设置，因此最终系统将它默认为包名了，这和`MainAcitivity`所处的`Task`的`affinity`属性的值一致，所以没有新开`Task`。
-
-<br>　　范例2：开启新`Task`。
-　　首先为`Activity`设置`taskAffinity`属性的值。
-``` android
-<activity android:name=".Activity1" android:launchMode="singleTask"
-    android:taskAffinity="ni.die" >
-```
-　　然后在`MainAcitivity`中启动它，此时系统中的`Task`情况如下：
-``` android
-Running activities (most recent first):
-   TaskRecord{44f1e948 #8 A ni.die}
-     Run #2: HistoryRecord{45028690 com.example.androidtest/.Activity1}
-   TaskRecord{4500b308 #7 A com.example.androidtest}
-     Run #1: HistoryRecord{44eb1ea8 com.example.androidtest/.MainActivity}
-   TaskRecord{4502d408 #2 A com.android.launcher}
-     Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
-```
-
-<br>　　**singleInstance模式**
-　　使用此启动模式的`Activity`总是单独占有一个`Task`，即若在该`Activity`中又启动了另外一个`Activity`，则新启动的`Activity`将不会和该`Activity`处于同一个`Task`中。
-
-### 使用Intent ###
-　　启动`Activity`时，你能够通过在传递给`startActivity()`方法的`Intent`中包含标识来修改`Activity`的默认启动模式，常用的取值：
-
-	-  FLAG_ACTIVITY_NEW_TASK：与launchMode属性值等于singleTask时具有同样的行为。
-	-  FLAG_ACTIVITY_SINGLE_TOP:与launchMode属性值等于singleTop时具有同样的行为。
-
-<br>　　范例1：设置`Flag`。
-``` android
-Intent intent = new Intent(this,SecondActivity.class);
-intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-this.startActivity(intent);
-```
-	语句解释：
-	-  在非Activity中启动Activity时，必须为Intent设置FLAG_ACTIVITY_NEW_TASK，如在“服务”中。
-
-<br>**清除回退堆栈（笔者未测试）：**
-　　如果用户长时间的离开一个任务，那么系统会清除这个任务根`Activity`以外的所有`Activity`。当用户再次返回这个任务时，只有根`Activity`被存储。这样的系统行为是因为经过长时间以后，用户在返回这个任务之前可能已经放弃它们的作业，而开始了某些新的任务。 你能够使用一些`Activity`属性来修改这种行为：
-
-　　alwaysRetainTaskState
-
-	如果这个属性在一个任务的根Activity中被设置为“true”，那么像上面描述的那样的默认行为就不会发生。即使是长时间之后，这个任务也会在它的堆栈中保留所有的Activity。
-　　clearTaskOnLaunch
-
-	如果这个属性在一个任务的根Activity中被设置为“true”，那么无论用户什么时候离开和返回这个任务，堆栈都会被清除到根Activity的位置。换句话说，它与alwaysRetainTaskState属性相反，用户总是返回到任务的初始状态，即使只离开这个任务一会儿。
-
-<br>**提示**
-
-	-  用户能看见某个Activity并不代表该Activity一定获得焦点。 比如Activity_A中弹出了一个对话框风格的Activity_B时。由于对话框的Activity_B比较小，所以在用户屏幕中照样可以看到Activity_A，但是焦点却在对话框风格的Activity_B中。
-	-  当对话框风格的Activity_B 部分覆盖Activity_A时，用户执行弹栈操作将B弹出后，只会触发A 的resume方法。
-	-  点击键盘上的home键只会调用Activity的pause、stop方法，而不会调用destroy方法。点击回退键则会调用destroy方法。
-
-<br>**再提示**
-
-	-  新Activity出现时，旧Activity会被stop、且其状态将被保存。
-	-  当用户点击home键时，当前Task顶部的Activity会被stop，它的状态会被系统保存，Task被调入后台。 当用户通过点击菜单栏的图标再次启动程序时，程序的Task会被调入前台，Task栈顶activity会获得恢复并焦点。
-	-  用户按back键时 ，将当前Task栈顶Activity弹出，并释放其资源。前一个Activity将获得焦点。
-	-  当Activity被摧毁时，系统不会再保留其状态。 
 
 <br><br>

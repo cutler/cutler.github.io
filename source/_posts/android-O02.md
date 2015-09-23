@@ -701,16 +701,7 @@ public class MainActivity extends Activity {
 <br>**本章参考阅读：**
 - [Memory Analyzer (MAT)](http://www.eclipse.org/mat/) 
 - [使用 Eclipse Memory Analyzer 进行堆转储文件分析](http://www.ibm.com/developerworks/cn/opensource/os-cn-ecl-ma/index.html)
-- [Android内存泄漏研究](http://jiajixin.cn/2015/01/0
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 6/memory_leak/)
+- [Android内存泄漏研究](http://jiajixin.cn/2015/01/06/memory_leak/)
 - [Android内存泄露开篇](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8B%E5%BC%80%E7%AF%87.md)
 - [Java程序内存分析：使用mat工具分析内存占用](http://my.oschina.net/biezhi/blog/286223#OSC_h4_7)
 

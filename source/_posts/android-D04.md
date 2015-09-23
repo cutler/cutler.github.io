@@ -230,7 +230,7 @@ export ANDROID_SDK=/Users/cutler/Programer/ProgramFiles/android/android-sdk-maco
 　　需要注意的是，修改完`.bash_profile`文件之后，我们需要重启终端窗口才能生效。
 
 
-<br>　　第六步，使用下面的代码来下载最新办的代码：
+<br>　　第六步，使用下面的代码来下载最新版的代码：
 ``` c
 git clone https://github.com/Bilibili/ijkplayer.git ijkplayer-android
 cd ijkplayer-android
