@@ -1,4 +1,4 @@
-title: UI篇　第七章 自定义控件（一）之基础入门
+title: 进阶篇　第五章 自定义控件（一）之基础入门
 date: 2015-4-29 11:41:12
 categories: android
 ---
@@ -13,11 +13,10 @@ categories: android
 <br>　　如果说要按方式来划分的话，自定义View的实现方式大概可以分为三种：自绘控件、组合控件、以及继承控件。
 
 	-  自绘控件：
-	   -  自绘控件指的是，这个View上所展现的内容全部都是我们自己绘制出来的。
-	   -  此种方式也是最难的，一般会通过直接继承View类来实现自定义控件。
+	   -  自绘控件指的是，这个View上所展现的内容全部都是我们自己绘制出来的。此种方式也是最难的，一般会通过直接继承View类来实现自定义控件。
 	-  继承控件：
-	   -  如果对已有的部件和布局进行小调整就能满足需求，可以通过继承某个已存在的部件或布局的方式轻松实现。
-	   -  你可以重写父控件的onDraw()方法来修改该View的绘制方式（如继承EditText使之产生了带有下划线的记事本页面）。
+	   -  如果对已有的控件进行小调整就能满足需求，那么可以通过继承它们并重写onDraw()方法来实现自定义控件。
+	   -  如继承EditText使之产生了带有下划线的记事本页面。
 	-  组合控件：
 	   -  组合控件指的是，通过将几个系统原生的控件组合到一起，来实现自定义控件。
 	   -  比如使用弹出列表和输入框的组合来制作一个下拉列表框等。
@@ -27,18 +26,48 @@ categories: android
 　　继续向下进行之前，先插播个知识点：`Activity`的组成。
 
 # 第一节 Activity的组成 #
-　　我们都知道在`Android`中，屏幕上所显示的`View`是以`Activity`为单位进行组织的。
+　　我们都知道，在`Android`中，屏幕上所显示的`View`是以`Activity`为单位进行组织的。
+　　但是再深入点看的话，就会发现`Activity`其实主要是处理一些逻辑问题，比如生命周期的管理、建立窗口等，显示在屏幕上的控件并不是由它来管理的，而是交给了`Window`类。
+　　同时，我们从`Window`类的官方文档上可以看到，该类只有一个唯一的子类`android.view.PhoneWindow`。
 
-　　实际上，`Activity`由`标题栏`和`FrameLayout`两部分组成。
-　　我们调用`setContentView()`方法设置的布局，会以子结点的形式加入到这个`FrameLayout`中。如下图所示：
 
-<center>
-![](http://img.blog.csdn.net/20131218231254906?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvZ3VvbGluX2Jsb2c=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
-</center>
+　　实际上，`Activity`的控件是由`PhoneWindow`类的`DecorView mDecor`属性管理的，`DecorView`是`PhoneWindow`的内部类，继承自`FrameLayout`。
+　　默认情况下，`DecorView`只有一个子元素为`LinearLayout`，里面包含`标题栏`和`内容区域`两部分：
+``` xml
 
-　　我们可以在`Activity`中通过代码来控制`标题栏`和`contentView`的显示与隐藏。
+<!--   android-sdk\platforms\android-8\data\res\layout\screen.xml   -->
 
-<br>　　范例1：隐藏`contentView`。
+<!-- Title bar and content -->
+<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <!-- Title bar -->
+    <RelativeLayout android:id="@android:id/title_container"
+        style="?android:attr/windowTitleBackgroundStyle"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/windowTitleSize" >
+
+        <!-- 此处省略若干行代码 -->
+
+    </RelativeLayout>
+
+    <!-- Content -->
+    <FrameLayout android:id="@android:id/content"
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="1"
+        android:foregroundGravity="fill_horizontal|top"
+        android:foreground="?android:attr/windowContentOverlay"
+    />
+</LinearLayout>
+```
+　　
+　　我们调用`Activity`的`setContentView()`方法设置的布局，最终会以子结点的形式加入到这个`FrameLayout`中。
+
+　　比如，我们可以在`Activity`中通过代码来控制`内容区域`的显示与隐藏。
+　　范例1：隐藏`contentView`。
 ``` android
 public class MainActivity extends Activity {
 
@@ -54,10 +83,24 @@ public class MainActivity extends Activity {
 ```
     语句解释：
     -  您可以直接输出findViewById(android.R.id.content)的值来验证是否是一个帧布局。
+    -  你也可以在onCreate方法中隐藏掉标题栏、状态栏，具体的代码请自行搜索。
 
-<br>　　你也可以在`onCreate`方法中隐藏掉`标题栏`、`状态栏`，具体的代码请自行搜索。
+<br>　　这里总结一下`DecorView`的初始化过程（笔者强烈建议跟着这个过程去看一遍源码，加深印象）：
+
+	-  首先，当Activity的setContentView被调用，在其内部会转调用PhoneWindow的setContentView方法。
+	-  然后，在PhoneWindow的setContentView方法中调用它的installDecor方法，执行初始化操作。
+	-  接着，在installDecor方法中，若检测到布局未创建，则调用generateLayout方法，创建布局。
+	-  最后，在generateLayout方法中，会依据当前Window类的getLocalFeatures方法的返回值，来决定加载哪一个布局文件。
+
+<br>　　事实上，不管是`Activity`、`Dialog`还是`Toast`，它们的控件都是附加在`Window`上的，`Window`才是控件的实际管理者。
+<br>　　最后，笔者后面会写一篇关于Activity启动过程的源码分析文章，因而此处就不再继续展开了，不过先预留两个问题：
+
+	-  第一，管理Activity的控件的Window对象是何时创建的？
+	-  第二，DecorView是何时且如何被添加到屏幕上的？
+
 
 # 第二节 Hello World #
+　　接下来我们就来介绍如何进行自绘控件。
 　　既然自绘控件的第一步就是继承`View`类，那么我们接下来就先写一个类出来。
 
 <br>　　范例1：`MyView`。
@@ -75,8 +118,8 @@ public class MyView extends View {
 ```
     语句解释：
     -  我们有两种方式来创建View对象：
-       -  在代码中通过new关键字，直接实例化View对象。
-       -  在XML中使用标签来创建View对象。
+       -  第一种，在代码中通过new关键字，直接实例化View对象。
+       -  第二种，在XML中使用标签来创建View对象。
     -  这两种方式分别会导致上面两个构造方法的调用。
 
 <br>　　然后，我们来重写`onDraw`方法，该方法继承自`View`类，当系统需要绘制某个`View`时，就会调用该`View`对象的`onDraw`方法执行绘制操作。
@@ -141,7 +184,7 @@ public class MyView extends View {
 　　首先，要知道的是，任何一个视图都不可能凭空突然出现在屏幕上，它们都是要经过非常科学的绘制流程后才能显示出来的。
 　　然后，当`Activity`获取焦点的时候，它就需要绘制它的`View树`了。
 　　接着，整个`View树`会从根节点开始，依次执行绘制。
-　　最后，每个`View`对象从创建到结束的整个生命周期中，会经历`6`个阶段：`创建`、`布局`、`绘制`、`事件处理`、`焦点`、`关联`，每个阶段中都提供了一个或多个回调方法。
+　　最后，每个`View`对象从创建到结束的整个生命周期中，会经历`6`个阶段：创建、布局、绘制、事件处理、焦点、关联，每个阶段中都提供了一个或多个回调方法。
 
 ## 创建阶段 ##
 　　在`View`的创建阶段中，框架会首先调用该`View`的构造方法进行对象的初始化，通常在你自定义的`View`类中会定义两个不同的构造器，并在其内部来调用父类的构造器。
@@ -306,7 +349,7 @@ public static int getDefaultSize(int size, int measureSpec) {
 }
 ```
     语句解释：
-    -  由于测量的结果是两个值（宽度和高度），而我们又不能使用return关键字返回两个值，因而在onMeasure方法内部，当测量结束的时候，我们需要调用setMeasuredDimension方法来记录一下测量的结果。
+    -  由于测量的结果是两个值（宽度和高度），而我们又不能使用return关键字返回两个值，因而在onMeasure方法内部，当测量结束的时候，我们需要调用setMeasuredDimension方法来保存测量的结果。
     -  看不懂这两个方法中的代码也没关系，我们接下来就介绍它们。
 
 <br>**onMeasure()介绍**
@@ -317,8 +360,8 @@ public static int getDefaultSize(int size, int measureSpec) {
 ``` android
 //  当父控件需要子控件计算出它所需要在屏幕上占据的尺寸时，会调用子控件该方法。
 //  注意：
-//      重写此方法时，当你计算完毕尺寸后，必须调用setMeasuredDimension(int measuredWidth, int measuredHeight)方法来保存评估出来的宽度
-//      和高度。如果忘记将导致抛出IllegalStateException异常。
+//      重写此方法时，当你计算完毕尺寸后，必须调用setMeasuredDimension(int measuredWidth, int measuredHeight)方法
+//      来保存评估出来的宽度和高度。如果忘记将导致抛出IllegalStateException异常。
 protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
 ```
 
@@ -359,13 +402,12 @@ protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 <br>　　其中`size`指的是尺寸，`mode`指的是模式，`View.MeasureSpec`类的常见的模式有： 
 
 	-  MeasureSpec.EXACTLY：精确尺寸。
-	   -  当控件的layout_width或layout_height指定为具体数值(如50dip)或FILL_PARENT时，该控件mode的值会为EXACTLY。
+	   -  当控件的layout_width或layout_height指定为具体数值(如50dip)或FILL_PARENT时，mode的值会为EXACTLY。
 	   -  当mode是EXACTLY时，表示父视图希望子视图的大小应该是由size的值来决定的。
 	-  MeasureSpec.AT_MOST：最大尺寸。
-	   -  当控件的layout_width或layout_height指定为WRAP_CONTENT时，该控件mode的值会为AT_MOST。
+	   -  当控件的layout_width或layout_height指定为WRAP_CONTENT时，mode的值会为AT_MOST。
 	   -  当mode是AT_MOST时，size给出了父控件允许的最大尺寸，此时控件尺寸只要不超过父控件允许的最大尺寸即可。
 	-  MeasureSpec.UNSPECIFIED：未指定尺寸。
-	   -  表示开发人员可以将视图按照自己的意愿设置成任意的大小，没有任何限制。
 	   -  这种情况比较少见，不太会用到，笔者也没搞清楚。
 
 <br>　　注意，视图实际拥有两对宽度和高度的值：
@@ -374,7 +416,7 @@ protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 	   - 这两个尺寸定义了View在其父View中需要的大小，也就是我们在onMeasure方法里计算出来的宽高。
 	   - 当View对象的measure()返回时，就可以通过getMeasuredWidth()和getMeasuredHeight()方法来获得测量宽高。
 	-  第二对被简单的称作宽度和高度，或绘制宽度和绘制高度。
-	   -  这两个尺寸定义了View最终在屏幕上的实际大小，绘制宽高可以（但不是必须）与测量宽度和测量高度不同。
+	   -  这两个尺寸定义了View最终在屏幕上的实际大小，绘制宽高可以（但不是必须）与测量宽高不同。
 	   -  当View对象的onLayout()被调用时，就可以通过getWidth()方法和getHeight()方法来获取视图的宽高了。
 
 <br>　　总结一下`onMeasure`方法：
@@ -384,16 +426,16 @@ protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 	   -  在少数情况下，View对象的测量尺寸是getSuggestedMinimumWidth和getSuggestedMinimumHeight方法返回的。
 	-  若重写了onMeasure方法，则View对象的测量尺寸就是你在onMeasure方法里测量的结果。
 	   -  但是onMeasure方法测出的宽度和高度不一定就是View最终的宽高。
-	   -  测量宽高会受到View对象父View的约束，若父控件最大允许的宽度为100px，但子View测量的宽度为200px，最终子控件只会显示前100px的宽度，超出的部分不会被显示。
+	   -  测量宽高会受到View对象父View的约束，若父控件最大允许的宽度为100px，但子View测量的宽度为200px，最终子控件只会显示前100px的宽度，超出的部分不会被显示，除非加上滚动条。
 
-<br>**onMeasure()重写**
-　　说了这么多理论，可到底应该如何重写`onMeasure()`方法呢？ 通常会分两种情况来看：
+<br>　　说了这么多理论，可到底应该如何重写`onMeasure()`方法呢？ 通常会分两种情况来看：
 
 	-  若当前View是一个普通的widget，则直接进行测量操作。
 	-  若当前View是一个ViewGroup类型的对象，则会先测量各个子View的尺寸，然后将测量的结果综合起来后，再来计算ViewGroup的尺寸。
 
-<br>　　范例1：`View`控件重写`onMeasure()`方法。
-``` android
+<br>**Widget重写**
+　　范例1：`View`控件重写`onMeasure()`方法。
+``` java
 protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     setMeasuredDimension(getMeasuredLength(widthMeasureSpec, true), getMeasuredLength(heightMeasureSpec, false));
 }
@@ -406,8 +448,8 @@ private int getMeasuredLength(int length, boolean isWidth) {
     if (specMode == MeasureSpec.EXACTLY) {
         size = specSize;
     } else {
-        // 下面这行代码大体的意思是 padding + 控件的内容的尺寸。
-        size = isWidth ? padding + mWave.length / 4 : DEFAULT_HEIGHT + padding;
+        // 下面这行代码大体的意思是 控件的内容的尺寸 + padding。
+        size = isWidth ? contentWidth + padding : contentHeight + padding;
         if (specMode == MeasureSpec.AT_MOST) {
             size = Math.min(size, specSize);
         }
@@ -418,25 +460,63 @@ private int getMeasuredLength(int length, boolean isWidth) {
     语句解释：
     -  本范例的主旨是向您展示一下计算测量宽度时的思路，后面章节中会有很多实战范例，不要慌！
 
-<br>　　范例2：`ViewGroup`控件重写`onMeasure()`方法。
-``` android
+<br>**ViewGroup重写**
+　　事实上，`ViewGroup`类并没有重写`onMeasure`方法，而是交给它的子类来重写了。
+
+　　下面是`LinearLayout`类的`onMeasure`方法：
+``` java
 protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    // 创建测量参数mCellWidth、mCellHeight来创建MeasureSpec对象，它们是子控件的宽度和高度。
-    int cellWidthSpec = MeasureSpec.makeMeasureSpec(mCellWidth, MeasureSpec.AT_MOST);
-    int cellHeightSpec = MeasureSpec.makeMeasureSpec(mCellHeight, MeasureSpec.AT_MOST);
-    // 遍历每一个子控件，依次调用它们的measure()方法，进行测量。
-    int count = getChildCount();
-    for (int i = 0; i < count; i++) {
-        View childView = getChildAt(i);
-        childView.measure(cellWidthSpec, cellHeightSpec);
+    if (mOrientation == VERTICAL) {
+        measureVertical(widthMeasureSpec, heightMeasureSpec);
+    } else {
+        measureHorizontal(widthMeasureSpec, heightMeasureSpec);
     }
-    // 当所有子控件都测量完毕后，下面开始设置当前控件的尺寸大小。
-    setMeasuredDimension(resolveSize(mCellWidth * count, widthMeasureSpec), resolveSize(mCellHeight * count, heightMeasureSpec));
 }
 ```
-    语句解释：
-    -  本范例的主旨是向您展示一下计算测量宽度时的思路，后面章节中会有很多实战范例，不要慌！
-    -  本范例中所用到的resolveSize()方法继承自View类，可以自行去查看源码。
+　　我们进去看一下`measureVertical`方法：
+``` java
+void measureVertical(int widthMeasureSpec, int heightMeasureSpec) {
+
+    // 此处省略若干行代码
+
+    // See how tall everyone is. Also remember max width.
+    for (int i = 0; i < count; ++i) {
+        // 此处省略若干行代码
+        measureChildBeforeLayout(
+               child, i, widthMeasureSpec, 0, heightMeasureSpec,
+               totalWeight == 0 ? mTotalLength : 0);
+        // 此处省略若干行代码
+    }
+
+    // 此处省略若干行代码
+}
+```
+　　接着，为了一目了然同时看一下`measureChildBeforeLayout`和`measureChildWithMargins`方法：
+``` java
+void measureChildBeforeLayout(View child, int childIndex,
+        int widthMeasureSpec, int totalWidth, int heightMeasureSpec, int totalHeight) {
+    measureChildWithMargins(child, widthMeasureSpec, totalWidth, heightMeasureSpec, totalHeight);
+}
+
+protected void measureChildWithMargins(View child,
+        int parentWidthMeasureSpec, int widthUsed, int parentHeightMeasureSpec, int heightUsed) {
+    final MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
+
+    // 调用getChildMeasureSpec方法，综合自身和当前子View的尺寸信息，计算出子View最终的测量尺寸。
+    final int childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,
+            mPaddingLeft + mPaddingRight + lp.leftMargin + lp.rightMargin + widthUsed, lp.width);
+    final int childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,
+            mPaddingTop + mPaddingBottom + lp.topMargin + lp.bottomMargin + heightUsed, lp.height);
+
+    child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
+}
+```
+
+<br>　　值得注意的是：
+
+	-  子控件的onMeasure方法接收到的widthMeasureSpec和heightMeasureSpec参数，是由其父ViewGroup综合它们二者的layout_width和layout_height参数的值来定义的。
+	   -  比如，若父ViewGroup的layout_height值为100，且子View的值为200，则最终传入到子View的高度就是200。
+	   -  不过就像前面说的，若子View最后计算的尺寸比其父View的尺寸大，那么超出的部分无法被看到，除非提供滚动条。
 
 <br>　　提示：父视图可能在它的子视图上调用一次以上的`measure(int,int)`方法。
 
@@ -668,9 +748,9 @@ public void postInvalidate() {
 <br>**定位**
 　　`View`的几何形状是`矩形`的，视图的`位置`使用`左上坐标系`表示，`尺寸`由`宽和高`表示，位置和尺寸以`像素`为单位。我们可以通过`getLeft()`和`getTop()`函数取得视图的位置：
 
-	-  前者返回代表视图的矩形的左侧位置（横坐标X）。
-	-  后者返回代表视图的矩形的顶部位置（纵坐标Y）。
-　　这些方法返回视图相对于其父视图的位置，例如`getLeft()`返回`20`，代表视图在其直接父视图左侧边的右侧`20`像素的位置。
+	-  前者返回视图的左侧位置（横坐标X）。
+	-  后者返回视图的顶部位置（纵坐标Y）。
+　　这两个方法返回视图相对于其父视图的位置，例如`getLeft()`返回`20`，代表视图在其直接父视图左侧边的右侧`20`像素的位置。
 
 　　另外，为了避免不必要的计算，提供了一些便利的方法，它们是`getRight()`和`getBottom()`。这些方法返回代表视图的矩形的右侧和底边的坐标。例如，调用`getRight()`比调用`getLeft() + getWidth()`要简单。
 
@@ -691,9 +771,8 @@ public void postInvalidate() {
 
 　　从上面方法的名字看来我们可以知道`Canvas`可以绘制的对象有：弧线(`arcs`)、填充颜色(`argb`和`color`)、 `Bitmap`、圆(`circle`和`oval`)、点(`point`)、线(`line`)、矩形(`Rect`)、图片(`Picture`)、圆角矩形 (`RoundRect`)、文本(`text`)、顶点(`Vertices`)、路径(`path`)。
 
-　　通过组合这些对象我们可以画出一些简单有趣的界面出来，但是光有这些功能还是不够的，如果我们要画一个表呢？
+　　通过组合这些对象我们可以画出一些简单有趣的界面出来，但是光有这些功能还是不够的，如果我们要画一个钟表呢？
 　　幸好Android还提供了一些对`Canvas`位置转换的方法：`rorate`、`scale`、`translate`、`skew`等，而且它允许你通过获得它的转换矩阵对象(`getMatrix`方法，不知道什么是转换矩阵？在[《媒体篇　第二章 图片》](http://cutler.github.io/android-D02/)中有介绍) 直接操作它。
-　　这些操作就像是虽然你的笔还是在原来的地方画，但是画布旋转或者移动了，所以你画的东西的方位就产生变化。
 
 　　为了方便执行转换操作，`Canvas`还提供了保存和回滚属性的方法(`save`和`restore`)，比如你可以先调用`save`方法保存目前画布的位置，然后旋转`90`度，向下移动`100`像素后画一些图形，画完后调用`restore`方法返回到刚才保存的位置。
 
@@ -880,6 +959,7 @@ protected void onDraw(Canvas canvas) {
     // 但接下来所绘制的内容，会相对于新的绘点进行绘制。
     canvas.rotate(90);
     canvas.drawText("1BBBBBBBBBBBBBB2", 0, 0, mPaint);
+    // 还原画布。
     canvas.restore();
 
     p.setColor(Color.BLUE);
@@ -890,7 +970,7 @@ protected void onDraw(Canvas canvas) {
     canvas.rotate(30);
     // 绘制一个矩形。
     canvas.drawRect(new Rect(100,100,130,130), p);
-    // 还原两个画布。
+    // 还原画布。
     canvas.restore();
 
     p.setColor(Color.BLACK);
@@ -1321,7 +1401,7 @@ public class MyView extends ImageView {
 </resources>
 ```
     语句解释：
-    -  <declare-styleable>标签的name属性用来指出当前属性集合的名称，在此标签内部所定义的属性都将被放到这个属性集合中去。
+    -  <declare-styleable>标签的name属性用来指出当前属性集合的名称，此标签内部定义的属性都将被放到这个属性集合中去。
     -  属性常见的数据类型有如下几种：
 	   -  integer：整型，可以为当前属性赋值一个整数。
 	   -  dimension：尺寸类型，可以为当前属性赋值一个尺寸数据。如：30dp 。

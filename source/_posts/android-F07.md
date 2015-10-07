@@ -1,4 +1,4 @@
-title: UI篇　第九章 自定义控件（三）之实践
+title: 进阶篇　第七章 自定义控件（三）之实践
 date: 2015-5-28 16:07:35
 categories: android
 ---

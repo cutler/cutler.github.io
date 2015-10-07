@@ -1,708 +1,1091 @@
-title: 实战篇　第二章 内存分析
-date: 2015-3-10 10:40:53
+title: 实战篇　第二章 Android Studio
+date: 2015-4-15 21:44:35
 categories: android
 ---
-　　本章来讲解一下Android开发中内存管理相关的知识。
+　　`Android Studio`是谷歌推出的一个Android开发环境，基于`IntelliJ IDEA`，它提供了集成的Android开发工具用于开发和调试。
 
-# 第一节 概述 #
+# 第一节 基础入门 #
 
-## 引言 ##
-　　尽管随着科技的进步，现今移动设备上的内存大小已经达到了低端桌面设备的水平，但是现今开发的应用程序对内存的需求也在同步增长。
-　　主要问题出在设备的屏幕尺寸上——`分辨率越高需要的内存越多`。
-　　熟悉Android平台的开发人员一般都知道垃圾回收器并不能彻底杜绝`内存泄露`问题，对于大型应用而言，内存泄露对性能产生的影响是难以估量的，因此开发人员必须要有内存分析的能力。
+　　在`Google 2013`年`I/O`大会上，`Android Studio`这款开发工具被首次公布，这也是为了方便开发者基于Android开发。`Studio`首先解决的一个问题是多分辨率。Android设备拥有大量不同尺寸的屏幕和分辨率，使用`Studio`开发者可以在编写程序的同时看到自己的应用在不同尺寸屏幕中的样子。
 
-　　从早期`G1`的`192MB RAM`开始，到现在动辄`1G -2G RAM`的设备，为单个App分配的内存从`16MB`到`48MB`甚至更多，但`OOM`从不曾离我们远去。这是因为大部分App中图片内容占据了`50%`甚至`75%`以上，而App内容的极大丰富，所需的图片越来越多，屏幕尺寸也越来越大分辨率也越来越高，所需的图片的大小也跟着往上涨，这在大屏手机和平板上尤其明显，而且还经常要兼容低版本的设备，所以Android的内存管理显得极为重要。
-<br>　　在本节我们主要讲两件事情：
+<br>**架构组成**
+　　在`IntelliJ IDEA`的基础上，`Android Studio`提供：
 
-	-  Gingerbread和Honeycomb中的一些影响你使用内存的变化（heap size、GC、bitmaps）。
-	-  理解heap的用途分配（logs、merory leaks、Eclispe Memory Analyzer）。
+	-  基于Gradle的构建支持
+	-  Android专属的重构和快速修复
+	-  提示工具以捕获性能、可用性、版本兼容性等问题
+	-  支持ProGuard和应用签名
+	-  基于模板的向导来生成常用的Android应用设计和组件
+	-  功能强大的布局编辑器，可以让你拖拉UI控件并进行效果预览
 
-<br>**名词解释**
-　　内存泄漏（`Memory Leak`）
+<br>**中文社区**
+　　[Android Studio 中文组](http://android-studio.org/index.php)，是2013年5月16日筹办，5月21号上线的`Android Studio`中文社区网站，对`Android Studio`的安装，配置，调试，`BUG`提交等问题进行经验交流和总结； 中文组还承载着对`Android Studio`进行汉化和教程编写的工作，为中文开发者提供了本地支持！
 
-	-  有个引用指向一个不再被使用的对象，导致该对象不会被垃圾回收器回收。如果这个对象内部有个引用指向一个包括很多其他对象的集合，就会导致这些对象都不会被垃圾回收。
-　　内存溢出（`Out of memory`）：
+<br>**为何使用AndroidStudio？**
+　　以上介绍都是从百度百科中摘抄过来的，猛地一看，没看懂多少，说的太空泛了。
+　　笔者也是被大势所趋，在`2015年4月14日 夜`，突然顿悟，看透天机，明白使用`Android Studio`开发才是正道，未来Android推出的新技术，势必会完全向`Android Studio`靠拢，而不会是`Eclipse`（开源社区越来越偏向`Android Studio`了）。
+　　因而在`Android Studio`发布`1.1.0`版本时，笔者决定开始接触它。
 
-	-  当程序需要为新对象分配空间，但是虚拟机能使用的内存不足以分配时，将会抛出内存溢出异常，当内存泄漏严重时会导致内存溢出。
+　　`Android Studio`中文组在`2015年6月28日`发表了一篇文章，也表明了Google未来的态度：
 
-## Gingerbread和Honeycomb ##
-　　我们都知道Android是个多任务操作系统，同时运行着很多程序，都需要分配内存，不可能为一个程序分配越来越多的内存以至于让整个系统都崩溃。因此`heap`的大小有个硬性的限制，跟设备相关，从发展来说也是越来越大，`G1：16MB`，`Droid：24MB`，`Nexus One：32MB`，`Xoom：48MB`，但是一旦超出了这个使用的范围，`OOM`便产生了。
-　　如果你正在开发一个应用，想知道设备的`heap`大小的限制是多少，比方说根据这个值来估算自己应用的缓存大小应该限制在什么样一个水平，你可以使用`ActivityManager#getMemoryClass()`来获得一个单位为`MB`的整数值，一般来说最低不少于`16MB`，对于现在的设备而言这个值会越来越大，`24MB`，`32MB`，`48MB`甚至更大。
+	-  为了简化Android的开发力度，Google决定将重点建设Android Studio工具，并会在今年年底停止支持其他集成开发环境，比如Eclipse。
 
-<br>　　但是对于一些内存非常吃紧的比如图片浏览器等应用，在平板上所需的内存更大了。因此在`Honeycomb(Android3.0)`之后`AndroidManifest.xml`增加了`largeHeap`的选项：
-``` xml
-<application
-    android:largeHeap="true"
-    ...>
-</application>
+<br>　　接下来我们从环境搭建开始，一步步的揭开`Android Studio`的面纱。
+
+## 环境搭建 ##
+<br>　　首先，从官方下载界面中下载 [AndroidStudio](https://developer.android.com/sdk/index.html) ，然后执行下面的步骤。本章是基于`Android Studio 1.2.2`版本进行介绍的。
+
+<br>**Mac平台**
+　　第一步，下载完毕后，双击打开，显示的是经典的`Mac`安装界面，直接将应用图表拖近`Applications`目录就可以了。
+　　第二步，开始安装时会询问你：`“You can import your settings from a previous version of Android Studio”`，由于我们是第一次安装，因此选择第二项 `“I do not ……”`即可。
+
+　　不出意外的话，此时你会遇到第一个问题，`Studio`会卡在`“fetching Android sdk compoment information”`上面，这其实是去获取`android sdk`组件信息，这个过程相当慢（视你的网速而定），甚至是加载失败，进而导致`Studio`启动不起来。之所以这么慢是因为`Google`被墙掉了。同时由于是第一次启动`Studio`，因而`Studio`在获取完毕组件信息后，还会去下载一些东西（可以帮我们省很多事，所以尽量让它去下载），所以这个问题必须解决。
+　　解决这个问题，只需要配置一个代理服务器即可，具体步骤请参阅：[《关于红杏的公益代理，Android Studio以及freso的编译》](http://www.liaohuqiu.net/cn/posts/about-red-apricot-and-compiling-fresco/) 。（这里帮红杏打个广告，笔者是个懒人，能花小钱搞定的事情，绝对不想去花费时间和精力，红杏让我可以用最简单的方式翻墙，所以我很干脆就掏钱了，:）。
+
+<br>**Windows平台**
+　　如果你是在`Windows`平台，可以这么做：
+
+	-  首先，到android studio安装目录，打开bin目录，编辑idea.properties, 在文件末尾添加：
+	   -  disable.android.first.run=true 这将禁用第一次运行。
+	-  然后，打开android studio，在File > Settings > HTTP Proxy settings设置代理相关参数，关闭android studio。
+	-  最后，再次打开idea.properties文件，删除刚刚添加的disable.android.first.run=true，并重新打开studio。
+
+<br>　　设置完代理后，剩下的步骤就没有什么难度了，不值一提。 
+
+
+## HelloWorld ##
+　　环境搭建完毕后，我们接下来就开始创建一个名为`HelloWorld`的项目，然后运行它。
+　　项目创建的具体过程，可以参阅：[《使用Android Studio开发Android APP》](http://blog.csdn.net/u014450015/article/details/46534567)，笔者就不再冗述了，主要是因为要截很多图，太占博客的空间了。
+
+　　进入到`Android Studio`后，你会看到如下界面（可能和你的有点不同，但是不影响）：
+
+<center>
+![](/img/android/android_o04_01.jpg)
+</center>
+
+　　右面的那一个红框里的按钮，都是我们常用的功能键，比如第二个和第三个分别是`运行`和`Debug`，倒数第二个和倒数第一个分别是，`SDK Manager`和`Android Device Monitor`（即原来Eclipse中的`DDMS`视图）。
+　　左面的那一个红框里的按钮，用来切换项目的展示方式，常用的一共有三种：`Project`、`Packages`、`Android`，它们的区别请自行查看，开发的时候都是用`Android`。
+
+<br>**运行项目**
+　　项目创建完毕后，接下来我们就要运行它了。 首先要做的是打开`Android Device Monitor`窗口，创建一个模拟器，或者连接真机。
+
+　　假设我们的项目的包名为`com.cutler.helloworld`，然后点击上面说的`运行按钮`（绿色的三角）后，你可能会遇到这个错误：
+``` c
+Installing com.cutler.helloworld
+DEVICE SHELL COMMAND: pm install -r "/data/local/tmp/com.cutler.helloworld"
+pkg: /data/local/tmp/com.cutler.helloworld
+Failure [INSTALL_FAILED_OLDER_SDK]
 ```
-　　这允许你的应用使用更多的`heap`，可以用`ActivityManager#getLargeMemoryClass()`返回一个更大的可用`heap size`。
-　　但是这里要警告的是，千万不要因为你的应用报`OOM`了而使用这个选项，因为更大的`heap size`意味着更多的`GC`时间，意味着应用的性能越来越差，而且用户也会发现其他应用很有可能会内存不足。只有你需要使用很多的内存而且非常了解每一部分内存的用途，这些所需的内存都是不可或缺的，这个时候你才应该使用这个选项。
+　　这是因为项目的`minSdkVersion`属性设置的高于设备的`Api Level`版本号。按照以前的思路，我们应该去`AndroidManifest.xml`文件里修改这个值，但是现在我们在`AndroidManifest.xml`中却找不到`<uses-sdk>`标签了。
 
-<br>　　既然我们提到更大的`heap size`意味着更多的`GC`时间，下面我们来谈谈`Garbage Collection`。
-
-<br>**垃圾回收**
-　　首先我们简单回顾下`JAVA`的内存回收机制，内存空间中垃圾回收的工作由垃圾回收器 (`Garbage Collector，GC`) 完成的，它的核心思想是：对虚拟机可用内存空间，即堆空间中的对象进行识别，如果对象正在被引用，那么称其为存活对象，反之，如果对象不再被引用，则为垃圾对象，可以回收其占据的空间，用于再分配。
-　　在垃圾回收机制中有一组元素被称为`根元素集合`，它们是一组被虚拟机直接引用的对象，比如，正在运行的线程对象，系统调用栈里面的对象以及被`system class loader`所加载的那些对象。堆空间中的每个对象都是由一个根元素为起点被层层调用的。因此，一个对象还被某一个存活的根元素所引用，就会被认为是`存活对象`，不能被回收和进行内存释放。因此，我们可以`通过分析一个对象到根元素的引用路径来分析为什么该对象不能被顺利回收`。如果说一个对象已经不被任何程序逻辑所需要但是还存在被根元素引用的情况，我们可以说这里存在内存泄露。
+　　事实上，使用	`Android Studio`创建的Android项目的`目录结构`已经和Eclipse创建的不一样了，现在我们需要进入到一个名为`build.gradle`的文件中修改，即下图中的`build.gradle(Module:app)`，把里面的`minSdkVersion 21`改为`minSdkVersion 8`即可。
 
 <center>
-![](/img/android/android_8_1.png)
+![](/img/android/android_o04_02.png)
 </center>
 
-　　如上图所示，`GC`会选择一些它了解还存活的对象作为内存遍历的根节点，比方说`thread stack`中的变量，`JNI`中的全局变量，`zygote`中的对象等，然后开始对`heap`进行遍历。到最后，那些没有直接或者间接引用到`GC Roots`的就是需要回收的垃圾，会被`GC`回收掉。如下图蓝色部分：
+<br>**Poject 与 Module**
+　　在`Android Studio`中，不再存在工作空间的概念了（但创建项目时可以设置保存的位置），也不再像`Eclipse`那样可以同时将工作空间的中所有项目导入到程序中，而是一个`Project`对应一个`Studio`窗口，如果想打开多个`Project`，那么只能打开多个`Studio`窗口。
+　　我们都知道，在实际开发中可能会用到第三方提供的`Android library`项目，因而一个完整的项目是由一个主项目+若干`library`项目组成的。`Android Studio`提出了`Module`的概念，`Module`就是指的一个具体的项目，我们刚才说的`主项目`、`library项目`都被称为一个`Module`，即`一个Project由多个Module组成`。
 
-<center>
-![](/img/android/android_8_2.png)
-</center>
+　　每一个`Module`需要有属于自己的`Gradle build file`（当你新建一个`Module`时会自动帮你生成的）。这些`Gradle`文件包含了一些很重要的内容，比如所支持的安卓版本和项目依赖的东西，以及安卓项目中其它重要的数据。
+　　此时各位应该就能明白，刚才为什么要修改上面的`build.gradle(Module:app)`文件了。
 
-　　因此也可以看出，更大的`heap size`需要遍历的对象更多，回收垃圾的时间更长，所以说使用`largeHeap`选项会导致更多的`GC`时间。
+<br>**删除项目**
+　　本文使用的是`Android Studio 1.2.2`版本，在该版本中没法很方便的删除一个项目，有位道友折腾了半天也没找到好的方法，他折腾的过程请参见[《Android studio删除工程项目》](http://www.cnblogs.com/smiler/p/3854816.html) 。 
+　　笔者找到一个相对省事的方法，以Mac为例：
+
+	-  首先，右键你的Module并点击“Reveal in Finder”，打开本地文件夹。
+	-  然后，通过快捷键“command + Q”来退出Android Studio。
+	-  接着，把Module所在的Project的目录，整个删除。
+	-  最后，启动Android Studio即可。
+
+<br>**本节参考阅读：**
+- [百度百科 - Android Studio](http://baike.baidu.com/view/10600831.htm)
+- [Android Studio vs Eclipse：你需要知道的那些事](http://mobile.51cto.com/abased-434702.htm)
+
+## API Level ##
+　　考虑到有的读者可能不清楚项目的`编译版本`和`最低运行版本`之间的区别，特此增加这一节专门介绍一下`API Level`相关的知识。
+
+　　Android平台提供了一套框架API，使得应用程序可以与系统底层进行交互。该框架API由以下模块组成：
+
+	-  一组核心的包和类。
+	-  清单(manifest)文件的XML元素和属性声明。
+	-  资源文件的XML元素和属性声明及访问形式。
+	-  各类意图(Intents)。
+	-  应用程序可以请求的各类授权，以及系统中包含的授权执行。
+　　每个版本的Android操作系统以及其提供的框架`API`，都被指定一个`整数`标识符，称为`API Level`。以`Android1.0`系统为例，它的`API`的版本号是`1`，这个数字被保存在操作系统内部，之后Android系统版本的`API Level`依次递增`1`。
+``` c
+操作系统             API等级          操作系统             API等级
+Android1.0	        1            Android1.1              2
+Android1.5	        3            Android1.6              4
+Android2.0	        5            Android2.0.1            6
+Android2.1.x	        7            Android2.2.x            8
+Android2.3,2.3.x       	9            Android2.3.x            10
+Android3.0.x	        11           Android3.1.x            12
+Android3.2              13           Android4.0,4.0.x        14
+Android4.0.3,4.0.4      15           Android4.1,4.1.x        16
+Android4.2,4.2.2	17
+```
+
+<br>**minSdkVersion**
+　　开发程序之前，为了保证程序正确的运行，需要设置App所支持最低`API Level`（`minSdkVersion`）。
+　　当项目设置了`minSdkVersion`后，在用户准备安装这个项目生成的`apk`到手机等Android设备前，操作系统会检查该`apk`所支持的`minSdkVersion`是否和系统内部的`API Level`匹配，当且仅当小于或等于系统中保存的`API Level`时，才会继续安装此程序，否则将不允许安装。
+
+　　警告：
+
+	-  如果你不声明minSdkVersion属性，系统会假设一个默认值“1”，这意味着您的应用程序兼容所有版本的Android。
+	-  如果您的应用程序不兼容所有版本(例如，它使用了API级别3中的接口)并且你没有设置minSdkVersion的值，那么当安装在一个API级别小于3的系统中时，应用程序在运行，并且执行到了调用Android1.5（API级别3级）的API的那句代码时，就会崩溃，即试图访问不可用API(但是程序的其他没有调用该API的地方可以正常运行)。出于这个原因，一定要申报相应的API级别在minSdkVersion属性。
+	-  例如，android.appwidget类包是在API级别3中开始引入的。如果一个应用程序使用了这个API，就必须通过指明minSdkVersion属性为3来声明运行的最低要求。于是，该应用程序就可以在Android 1.5、Android 1.6 (API级别4级)等平台上安装，但是在Android 1.1 (API级别2级)和 Android 1.0 平台(API级别1级)上却是无法安装的。
+
+<br>**targetSdkVersion**
+　　标明应用程序目标`API Level`的一个整数。如果不设置，默认值和`minSdkVersion`相同。
+　　这个属性通知系统，你已经针对这个指定的目标版本测试过你的程序，系统不必再使用兼容模式来让你的应用程序向前兼容这个目标版本。应用程序仍然能在低于`targetSdkVersion`的系统上运行（一直到`minSdkVersion`属性值所指定的版本）。
+
+　　在Android演进的每个新版本中，都会有一些行为甚至外观的改变。但是，如果设备的`API Level`比应用程序声明的`targetSdkVersion`的值大，那么系统就可以启用兼容行为，以便确保应用程序能够继续执行期望的工作。因此，可以通过提高应用程序所运行的目标SDK版本（`targetSdkVersion`）来禁止启用这种兼容行为。
+　　例如，把这个属性值设置为`11`或更大，就会允许系统把新的默认主题应用给在`Android3.0`或更高版本平台之上的应用程序，并且在运行在较大屏幕的设备上时，也禁止使用屏幕兼容模式（因为针对`API Level 11`的支持，暗示着对较大屏幕的支持）。
+　　这个属性在`API Leve 4`中被引入。
+
+　　个人经验：
+
+	-  比如从Android 3.0开始，在绘制View的时候支持硬件加速，充分利用GPU的特性，使得绘制更加平滑(会多消耗一些内存)。若是将targetSdkVersion设置为11或以上，则系统会默认使用硬件加速来绘制，但Android3.0之前版本提供的某些绘图API，在硬件加速下进行绘制时，会抛异常。
+	-  因此，除非你充分测试了，否则不要把targetSdkVersion设置的过高。
+
+<br>**compileSdkVersion**
+　　项目的编译版本（`compileSdkVersion`）和`android:minSdkVersion`属性的值：
+
+	-  compileSdkVersion是指编译当前项目时所使用的SDK平台的版本。
+	-  minSdkVersion属性则是限定了当前项目只能安装在大于等于其指定API等级的设备上。
+
+	-  也就是说，我们可以将项目的compileSdkVersion设置为17，而minSdkVersion属性的值则仅为8 。 
+	-  只要保证在项目中不去调用API等级8中所未提供的API，那么使用API等级17编译出来的项目依然会正常运行在Android2.2的设备上。
+
+<br>　　问：为什么要把项目的编译版本提高呢?
+　　答：它可以让我们的应用程序，既可以使用高版本Android系统中所提供的新功能，同时又能完美的运行在低版本的系统中。以`holo`主题为例，众所周知`holo`主题是`Android3.0`之后的系统中的一个非常大的亮点。如果可以实现“当应用程序运行在3.0之前的系统时使用一般的主题，而运行在3.0之后的系统时则使用holo主题”那可就太好了。
+
+<br>　　范例1：使用`Holo`主题（`styles.xml`）。
+``` xml
+<!-- For API level 11 or later, the Holo theme is available and we prefer that. -->
+<style name="ThemeHolo" parent="android:Theme.Holo">
+</style>
+```
+　　如果项目的当前编译版本低于`3.0`则`Android Studio`就会报错。
+　　因为`Android Studio`在编译Android的`xml`文件时，会依据当前项目的编译版本，去SDK的安装目录下查找其所依赖的所有资源，若未找到则就报错。 本范例中查找`Theme.Holo`主题的目录为：
+　　`SDK\platforms\android-11\data\res\values`
+　　其中`“android-11”`与项目的编译版本相对应。我们进入到`values`目录后，打开`themes.xml`就可以找到`Theme.Holo`主题了。同样的，在项目中引用的其他系统资源(如颜色、尺寸等)在`platforms`目录下面都是可以找到的。
+
+　　然后我们就可以在项目中建立`res\values-v11`目录，并把上面的`styles.xml`放到里面去。当程序运行的时候，系统会检测当前设备的`API Level`，若大于等于`11`则使用`values-v11`目录下的`styles.xml`，否则则使用`values`目录下的。
+
+
 
 　　提示：
 
-	Activity有View的引用，View也有Activity的引用，当Activity被finish掉之后，Activity和View的循环引用已成孤岛，不再引用到GC Roots，无需断开也会被回收掉。
+	-  高版本Andrdoid平台的框架API与早期版本兼容，即新版本的Android平台大多数都是新增功能，和引进新的或替代的功能。
+	-  对于API的升级，会将老版本的标记为已过时，但不会从新版本中删除，因此现有的应用程序仍然可以使用它们。在极少数情况下，部分旧版本的API可能被修改或删除，通常这种变化是为了保障API的稳定性及应用程序或系统的安全。
 
-<br>　　在`Gingerbread(Andrid2.3)`之前，`GC`执行的时候整个应用会暂停下来执行全面的垃圾回收，因此有时候会看到应用卡顿的时间比较长，一般来说`>100ms`，对用户而言已经足以察觉出来。`Gingerbread`及以上的版本，`GC`做了很大的改进，基本上可以说是并发的执行，并且也不是执行完全的回收。只有在`GC`开始以及结束的时候会有非常短暂的停顿时间，一般来说`<5ms`，用户也不会察觉到。
+# 第二节 Gradle #
+　　新增的`Gradle`将会是你转到`Android Studio`上最大的障碍，和`Maven`一样，`Gradle`只是提供了构建项目的一个框架，真正起作用的是`Plugin`。如果你不知道什么是`构建工具`、`Maven`，那么请参看笔者的另一篇文章[《实战篇　第三章 Maven》](http://cutler.github.io/android-O03/)。
 
+　　笔者将本节的内容，定位为`“了解”`，也就是说你不需要记住下面所有的知识，只要能看懂范例、理解思路即可。
 
-<br>**常见GC Root**
-　　GC会收集那些不是GC roots且没有被GC roots引用的对象。一个对象可以属于多个root，常见的GC root有几下种：
+## 概述 ##
+<br>**是什么？**
+　　`Gradle`是以`Groovy`语言为基础，面向`Java`应用为主的`自动化构建工具`。
+　　`Gradle`同时继承了`Apache Ant`和`Apache Maven`二者的优点。当前`Gradle`仅可以用来构建使用`Java`、`Groovy`和`Scala`语言编写的项目，计划未来将支持更多的语言。
 
-	-  Class：由系统类加载器加载的对象，这些类是不能够被回收的，他们可以以静态字段的方式保存持有其它对象。
-	-  Thread：已经启动且正在执行的线程。
-	-  JNI Local：JNI方法的local变量或参数。
-	-  JNI Global：全局JNI引用。
-	-  Monitor Used：用于同步的监控对象。
+<br>**Groovy**
+　　`Groovy`是`Java`平台上设计的面向对象编程语言。这门动态语言拥有类似`Python`、`Ruby`和`Smalltalk`中的一些特性，可以作为`Java`平台的`脚本语言`使用。它的语法与`Java`非常相似，以至于多数的`Java`代码也是正确的`Groovy`代码。`Groovy`代码动态的被编译器转换成`Java字节码`。由于其运行在`JVM`上的特性，`Groovy`可以使用其他`Java`语言编写的库。
 
-　　参考阅读：[GC Root](http://blog.csdn.net/fenglibing/article/details/8928927) 
-
-<br>**内存结构**
-　　在`Honeycomb(Android3.0)`之前，`Bitmap`的内存分配如下图：
-
-<center>
-![](/img/android/android_8_3.png)
-</center>
-
-　　蓝色部分是`Dalvik heap`，黄色部分是`Bitmap`引用对象的堆内存，而`Bitmap`实际的`Pixel Data`是分配在`Native Memory`中(VM中的另一块地方，与`heap`是平级的)。这样做有几个问题，首先需要调用`reclyce()`来表明`Bitmap`的`Pixel Data`占用的内存可回收，不调用这个方法的话就要靠`finalizer`来让`GC`回收这部分内存，但了解`finalizer`的应该都知道这相当的不可靠；其次是很难进行`Debug`，因为一些内存分析工具是查看不到`Native Memory`的。
-
-<br>　　`Honeycomb`之后，`Bitmap`的内存分配做出了改变，如下图：
-
-<center>
-![](/img/android/android_8_4.png)
-</center>
-
-　　蓝色黄色部分没有变化，但`Bitmap`实际的`Pixel Data`的内存也同样分配在了`Dalvik heap`中。这样做有几个好处。首先能同步的被`GC`回收掉；其次`Debug`变得容易了，因为内存分析工具能够查看到这部分的内存；再次就是`GC`变成并发了，可做部分的回收，也就是极大缩短了`GC`执行时暂停的时间。
-
-## Heap的分配 ##
-　　一般来说我们希望了解我们应用内存分配，最基本的就是查看`Log`信息。比方说看这样一个`Log`信息(这是`Gingerbread`版本的，`Honeycomb`以后`log`信息有改动)：
-```
-D/dalvikvm( 9050): 
-GC_CONCURRENT freed 2049K, 
-65% free 3571K/9991K, external 4703K/5261K, paused 2ms+2ms
-```
-
-　　第二行代码的`“GC_xxx”`说明是哪类`GC`以及触发`GC`的原因，常见有五种类型：
-
-	-  GC_CONCURRENT：这是因为你的heap内存占用开始往上涨了，为了避免heap内存满了而触发执行的。
-	-  GC_FOR_MALLOC：这是由于concurrent gc没有及时执行完而你的应用又需要分配更多的内存，内存要满了，这时不得不停下来进行malloc gc。
-	-  GC_EXTERNAL_ALLOC：这是为external分配的内存执行的GC，也就是上文提到的Bitmap Pixel Data之类的。
-	-  GC_HPROF_DUMP_HEAP：这是当你做HPROF这样一个操作去创建一个HPROF profile的时候执行的。
-	-  GC_EXPLICIT：这是由于你显式的调用了System.gc()，这是不提倡的，一般来说我们可以信任系统的GC。
-
-
-　　第二行代码的`“freed 2049K”`表明在这次`GC`中回收了多少内存。
-　　第三行代码的`“65% free 3571K/9991K”`是`heap`的一些统计数据，表明这次回收后仍有`65%`的`heap`可用，存活的对象大小`3571K`，`heap`大小是`9991K`。
-　　`“external 4703K/5261K”`是`Native Memory`的数据，存放`Bitmap Pixel Data`或者是`NIO Direct Buffer`之类的。
-
-	-  第一个数字表明Native Memory中已分配了多少内存。
-	-  第二个值有点类似一个浮动的阀值，表明分配内存达到这个值系统就会触发一次GC进行内存回收。
-　　`“paused 2ms+2ms”`表明`GC`暂停的时间。从这里你可以看到越大的`heap size`你需要暂停的时间越长。如果是`concurrent gc`你会看到`2`个时间一个开始一个结束，这时间是很短的，但如果是其他类型的`GC`，你很可能只会看到一个时间，而这个时间是相对比较长的。
-
-<br>**内存分析的工具**
-　　有很多工具可以用来帮助检测内存泄露问题，我们主要使用如下两个工具：
-
-	-  DDMS (Dalvik调试监视服务器) ：
-	   -  和SDK一起推出的调试工具（被放在SDK的tools目录下），提供端口转发服务、截屏、线程监控、堆dump、logcat、进程和无线状态监控以及一些其他功能。
-	-  MAT (内存分析工具)：
-	   -  快速的Java堆分析器，该工具可以检测到内存泄露，降低内存消耗，它有着非常强大的解析堆内存空间dump能力。
-
-　　接下来我们就分别介绍一下它们的用法。
-
-# 第二节 DDMS #
-　　Android SDK附带一个调试工具称为`Dalvik Debug Monitor Server`(`DDMS`)，它提供了端口转发服务、屏幕捕获、线程和堆信息、进程、`logcat`、网络的状态信息、来电、发送模拟短信等。
-　　本节仅对`DDMS`功能的进行一个简要的讨论，后面内存分析主要使用的工具是`MAT`。
-
-<br>　　`DDMS`既可以连接模拟器也可以连接一个真实的设备。你有三种方式可以启动`DDMS`：
-
-	-  从Eclipse：ADT插件把DDMS集成到了Eclipse中，点击“Window > Open Perspective > Other.. > DDMS” 。
-	-  从命令行：通过cmd进入到SDK的tools目录下，然后执行“ddms”命令启动该工具。
-	-  从AndroidStudio：自己去差，满地都是教程。
-
-<br>　　接下来介绍一下如何使用`DDMS`以及该视图下面的各种标签和窗格的作用。
-
-<br>**查看进程堆使用情况**
-　　`DDMS`允许您查看一个进程正在使用有多少堆内存，这些信息很重要我们稍后会用到。
-
-<center>
-![查看进程堆使用情况](/img/android/android_8_6.png)
-</center>
-
-<br>　　具体查看步骤：
-
-	1、首先在Devices选项卡中，选中你想查看堆信息的进程。
-	2、然后，点击Devices选项卡中的Update Heap按钮，启用监听这个进程的堆信息。
-	3、在右侧窗口中的Heap选项卡中，点击Cause GC按钮去调用垃圾回收器开始收集堆信息，随后你将看到一组对象类型以及这些类型被分配的内存大小。
-	4、点击列表中的一个对象类型来看到一个条形图显示对象的数量分配给一个特定的内存字节大小。
-
-　　一旦点击了`Cause GC`按钮后，后续的堆信息的收集就会每隔一段时间自动进行了，但你仍可以再次点击`Cause GC`按钮可以手动触发信息收集。
-
-<br>**跟踪内存分配的对象**
-　　`DDMS`提供一个很有用的功能，它跟踪正在分配内存的对象和查看那些类和线程正分配对象。这样，在应用中执行特定操作时你就可以实时跟踪哪些对象正在被分配资源。分析影响到应用性能的内存使用是很有价值的信息。
-
-<center>
-![](/img/android/android_8_7.png)
-</center>
-
-<br>　　跟踪内存的对象分配：
-
-	1、首先在Devices选项卡，选择需要跟踪内存分配的进程。
-	2、然后在allocation选项卡，点击Start Tracking按钮开始分配跟踪。这时，任何在应用中的操作都会被跟踪。
-	3、点击Get Allocations来查看从点击Start Tracking按钮以来已经分配的对象列表。再点击Get Allocations就会将已分配的新对象添加到列表中。
-	4、如果要停止跟踪或清除数据后重新开始，点击Stop Tracking按钮。
-	5、点击列表中的特定行就可以看到更详细的信息，比如已分配的对象的方法和代码行。
-
-<br>**使用模拟器或设备的文件系统**
-　　`DDMS`提供了文件系统选项（上图中的`“File Explorer”`），它允许查看、复制和删除设备上的文件。这个功能对于检查应用创建的文件或向设备中导入文件和从设备导出文件来说，非常有用。
-　　使用模拟器或设备文件系统：
-
-	1、在设备选项，选择要查看文件系统的模拟器。
-	2、要从设备中复制文件，先在文件浏览中定位文件，然后点击Pull file按钮。
-	3、要把文件复制到设备中，点击文件浏览选项中的Push file按钮
-
-# 第三节 MAT #
-　　对于大型`JAVA`应用程序来说，再精细的测试也难以堵住所有的漏洞，即便我们在测试阶段进行了大量卓有成效的工作，很多问题还是会在生产环境下暴露出来，并且很难在测试环境中进行重现。`JVM`能够记录下问题发生时系统的部分运行状态，并将其存储在堆转储(`Heap Dump`)文件中，从而为我们分析和诊断问题提供了重要的依据。
-
-　　`Memory Analyzer（MAT）`是一个功能丰富的`JAVA`堆转储文件分析工具，可以帮助你发现内存漏洞和减少内存消耗。 
-
-　　通常内存泄露分析被认为是一件很有难度的工作，一般由团队中的资深人士进行。不过，今天我们要介绍的`MAT`被认为是一个`“傻瓜式”`的堆转储文件分析工具，你只需要轻轻点击一下鼠标就可以生成一个专业的分析报告。和其他内存泄露分析工具相比，`MAT`的使用非常容易，基本可以实现一键到位，即使是新手也能够很快上手使用。
-　　
-
-## 安装步骤 ##
-　　`MAT`的使用是如此容易，你是不是也很有兴趣来亲自感受下呢，那么第一步我们先来安装`MAT`。
-
-<br>**安装 MAT**
-　　和其他插件的安装非常类似，`MAT`支持两种安装方式，一种是`“单机版”`的，也就是说用户不必安装`Eclipse IDE`环境，`MAT`作为一个独立的`Eclipse RCP`应用运行；另一种是`“集成版”`的，也就是说`MAT`也可以作为`Eclipse IDE`的一部分，和现有的开发平台集成。
-　　集成版的安装需要借助`Eclipse`的`Update Manager`。如下图所示，首先通过`Help -> Install NewSoftware... `启动软件更新管理向导。
-
-<center>
-![](/img/android/android_8_8.png)
-</center>
-
-　　点击`add`按钮，然后按下图所示的方式输入`MAT`的更新地址（最新是 http://download.eclipse.org/mat/1.5/update-site/ ） 。
-
-<center>
-![](/img/android/android_8_9.png)
-</center>
-
-　　如果你已经配置过了，则Eclipse就会像上面那样提示`“Duplicate location”`。 
-　　如下图所示，接下来选择你想要安装的`MAT`的功能点，需要注意的是展开项目后有一个`Memory Analyzer (Chart)`，这个功能是一个可选的安装项目（但是推荐安装），它主要用来生成相关的报表，不过如果需要用到这个功能，你还需要额外的安装`BIRT Chart Engine`。
-
-<center>
-![](/img/android/android_8_10.png)
-</center>
-
-<br>　　如果你打算安装`Memory Analyzer (Chart)`功能，那么上图第二个红框应该勾选，它可以自动搜索并安装MAT所必须依赖的其他插件，在这里就是`BIRT Chart Engine`。
-　　插件安装完毕，你还需要重新启动`Eclipse`的工作平台。
-
-　　比较而言，单机版的安装方式非常简单，用户只需要下载相应的安装包，然后解压缩即可运行，这也是被普遍采用的一种安装方式。在下面的例子里，我们使用的也是单机版的`MAT`。
-　　笔者使用的是`Memory Analyzer V1.5.0.20150527`单机版，[下载地址](http://www.eclipse.org/mat/downloads.php)。
-
-<br>　　接下来我们有两个任务要做：
-
-	-  第一，写一个内存泄漏的代码。
-	-  第二，导出一个堆转储文件，然后分析这个文件。所谓的堆转储文件，就是一个保存了内存中的各种信息的文件，我们通过分析它就可以定位出内存泄漏。
-
-## 常见泄漏 ##
-　　本节先来介绍几个常见的内存年泄漏的范例，以便在以后写代码的时候可以避免掉。
-
-### Handler与Thread ###
-　　`Handler`是造成内存泄露的一个重要的源头。
-<br>　　看一下如下代码：
-``` android
-public class HandlerActivity extends Activity {
-    private final Handler mHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            // ...
+　　下面是来自于 http://Groovy.CodeHaus.org 的一个例子程序：
+``` gradle
+class Foo {
+    doSomething() {
+        data = ["name": "James", "location": "London"]
+        for (e in data) {
+            println("entry ${e.key} is ${e.value}")
         }
-    };
-
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        // 发送一个消息，60秒后处理。
-        mHandler.sendMessageDelayed(Message.obtain(), 60000);
-        // 关闭Activity。
-        finish();
+    }
+ 
+    closureExample(collection) {
+        collection.each { println("value ${it}") }
+    }
+ 
+    static void main(args) {
+        values = [1, 2, 3, "abc"]
+        foo = new Foo()
+        foo.closureExample(values)
+        foo.doSomething()
     }
 }
 ```
-<br>　　猛地一看并没有什么问题，但是`Eclipse`或`Android Studio`却会有如下警告：
 
-	This Handler class should be static or leaks might occur (com.example.ta.HandlerActivity.1)
+<br>**JVM生态圈三大构建工具**
 
-　　大体的意思是：`Handler`应该使用静态声明，不然可能导致`HandlerActivity`被泄露。
+　　最初只有`Make`一种构建工具，后来其发展为`GNU Make`。由于需求的不断涌现，码农的世界里逐渐演化出了千奇百怪的构建工具。当前，JVM生态圈由三大构建工具所统治：
 
-<br>　　为啥出现这样的问题呢？这是因为：
+	-  Apache Ant带着Ivy
+	-  Maven
+	-  Gradel
 
-	-  首先，当在主线程中初始化Handler时，该Handler会和主线程中的Looper的消息队列关联。
-	-  然后，通过Handler发送的消息，会被发送到Looper的消息队列里，直到消息被处理。
-	-  接着，但是通过Handler对象发送的消息会反向持有Handler的引用，这样系统可以调用Handler#handleMessage(Message)来分发处理该消息。
-	-  最后，由于消息会延迟60秒处理，因此Message对象的引用会被一直持有，同时导致Handler无法回收，又因为Handler是实例内部类，所以最终会导致Activity被泄漏。
+　　软件行业新旧交替的速度之快往往令人咂舌，不用多少时间，你就会发现曾经大红大紫的技术已经成为了昨日黄花，当然，`Maven`也不会例外。虽然目前它仍然是`Java`构建的事实标准，但我们也能看到新兴的工具在涌现，比如基于`Groovy`的`Gradle`。
 
-<br>　　也许你会说`“我不去执行这种延期的Message不就行了”`，但是：
+<br>　　Ant
 
-	-  首先，你不会执行但你不能保证你同事也不会执行。
-	-  然后，由于程序中可以存在多个Handler，并且一般情况下都是在主线程中处理消息，因此你也不能保证在其他地方的Handler对象不会阻塞主线程，进而导致你的Message被迫延迟处理等。
-	-  因此，为了避免这些未知的情况，我们尽量不要这么写代码。
+	-  介绍：Ant是第一个“现代”构建工具，在很多方面它有些像Make。发布于2000年，在很短时间内成为Java项目上最流行的构建工具。在最初的版本之后，逐渐具备了支持插件的功能。
+	-  优点（但不限于）：主要优点在于对构建过程的控制上。随着通过网络进行依赖管理成为必备功能，Ant采用了Apache Ivy。
+	-  缺点：用XML作为脚本编写格式。本质上是层次化的，并不能很好地贴合Ant过程化编程的初衷。除非是很小的项目，否则它的XML文件很快就大得无法管理。
+	
+<br>　　Maven
 
-<br>**如何避免呢？**
-　　最简单的方法就是把`Handler`写成一个外部类，不过这样一来就会多出很多文件，也难以查找和管理。
+	-  介绍：Maven发布于2004年。目的是解决码农使用Ant所带来的一些问题。
+	-  优点（但不限于）：
+	   -  天生具备从网络上自动下载依赖的能力（Ant后来通过Ivy也具备了这个功能）。
+	   -  由于Maven的缺省构建规则有较高的可重用性，所以常常用两三行Maven构建脚本就可以构建简单的项目，而使用Ant则需要十几行。
+	-  缺点：
+	   -  仍然用XML作为脚本编写格式。在大型项目中，它经常什么“特别的”事还没干就有几百行代码。
+	   -  正是由于Maven的构建规则的可重用性，导致用Maven很难写出复杂、定制化的构建脚本，甚至不如Ant。
 
-　　另一个方法就是使用`静态内部类+软引用`：
-``` android
-public class HandlerActivity2 extends Activity {
+<br>　　Gradle
 
-    private static final int MESSAGE_1 = 1;
-    private static final int MESSAGE_2 = 2;
-    private static final int MESSAGE_3 = 3;
+	-  Gradle结合了前两者的优点，在此基础之上做了很多改进，它既有Ant的强大和灵活，又有Maven的依赖管理。
+	-  Gradle不用XML，它使用基于Groovy的专门的DSL，从而使Gradle构建脚本变得比用Ant和Maven写的要简洁清晰。Gradle样板文件的代码很少，这是因为它的DSL被设计用于解决特定的问题：贯穿软件的生命周期，从编译，到静态检查，到测试，直到打包和部署。
+	-  Gradle的成就可以概括为：约定好，灵活性也高。 
 
-    private final Handler mHandler = new MyHandler(this);
+　　推荐阅读：[《Java构建工具：Ant vs Maven vs Gradle》](http://blog.csdn.net/napolunyishi/article/details/39345995) 与 [《Gradle, 基于DSL的新一代Java构建工具》](http://www.blogjava.net/wldandan/archive/2012/06/26/381532.html)。
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        mHandler.sendMessageDelayed(Message.obtain(), 60000);
-        finish();
-    }
-
-    private static class MyHandler extends Handler {
-        private final SoftReference<HandlerActivity2> mActivity;
-
-        public MyHandler(HandlerActivity2 activity) {
-            mActivity = new SoftReference<HandlerActivity2>(activity);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            // 如果当前Activity被GC回收了，则就不处理这个消息了，直接返回。
-            if (mActivity.get() == null) {
-                return;
-            }
-        }
-    }
-}
-```
-    语句解释：
-    -  本范例中创建了一个名为MyHandler的静态内部类，与实例内部类不同的是，静态内部类不会默认持有其外部类的引用。
-    -  在构造MyHandler类的对象时，虽然仍需要传递一个HandlerActivity2的引用过去，但MyHandler类不会持有它的强引用，因而不会阻止HandlerActivity2回收。
-
-<br>**上面这样就可以了吗？**
-　　当`Activity`被`finish`后`Handler`对象还是在`Message`中排队，还是会处理消息，但这些处理已经没有必要了。
-　　我们可以在`Activity`的`onStop`或者`onDestroy`的时候，取消掉该`Handler`对象的`Message`和`Runnable`，代码如下：
-``` java
-public void onDestroy() {
-    mHandler.removeMessages(MESSAGE_1);
-    mHandler.removeMessages(MESSAGE_2);
-    mHandler.removeMessages(MESSAGE_3);
-    mHandler.removeCallbacks(mRunnable);
-}   
-```
-
-<br>**Thread对象也一样**
-　　比如我们有如下代码：
-``` android
-public class ThreadActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        new MyThread().start();
-    }
-
-    private class MyThread extends Thread {
-        public void run() {
-
-        }
-    }
-}
-```
-　　它的问题和`Handler`的问题是一样的，解决的方法同样也是`静态内部累+软引用`。
-
-　　此时你可能会有疑问，在刚才说的`Handler`问题中，`Activity`被泄漏是因为`Handler`对象被持有，但是这里的`Thread`对象是一个匿名对象，没有任何人持有它，为什么也会导致`Activity`泄漏呢？
-　　答：`Thread`对象是`GCRoot`对象，虽然没有被引用，但是一旦它被启动了，那直到它执行完毕，都不会被回收。除非程序被切到后台且因为系统内存不足，该进程被杀掉进而终止线程。
+<br>　　当我们成功运行完`HelloWorld`项目后，为了更好的使用`Android Studio`进行开发工作，会不可避免的对`build.gradle`文件的语法产生好奇。 接下来笔者将会介绍编写`Gradle`构建脚本的基础知识（虽然一般情况下几乎用不到它们）。
+　　为了理论结合实践，接下来我们要安装一下`Gradle`，这样就能一边写代码一边测试了。
 
 <br>**本节参考阅读：**
-- [Android App 内存泄露之Handler](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8BHandler.md) 
-- [Android App 内存泄露之Thread](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8BThread.md) 
+- [维基百科 - Gradle](http://zh.wikipedia.org/zh-cn/Gradle)
+- [维基百科 - Groovy](http://zh.wikipedia.org/zh-cn/Groovy)
+- [Android Studio 简介及导入 jar 包和第三方开源库方法](http://drakeet.me/android-studio)
+- [Maven实战（六）——Gradle，构建工具的未来？](http://www.infoq.com/cn/news/2011/04/xxb-maven-6-gradle)
 
-## 堆转储文件 ##
-　　在进行分析内存之前，还需要获得一个堆转储文件(`dump heap`)，该文件中保存了内存中的各种信息，堆转储文件以`.hprof`为后缀。
 
-<br>**Heap Dump**
-　　如果你不知道`Java`里面的`Heap`是什么意思，这篇文章可能就不太适合你阅读了。
-　　一个`Heap Dump`是指在某个时刻对一个Java进程所使用的堆内存情况的一次`快照`，也就是在某个时刻把`Java`进程的内存以某种格式持久化到了磁盘上。`Heap Dump`的格式有很多种，而且不同的格式包含的信息也可能不一样。
-　　但总的来说，`Heap Dump`一般都包含了一个堆中的`Java Objects`，`Class`等基本信息。同时，当你在执行一个转储操作时，往往会触发一次`GC`，所以你转储得到的文件里包含的信息通常是有效的内容（包含比较少，或没有垃圾对象了）。
+## 环境搭建 ##
 
-<br>　　我们往往可以在`Heap Dump`看到以下基本信息（一项或者多项，与`Dump`文件的格式有关）：
+　　首先，前往官方下载界面下载`Gradle`安装包，下载地址为：https://gradle.org/downloads/ ，本节将以`2.2.1`版本为例讲解`Gradle`的用法。
 
-	-  所有的对象信息：对象的类信息、字段信息、原生值(int, long等)及引用值。
-	-  所有的类信息：类加载器、类名、超类及静态字段。
-	-  垃圾回收的根对象：根对象是指那些可以直接被虚拟机触及的对象。
-	-  线程栈及局部变量：包含了转储时刻的线程调用栈信息和栈帧中的局部变量信息。
-　　一个`Heap Dump`是不包含内存分配信息的，也就是说你无法从中得知是谁创建了这些对象，以及这些对象被创建的地方是哪里。但是通过分析对象之间的引用关系，往往也能推断出相关的信息了。
+　　官方安装教程：http://gradle.org/docs/current/userguide/installation.html 。
 
-<br>**获取堆转储文件**
-　　首先，您需要了解到，不同厂家的`JVM `所生成的堆转储文件在数据存储格式以及数据存储内容上有很多区别，`MAT`不是一个万能工具，它并不能处理所有类型的堆存储文件。但是比较主流的厂家和格式，例如`Oracle`，`HP`，`SAP`所采用的`HPROF`二进制堆存储文件，以及`IBM`的`PHD`堆存储文件等都能被很好的解析。
-　　获得堆转储文件很容易，打开`DDMS`，启动想要监控的进程，点击左边`Devices`窗口上方工具栏的`“Dump HPROF File”`按钮。
+<br>**前提条件**
+　　`Gradle`需要安装`1.6`及以上版本的`Java JDK`或`JRE`。它拥有自己的`Groovy`库，因此不需要另行安装`Groovy`。任何已安装的`Groovy`都会被`Gradle`给忽略。
 
-　　如果你直接使用`MAT`打开刚生成的堆转储文件的话，那么`MAT`通常会报如下错误：
-``` c
-Error opening heap dump 'a.hprof'. Check the error log for further details.
-Error opening heap dump 'a.hprof'. Check the error log for further details.
-Unknown HPROF Version (JAVA PROFILE 1.0.3) (java.io.IOException)
-Unknown HPROF Version (JAVA PROFILE 1.0.3)
-```
-　　原因是: Android的虚拟机导出的`hprof`文件格式与标准的`java hprof`文件格式标准不一样，根本原因两者的虚拟机不一致导致的。
-　　解决方法：使用`sdk\platform-tools\hprof-conv.exe`工具转换就可以了：
-``` c
-hprof-conv 源文件 目标文件
-```
+<br>**环境变量**
+　　下载完毕后，解压缩，然后添加`GRADLE_HOME/bin`到你的`PATH`环境变量。比如：`F:\apps\gradle-2.2.1\bin`。
+　　然后，你可以通过输入`gradle -v`检查`Gradle`是否安装正常。如果安装正确的话会输出`Gradle`版本和一些本地环境配置（`Groovy`，`Java`虚拟机版本，操作系统等等）。
 
-<br>**MAT插件界面概览**
-　　文件加载完成后，你可以看到类似如下图所示的界面：
+## 构建脚本基础 ##
+<br>**Projects 和 tasks**
+　　`Gradle`里的任何东西都是基于这两个基础概念：`projects`（项目）、`tasks`（任务）。
 
-<center>
-![](/img/android/android_8_11.png)
-</center>
+　　我们每天对项目进行编译、运行单元测试、生成文档、打包和部署等烦琐且不起眼的工作，都可以说是在对项目进行`构建`。
+　　使用Gradle构建时，可以同时构建一个或多个`project`，`每一个project是由一个或多个tasks构成的`。一个`task`代表一些更加细化的构建。它可能是编译一些`classes`，创建一个`JAR`，生成`javadoc`，或者生成某个目录的压缩文件。
+<br>
+### HelloWorld ###
+　　首先，我们先来创建一个名为`gradleTest`的空文件夹。
+　　然后，要知道Gradle与Maven、Ant一样，有一个核心的构建文件，名为`build.gradle`，整个构建的过程都是从它开始的。
 
-　　红框括起来了是一些快捷键和功能按钮，如果不小心把某个窗口给关掉后，可以通过这些按钮重新打开对应的界面。
-
-## 基础应用 ##
-### 问题代码 ###
-　　前面说过`Thread`一旦被启动，那么直到它运行结束都不会被回收（当然若进程被操作系统杀掉了那么线程会中止），你可能会不信，那么咱们现在就创建一个范例，完成后面知识的讲解。
-
-<br>　　范例1：内存泄漏代码。
-``` android
-public class MainActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        new Thread() {
-            public void run() {
-                for (int i = 1; i <= 600; i++) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    System.out.println(Thread.currentThread().getName() + " = " + i+", " + MainActivity.this);
-                }
-            };
-        }.start();
+<br>　　范例1：将如下代码放入到`build.gradle`中。
+``` gradle
+task hello {
+    doLast {
+        println 'Hello world!'
     }
-}
-```
-	语句解释：
-	-  每当新建立一个Activity的时候就开启一个线程，并让这个线程运行600秒。
-
-<br>　　程序运行后，我们可以通过不断的横竖屏切换来触发`Activity`重建，来模拟内存泄漏。
-
-<br>
-### 发现问题 ###
-　　若我们的项目运行一段时间后就变得很慢，那么不出意外的话是有内存泄漏了，但是由于不知道具体在哪里泄漏的，所以可能无从下手，应该怎么办呢？
-　　在`DDMS`视图中的`Heap`选项卡中部有一个`Type`叫做`data object`，即数据对象。
-　　在`data object`一行中有一列是`“Total Size”`，其值就是当前进程中所有`Java`数据对象的内存总量，一般情况下，这个值的大小决定了是否会有内存泄漏。
-
-<br>　　以我们上面的问题代码为例，程序刚启动时内存的信息为：
-
-<center>
-![](/img/android/android_o02_12.png)
-</center>
-
-　　然后我们不断的横竖屏切换`5~10`次后，内存的信息为：
-
-<center>
-![](/img/android/android_o02_13.png)
-</center>
-
-　　很明显可以看到，随着我们横竖屏切换的次数增加，`“Count”`和`“Total Size”`两列下的数值也不断的增加，并且不会减少。这基本就可以断定这个界面存在内存泄漏了。
-
-<br>　　因此我们可以这样判断是否存在内存泄漏：
-
-	-  首先，不断打开和关闭应用中的某个界面，同时注意观察data object的Total Size值。
-	-  然后，正常情况下Total Size值都会稳定在一个有限的范围内。
-	   -  也就是说若程序中的代码写的很好，即便不断的操作会不断的生成很多对象，而在虚拟机不断的进行GC的过程中，这些对象都被回收了，内存占用量会会落到一个稳定的水平。
-	   -  反之如果代码中存在没有释放对象引用的情况，则data object的Total Size值在每次GC后不会有明显的回落，随着操作次数的增多Total Size的值会越来越大，直到到达一个上限后导致进程被kill掉。
-	-  提示：我们可以点击DDMS视图里的“Cause GC”按钮来手动触发GC。
-
-<br>
-### Leak Suspects ###
-　　现在，我们已经确定程序存在内存泄漏的问题了，并且也知道是哪个界面存在泄漏了，为了进一步确定是哪块代码出的问题，我们需要将该进程的内存信息导出来，生成一个`.hprof`文件，并加以分析。
-
-　　再次提示：
-
-	-  如果你是使用MAT单机版，那么你需要把IDE导出的堆转储文件转换一下格式。
-
-<br>　　当使用`MAT`打开`.hprof`文件时，会默认打开一个名为`“Leak suspects”（泄露疑点）`的视图，并且生成报告给用户。
-　　`“泄露疑点”`会列出当前内存中的个头大的对象，在这里列出的对象并不一定是真正的内存泄露，但它仍然是检查内存泄露的一个绝佳起点。
-
-　　如下图所示：
-
-<center>
-![](/img/android/android_o02_14.png)
-</center>
-
-　　图释：
-
-	-  android.content.res.Resources：类名称。
-	-  <system class loader>：加载该类的加载器。
-	-  5,309,840 (47.06%)：该类所有对象所占用的内存。
-
-<br>　　我们可以点击上图中的`“Details »”`按钮来查看详细信息。
-　　报告主要包括`到达聚点的最短路径`，这个功能非常有用，它可以让开发人员快速发现到底是哪里让这些对象无法被`GC`回收：
-
-<center>
-![](/img/android/android_8_16.png)
-</center>
-
-<br>　　在继续向下讲解之前，我们需要先插一个知识点。
-
-<br>**浅堆和保留堆**
-　　`MAT`可以根据堆转储文件，以可视化的方式告诉我们哪个类，哪个对象分配了多少内存。不过要想看懂它们，则需要掌握2个概念：`Shallow heap`(浅堆)和`Retained heap`（保留堆）。
-
-<br>　　`Shallow Heap`是指该对象占用了多少内存（字节），不包含对其他对象的引用，也就是对象头加成员变量的头的总和。如：
-``` java
-public class Person {	// 头部8字节
-    private int age;	// 整型4字节
-    private int age1;
-    private int age2;
-    private int age3;
-    private int age4;
-    private int age5;
-    private long birthday;	// 长整型8字节
-    private long birthday1;
-    private long birthday2;
 }
 ```
     语句解释：
-    -  一个对象的头部往往需要32或64比特(bit)（基于不同的平台实现，该值也会不同），在32位系统上，对象头占用8字节，int占用4字节。这些是JVM规范里规定，但不同JVM实现可以按照自己方式来存储数据。另外，基于不同的Heap Dump格式，这些值也可能会有变化，但往往会更加真实地反应出内存的占用量。
-    -  因此这个Person对象的浅堆大小大约为56字节。
+    -  首先，我们在脚本中创建了一个名为hello的task。
+    -  然后，每一个task中可以有多个代码块（使用{}括起来），这些代码块被称为action。
+    -  接着，task使用一个队列来管理它所有的action。当task被执行的时候，按照先后顺序依次执行每个action。
+    -  最后，代码块是没有名字的，我们使用doLast关键字来将一个action放到task的队列的队尾。
 
-<br>　　`Retained Set`指的是一个对象集合。假定一些对象会由于对象`X`被垃圾回收（`GC`）后，也同时需要被`GC`掉，那么这些对象就属于`X`的`Retained Set`。注意，`Retained Set`是包含`X`本身的。
-　　`Retained Heap`可以简单地理解为对象的`Retained Set`中的对象所占用的内存的总和。换句话说，`Retained Heap`是该对象自己的`shallow size`，加上从该对象能直接或间接访问到对象的`shallow size`之和。
+<br>　　接着，我们创建完毕`gradleTest/build.gradle`后，就可以使用`gradle task名称`命令来启动构建了。
+``` gradle
+gradle -q hello
+```
+    语句解释：
+    -  这里需要注意两点：
+       -  由于我们是在Windows命令行中执行这个脚本，因此build.gradle必须是ANSI编码，别用UTF-8编码，否则编译会出错。
+       -  gradle命令后面跟着的是task的名称，而不是文件的名称。
+    -  本节之后的绝大多数范例会在命令里加入-q，加上它之后就不会生成Gradle的日志信息，所以用户只能看到tasks的输出。当然也可以不加它。
+
+<br>　　范例2：快捷的任务定义。
+``` gradle
+task hello << {
+    println "Hello world!!"
+}
+```
+    语句解释：
+    -  与前面的例子比较，doLast 被替换成了 <<，它们有一样的功能，但看上去更加简洁了。
+    -  字符串既可以用单引号也可以用双引号。
+<br>
+### 构建脚本代码 ###
+　　Gradle 的构建脚本展示了 Groovy 的所有能力。作为开胃菜，来看看这个：
+
+<br>　　范例1：字符串连接与函数调用。
+``` gradle
+task upper << {
+    String someString = 'mY_nAmE'
+    println "Original: " + someString
+    println "Upper case: " + someString.toUpperCase()
+    println "Length: " + someString.length()
+}
+```
+　　程序输出：
+
+	E:\gradleTest>gradle -q upper
+	Original: mY_nAmE
+	Upper case: MY_NAME
+	Length: 7
+
+<br>　　范例2：循环语句与判断语句。
+``` gradle
+task count << {
+    4.times { 
+        if("$it" < 3){
+            print "$it " 
+        } else {
+            println "$it " 
+        }
+    }
+}
+```
+    语句解释：
+    -  本范例会循环4次，前三次只会打印出数字，最后一次打印完数字后，会接着打印一个换行符。
+    -  it是迭代变量的默认名称，后面我们会介绍如何修改迭代变量的名称。
+
+<br>
+### 任务 ###
+　　就像你所猜想的那样，你可以声明任务之间的依赖关系、定义动态任务等。
+
+<br>　　范例1：申明任务之间的依赖关系。
+``` gradle
+task hello << {
+    println 'Hello world!'
+}
+
+task intro(dependsOn: hello) << {
+    println "I'm Gradle"
+}
+```
+　　程序输出：
+
+	E:\gradleTest>gradle -q intro
+	Hello world!
+	I'm Gradle
+
+　　由于`intro`依赖于`hello`，所以执行`intro`的时候`hello`命令会被优先执行来作为启动`intro`任务的条件。
+
+<br>　　范例2：其他的任务还没有存在。
+``` gradle
+task taskX(dependsOn: 'taskY') << {
+    println 'taskX'
+}
+task taskY << {
+    println 'taskY'
+}
+```
+　　程序输出：
+
+	E:\gradleTest>gradle -q taskX
+	taskY
+	taskX
+
+　　在加入一个依赖之前，这个依赖的任务不需要提前定义，`taskX`到`taskY`的依赖在`taskY`被定义之前就已经声明了。这一点对于我们之后讲到的多任务构建是非常重要的。
+
+<br>　　范例3：动态的创建一个任务。
+``` gradle
+4.times { counter ->
+    task "task$counter" << {
+        println "I'm task number $counter"
+    }
+}
+```
+    语句解释：
+    -  本范例通过循环语句动态的创建了4个task。
+    -  我们可以自定义循环语句的迭代变量的名称，本范例中迭代变量的名字为counter，引用迭代变量是使用 "$变量名"，注意要有引号。
+       -  循环次数.times{迭代变量 -> 循环体}
+    -  事实上，我们在命令行中执行“gradle -q hello”命令时，Grale做了如下两步操作：
+       -  第一，从当前目录下查找build.gradle文件，然后从该文件第一行代码开始扫描执行。
+       -  第二，等一切都结束后，再开始执行hello任务。这意味着我们可以直接“gradle -q”命令，后面不需要跟随一个task。
+　　程序输出：
+
+	E:\gradleTest>gradle -q task2
+	I'm task number 2
+
+<br>　　范例4：通过API访问一个任务 - 加入一个依赖。
+``` gradle
+// 先动态创建4个task
+4.times { counter ->
+    task "task$counter" << {
+        println "I'm task number $counter"
+    }
+}
+// 由于Gradle从上到下执行,因此会在创建完毕任务后,让task0依赖task2、task3
+task0.dependsOn task2, task3
+```
+    语句解释：
+    -  当任务创建之后, 它可以通过API来访问。
+　　程序输出：
+
+	E:\gradleTest>gradle -q task0
+	I'm task number 2
+	I'm task number 3
+	I'm task number 0
+
+<br>　　范例5：通过API访问一个任务 - 加入行为。
+``` gradle
+// 创建一个task，并在队列尾部添加一个action
+task hello << {
+    println 'Hello Earth'
+}
+// 在队列首部添加一个action
+hello.doFirst {
+    println 'Hello Venus'
+}
+// 在队列尾部添加一个action
+hello.doLast {
+    println 'Hello Mars'
+}
+// 在队列尾部添加一个action
+hello << {
+    println 'Hello Jupiter'
+}
+```
+    语句解释：
+    -  doFirst 和 doLast 可以被执行许多次。他们分别可以在任务动作列表的开始和结束加入动作。当任务执行的时候，在动作列表里的动作将被按顺序执行。这里第四个行为中 << 操作符是 doLast 的简单别称。
+　　程序输出：
+
+	E:\gradleTest>gradle -q hello
+	Hello Venus
+	Hello Earth
+	Hello Mars
+	Hello Jupiter
+
+<br>　　正如同你已经在之前的示例里看到，有一个短标记`$`可以访问一个存在的任务。也就是说每个任务都可以作为构建脚本的属性：
+
+<br>　　范例6：当成构建脚本的属性来访问一个任务。
+``` gradle
+task hello << {
+    println 'Hello world!'
+}
+hello.doLast {
+    println "Greetings from the $hello.name task."
+}
+```
+    语句解释：
+    -  这里的name是任务的默认属性，代表当前任务的名称。
+    -  这使得代码易于读取，特别是当使用了由插件（如编译）提供的任务时尤其如此。
+　　程序输出：
+
+	E:\gradleTest>gradle -q hello
+	Hello world!
+	Greetings from the hello task.
+
+<br>　　范例7：给任务加入自定义属性。
+``` gradle
+task boy << {
+    ext.age = "17"
+}
+boy.doLast {
+    println boy.name + " age is " + boy.age
+}
+```
+    语句解释：
+    -  给任务加自定义属性是没有限制的。
+    -  如果不是在一个字符串中引用属性，则可以去掉$符号。
+　　程序输出：
+
+	E:\gradleTest>gradle -q boy
+	boy age is 17
+
+<br>　　范例8：创建一个方法。
+``` gradle
+task listFile << {
+    // 首先，调用_doFistFile()方法，并传递一个路径过去。
+    // 然后，在返回的File[]对象上，调用each()方法进行遍历，迭代变量的名称为file。
+    _doFistFile('E:/gradleTest').each {File file ->
+        println "I'm fond of $file.name"
+    }
+}
+// 此处定义了一个方法。
+File[] _doFistFile(String dir) {
+    // 调用API获取文件列表，注意不会列出文件夹。 看不懂也没关系，我们主要的目的是了解。
+    file(dir).listFiles({file -> file.isFile() } as FileFilter).sort()
+}
+```
+　　程序输出：
+
+	E:\gradleTest>gradle -q listFile
+	I'm fond of build.gradle
+	I'm fond of gradle
+
+<br>　　范例9：定义默认任务。
+``` gradle
+// 定义默认执行的任务，此行代码放在任何地方都可以，不一定要放在第一行。
+// 它等价于 gradle clean run ，即我们可以同时运行多个task，task之间使用空格间隔。
+defaultTasks 'clean', 'run'
+
+task clean << {
+    println 'Default Cleaning!'
+}
+
+task run << {
+    println 'Default Running!'
+}
+
+task other << {
+    println "I'm not a default task!"
+}
+
+```
+    语句解释：
+    -  在一个多项目构建中，每一个子项目都可以有它特别的默认任务。如果一个子项目没有特别的默认任务，父项目的默认任务将会被执行。
+　　程序输出：
+
+	E:\gradleTest>gradle -q
+	Default Cleaning!
+	Default Running!
+
+<br>
+### 通过DAG配置 ###
+　　`Gradle`有一个配置阶段和执行阶段，在配置阶段后，`Gradle`将会知道应执行的所有任务。`Gradle`为你提供一个`"钩子"`（即回调），以便利用这些信息。举个例子，判断发布的任务是否在要被执行的任务当中。根据这一点，你可以给一些变量指定不同的值。
+
+<br>　　范例1：根据选择的任务产生不同的输出。
+``` gradle
+task distribution << {
+    println "We build the zip with version=$version"
+}
+
+task release(dependsOn: 'distribution') << {
+    println 'We release now'
+}
+// 通过gradle.taskGraph.whenReady来设置回调，回调方法接收一个名为taskGraph的参数。
+gradle.taskGraph.whenReady {taskGraph ->
+    // 如果release任务将会被执行，则版本号设定为1.0 。
+    if (taskGraph.hasTask(release)) {
+        version = '1.0'
+    } else {
+        version = '1.0-SNAPSHOT'
+    }
+}
+```
+    语句解释：
+    -  回调函数将优先于任何task执行，因此在distribution被执行之前，version变量已经存在且有值了。
+　　程序输出：
+
+	E:\gradleTest>gradle -q distribution
+	We build the zip with version=1.0-SNAPSHOT
+	E:\gradleTest>gradle -q release
+	We build the zip with version=1.0
+	We release now
+
+## 构建Java项目 ##
+　　在正式讲解如何使用`Gradle`构建Java项目之前，先来介绍一下`“插件”`的概念。
+
+<br>**插件**
+　　`Gradle`与`Maven`类似，它的很多功能（编译、测试、部署）都是通过插件（`Plugin`）来完成的。简单的说，插件就是一组`task`的集合，我们所说的使用某个插件，实际上就是在使用插件中的`task`。`Gradle`装载了许多插件，针对不同类型的项目、不同的需求，你可以使用不同的插件，比如`java插件`、`android插件`等。你也可以编写自己的插件并和其他开发者分享它。
+
+　　插件是`基于合约`的，这意味着插件给项目的许多方面定义了默认的值（如存放项目源文件的目录叫什么）。如果你在项目里遵从这些合约，你通常不需要在你的构建脚本里加入太多东西。如果你不想要或者是你不能遵循合约，`Gradle`允许你自己定制你的项目。
+
+<br>**开始构建**
+　　让我们来看一个简单的例子，先创建一个名为`HelloWorld`目录，然后创建`HelloWorld\build.gradle`，接着在`build.gradle`中加入下面的代码来使用Java插件：
+``` gradle
+// 我们可以使用“apply plugin: '插件名称'”的格式来引入一个插件。
+apply plugin: 'java'
+```
+    语句解释：
+    -  我们此时就可以直接运行“gradle -q build”命令了，其中build任务就是Java插件提供的。
+    -  对于Java项目来说，它构建完成后最终会生成一个jar文件，里面包含了你创建的类。
+    -  如果一切顺利，Java插件会在HellWorld目录创建一个名为“build”的目录，用来存放编译生成的文件。只不过由于我们目录下除了build.gradle外什么都没有，所以使用Java插件生成的jar里面不会有任何类文件。
+
+<br>　　Java插件有如下几个默认的事情：
+
+	-  从 src/main/java 搜索并编译你的Java源代码。
+	-  从 src/test/java 搜索你的测试代码。
+	-  任何在 src/main/resources 的文件都将被包含在 JAR 文件里。
+	-  任何在 src/test/resources 的文件会被加入到 classpath 中以运行测试代码。
+	-  所有的输出文件将会被创建在build里。如：JAR 文件 存放在 build/libs 文件夹里。
+
+<br>　　我们接下来创建`HelloWorld\src\main\java\Demo1.java`，内容如下：
+``` android
+public class Demo1 {
+    public static void main(String[] args) {
+        System.out.println("Hello World from Java!");
+    }
+}
+```
+　　然后再执行`gradle -q build`，此时生成的jar里就会包含我们的`Demo1.class`了。 
+
+　　在继续向下讲解之前，我们先插播个小的知识点。
+
+<br>**Java插件有哪些构件任务？**
+　　你可以使用`gradle tasks`来列出项目的所有任务（包括Java插件中的任务）。
+　　虽然Java插件在你的项目里加入了许多任务，但通常你只会用到其中的一小部分任务。最常用的任务是`build`，它会构建你的项目，当你运行`gradle build`命令时，Gradle 将编译和测试你的代码, 并且创建一个包含类和资源的`JAR`文件。
+
+　　其余一些有用的任务是：
+
+	-  clean：删除build生成的目录和所有生成的文件。
+	-  assemble：编译并打包你的代码，但是并不运行单元测试。
+	-  check：编译并测试你的代码。
+
+<br>**定制项目**
+　　我们接着刚才的步骤，当我们生成出一个jar包之后，就可以执行它了，以此来验证这个包是否正确。 我们可以通过下面的代码来执行一个jar包：
+``` gradle
+java -jar ./build/libs/HelloWorld.jar
+```
+　　但是执行这条命令的时候，却得到一个错误：
+
+	./build/libs/HelloWorld.jar中没有主清单属性
+
+　　问题出在，我们没有在`manifest`文件中配置`Jar`文件的`主类`。
+
+　　Java插件给项目加入了一些属性，这些属性已经被定义了默认的值，已经足够来开始构建项目了。如果你认为不合适，改变它们的值也是很简单的。比如我们可以通过下面的代码来为`jar`设置主类：
+``` gradle
+apply plugin: 'java'
+
+// 定义一个变量，保存主类的名称
+def mainClassName = 'Demo1'
+
+// 下面定义一个名为jar的方法，如果方法没有参数，则可以省写括号。
+// jar方法里面包含要传给Java插件的参数，Java插件会自动来读取它们。
+jar {
+    manifest {
+        attributes 'Main-Class': mainClassName , 'CustomAttributes': 'Hi Attributes'
+    }
+}
+```
+    语句解释：
+    -  Main-Class属性就是用来指明主类的，由于我们的主类没有放到任何包里，所以本范例中直接写的类名。
+    -  其中CustomAttributes是我们自定义的，对于manifest来说，任何自定义的属性都会被原样写到文件中。
+
+<br>　　此时我们再执行一下`jar`包，就可以得到我们想要的结果了。
+
+<br>
+### 外部的依赖 ###
+　　在现实生活中，要创造一个没有任何`外部依赖`（使用外部`jar`）的应用程序并非不可能，但也是极具挑战的。这也是为什么依赖管理对于每个软件项目都是至关重要的一部分。
+
+　　笔者推荐阅读：[《Gradle入门系列（3）：依赖管理》](http://blog.jobbole.com/72992/) ，本节中的大部分内容参考自该文章。
+
+<br>**仓库**
+　　本质上说，仓库是一种存放依赖的容器，每一个项目都具备一个或多个仓库。
+　　类似于`Maven`的仓库，仓库可以被用来提取依赖，或者放入一个依赖，或者两者皆可。当`Gradle`需要引用依赖时就会自动去仓库中查找这个依赖（`jar`、`so`等都是依赖）。
+
+　　Gradle支持以下仓库格式：
+
+	-  Ivy仓库
+	-  Maven仓库
+	-  Flat directory仓库
+
+<br>　　以`Maven`仓库为例，我们可以通过`URL`地址或本地文件系统地址，将`Maven`仓库加入到我们的构建中。如果想通过`URL`地址添加一个`Maven`仓库，我们可以将以下代码片段加入到`build.gradle`文件中：
+``` gradle
+repositories {
+    maven {
+        url "http://maven.petrikainulainen.net/repo"
+    }
+}
+```
+
+　　如果想通过本地文件系统地址添加一个`Maven`仓库，我们可以将以下代码片段加入到`build.gradle`文件中：
+``` gradle
+repositories {
+    maven {       
+        url "../maven-repo"
+    }
+}
+```
+
+<br>　　在加入`Maven`仓库时，`Gradle`提供了三种“别名”供我们使用，它们分别是：
+
+	-  mavenCentral()别名，表示依赖是从Central Maven 2 仓库中获取的。
+	-  jcenter()别名，表示依赖是从Bintary’s JCenter Maven 仓库中获取的。
+	-  mavenLocal()别名，表示依赖是从本地的Maven仓库中获取的。
+
+　　如果我们想要将`Central Maven 2`仓库加入到构建中，我们必须在`build.gradle`文件中加入以下代码片段：
+``` gradle
+repositories {
+    mavenCentral()
+}
+```
+
+<br>**配置中的依赖分类**
+　　Gradle会对依赖进行分组，比如：编译Java时使用的是这组依赖，运行Java时又可以使用另一组依赖。我们把每一组依赖都称为一个`“DependencyGroup”`。
+
+　　Java插件指定了若干依赖配置项，其描述如下：
+
+	-  compile      配置项中包含的依赖在当前项目的源代码被编译时是必须的。
+	-  runtime      配置项中包含的依赖在运行时是必须的。
+	-  testCompile  配置项中包含的依赖在编译项目的测试代码时是必须的。
+	-  testRuntime  配置项中包含的依赖在运行测试代码时是必须的。
+	-  archives     配置项中包含项目生成的文件（如Jar文件）。
+	-  default      配置项中包含运行时必须的依赖。
+
+<br>**配置依赖**
+　　一个外部依赖可以由以下属性指定：
+
+	-  group属性指定依赖的分组（在Maven中，就是groupId）。
+	-  name属性指定依赖的名称（在Maven中，就是artifactId）。
+	-  version属性指定外部依赖的版本（在Maven中，就是version）。
+
+　　我们假设我们需要指定以下依赖：
+
+	-  依赖的分组是foo。
+	-  依赖的名称是foo。
+	-  依赖的版本是0.1。
+	-  在项目编译时需要这些依赖。
+
+　　我们可以将以下代码片段加入到`build.gradle`中，进行依赖声明：
+``` gradle
+dependencies {
+    compile group: 'foo', name: 'foo', version: '0.1'
+}
+```
+　　我们也可以采用一种快捷方式声明依赖：`[group]:[name]:[version]`。如果我们想用这种方式，我们可以将以下代码段加入到`build.gradle`中：
+``` gradle
+dependencies {
+    compile 'foo:foo:0.1'
+}
+```
+　　我们也可以在同一个配置项中加入多个依赖，传统的方式如下：
+``` gradle
+dependencies {
+    compile (
+        [group: 'foo', name: 'foo', version: '0.1'],
+        [group: 'bar', name: 'bar', version: '0.1']
+    )
+}
+```
+　　如果采用快捷方式，那可以是这样：
+``` gradle
+dependencies {
+    compile 'foo:foo:0.1', 'bar:bar:0.1'
+}
+```
+　　自然地，声明属于不同配置项的依赖也是可以的。比如说，如果我们想要声明属于`compile`和`testCompile`配置项的依赖，可以这么做：
+``` gradle
+dependencies {
+    compile group: 'foo', name: 'foo', version: '0.1'
+    testCompile group: 'test', name: 'test', version: '0.1'
+}
+```
+　　同样的，给力的快捷方式又来了：
+``` gradle
+dependencies {
+    compile 'foo:foo:0.1'
+    testCompile 'test:test:0.1'
+}
+```
+
+<br>
+### Pinyin4j ###
+　　`Pinyin4j`是一个流行的Java库，支持中文字符和拼音之间的转换，拼音输出格式可以定制。
+
+　　现在，继续完善我们之前的项目，在`build.gradle`文件中加入对`Pinyin4j`的依赖，在里面添加如下内容：
+``` gradle
+repositories {
+    // Gradle会从Maven的中央仓库(http://search.maven.org/#browse)中查找依赖。
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'com.belerweb', name: 'pinyin4j', version: '2.5.0'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+```
+　　然后，修改`Demo1`类的代码为：
 ``` java
-public class Person2 { // 头部8字节
-    private int age;
-    private long birthday;
-    private String img; // 头部8字节
-    private Person p;   // 头部8字节
-    public Person2(Person p) {
-        this.p = p;
-    }
-}
-```
-　　我们计算`Person2`对象的浅堆是`36`字节，就算在你的机器上计算的值与笔者计算的有偏差也不必在乎它们，因为误差不是我们关注重点。事实上，我们只是借助`Person2`类来理解浅堆和保留堆的概念，至于`Person2`类会占多少字节`Who cares?`，只要不是很离谱就可以了。
+import net.sourceforge.pinyin4j.*;
+public class Demo1{
+    public static void main(String[] args) {
+        System.out.println("Hello World from Java!");
 
-<br>　　如果程序中有这样的代码：
-```
-public class MainActivity extends Activity {
-    Person p ;
-    Person2 p2 ;
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        p = new Person();
-        p2 = new Person2(null);
-    }
-}
-```
-　　则计算出`Person`和`Person2`的浅堆与保留堆的大小如图所示：
-
-<center>
-![](/img/android/android_8_13.png)
-</center>
-
-<br>　　若是有如下代码：
-``` android
-public class MainActivity extends Activity {
-    Person2 p2 ;
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        p2 = new Person2(new Person());
-    }
-}
-```
-　　则计算出`Person`和`Person2`的浅堆与保留堆的大小如图所示：
-
-<center>
-![](/img/android/android_8_14.png)
-</center>
-
-　　即`Person2`的保留堆为：`Person2`的浅堆+`Person`的浅堆。
-
-<br>　　这里要说一下的是，`Retained Heap`并不总是那么有效：
-
-	-  例如，我们new了一块内存，赋值给A的一个成员变量，同时让B也指向这块内存。
-	-  这样一来，由于A和B都引用到这块内存，所以当A释放时，该内存不会被释放。
-	-  所以这块内存不会被计算到A或者B的Retained Heap中。
-	-  因此我们应当只把它当作一个参考值，而不是精确的追求它的每一个字节对应的内容是什么。
-
-<br>**话说回来**
-　　介绍完浅堆和保留堆的概念后，咱们回到`“Leak suspects”`上来。
-
-　　不过需要说明的是，通常我们从`“Leak suspects”`中是没法直接得到有用的信息的，它只是一个参考界面，在很多时候是没多大屌用的，不过不要慌。
-
-　　分析`.hprof`文件的起点有多个：
-
-	-  第一，我们确实会从“Leak suspects”开始查看，如果它没直观的提供出有用的信息，那也没关系，再换其他方法。
-	-  第二，使用Dominator Tree视图来继续追踪。
-	-  第三，使用Histogram视图来继续追踪。
-
-<br>
-### Dominator Tree ###
-　　MAT提供了一个称为`支配树`（Dominator Tree）的对象图。支配树体现了对象实例间的支配关系。在对象引用图中，所有指向对象`B`的路径都经过对象`A`，则认为对象`A`支配对象`B`。
-　　简单的说，之所以提出支配树这个概念，就是为了计算对象的`Retained Heap`。
-
-<center>
-![](/img/android/android_8_17.png)
-</center>
-
-　　比如我们可以从上图左侧的引用图（对象`A`引用`B`和`C`，`B`和`C`又都引用到`D`）构造出右侧的`Dominator Tree`，计算出来的`Retained Memory`为：
-
-	-  A的包括A本身和B，C，D，E。
-	-  B和C因为共同引用D，所以B的Retained Memory只是它本身。
-	-  C是自己和E。
-	-  D、E当然也只是自己。
-
-<br>　　支配树有以下重要属性：
-
-	-  X的子树中的所有元素表示X的保留对象集合。
-	-  如果X是Y的持有者，那么X的持有者也是Y的持有者。
-	-  在支配树中表示持有关系的边并不是和代码中对象之间的关系直接对应，比如代码中X持有Y，Y持有Z，在支配树中，X的直接子节点中会有Z。
-　　这三个属性对于理解支配树而言非常重要，一个熟练的开发人员可以通过这个工具快速的找出持有对象中哪些是不需要的以及每个对象的保留堆。
-
-<br>**界面介绍**
-　　支配树可以算是`MAT`中第二有用的工具，它依据我们设置的关键字来列出符合条件的、堆中较大的（不是所有的）对象以及它们之间的引用关系
-　　我们可以直接在`“Overview”`选项页中点击`“Dominator Tree”`进入该工具，或者从菜单栏中也可以进入。
-
-<br>　　支配树的界面如下图所示：
-<center>
-![](/img/android/android_8_18.png)
-</center>
-
-　　表头依次代表：`类名`、`浅堆大小`、`保留堆大小`、`百分比`，可以通过点击某个表头来按特定的字段进行排序。
-　　第一行用于输入查找条件，支持正则表达式，如需要查找出`MainActivity`相关的类，则可以在`ClassName`列的第一行输入`“MainActivity”`关键字。
-　　
-<br>**检索出相关对象**
-　　如果你泄漏的对象所占据的内存比较大的话，那么通常在打开`Dominator Tree`时就可以看到它被排在前列。
-　　但是，由于前面的范例中只是在`onCreate`方法里创建了线程，并没有执行显示图片等耗内存的操作，因此即便是运行时多执行几次横竖屏切换，泄漏的内存也不会很大，还不至于在`Dominator Tree`视图打开的时候就被列出来，所以我们得通过输入关键字`“MainActivity”`查找后才能看到。
-
-　　如下图所示：
-
-<center>
-![](/img/android/android_o02_15.png)
-</center>
-
-　　上图列出了当前内存中存在的、所有符合筛选条件（`*.MainActivity.*`）的对象，可以看出明显存在多个`Thread`对象，这显然是不正常的。
-
-<br>**另一个范例**
-<br>　　当然，在实际操作的时候情况肯定会比上面的要复杂的多。比如我们有这样一段代码：
-``` android
-public class MainActivity extends Activity {
-    static Leaky leak = null;
-    class Leaky {
-        void doSomething() {
-            System.out.println("Wheee!!!");
+        // 由于汉字有不少多音字，因此返回值是一个String[]类型的。
+        String[] pinyin = PinyinHelper.toHanyuPinyinStringArray('重');
+        for(String item : pinyin){
+            System.out.println(item);
         }
     }
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        if (leak == null) {
-            leak = new Leaky();
-        }
-    }
-    // 此处省略了其它代码。
 }
 ```
-<br>　　并且我们在界面中显示了一些图片。于是我们导出的`Dominator Tree`如下图所示：
+　　然后编译并运行生成的`jar`文件，你可能会得到如下的一个异常：
+``` java
+Exception in thread "main" java.lang.NoClassDefFoundError: net/sourceforge/pinyi
+n4j/PinyinHelper
+        at Demo1.main(Demo1.java:6)
+Caused by: java.lang.ClassNotFoundException: net.sourceforge.pinyin4j.PinyinHelp
+er
+        at java.net.URLClassLoader$1.run(Unknown Source)
+        at java.net.URLClassLoader$1.run(Unknown Source)
+        at java.security.AccessController.doPrivileged(Native Method)
+        at java.net.URLClassLoader.findClass(Unknown Source)
+        at java.lang.ClassLoader.loadClass(Unknown Source)
+        at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source)
+        at java.lang.ClassLoader.loadClass(Unknown Source)
+        ... 1 more
+
+```
+　　抛出异常的原因是，当我们运行程序时，`Pinyin4j`的依赖在`classpath`中没有找到。
+　　解决这个问题最简单的方式是创建一个所谓的`“胖”jar`文件，即把所有程序运行所需的依赖都打包到`jar`文件中去。
+``` gradle
+apply plugin: 'java'
+
+// 定义一个变量，保存主类的名称
+def mainClassName = 'Demo1'
+
+// 下面是要传给Java插件的参数，Java插件会自动来读取它们。
+jar {
+    manifest {
+	    attributes 'Main-Class': mainClassName , 'CustomAttributes': 'Hi Attributes'
+    }
+    // 创建胖jar
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+// 添加maven仓库。
+repositories {
+    mavenCentral()
+}
+
+// Gradle会对依赖进行分组，比如：编译Java时使用的是这组依赖，运行Java时又可以使用另一组依赖。
+// 每一组依赖称为一个“DependencyGroup”。
+dependencies {
+    compile group: 'com.belerweb', name: 'pinyin4j', version: '2.5.0'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+```
+
+## 构建多个项目 ##
+　　在实际开发中，一个完整的项目可能是由一个根项目（root project）和若干个子项目（subject project）构成的。
+
+　　要创建多`Project`的`Gradle`项目，我们首先需要在根中加入名为`settings.gradle`的配置文件，该文件应该包含各个子项目的名称。比如，我们有一个根项目名为`root-project`，它包含有两个子项目，名字分别为`sub-project1`和`sub-project2`，此时对应的文件目录结构如下：
+``` c
+root-project/
+   sub-project1/
+      build.gradle
+   sub-project2/
+      build.gradle
+build.gradle
+settings.gradle
+```
+
+　　根项目本身也有自己的`build.gradle`文件，同时它还拥有`settings.gradle`文件位于和`build.gradle`相同的目录下。此外，两个子项目也拥有它们自己的`build.gradle`文件。
+
+<br>　　要将`sub-project1`和`sub-project2`加入到`root-project`中，我们需要在`settings.gradle`中加入：
+``` gradle
+include 'sub-project1', 'sub-project2'
+```
+
+<br>**通用配置**
+　　在Gradle中，我们可以通过根项目的`allprojects()`方法将配置一次性地应用于所有的子项目，当然也包括定义Task。比如，在根项目的`build.gradle`中，我们可以做以下定义：
+``` gradle
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+```
+
+　　除了`allprojects()`之外，根项目还提供了`subprojects()`方法用于配置所有的子项目（不包含根项目）。
+
+
+
+<br>**本节参考阅读：**
+- [从零开始学习Gradle之一---初识Gradle](http://www.blogjava.net/wldandan/archive/2012/06/27/381605.html)
+- [Gradle User Guide 中文版](http://dongchuan.gitbooks.io/gradle-user-guide-/content/index.html)
+- [Gradle学习系列之八——构建多个Project](http://www.cnblogs.com/CloudTeng/p/3418425.html)
+
+
+# 第三节 Android应用 #
+　　从本节开始，我们将以Android项目为例，介绍`Gradle`相关的技术的用法。
+
+　　经过前面章节的学习，我们再回过头去看网上那些教程，就能很好的理解了，其中写的比较好的（这个列表会不定期更新）有如下几个：
+
+- [Android Studio系列教程四--Gradle基础](http://stormzhang.com/devtools/2014/12/18/android-studio-tutorial4/)
+- [IDEA 及 Gradle 使用总结](http://www.jiechic.com/archives/the-idea-and-gradle-use-summary)
+
+## build.gradle ##
+　　本节介绍一下Android项目的`build.gradle`中的各种配置的含义。
+``` gradle
+// 使用android插件构建项目。
+apply plugin: 'com.android.application'
+
+// 创建一个名为android的方法，该方法由android插件调用。
+android {
+    // 项目的编译版本。
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    // 项目的基本信息，见名知意，也是不多说！
+    defaultConfig {
+        applicationId "com.cutler.helloworld"
+        minSdkVersion 8
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            // 是否进行混淆
+            minifyEnabled false
+            // 混淆文件的位置。由这个文件来控制哪些代码需要混淆，哪些不需要。
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+```
+
+## 从Eclipse迁移老项目 ##
+
+　　既然是从Eclipse迁移老项目，那么我们首先要做的就是在`Android Studio`中配置`SVN`。
+
+<br>**配置SVN**
+　　`Android Studio`配`SVN`比普通IDE复杂点，它需要电脑里有独立的SVN客户端，我们可以到[ TortoiseSVN官网 ](http://tortoisesvn.net/downloads.html)上下载。
+　　`Android Studio`会使用到`TortoiseSVN`的`“command line client tools”`，但是由于在安装`TortoiseSVN`时，默认是不安装这个工具的，因而即便是你已经安装了`TortoiseSVN`，仍然需要卸载了重新装。
 
 <center>
-![](/img/android/android_8_21.png)
+![安装时，选择第一项即可](/img/android/android_o04_03.png)
 </center>
 
-　　`Resources`类型对象由于一般是系统用于加载资源的，所以`Retained heap`较大是个比较正常的情况。但我们注意到下面的`Bitmap`类型对象的`Retained heap`也很大，很有可能是由于内存泄漏造成的。
-　　所以我们右键点击这行，选择`Path To GC Roots -> exclude weak references`：
+　　安装完成后，执行如下步骤：
 
-	-  Path To GC Roots 选项用来告诉MAT将当前对象到某个GC根对象之间的所有引用链给列出来。
-	-  exclude weak references选项用来告诉MAT，不用列出weak类型的引用。
-<br>　　然后可以看到下图的情形：
+	-  首先，打开Android Studio，找到的 File > Settings > Version Control > Subversion。
+	-  然后，在“Genneral”选项卡下，勾选“Use command line client”，并选择你svn的安装路径下的bin\svn.exe。
+	   -  比如：D:\workspace\programe\tortoiseSVN1.8.11\bin\svn.exe 。
+	-  接着，点击ok即可。
+
+　　如果你想从SVN上检出代码，可以这么做：点击`“VCS”`菜单，然后点击`“Checkout from Version Control > Subversion”`即可。
+
+<br>**无痛将Eclipse项目导入Andriod Studio**
+　　如果你导入的是一个Eclipse项目，那么`Android Studio`会自动将它转换成`Android Studio`项目。
+
+　　具体会按照如下步骤执行：
+
+	-  首先，点击“File > New > Import Project”。
+	-  然后，选择转换后的项目，所要保存的路径。
+	-  接着，保持默认设置，点击“Finish”。
+	-  最后，等待Studio自己完成转换过程。
+
+　　导入Eclipse格式的项目后，你可能会遇到`“Android Manifest doesn't exists or has incorrect root tag”`的错误，解决的方式是点击下图所示的按钮：
 
 <center>
-![](/img/android/android_8_22.png)
+![Sync project with Gradle files](/img/android/android_o04_04.png)
 </center>
 
-　　`Bitmap`最终被`leak`变量引用到，这应该是一种不正常的现象，内存泄漏很可能就在这里了。`MAT`不会告诉哪里是内存泄漏，需要你自行分析，由于这是`Demo`，是我们特意造成的内存泄漏，因此比较容易就能看出来，真实的应用场景可能需要你仔细的进行分析。
+　　如果你没有找到这个按钮，请参看 [Android Studio: Android Manifest doesn't exists or has incorrect root tag](http://stackoverflow.com/questions/17424135/android-studio-android-manifest-doesnt-exists-or-has-incorrect-root-tag) 。
 
-　　如果我们`Path To GC Roots -> with all references`，我们可以看到下图的情形：
+
+　　如果你是通过向导来导入项目的，那么请选择下图所示的`Import project (Eclipse ADT, Gradle, etc.)`：
 
 <center>
-![](/img/android/android_8_23.png)
+![](/img/android/android_o04_05.png)
 </center>
 
-　　可以看到还有另外一个对象在引用着这个`Bitmap`对象，了解`weak references`的同学应该知道`GC`是如何处理`weak references`，因此在内存泄漏分析的时候我们可以把`weak references`排除掉。
+<br>**快捷键设置**
+　　在开发方面`Android Studio`确实是比`Eclipse`好用，但是之前使用`Eclipse`的时间还是比较长的，所以很多快捷键还是比较习惯`Eclipse`的，`Android Studio`的快捷键其实是可以设置成`Eclipse`的快捷键的，很方便。
+　　更改的过程为：`File > Settings > Keymap`，然后将`Keymaps`的值设置为`Eclipse`即可。
 
-<br>
-### Histogram ###
-　　支配树用来把当前内存中的、符合筛选条件的对象，按照保留堆从大到小的顺序列出来。如果你希望根据某种类型的对象个数来分析内存泄漏，此时可以使用`Histogram`视图。 
-　　与`Dominator Tree`一样，较小的对象可以通过在第一行的`“ClassName”`列中输入正则进行查找。
+　　如果你希望在`copy`一段代码到你的类中时，`Android Studio`能自动帮你导入对应的类，那么你可以参看下面这个网页：
+　　[What is the shortcut to Auto import all in Android Studio?](http://stackoverflow.com/questions/16615038/what-is-the-shortcut-to-auto-import-all-in-android-studio)
 
-　　我们在`Overview`视图中选择`Actions -> Histogram`，可以看到类似下图的情形：
+<br>**修改Logcat字体颜色**
+　　`Android Studio`的`Logcat`的字体颜色，默认全是黑色看着很不舒服，我们可以修改它：
+
+	-  首先，File > Settings > Editor > Colors &Fonts > Android Logcat 。
+	-  然后，就可以修改Verbose、Info、Debug、Warning、Error、Assert等选项了。
+	   -  第一，取消勾选 Inherit Attributes From 。
+	   -  第二，勾选Foreground前的复选框选上。
+	   -  第三，双击Foreground后面的框框去选择颜色了。
+
+　　如果你对修改之后的`Logcat`的显示效果仍然不满意，那么可以使用我们前面一开始提到的`“Android Device Monitor”`窗口。
+
+<br>**编译缓慢**
+　　不出意外的话，我们在使用`Android Studio`时会感觉很卡，稍微干点什么事情就得等半天，导致卡的原因有如下两个：
+
+	-  电脑软硬件问题。比如用的是32位的xp系统、内存容量不足、CPU型号老旧等。
+	-  网络问题。Gradle在构建项目时会自动联网查找依赖，如果它访问的网站被墙或者你的网速缓慢，就会导致构建项目的时间变长。
+	
+　　在排除电脑操作系统、内存等问题之后，如果你使用`Android Studio`编译、运行一个`HelloWorld`程序仍然很慢（可能消耗几十秒），那么你可以按照下面的方法修改试试。
+
+　　[点击阅读：Building and running app via Gradle and Android Studio is slower than via Eclipse](http://stackoverflow.com/questions/16775197/building-and-running-app-via-gradle-and-android-studio-is-slower-than-via-eclips)
+
+　　笔者认为导致`Android Studio`卡的最主要原因就是网络问题，可以按照下图所示的操作，把`Offline work`勾上，即将`Gradle`切换到离线工作模式。
 
 <center>
-![](/img/android/android_8_24.png)
+![](/img/android/android_o04_06.png)
 </center>
 
-　　在上图中，`Objects`列表示内存中该类型的对象个数。
-　　我们看到`byte[]`占用`Shallow heap`最多，那是因为`Honeycomb`之后`Bitmap Pixel Data`的内存分配在`Dalvik heap`中。
+　　当设置为离线模式后，在项目进行`build`时`Gradle`只会从本地查找依赖，若本地没有缓存过那个的库，则将会导致`build`失败。也就是说，之前`build`速度很慢，是因为`Gradle`去网上查找依赖了。
 
-　　接下来，我们右键选中`byte[]`数组，选择`List Objects -> with incoming references`，然后可以看到`byte[]`具体的对象列表：
+　　所以为了提高`build`的速度，有两个方法：
+
+	-  配置一个靠谱的代理，让Gradle尽情的去网上查吧。
+	-  每当build.gradle文件发生变化时，启用在线模式，把依赖下载到本地之后，再次启动离线模式。
+
+
+
+<br>**本节参考阅读：**
+- [Android Studio 关于SVN的相关配置简介](http://blog.csdn.net/zhouzme/article/details/22790395)
+- [Android Studio 快捷键设置为Eclipse的快捷键](http://www.chenwg.com/android/android-studio%E5%BF%AB%E6%8D%B7%E9%94%AE%E8%AE%BE%E7%BD%AE%E4%B8%BAeclipse%E7%9A%84%E5%BF%AB%E6%8D%B7%E9%94%AE.html)
+- [Android Studio 如果修改LogCat的颜色，默认全是黑色看着挺不舒服的](http://blog.csdn.net/hotlinhao/article/details/9150519)
+
+## 引入类库 ##
+<br>　　前面也说了，实际开发中我们很难写出一个完全不引用第三方类库的项目，因此本节就介绍一下如何在`Android Studio`中引用各种第三方类库。
+
+<br>**依赖本地jar文件**
+　　首先，打开 [Chinese to Pinyin](http://sourceforge.net/projects/pinyin4j/files/) 将`Pinyin4j`的`jar`包下载到本地。
+　　然后，把`jar`包放入到要使用这个`jar`的`Module`下的`libs`目录下。比如`MainProject\app\libs`。
+　　接着，光把`pinyin4j-2.5.0.jar`添加到`libs`目录下还不够，还得再配置一下，即告诉`IDE`当前项目在编译的时候需要也同时编译这个`jar`包。 不过这个配置的过程我们可以省略屌，因为在`app`的`build.gradle`文件中默认就存在了下面的代码：
+``` gradle
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+```
+　　最后，必须得再点击下图所示的按钮，就可以正常使用它了：
 
 <center>
-![](/img/android/android_8_25.png)
+![Sync project with Gradle files](/img/android/android_o04_04.png)
 </center>
 
-<br>　　提示：
+　　相当于让`Android Studio`重新更新一下项目。
 
-	-  With Outgoing References表示该对象的出节点（被该对象引用的对象）。
-	-  With Incoming References表示该对象的入节点（引用到该对象的对象）。
+<br>**依赖仓库中的jar文件**
+　　就像前面说的那样，除了可以从本地添加依赖外，我们还可以直接从中央仓库中依赖一个`jar`包。
+``` gradle
+dependencies {
+    compile 'com.belerweb:pinyin4j:2.5.0'
+}
+```
+　　同样的，每次修改完毕`build.gradle`文件后，都要执行一下`Sync project with Gradle files`。
 
-<br>　　从上图中我们发现第一个`byte[]`的`Retained heap`较大，内存泄漏的可能性较大。
-　　右键选中这行，`Path To GC Roots -> exclude weak references`，同样可以看到上文所提到的情况，我们的`Bitmap`对象被`leak`所引用到（如下图所示），这里存在着内存泄漏。
+<br>**依赖项目的其他Moudle**
+　　我们已经知道一个项目中包含若干个`Module`，可以通过修改项目根目录下的`settings.gradle`文件中的设置，来让编译时同时编译多个项目。但这只是编译过程，如果`ModuleA`想引用`ModuleB`中的类，那么还得需要在`ModuleA`的`build.gradle`文件中进行配置。
 
-<center>
-![](/img/android/android_8_27.png)
-</center>
+　　比如我们新建一个`Library Module`，步骤为：`File > New > New Module... > Android Library`，需要注意的是，此种方法创建出来的`Module`的`build.gradle`文件的内容有些不同：
 
-<br>　　我们也可以在`Histogram`视图中第一行中输入`MainActivity`，来过滤出我们自己应用中的类型。
+	-  首先，编译的插件变成了com.android.library。
+	   -  普通Module的编译插件是com.android.application。
+	-  然后，defaultConfig中没有applicationId属性。
+	   -  作为一个Library Module是不需要这个属性的，项目的包名应该由主Module设置。
 
-<br>**本章参考阅读：**
-- [Memory Analyzer (MAT)](http://www.eclipse.org/mat/) 
-- [使用 Eclipse Memory Analyzer 进行堆转储文件分析](http://www.ibm.com/developerworks/cn/opensource/os-cn-ecl-ma/index.html)
-- [Android内存泄漏研究](http://jiajixin.cn/2015/01/06/memory_leak/)
-- [Android内存泄露开篇](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8B%E5%BC%80%E7%AF%87.md)
-- [Java程序内存分析：使用mat工具分析内存占用](http://my.oschina.net/biezhi/blog/286223#OSC_h4_7)
+　　创建完之后，还得在`主调Module`的`build.gradle`文件中引用`被调Module`，代码如下：
+``` gradle
+dependencies {
+    // moduleb就是被调module的名字
+    compile project(':moduleb')
+}
+```
+　　配置完毕之后，就可以在`主调Module`中引用`moduleb`所提供的类了。
+　　同样的，每次修改完毕`build.gradle`文件后，都要执行一下`Sync project with Gradle files`。
+
+
+<br>**本节参考阅读：**
+- [How to import android project as library and NOT compile it as apk (Android studio 1.0)](http://stackoverflow.com/questions/27536491/how-to-import-android-project-as-library-and-not-compile-it-as-apk-android-stud)
+
 
 <br><br>

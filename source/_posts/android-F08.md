@@ -1,4 +1,4 @@
-title: 安全篇　第一章 应用程序破解
+title: 进阶篇　第八章 应用程序破解
 date: 2014-12-29 22:10:15
 categories: android
 ---
