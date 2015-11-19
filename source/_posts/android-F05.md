@@ -2,37 +2,204 @@ title: 进阶篇　第五章 自定义控件（一）之基础入门
 date: 2015-4-29 11:41:12
 categories: android
 ---
-　　`Android`平台提供了一套完备的、功能强大的`UI`系统，这套系统以`View`和`ViewGroup`这两个基础类为基础。平台本身已预先实现了多种用于构建界面的`View`和`ViewGroup`子类，它们被分别称为部件（`widget`）和布局（`layout`）。
-
-	-  部件(widget)包括：Button、ListView、CheckBox、Spinner等。
-	-  布局（layout）包括：LinearLayout、FrameLayout、RelativeLayout等。
-
-　　如果系统提供的那些`部件`和`布局`不能满足需求，您可以自定义一个`View`的子类。
+　　`Android`系统内置了许多控件，如果这些控件不能满足需求，您可以自定义自己的控件，自定义的控件必须继承`View`类。
 
 <br>**三种自定义控件的方式**
-<br>　　如果说要按方式来划分的话，自定义View的实现方式大概可以分为三种：自绘控件、组合控件、以及继承控件。
+<br>　　按实现方式来划分的话，自定义View分为三种：自绘控件、组合控件、以及继承控件。
 
 	-  自绘控件：
 	   -  自绘控件指的是，这个View上所展现的内容全部都是我们自己绘制出来的。此种方式也是最难的，一般会通过直接继承View类来实现自定义控件。
 	-  继承控件：
-	   -  如果对已有的控件进行小调整就能满足需求，那么可以通过继承它们并重写onDraw()方法来实现自定义控件。
-	   -  如继承EditText使之产生了带有下划线的记事本页面。
+	   -  如果对已有的控件进行小调整就能满足需求，那么可以通过继承它们并重写onDraw()方法来实现自定义控件。比如，继承EditText使之产生了带有下划线的记事本页面。
 	-  组合控件：
-	   -  组合控件指的是，通过将几个系统原生的控件组合到一起，来实现自定义控件。
-	   -  比如使用弹出列表和输入框的组合来制作一个下拉列表框等。
+	   -  通过将几个系统原生的控件组合到一起，来实现自定义控件。比如，使用PopupWindow和Button来组合出一个下拉列表框等。
 
-<br>　　接下来的几章中，笔者将只会介绍如何自定义`“自绘控件”`，当你掌握`“自绘控件”`的写法后，后两种也是手到擒来了。
-
-　　继续向下进行之前，先插播个知识点：`Activity`的组成。
+<br>　　为了更好的理解自定义控件的各个步骤，在正式开始之前，我们先来了解一些相关的知识点：Activity的组成。
 
 # 第一节 Activity的组成 #
-　　我们都知道，在`Android`中，屏幕上所显示的`View`是以`Activity`为单位进行组织的。
-　　但是再深入点看的话，就会发现`Activity`其实主要是处理一些逻辑问题，比如生命周期的管理、建立窗口等，显示在屏幕上的控件并不是由它来管理的，而是交给了`Window`类。
-　　同时，我们从`Window`类的官方文档上可以看到，该类只有一个唯一的子类`android.view.PhoneWindow`。
+　　本节来介绍一下`Window`和`WindowManagerService`两个类。
+## Window ##
+　　我们都知道，在Android中，屏幕上所显示的控件是以Activity为单位进行组织的。
+　　但是再深入点看的话，就会发现Activity其实主要是处理一些逻辑问题（比如生命周期的管理等），显示在屏幕上的控件并不是由它来管理的，而是交给了`Window`类。
 
+　　不信的话，可以打开Activity类的源码，看一下它的setContentView方法：
+``` android
+private Window mWindow;
+private WindowManager mWindowManager;
 
-　　实际上，`Activity`的控件是由`PhoneWindow`类的`DecorView mDecor`属性管理的，`DecorView`是`PhoneWindow`的内部类，继承自`FrameLayout`。
-　　默认情况下，`DecorView`只有一个子元素为`LinearLayout`，里面包含`标题栏`和`内容区域`两部分：
+public void setContentView(@LayoutRes int layoutResID) {
+    getWindow().setContentView(layoutResID);
+    initWindowDecorActionBar();
+}
+
+public Window getWindow() {
+    return mWindow;
+}
+```
+    语句解释：
+    -  从上面可以发现，Activity会转调用Window类的setContentView方法。
+    -  再次声明，Android系统的源码每个版本之间都会有一些差别，所以笔者在本章以及以后章节中所贴出的源码，如果和你看到的源码不一致，那么请淡定！
+       -  笔者使用的源码版本是：Android-23 。
+
+<br>　　观察仔细点的话会发现Window是一个抽象类，为了能继续追踪源码，我们得先去查看`mWindow`是何时初始化的，进而找到实例化的是哪个类。
+　　查看的过程就不说了，直接说一下初始化的步骤吧：
+
+	-  首先，当我们请求启动某个Activity时，系统会调用它的无参构造方法实例化一个它的对象。
+	-  然后，会调用该对象的attach方法，执行初始化操作。
+	-  最后，mWindow的初始化操作，就是在attach方法中进行的。
+
+<br>　　那么就来看一下Activity的`attach`方法的代码：
+``` java
+final void attach(/*此处省略若干参数*/) {
+
+    mWindow = new PhoneWindow(this);
+    
+    // 省略若干代码...
+
+    // 依据一些参数，来初始化WindowManager对象。
+    mWindow.setWindowManager(
+            (WindowManager)context.getSystemService(Context.WINDOW_SERVICE),
+            mToken, mComponent.flattenToString(),
+            (info.flags & ActivityInfo.FLAG_HARDWARE_ACCELERATED) != 0);
+
+    // 省略若干代码...
+
+    // 为mWindowManager属性赋值。
+    mWindowManager = mWindow.getWindowManager();
+
+    // 省略若干代码...
+}
+```
+    语句解释：
+    -  其实Window类官方文档已经告诉我们了，该类只有一个唯一的子类android.view.PhoneWindow。
+    -  如果继续追踪上面第8行代码的话，就可以知道mWindowManager所指向的对象将是WindowManagerImpl类型的。
+    -  用一句话概括：“当Activity被实例化之后，会接着初始化它的mWindow、mWindowManager属性”。
+
+<br>　　继续追踪就会发现，我们调用`setContentView`方法设置给Activity的布局，最终会由`PhoneWindow`类的`DecorView`管理。
+
+　　这里先给出一个完整的示意图，后面会详细分析：
+
+<center>
+![Activity内部结构](/img/android/android_f05_01.png)
+</center>
+
+　　`DecorView`是`PhoneWindow`的内部类，继承自`FrameLayout`。还有一点需要知道的是：
+
+	-  我们之所以说Activity的控件是由DecorView管理的，而不说是由PhoneWindow管理的，是因为：
+	   -  DecorView是一个真正的View对象，我们设置给Activity的布局，最终会被放到DecorView里面。
+	   -  而PhoneWindow并不是一个View。
+
+<br>　　回到刚才说的地方，我们来看一下`PhoneWindow`类的`setContentView`方法：
+``` java
+public void setContentView(int layoutResID) {
+    // 省略若干代码...
+
+    // mContentParent就是上图的R.id.content所对应的布局。
+    if (mContentParent == null) {
+        // mContentParent没有值就意味着DecorView没被初始化，下面就去初始化。
+        installDecor();
+    } else if (!hasFeature(FEATURE_CONTENT_TRANSITIONS)) {
+        // 如果已经初始化了，则删除现有的所有子View。
+        mContentParent.removeAllViews();
+    }
+
+    if (hasFeature(FEATURE_CONTENT_TRANSITIONS)) {
+        final Scene newScene = Scene.getSceneForLayout(mContentParent, layoutResID,
+                getContext());
+        transitionTo(newScene);
+    } else {
+        // 将用户传递过来的布局，放入到mContentParent中。
+        mLayoutInflater.inflate(layoutResID, mContentParent);
+    }
+
+    // 省略若干代码...
+}
+```
+    语句解释：
+    -  这段代码用来检测DecorView是否初始化完毕，然后在将layoutResID所对应的布局放到DecorView中。
+
+<br>　　接着看一下`installDecor`、`generateDecor`、`generateLayout`方法：
+``` java
+private void installDecor() {
+    if (mDecor == null) {
+        // 创建DecorView。
+        mDecor = generateDecor();
+        // 省略若干代码...
+    }
+    if (mContentParent == null) {
+        // 获取R.id.content所对应的布局，并把它赋值给mContentParent。
+        mContentParent = generateLayout(mDecor);
+        // 省略若干代码...
+    }
+}
+
+protected DecorView generateDecor() {
+    return new DecorView(getContext(), -1);
+}
+
+protected ViewGroup generateLayout(DecorView decor) {
+    // 省略若干代码...
+
+    // 依据当前设备的情况来决定使用哪个布局。
+    int layoutResource;
+    int features = getLocalFeatures();
+    if ((features & (1 << FEATURE_SWIPE_TO_DISMISS)) != 0) {
+        layoutResource = R.layout.screen_swipe_dismiss;
+    } else if ((features & ((1 << FEATURE_LEFT_ICON) | (1 << FEATURE_RIGHT_ICON))) != 0) {
+        // 省略若干代码...
+    } else if ((features & ((1 << FEATURE_PROGRESS) | (1 << FEATURE_INDETERMINATE_PROGRESS))) != 0
+            && (features & (1 << FEATURE_ACTION_BAR)) == 0) {
+        // 省略若干代码...
+    } else if ((features & (1 << FEATURE_CUSTOM_TITLE)) != 0) {
+        // 省略若干代码...
+    } else if ((features & (1 << FEATURE_NO_TITLE)) == 0) {
+        // 省略若干代码...
+    } else if ((features & (1 << FEATURE_ACTION_MODE_OVERLAY)) != 0) {
+        // 省略若干代码...
+    } else {
+        layoutResource = R.layout.screen_simple;
+    }
+
+    // 装载布局，并将它放入到DecorView中。
+    View in = mLayoutInflater.inflate(layoutResource, null);
+    decor.addView(in, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+    // 这个mContentRoot在上面的图中有标注。
+    mContentRoot = (ViewGroup) in;
+
+    // 从DecorView中查找出id为R.id.content的布局。
+    ViewGroup contentParent = (ViewGroup)findViewById(ID_ANDROID_CONTENT);
+    
+    // 省略若干代码...
+
+    return contentParent;
+}
+
+public View findViewById(@IdRes int id) {
+    return getDecorView().findViewById(id);
+}
+
+```
+    语句解释：
+    -  至此也就看明白了，传递给setContentView方法的布局，最终会被放入到DecorView中。
+    -  第23行代码用来获取当前窗口配置，后面会依据该方法的返回值来决定使用哪个布局。
+       -  例如，窗口配置类型包括FullScreen(全屏)、NoTitleBar(不含标题栏)等。
+
+<br>　　另外，我们可以使用Activity的`requestFeature()`方法来修改窗口配置，不过该方法必须在`setContentView`之前调用。
+　　从`PhoneWindow`类的`requestFeature`方法可以看出，若在`setContentView`之后修改窗口配置，会抛异常：
+``` java
+@Override
+public boolean requestFeature(int featureId) {
+    if (mContentParent != null) {
+        throw new AndroidRuntimeException("requestFeature() must be called before adding content");
+    }
+
+    // 省略若干代码...
+
+    return super.requestFeature(featureId);
+}
+```
+
+<br>　　默认情况下，`DecorView`内部只有一个子元素，也就是上面说的`mContentRoot`，而且`mContentRoot`一般是`LinearLayout`的子类，里面包含`标题栏`和`内容区域`两部分：
 ``` xml
 
 <!--   android-sdk\platforms\android-8\data\res\layout\screen.xml   -->
@@ -63,10 +230,10 @@ categories: android
     />
 </LinearLayout>
 ```
-　　
-　　我们调用`Activity`的`setContentView()`方法设置的布局，最终会以子结点的形式加入到这个`FrameLayout`中。
+    语句解释：
+    -  我们调用Activity的setContentView()方法设置的布局，最终会以子结点的形式加入到这个FrameLayout中。
 
-　　比如，我们可以在`Activity`中通过代码来控制`内容区域`的显示与隐藏。
+<br>　　比如，我们可以在`Activity`中通过代码来控制`内容区域`的显示与隐藏。
 　　范例1：隐藏`contentView`。
 ``` android
 public class MainActivity extends Activity {
@@ -85,26 +252,210 @@ public class MainActivity extends Activity {
     -  您可以直接输出findViewById(android.R.id.content)的值来验证是否是一个帧布局。
     -  你也可以在onCreate方法中隐藏掉标题栏、状态栏，具体的代码请自行搜索。
 
-<br>　　这里总结一下`DecorView`的初始化过程（笔者强烈建议跟着这个过程去看一遍源码，加深印象）：
+## WindowManagerService ##
+　　通过上面的分析，我们知道DecorView是何时创建的了，但它是如何被添加到屏幕上的呢？
 
-	-  首先，当Activity的setContentView被调用，在其内部会转调用PhoneWindow的setContentView方法。
-	-  然后，在PhoneWindow的setContentView方法中调用它的installDecor方法，执行初始化操作。
-	-  接着，在installDecor方法中，若检测到布局未创建，则调用generateLayout方法，创建布局。
-	-  最后，在generateLayout方法中，会依据当前Window类的getLocalFeatures方法的返回值，来决定加载哪一个布局文件。
+	答案是：通过WindowManagerService类来完成的。
 
-<br>　　事实上，不管是`Activity`、`Dialog`还是`Toast`，它们的控件都是附加在`Window`上的，`Window`才是控件的实际管理者。
-<br>　　最后，笔者后面会写一篇关于Activity启动过程的源码分析文章，因而此处就不再继续展开了，不过先预留两个问题：
+<br>　　下面给出一张示意图：
 
-	-  第一，管理Activity的控件的Window对象是何时创建的？
-	-  第二，DecorView是何时且如何被添加到屏幕上的？
+<center>
+![Activity深层结构图](/img/android/android_f05_02.png)
+</center>
 
+　　我们从下往上看这张图，整个图分为三部分：
+
+	-  SdkClient部分表示Activity的内部结构，由PhoneWindow和DecorView组成。
+	-  FrameworkServer端用来完成整个Android系统的窗口、事件捕获和分发、输入法等的控制。
+	-  FrameworkClient用来连接SdkClient端和FrameworkServer端，它通过Binder机制让两者进行（跨进程）通信。
+	   -  也就是说，WindowManagerService（简称WMS）只会和ViewRoot类通信，DecorView也只会和ViewRoot通信。
+
+<br>**添加Activity到屏幕**
+　　比如我们现在新建一个Activity，那么此时系统会这么执行：
+	-  第一，先实例化Activity对象，然后调用attach方法初始化，然后在setContentView被调用时初始化DecorView。
+	-  第二，当需要显示Activity时，系统会使用WindowManager类来将DecorView添加到屏幕上。
+	-  第三，但WindowManager并不会执行添加操作，它会为DecorView创建一个ViewRoot对象，然后再请ViewRoot去添加。
+	-  第四，但ViewRoot实际上也不会执行添加操作，它会使用Binder机制（跨进程）访问远程的WMS类，也就是说添加操作会由WMS来完成。
+
+　　上面只是说了一下大体执行步骤，下面就来跟随源码一起，观察一个新Activity被添加到屏幕中的过程。
+
+<br>　　第一步，当系统准备resume一个Activity时，会调用`ActivityThread`的`handleResumeActivity`方法：
+``` java
+final void handleResumeActivity(IBinder token,
+    boolean clearHide, boolean isForward, boolean reallyResume) {
+
+    // 省略若干代码...
+
+    if (r.window == null && !a.mFinished && willBeVisible) {
+        r.window = r.activity.getWindow();
+        View decor = r.window.getDecorView();
+        decor.setVisibility(View.INVISIBLE);
+        ViewManager wm = a.getWindowManager();
+        WindowManager.LayoutParams l = r.window.getAttributes();
+        a.mDecor = decor;
+        l.type = WindowManager.LayoutParams.TYPE_BASE_APPLICATION;
+        l.softInputMode |= forwardBit;
+        if (a.mVisibleFromClient) {
+            a.mWindowAdded = true;
+            wm.addView(decor, l);
+        }
+
+    // If the window has already been added, but during resume
+    // we started another activity, then don't yet make the
+    // window visible.
+    } else if (!willBeVisible) {
+        if (localLOGV) Slog.v(
+            TAG, "Launch " + r + " mStartedActivity set");
+        r.hideForNow = true;
+    }
+
+    // 省略若干代码...
+}
+```
+    语句解释：
+    -  从第17行代码可以看出来，系统会调用WindowManager的addView方法来将DecorView添加到屏幕上。
+    -  通过前面的分析可以知道，实际上调用的是WindowManagerImpl类的addView方法。
+    -  继续跟进的话，就会看到最终会调用WindowManagerGlobal的addView方法。
+
+<br>　　第二步，查看`WindowManagerGlobal`类的`addView`方法：
+``` java
+public void addView(View view, ViewGroup.LayoutParams params,
+        Display display, Window parentWindow) {
+
+    // 省略若干代码...
+
+    ViewRootImpl root;
+    View panelParentView = null;
+
+    // 省略若干代码...
+
+    root = new ViewRootImpl(view.getContext(), display);
+
+    // 省略若干代码...
+
+    root.setView(view, wparams, panelParentView);
+
+    // 省略若干代码...
+}
+```
+    语句解释：
+    -  此方法里创建一个ViewRootImpl对象，这个对象很重要：
+       -  当WMS需要分发事件、绘制控件时都会通知ViewRootImpl，然后再由ViewRootImpl来通知DecorView。
+       -  相应的，当想往屏幕上添加控件时，也得通过ViewRootImpl类来将控件传递给WMS。
+    -  第15行代码调用了ViewRootImpl的setView方法，同时将DecorView传递过去。
+
+<br>　　第三步，查看`ViewRootImpl`类的`setView`方法：
+``` java
+public void setView(View view, WindowManager.LayoutParams attrs, View panelParentView) {
+
+    //  持有DecorView的引用。
+    mView = view;
+
+    // 省略若干代码...
+
+    // 调用WindowManagerService来执行添加操作。
+    res = mWindowSession.addToDisplay(mWindow, mSeq, mWindowAttributes,
+            getHostVisibility(), mDisplay.getDisplayId(),
+            mAttachInfo.mContentInsets, mAttachInfo.mStableInsets,
+            mAttachInfo.mOutsets, mInputChannel);
+
+    // 省略若干代码...
+}
+
+```
+    语句解释：
+    -  此方法中首先保存了DecorView的引用，因为以后会用到它。
+    -  然后调用addToDisplay方法来请求WMS执行一些初始化操作。
+    -  当然此时屏幕上还没有绘制任何内容，不过我们就不继续向下深入了，只需要知道控件的绘制等操作是在WMS那端完成的即可。
+
+<br>**分发输入事件**
+　　除了负责往屏幕上添加和删除控件外，WMS还会用来分发输入事件。
+
+　　以触摸事件为例：
+
+	触摸事件是由Linux内核的一个Input子系统来管理的(InputManager)，Linux子系统会在/dev/input/这个路径下创建硬件输入设备节点(这里的硬件设备就是我们的触摸屏了)。当手指触动触摸屏时，硬件设备通过设备节点像内核(其实是InputManager管理)报告事件，InputManager经过处理将此事件传给Android系统的一个系统Service —— WindowManagerService 。
+
+<br>　　当WMS接收到一个输入事件时，会按照下面的路线传递：
+
+	-  首先，把事件传递给当前前台Activity的ViewRootImpl类。
+	-  然后，ViewRootImpl又会将事件传递给它的内部类ViewPostImeInputStage，该类依据事件的类型来调用不同的方法：
+	   -  processPointerEvent方法：处理触屏事件。
+	   -  processTrackballEvent方法：处理轨迹球事件。
+	   -  processKeyEvent方法：处理键盘事件。
+
+　　接着，同样以触屏事件为例，`processPointerEvent`方法在接到事件后，源代码如下所示：
+``` java
+private int processPointerEvent(QueuedInputEvent q) {
+    final MotionEvent event = (MotionEvent)q.mEvent;
+
+    mAttachInfo.mUnbufferedDispatchRequested = false;
+    // 将事件传递给DecorView的dispatchPointerEvent方法。
+    boolean handled = mView.dispatchPointerEvent(event);
+    if (mAttachInfo.mUnbufferedDispatchRequested && !mUnbufferedInputDispatch) {
+        mUnbufferedInputDispatch = true;
+        if (mConsumeBatchedInputScheduled) {
+            scheduleConsumeBatchedInputImmediately();
+        }
+    }
+    return handled ? FINISH_HANDLED : FORWARD;
+}
+```
+    语句解释：
+    -  从第6行代码可以看到调用了DecorView的dispatchPointerEvent方法，该方法继承自View类。
+
+　　接着来看一下View类的`dispatchPointerEvent`方法：
+``` java
+public final boolean dispatchPointerEvent(MotionEvent event) {
+    // 如果当前处于触摸模式，则调用View类的dispatchTouchEvent方法。
+    if (event.isTouchEvent()) {
+        return dispatchTouchEvent(event);
+    } else {
+        return dispatchGenericMotionEvent(event);
+    }
+}
+```
+    语句解释：
+    -  就像我们看到的那样，一般情况下，会接着转调用View类的dispatchTouchEvent方法。
+
+　　接着，看一下`DecorView`的`dispatchTouchEvent`方法：
+``` java
+public boolean dispatchTouchEvent(MotionEvent ev) {
+    final Callback cb = getCallback();
+    return cb != null && !isDestroyed() && mFeatureId < 0 ? cb.dispatchTouchEvent(ev)
+            : super.dispatchTouchEvent(ev);
+}
+```
+    语句解释：
+    -  这里的Callback是一个关键点，实际上它就是DecorView所属的Activity。
+    -  在Activity的attach方法中可以找到初始化的代码：
+       -  mWindow.setCallback(this);
+
+<br>　　分析到此也就明白了，输入事件的传递顺序为：
+
+	WMS -> ViewRootImpl -> DecorView -> Activity 
+
+<br>**执行绘制操作**
+　　与分发输入事件的过程类似，当系统需要绘制Activity的界面时，也会执行下面的步骤：
+
+	-  首先，调用ViewRootImpl的performTraversals方法。
+	-  然后，该方法依据具体的情况来调用不同的子方法：
+	   -  performMeasure方法：执行测量操作。其内部会转调用DecorView的measure方法。
+	   -  performLayout方法：执行布局操作。其内部会转调用DecorView的layout方法。
+	   -  performDraw方法：执行绘制操作。其内部会转调用DecorView的draw方法。
+
+　　其实`DecorView`类的`measure`、`layout`、`draw`三个方法都是继承自View类，而且我们稍后也会遇到它，所以此处先将它们列出来，混脸熟。
+
+<br>**本节参考阅读：**
+- [Android 窗口管理](http://1025250620.iteye.com/blog/1779670)
+- [Android Touch事件的分发过程](http://www.ithao123.cn/content-2273147.html)
+- [Android 事件分发机制详解](http://stackvoid.com/details-dispatch-onTouch-Event-in-Android/)
 
 # 第二节 Hello World #
-　　接下来我们就来介绍如何进行自绘控件。
-　　既然自绘控件的第一步就是继承`View`类，那么我们接下来就先写一个类出来。
+　　为了对自定义控件有个整体的认识，接下来我们先来写一个`HelloWorld`，其中涉及到的知识后面会详细介绍。
 
 <br>　　范例1：`MyView`。
 ``` android
+// 所有自定义控件都必须继承View或View的子类。
 public class MyView extends View {
     // 当通过代码来创建View对象时（通过new关键字），调用此方法初始化View。
     public MyView(Context context) {
@@ -176,15 +527,15 @@ public class MyView extends View {
 <br>　　提示：
 
 	-  在Android中，View类占据了屏幕上一个“矩形区域”，并负责绘制和处理事件。
-	-  从整体上来看，Activity内的所有View排列成了一个“树型结构”，我们把这个树形结构称为“View树”、“视图树”。
+	-  从整体上来看，Activity内的所有View按照从上到下的顺序，排列成了一个“树型结构”，我们把这个树形结构称为“View树”、“视图树”。
 
 # 第三节 生命周期方法 #
-　　在继承了`View`类且重写完构造方法后，接着你就要根据自己的需要来重写`View`所提供的一些标准的回调方法了。你不需要重写所有的方法，实际上你可以从仅重写`onDraw(android.graphics.Canvas)`方法开始，但是本节将会详细讲解`View`类的各个回调方法的调用时机。
+　　在继承了`View`类且重写完构造方法后，接着你就可以根据自己的需要来重写`View`所提供的一些回调方法了。你不需要重写所有的方法，实际上你可以从仅重写`onDraw(android.graphics.Canvas)`方法开始，但是本节将会详细讲解`View`类的各个回调方法的调用时机。
 
 　　首先，要知道的是，任何一个视图都不可能凭空突然出现在屏幕上，它们都是要经过非常科学的绘制流程后才能显示出来的。
 　　然后，当`Activity`获取焦点的时候，它就需要绘制它的`View树`了。
 　　接着，整个`View树`会从根节点开始，依次执行绘制。
-　　最后，每个`View`对象从创建到结束的整个生命周期中，会经历`6`个阶段：创建、布局、绘制、事件处理、焦点、关联，每个阶段中都提供了一个或多个回调方法。
+　　最后，每个`View`对象从创建到结束的整个生命周期中，会经历多个阶段：创建、布局、绘制、事件处理、焦点等，每个阶段中都提供了一个或多个回调方法。
 
 ## 创建阶段 ##
 　　在`View`的创建阶段中，框架会首先调用该`View`的构造方法进行对象的初始化，通常在你自定义的`View`类中会定义两个不同的构造器，并在其内部来调用父类的构造器。
@@ -251,81 +602,269 @@ public class MyViewGroup extends LinearLayout {
 
 <br>　　注意：如果你的控件不是从`XML`中创建的（而是通过代码`new`出来的），那么不会导致`onFinishInflate`方法调用。
 
-## 布局阶段 ##
-　　创建阶段完成后，就进入了布局阶段，而此阶段又可以细分为三个步骤：`测量`、`布局`、`尺寸改变`。
+<br>　　创建阶段完成后，还有三个比较重要的阶段：`测量`、`布局`、`绘制`。
 
-### 测量 ###
-　　测量（`measure`）指的是对`View`的尺寸进行测量，对于`ViewGroup`来说只有知道了每个子`View`的尺寸之后，它才能正确的摆放子`View`（比如防止子`View`重叠等）。
+## 测量阶段 ##
+　　测量（`measure`）指的是对View的尺寸进行测量，因为父控件只有知道了每个子View的尺寸之后，它才能正确的摆放子View（比如防止子View重叠等）。
+　　因此在创建完View之后，系统首先要做的就是测量View的尺寸。
 
-　　系统调用的第一个与测量相关的方法是`View`类的`measure`方法，该方法是`final`的，虽然子类没法也不需要去重写它，但是我们仍然需要知道它的存在，它内部的代码如下：
+<br>　　前面已经分析过，当系统需要测量View时，会调用`DecorView`的`measure`方法，它内部的代码如下：
 ``` java
 public final void measure(int widthMeasureSpec, int heightMeasureSpec) {
-    boolean optical = isLayoutModeOptical(this);
-    if (optical != isLayoutModeOptical(mParent)) {
-        Insets insets = getOpticalInsets();
-        int oWidth  = insets.left + insets.right;
-        int oHeight = insets.top  + insets.bottom;
-        widthMeasureSpec  = MeasureSpec.adjust(widthMeasureSpec,  optical ? -oWidth  : oWidth);
-        heightMeasureSpec = MeasureSpec.adjust(heightMeasureSpec, optical ? -oHeight : oHeight);
+
+    // 省略若干代码...
+
+    if (cacheIndex < 0 || sIgnoreMeasureCache) {
+        // measure ourselves, this should set the measured dimension flag back
+        onMeasure(widthMeasureSpec, heightMeasureSpec);
+        mPrivateFlags3 &= ~PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT;
     }
 
-    // Suppress sign extension for the low bytes
-    long key = (long) widthMeasureSpec << 32 | (long) heightMeasureSpec & 0xffffffffL;
-    if (mMeasureCache == null) mMeasureCache = new LongSparseLongArray(2);
-
-    final boolean forceLayout = (mPrivateFlags & PFLAG_FORCE_LAYOUT) == PFLAG_FORCE_LAYOUT;
-    final boolean isExactly = MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY &&
-            MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.EXACTLY;
-    final boolean matchingSize = isExactly &&
-            getMeasuredWidth() == MeasureSpec.getSize(widthMeasureSpec) &&
-            getMeasuredHeight() == MeasureSpec.getSize(heightMeasureSpec);
-    if (forceLayout || !matchingSize &&
-            (widthMeasureSpec != mOldWidthMeasureSpec ||
-                    heightMeasureSpec != mOldHeightMeasureSpec)) {
-
-        // first clears the measured dimension flag
-        mPrivateFlags &= ~PFLAG_MEASURED_DIMENSION_SET;
-
-        resolveRtlPropertiesIfNeeded();
-
-        int cacheIndex = forceLayout ? -1 : mMeasureCache.indexOfKey(key);
-        if (cacheIndex < 0 || sIgnoreMeasureCache) {
-            // measure ourselves, this should set the measured dimension flag back
-            onMeasure(widthMeasureSpec, heightMeasureSpec);
-            mPrivateFlags3 &= ~PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT;
-        } else {
-            long value = mMeasureCache.valueAt(cacheIndex);
-            // Casting a long to int drops the high 32 bits, no mask needed
-            setMeasuredDimensionRaw((int) (value >> 32), (int) value);
-            mPrivateFlags3 |= PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT;
-        }
-
-        // flag not set, setMeasuredDimension() was not invoked, we raise
-        // an exception to warn the developer
-        if ((mPrivateFlags & PFLAG_MEASURED_DIMENSION_SET) != PFLAG_MEASURED_DIMENSION_SET) {
-            throw new IllegalStateException("onMeasure() did not set the"
-                    + " measured dimension by calling"
-                    + " setMeasuredDimension()");
-        }
-
-        mPrivateFlags |= PFLAG_LAYOUT_REQUIRED;
-    }
-
-    mOldWidthMeasureSpec = widthMeasureSpec;
-    mOldHeightMeasureSpec = heightMeasureSpec;
-
-    mMeasureCache.put(key, ((long) mMeasuredWidth) << 32 |
-            (long) mMeasuredHeight & 0xffffffffL); // suppress sign extension
+    // 省略若干代码...
 }
 ```
     语句解释：
-    -  在不同版本的SDK中，measure方法内的代码会略有不同，我们只关注一些重点代码即可。
+    -  measure方法定义在View中，并且是final的，子类没法去重写它。
     -  简单的说在measure方法内，就做了三件事：
        -  首先，在测量之前执行一些预处理操作。
-       -  然后，在第33行代码中调用了onMeasure方法，开始正式的测量工作。
+       -  然后，在上面第7行代码中调用了onMeasure方法，开始正式的测量工作。
        -  最后，对测量的结果进行收尾处理。
+    -  由于一个View到底需要多少宽高只有它自己才知道，因此系统在View类中提供了onMeasure()方法供子类重写，你只需要在该方法内部执行测量操作即可，当然可以不重写它，因为View提供了默认的实现。
 
-<br>　　由于一个`View`到底需要多少宽高只有它自己才知道，因此系统在`View`类中提供了`onMeasure()`方法供子类重写，你只需要在该方法内部执行测量操作即可。当然可以不重写它，`onMeasure()`的默认实现为：
+<br>　　在讲解如何重写`onMeasure()`方法进行测量之前，需要先介绍一下`MeasureSpec`类。
+
+### MeasureSpec ###
+　　首先让`MyView`类重写`onMeasure`方法，但是在其内部会直接调用父类的实现：
+``` java
+public class MyView extends View {
+    public MyView(Context context) {
+        super(context);
+    }
+
+    public MyView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        // 我们不做任何操作，只是输出参数的值。
+        System.out.println(widthMeasureSpec + "," + heightMeasureSpec);
+    }
+}
+```
+    语句解释：
+    -  从onMeasure方法的两个参数的名字来看，它们应该是表示宽度和高度，但是在程序运行时输出的值却是类似于：
+       -  -2147482568,-2147481937
+       -  1073742904,-2147481937
+    -  这他妈根本看不懂啊，逗爹呢？ 
+
+<br>　　其实`onMeasure`方法的两个参数虽然是`int`类型的，但是我们称它们为`MeasureSpec`：
+
+	-  MeasureSpec是一个32位的int值，高2位代表SpecMode（测量模式），低30位代表SpecSize（测量尺寸）。
+	-  MeasureSpec通过将SpecMode和SpecSize打包成一个int值来避免过多的对象内存分配。而且为了方便操作，MeasureSpec类提供了打包和解包的方法。
+	-  SpecMode和SpecSize也使用int值表示。
+　　总之一句话，“系统之所以使用int值，就是为了节省内存分配，这样只需要使用1个int值就能表示两个数据”。
+
+<br>　　既然这两参数是混合值，那么在使用它们之前，首先得使用`MeasureSpec`类来拆分出`SpecMode`和`SpecSize`。
+
+　　范例1：获取`mode`与`size`。
+``` android
+protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+    // 获取widthMeasureSpec中的mode值。
+    int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+    // 获取widthMeasureSpec中的size值。
+    int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+    int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+    int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+}
+```
+
+<br>　　其中`size`指的是尺寸，`mode`指的是模式，常见的模式有： 
+
+	-  MeasureSpec.EXACTLY：精确尺寸。
+	   -  当控件的layout_width或layout_height指定为具体数值(如50dip)或FILL_PARENT时，mode的值会为EXACTLY。
+	   -  当mode是EXACTLY时，表示父视图希望子视图的大小应该是由size的值来决定的。
+	-  MeasureSpec.AT_MOST：最大尺寸。
+	   -  当控件的layout_width或layout_height指定为WRAP_CONTENT时，mode的值会为AT_MOST。
+	   -  当mode是AT_MOST时，size给出了父控件允许的最大尺寸，此时控件尺寸只要不超过父控件允许的最大尺寸即可。
+	-  MeasureSpec.UNSPECIFIED：未指定尺寸。
+	   -  这种情况比较少见，不太会用到，笔者也没搞清楚。
+
+<br>　　从上面的描述可以看出来，`MeasureSpec`的值与`LayoutParams`有关系，下面就具体介绍。
+
+### LayoutParams ###
+　　当系统需要测量控件尺寸时，会从DecorView开始，从上到下依次测量View树中的每一个控件。在测量时，每一个子View的`onMeasure`方法的参数，都是由其父View传递过来的。
+
+	父View会综合自身的情况以及子控件的LayoutParams来计算出需要传递给子控件的MeasureSpec值。
+
+<br>　　而且，DecorView和普通View的`MeasureSpec`的计算过程略有不同，我们分开来看。
+
+<br>**DecorView**
+　　对于DecorView来说，它的`MeasureSpec`值是在`ViewRootImpl`中的`measureHierarchy`方法中计算的，代码：
+``` java
+// desiredWindowWidth和desiredWindowHeight是屏幕的尺寸
+childWidthMeasureSpec = getRootMeasureSpec(desiredWindowWidth, lp.width);
+childHeightMeasureSpec = getRootMeasureSpec(desiredWindowHeight, lp.height);
+performMeasure(childWidthMeasureSpec, childHeightMeasureSpec);
+```
+　　接着再看一下`getRootMeasureSpec`方法的代码：
+``` java
+private static int getRootMeasureSpec(int windowSize, int rootDimension) {
+    int measureSpec;
+    switch (rootDimension) {
+
+    case ViewGroup.LayoutParams.MATCH_PARENT:
+        // Window can't resize. Force root view to be windowSize.
+        measureSpec = MeasureSpec.makeMeasureSpec(windowSize, MeasureSpec.EXACTLY);
+        break;
+    case ViewGroup.LayoutParams.WRAP_CONTENT:
+        // Window can resize. Set max size for root view.
+        measureSpec = MeasureSpec.makeMeasureSpec(windowSize, MeasureSpec.AT_MOST);
+        break;
+    default:
+        // Window wants to be an exact size. Force root view to be that size.
+        measureSpec = MeasureSpec.makeMeasureSpec(rootDimension, MeasureSpec.EXACTLY);
+        break;
+    }
+    return measureSpec;
+}
+```
+    语句解释：
+    -  静态方法MeasureSpec.makeMeasureSpec用来将两个普通的int值合成一个MeasureSpec值。
+    -  上面的代码已经表示的很清楚了，ViewRootImpl会依据DecorView的LayoutParams的值以及窗口的尺寸来计算出DecorView的MeasureSpec。
+
+<br>**普通View**
+　　对于普通View来说，它的`measure`方法是由ViewGroup调用的，先来看一下ViewGroup的`measureChildWithMargins`方法：
+``` java
+protected void measureChildWithMargins(View child, int parentWidthMeasureSpec, int widthUsed,
+        int parentHeightMeasureSpec, int heightUsed) {
+    final MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
+
+    final int childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,
+            mPaddingLeft + mPaddingRight + lp.leftMargin + lp.rightMargin + widthUsed, lp.width);
+    final int childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,
+            mPaddingTop + mPaddingBottom + lp.topMargin + lp.bottomMargin + heightUsed, lp.height);
+
+    child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
+}
+
+public static int getChildMeasureSpec(int spec, int padding, int childDimension) {
+    int specMode = MeasureSpec.getMode(spec);
+    int specSize = MeasureSpec.getSize(spec);
+
+    int size = Math.max(0, specSize - padding);
+
+    int resultSize = 0;
+    int resultMode = 0;
+
+    switch (specMode) {
+    // Parent has imposed an exact size on us
+    case MeasureSpec.EXACTLY:
+        if (childDimension >= 0) {
+            resultSize = childDimension;
+            resultMode = MeasureSpec.EXACTLY;
+        } else if (childDimension == LayoutParams.MATCH_PARENT) {
+            // Child wants to be our size. So be it.
+            resultSize = size;
+            resultMode = MeasureSpec.EXACTLY;
+        } else if (childDimension == LayoutParams.WRAP_CONTENT) {
+            // Child wants to determine its own size. It can't be
+            // bigger than us.
+            resultSize = size;
+            resultMode = MeasureSpec.AT_MOST;
+        }
+        break;
+
+    // Parent has imposed a maximum size on us
+    case MeasureSpec.AT_MOST:
+        if (childDimension >= 0) {
+            // Child wants a specific size... so be it
+            resultSize = childDimension;
+            resultMode = MeasureSpec.EXACTLY;
+        } else if (childDimension == LayoutParams.MATCH_PARENT) {
+            // Child wants to be our size, but our size is not fixed.
+            // Constrain child to not be bigger than us.
+            resultSize = size;
+            resultMode = MeasureSpec.AT_MOST;
+        } else if (childDimension == LayoutParams.WRAP_CONTENT) {
+            // Child wants to determine its own size. It can't be
+            // bigger than us.
+            resultSize = size;
+            resultMode = MeasureSpec.AT_MOST;
+        }
+        break;
+
+    // Parent asked to see how big we want to be
+    case MeasureSpec.UNSPECIFIED:
+        if (childDimension >= 0) {
+            // Child wants a specific size... let him have it
+            resultSize = childDimension;
+            resultMode = MeasureSpec.EXACTLY;
+        } else if (childDimension == LayoutParams.MATCH_PARENT) {
+            // Child wants to be our size... find out how big it should
+            // be
+            resultSize = View.sUseZeroUnspecifiedMeasureSpec ? 0 : size;
+            resultMode = MeasureSpec.UNSPECIFIED;
+        } else if (childDimension == LayoutParams.WRAP_CONTENT) {
+            // Child wants to determine its own size.... find out how
+            // big it should be
+            resultSize = View.sUseZeroUnspecifiedMeasureSpec ? 0 : size;
+            resultMode = MeasureSpec.UNSPECIFIED;
+        }
+        break;
+    }
+    return MeasureSpec.makeMeasureSpec(resultSize, resultMode);
+}
+```
+    语句解释：
+    -  从代码中也可以容易看出来，子View的MeasureSpec值，是由其父容器的MeasureSpec和子View的LayoutParams来确定的。
+
+<br>
+### 开始测量 ###
+　　稍微总结一下，我们现在知道的知识有：
+
+	-  第一，当需要测量View的时，系统会从DecorView开始自上向下的测量每一个View。
+	-  第二，不论是DecorView还是普通的View，它们的MeasureSpec都是由它的上级传递过来的。
+	   -  对于DecorView来说，它的MeasureSpec是由屏幕的尺寸和它自身的LayoutParams决定的。
+	   -  对于普通View来说，它的MeasureSpec是由父View剩余空间和它自身的LayoutParams决定的。
+	      -  比如，若父ViewGroup的layout_height值为100，子View的值为200，则最终传入到子View的高度就是200。
+	-  第三，当系统需要测量某个View时，会调用View类的onMeasure方法。
+	-  第四，MeasureSpec是一个复合的int值，在使用之前需要将它们拆解。
+
+<br>　　需要说的是，普通View和ViewGroup的重写onMeasure方法时是有区别的：
+
+	-  普通View只需要在onMeasure中测量自己的尺寸即可。
+	-  ViewGroup除了完成自己的测量过程外，还会遍历去调用其所有子View的measure方法，各个子View再递归去执行这个流程。
+
+<br>**普通View的重写**
+<br>　　范例1：重写`onMeasure`方法。
+``` android
+public class MyView extends View {
+
+    public MyView(Context context) {
+        super(context);
+    }
+
+    public MyView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        // 什么都不干，直接设置MyView的宽高为300*300像素，注意此处的单位是px，而不是dp。
+        setMeasuredDimension(300, 300);
+    }
+}
+```
+    语句解释：
+    -  当系统调用onMeasure方法时，就是在要求View执行测量了。
+    -  当View测量完毕时需要将测量结果给保存起来，但是由于Java方法只能返回一个值，没法同时将宽度和高度一起返回，所以系统给我们提供一个setMeasuredDimension方法，我们把测量的结果传递过去即可。
+    -  在实际开发中，很少会像上面那样把MyView的尺寸写死在代码上，而是会依据widthMeasureSpec和heightMeasureSpec的值来动态的计算出MyView的尺寸。
+
+<br>　　当然我们也可以不重写onMeasure方法，而是使用父类的实现：
 ``` java
 protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
@@ -348,77 +887,6 @@ public static int getDefaultSize(int size, int measureSpec) {
     return result;
 }
 ```
-    语句解释：
-    -  由于测量的结果是两个值（宽度和高度），而我们又不能使用return关键字返回两个值，因而在onMeasure方法内部，当测量结束的时候，我们需要调用setMeasuredDimension方法来保存测量的结果。
-    -  看不懂这两个方法中的代码也没关系，我们接下来就介绍它们。
-
-<br>**onMeasure()介绍**
-　　`measure()`方法接收两个参数，`widthMeasureSpec`和`heightMeasureSpec`，它们表示`父View`对`当前View`的建议宽度和高度。
-
-
-<br>　　范例1：`onMeasure`方法。
-``` android
-//  当父控件需要子控件计算出它所需要在屏幕上占据的尺寸时，会调用子控件该方法。
-//  注意：
-//      重写此方法时，当你计算完毕尺寸后，必须调用setMeasuredDimension(int measuredWidth, int measuredHeight)方法
-//      来保存评估出来的宽度和高度。如果忘记将导致抛出IllegalStateException异常。
-protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
-```
-
-<br>　　范例2：重写`onMeasure`方法。
-``` android
-public class MyView extends View {
-
-    public MyView(Context context) {
-        super(context);
-    }
-
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // 什么都不干，直接设置MyView的宽高为300*300像素，注意此处的单位是px，而不是dp。
-        setMeasuredDimension(300, 300);
-    }
-}
-```
-
-<br>　　在实际开发中，不会像上面那样把`MyView`的尺寸写死在代码上，而是会依据`widthMeasureSpec`和`heightMeasureSpec`的值来动态的计算出`MyView`的尺寸。
-　　值得注意的是，`widthMeasureSpec`和`heightMeasureSpec`是一个混合值（由`mode`和`size`混合运算生成），没法直接使用。因此在使用它们之前，我们首先得使用`MeasureSpec`类来拆分出`mode`和`size`。
-
-<br>　　范例3：获取`mode`与`size`。
-``` android
-protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    // 获取widthMeasureSpec中的mode值。
-    int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-    // 获取widthMeasureSpec中的size值。
-    int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-    int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-    int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-}
-```
-
-<br>　　其中`size`指的是尺寸，`mode`指的是模式，`View.MeasureSpec`类的常见的模式有： 
-
-	-  MeasureSpec.EXACTLY：精确尺寸。
-	   -  当控件的layout_width或layout_height指定为具体数值(如50dip)或FILL_PARENT时，mode的值会为EXACTLY。
-	   -  当mode是EXACTLY时，表示父视图希望子视图的大小应该是由size的值来决定的。
-	-  MeasureSpec.AT_MOST：最大尺寸。
-	   -  当控件的layout_width或layout_height指定为WRAP_CONTENT时，mode的值会为AT_MOST。
-	   -  当mode是AT_MOST时，size给出了父控件允许的最大尺寸，此时控件尺寸只要不超过父控件允许的最大尺寸即可。
-	-  MeasureSpec.UNSPECIFIED：未指定尺寸。
-	   -  这种情况比较少见，不太会用到，笔者也没搞清楚。
-
-<br>　　注意，视图实际拥有两对宽度和高度的值：
-
-	-  第一对被称作测量宽度和测量高度。
-	   - 这两个尺寸定义了View在其父View中需要的大小，也就是我们在onMeasure方法里计算出来的宽高。
-	   - 当View对象的measure()返回时，就可以通过getMeasuredWidth()和getMeasuredHeight()方法来获得测量宽高。
-	-  第二对被简单的称作宽度和高度，或绘制宽度和绘制高度。
-	   -  这两个尺寸定义了View最终在屏幕上的实际大小，绘制宽高可以（但不是必须）与测量宽高不同。
-	   -  当View对象的onLayout()被调用时，就可以通过getWidth()方法和getHeight()方法来获取视图的宽高了。
-
 <br>　　总结一下`onMeasure`方法：
 
 	-  若没有重写onMeasure方法，则会按照View类的默认方式处理：
@@ -428,39 +896,18 @@ protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 	   -  但是onMeasure方法测出的宽度和高度不一定就是View最终的宽高。
 	   -  测量宽高会受到View对象父View的约束，若父控件最大允许的宽度为100px，但子View测量的宽度为200px，最终子控件只会显示前100px的宽度，超出的部分不会被显示，除非加上滚动条。
 
-<br>　　说了这么多理论，可到底应该如何重写`onMeasure()`方法呢？ 通常会分两种情况来看：
+<br>　　注意，视图实际拥有两对宽度和高度的值：
 
-	-  若当前View是一个普通的widget，则直接进行测量操作。
-	-  若当前View是一个ViewGroup类型的对象，则会先测量各个子View的尺寸，然后将测量的结果综合起来后，再来计算ViewGroup的尺寸。
+	-  第一对被称作测量宽度和测量高度。
+	   - 这两个尺寸表示View在其父View中需要的大小，也就是我们在onMeasure方法里计算出来的宽高。
+	   - 当View对象的measure()返回时，就可以通过getMeasuredWidth()和getMeasuredHeight()方法来获得测量宽高。
+	-  第二对被简单的称作宽度和高度，或绘制宽度和绘制高度。
+	   -  这两个尺寸表示View最终在屏幕上的实际大小，不过在少数情况下，绘制宽高可能与测量宽高不同。
+	   -  当View对象的onLayout()被调用时，就可以通过getWidth()方法和getHeight()方法来获取视图的宽高了。
 
-<br>**Widget重写**
-　　范例1：`View`控件重写`onMeasure()`方法。
-``` java
-protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    setMeasuredDimension(getMeasuredLength(widthMeasureSpec, true), getMeasuredLength(heightMeasureSpec, false));
-}
+<br>　　说了这么多，也许你还是不知道怎么重写onMeasure方法，没关系，后面会有实战范例，不要慌！
 
-private int getMeasuredLength(int length, boolean isWidth) {
-    int specMode = MeasureSpec.getMode(length);
-    int specSize = MeasureSpec.getSize(length);
-    int size;
-    int padding = isWidth ? getPaddingLeft() + getPaddingRight(): getPaddingTop() + getPaddingBottom();
-    if (specMode == MeasureSpec.EXACTLY) {
-        size = specSize;
-    } else {
-        // 下面这行代码大体的意思是 控件的内容的尺寸 + padding。
-        size = isWidth ? contentWidth + padding : contentHeight + padding;
-        if (specMode == MeasureSpec.AT_MOST) {
-            size = Math.min(size, specSize);
-        }
-    }
-    return size;
-}
-```
-    语句解释：
-    -  本范例的主旨是向您展示一下计算测量宽度时的思路，后面章节中会有很多实战范例，不要慌！
-
-<br>**ViewGroup重写**
+<br>**ViewGroup的重写**
 　　事实上，`ViewGroup`类并没有重写`onMeasure`方法，而是交给它的子类来重写了。
 
 　　下面是`LinearLayout`类的`onMeasure`方法：
@@ -472,14 +919,12 @@ protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         measureHorizontal(widthMeasureSpec, heightMeasureSpec);
     }
 }
-```
-　　我们进去看一下`measureVertical`方法：
-``` java
+
 void measureVertical(int widthMeasureSpec, int heightMeasureSpec) {
 
     // 此处省略若干行代码
 
-    // See how tall everyone is. Also remember max width.
+    // 遍历测量每一个子View。
     for (int i = 0; i < count; ++i) {
         // 此处省略若干行代码
         measureChildBeforeLayout(
@@ -489,10 +934,22 @@ void measureVertical(int widthMeasureSpec, int heightMeasureSpec) {
     }
 
     // 此处省略若干行代码
+
+    // 当所有子View都测量完毕后，再测量自己的尺寸。
+    mTotalLength += mPaddingTop + mPaddingBottom;
+    int heightSize = mTotalLength;
+    heightSize = Math.max(heightSize, getSuggestedMinimumHeight());
+    int heightSizeAndState = resolveSizeAndState(heightSize, heightMeasureSpec, 0);
+    heightSize = heightSizeAndState & MEASURED_SIZE_MASK;
+    
+    // 此处省略若干行代码
+    
+    setMeasuredDimension(resolveSizeAndState(maxWidth, widthMeasureSpec, childState),
+            heightSizeAndState);
+
+    // 此处省略若干行代码
 }
-```
-　　接着，为了一目了然同时看一下`measureChildBeforeLayout`和`measureChildWithMargins`方法：
-``` java
+
 void measureChildBeforeLayout(View child, int childIndex,
         int widthMeasureSpec, int totalWidth, int heightMeasureSpec, int totalHeight) {
     measureChildWithMargins(child, widthMeasureSpec, totalWidth, heightMeasureSpec, totalHeight);
@@ -512,25 +969,12 @@ protected void measureChildWithMargins(View child,
 }
 ```
 
-<br>　　值得注意的是：
-
-	-  子控件的onMeasure方法接收到的widthMeasureSpec和heightMeasureSpec参数，是由其父ViewGroup综合它们二者的layout_width和layout_height参数的值来定义的。
-	   -  比如，若父ViewGroup的layout_height值为100，且子View的值为200，则最终传入到子View的高度就是200。
-	   -  不过就像前面说的，若子View最后计算的尺寸比其父View的尺寸大，那么超出的部分无法被看到，除非提供滚动条。
-
 <br>　　提示：父视图可能在它的子视图上调用一次以上的`measure(int,int)`方法。
 
-### 布局 ###
-　　当所有`View`都测量完毕后，就需要设置它们的位置了，这个过程同样是从`根结点`开始，调用的方法为`layout()`。
+## 布局阶段 ##
+　　当所有`View`都测量完毕后，就需要设置它们的位置了，这个过程同样是从`DecorView`开始，调用的方法为`layout()`。
 
-<br>　　范例1：`layout`方法。
-``` android
-//  参数l，t，r，b表示当前View的左上角、右下角坐标值，这2个坐标连线后构成的矩形区域就是该View显示的位置。 
-//  注意：这个位置是当前控件在父View内的相对位置，原点是父View的左上角。
-public void layout(int l, int t, int r, int b)
-```
-
-<br>　　首先我们来看下`View.java`中的`layout()`和`onLayout()`方法的源码：
+<br>　　首先，我们来看下`View.java`中的`layout()`方法的源码：
 ``` android
 public void layout(int l, int t, int r, int b) {
     if ((mPrivateFlags3 & PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT) != 0) {
@@ -543,14 +987,18 @@ public void layout(int l, int t, int r, int b) {
     int oldB = mBottom;
     int oldR = mRight;
 
+    // 调用setFrame或setOpticalFrame方法来修改当前View的位置。
+    // 注意：这个位置是当前控件在父View内的相对位置，原点是父View的左上角。
     boolean changed = isLayoutModeOptical(mParent) ?
             setOpticalFrame(l, t, r, b) : setFrame(l, t, r, b);
 
     if (changed || (mPrivateFlags & PFLAG_LAYOUT_REQUIRED) == PFLAG_LAYOUT_REQUIRED) {
+        // 如果上面修改成功了，或者用户强制要求更新，则回调onLayout()方法。
         onLayout(changed, l, t, r, b);
         mPrivateFlags &= ~PFLAG_LAYOUT_REQUIRED;
 
         ListenerInfo li = mListenerInfo;
+        // 回调所有注册过的（如果有的话）listener的onLayoutChange()方法。
         if (li != null && li.mOnLayoutChangeListeners != null) {
             ArrayList<OnLayoutChangeListener> listenersCopy =
                     (ArrayList<OnLayoutChangeListener>)li.mOnLayoutChangeListeners.clone();
@@ -564,20 +1012,13 @@ public void layout(int l, int t, int r, int b) {
     mPrivateFlags &= ~PFLAG_FORCE_LAYOUT;
     mPrivateFlags3 |= PFLAG3_IS_LAID_OUT;
 }
-
-//  参数 changed 表示当前ViewGroup的尺寸或者位置是否发生了改变，也就是说ViewGroup的尺寸和位置没有发生变化时，此方法也有可能被调用。
-protected void onLayout(boolean changed, int left, int top, int right, int bottom) {}
 ```
     语句解释：
-    -  简单的说，layout方法干了如下几件事：
-       -  首先，调用setFrame或setOpticalFrame方法来修改当前View的位置，如果修改成功则返回true。
-       -  然后，如果第一步返回了true，或者用户强制要求更新，则回调onLayout()方法。
-       -  最后，如果执行了第二步，则回调所有注册过的（如果有的话）listener的onLayoutChange()方法。
     -  从第3行代码可以看出来，在View的layout阶段也有可能调用onMeasure方法。
 
 <br>　　关于`onLayout()`方法：
 
-	-  当需要修改当前View的所有子View的尺寸和位置时，才会调用onLayout方法。
+	-  当需要确定当前View的所有子View的位置时，才会调用onLayout方法。
 	-  对于普通的View类来说，由于它是没有子View的，因此View类的onLayout()只是一个空实现。
 	-  对于ViewGroup类来说，在它内部onLayout方法被改为抽象方法了，即要求所有ViewGroup的子类都必须重写它。
 
@@ -606,8 +1047,10 @@ protected abstract void onLayout(boolean changed, int l, int t, int r, int b);
        -  onLayout()方法使用abstract关键字修饰了，这意味着它的所有子类必须重写此方法。
 
 
-<br>　　虽然知道了测量之后会调用`layout()`方法，但是`layout()`中的4个参数`l, t, r, b`如何来确定呢？ 我们来看下`LinearLayout`的`layout`过程：
+<br>　　我们来看下`LinearLayout`的`onLayout`方法：
 ``` android
+//  参数 changed 表示当前ViewGroup的尺寸或者位置是否发生了改变。
+//  也就是说ViewGroup的尺寸和位置没有发生变化时，此方法也有可能被调用。
 protected void onLayout(boolean changed, int l, int t, int r, int b) {
     // 依据方向来调用不同的方法进行layout。
     if (mOrientation == VERTICAL) {
@@ -618,10 +1061,10 @@ protected void onLayout(boolean changed, int l, int t, int r, int b) {
 }
 
 void layoutVertical(int left, int top, int right, int bottom) {    
-    // 此处省略一些对我们没用的代码 ……
+    // 此处省略若干行代码
     int childTop;
     int childLeft;
-    // 此处省略一些对我们没用的代码 ……
+    // 此处省略若干行代码
     for (int i = 0; i < count; i++) {
         final View child = getVirtualChildAt(i);
         if (child == null) {
@@ -630,7 +1073,7 @@ void layoutVertical(int left, int top, int right, int bottom) {
             // 获取到我们之前测量出来的尺寸。
             final int childWidth = child.getMeasuredWidth();
             final int childHeight = child.getMeasuredHeight();
-            // 此处省略一些对我们没用的代码 ……
+            // 此处省略若干行代码
             // 调用setChildFrame()方法来设置子控件的位置
             setChildFrame(child, childLeft, childTop + getLocationOffset(child), childWidth, childHeight);
             // 由于是垂直排列元素，因此这里需要更新childTop变量的值，以便下一个子View进行布局。
@@ -645,11 +1088,11 @@ private void setChildFrame(View child, int left, int top, int width, int height)
 }
 ```
     语句解释：
-    -  从第25行代码可以看出，LinearLayout的子View最终的显示的宽和高，是由该子View的measure过程的结果来决定的。
+    -  从第23行代码可以看出，LinearLayout的子View最终的显示的宽和高，是由该子View的measure过程的结果来决定的。
     -  因此measure过程的意义就是为layout过程提供视图显示范围的参考值。
 
 ## 绘画阶段 ##
-　　布局阶段执行完毕后，框架就会调用根节点的`draw()`方法开始绘制`View树`。但是每次绘图时，并不会重新绘制整个`View树`中的所有`View`，而只会重新绘制那些`“需要重绘”`的`View`，`View`类内部变量包含了一个标志位`DRAWN`，当该视图需要重绘时，就会为该`View`添加该标志位。
+　　布局阶段执行完毕后，框架就会调用DecorView的`draw()`方法开始绘制`View树`。但是每次绘图时，并不会重新绘制整个`View树`中的所有`View`，而只会重新绘制那些`“需要重绘”`的`View`，`View`类内部变量包含了一个标志位`DRAWN`，当该视图需要重绘时，就会为该`View`添加该标志位。
 
 <br>　　通过查看源码可以知道，View类的绘制流程由六步构成：
 
@@ -666,7 +1109,7 @@ private void setChildFrame(View child, int left, int top, int width, int height)
 
 <br>　　总而言之，每一个具体的`View`都应该重写`onDraw()`方法，并且不论是`View`还是`ViewGroup`的子类，一般不需要重写`dispatchDraw()`方法。
 
-　　我们现在知道了，View是不会帮我们绘制内容部分的，因此需要每个`View`根据想要展示的内容来自行绘制。如果你去观察`TextView`、`ImageView`等类的源码，你会发现它们都有重写`onDraw()`这个方法，并且在里面执行了相当不少的绘制逻辑。绘制的时候主要是借助`Canvas`这个类，它会作为参数传入到`onDraw()`方法中，供给每个视图使用。
+　　绘制的时候主要是借助`Canvas`这个类，它会作为参数传入到`onDraw()`方法中，供给每个视图使用。
 　　`Canvas`这个类的用法非常丰富，基本可以把它当成一块画布，在上面绘制任意的东西，那么我们就来尝试一下吧。
 
 <br>　　范例1：初步使用画笔和画布。
@@ -709,7 +1152,6 @@ public class MyView extends View {
 ```
     语句解释：
     -  Paint表示一个画笔，Canvas表示一个画布。 
-    -  本范例同样只是为了演示画笔和画布的概念，他们的具体用法，马上就会介绍，不要慌！
     -  另外，由于MyView类没有重写onMeasure方法，则系统使用默认的策略来计算它的测量尺寸，即使用XML中设置的尺寸。
 
 　　运行效果如下图所示：
@@ -718,10 +1160,13 @@ public class MyView extends View {
 ![](http://img.blog.csdn.net/20131223234856718?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvZ3VvbGluX2Jsb2c=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 </center>
 
-<br>**视图重绘**
-　　虽然视图会在`Activity`加载完成之后自动绘制到屏幕上，但是我们完全有理由在与`Activity`进行交互的时候要求`动态更新视图`，比如改变视图的状态、以及显示或隐藏某个控件等。那在这个时候，之前绘制出的视图其实就已经过期了，此时我们就应该对视图进行重绘。
+<br>**View重绘**
+　　虽然View会在`Activity`加载完成之后绘制到屏幕上，但是在程序的运行时View的状态是会改变的。当改变发生时，之前绘制出的内容其实就已经过期了，此时应该对视图进行重绘。
 
-　　调用视图的`setVisibility()`、`setEnabled()`、`setSelected()`等方法时都会导致视图重绘，而如果我们想要手动地强制让视图进行重绘，可以调用`invalidate()`方法来实现。当然了，`setVisibility()`、`setEnabled()`、`setSelected()`等方法的内部其实也是通过调用`invalidate()`方法来实现的，这里的重绘是指谁请求`invalidate()`方法，就重绘该视图(`View`的话只绘制该`View`，`ViewGroup`则绘制整个`ViewGroup`)。
+　　调用视图的`setVisibility()`、`setEnabled()`、`setSelected()`等方法时都会导致视图重绘，而如果我们想要手动地强制让视图进行重绘，可以调用`invalidate()`方法来实现。
+
+	-  setVisibility、setEnabled、setSelected等方法的内部其实也是通过调用invalidate方法来实现的。
+	-  这里的重绘是指谁请求invalidate方法，就重绘该视图(View的话只绘制该View，ViewGroup则绘制整个ViewGroup)。
 　　`invalidate()`只可以在主线程中调用，如果你需要在子线程中重绘`View`，那么可以调用`postInvalidate()`方法。
 
 <br>　　如果你需要`定时重绘`，那么你可以使用`postInvalidateDelayed(long delayMilliseconds)`方法，当倒计时结束后，该方法会有如下判断：
@@ -741,8 +1186,6 @@ public void postInvalidate() {
 }
 ```
 
-<br>　　提示：`View`的其它阶段所涉及的方法暂时先放一放，主要是因为它们不常用，等用到的时候再去研究吧。
-
 ## 其它常用方法 ##
 
 <br>**定位**
@@ -754,10 +1197,33 @@ public void postInvalidate() {
 
 　　另外，为了避免不必要的计算，提供了一些便利的方法，它们是`getRight()`和`getBottom()`。这些方法返回代表视图的矩形的右侧和底边的坐标。例如，调用`getRight()`比调用`getLeft() + getWidth()`要简单。
 
-<br>**内边距**
-　　测量视图大小时，也将它的`内边距(padding)`计算在内，内边距表示视图内部左上右下部的空白。例如，左内边距为2，表示将视图内容从左边向右移动两个像素。
-　　内边距可以通过`setPadding(int, int, int, int)`方法设置。
-　　通过`getPaddingLeft()`、`getPaddingTop()`、`getPaddingRight()`、 `getPaddingBottom()`方法来取值。
+<br>**跳过绘制**
+　　`View`类有一个特殊的方法setWillNotDraw，先来看一下的它的源码：
+``` java
+/**
+ * If this view doesn't do any drawing on its own, set this flag to
+ * allow further optimizations. By default, this flag is not set on
+ * View, but could be set on some View subclasses such as ViewGroup.
+ *
+ * Typically, if you override {@link #onDraw(android.graphics.Canvas)}
+ * you should clear this flag.
+ *
+ * @param willNotDraw whether or not this View draw on its own
+ */
+public void setWillNotDraw(boolean willNotDraw) {
+    setFlags(willNotDraw ? WILL_NOT_DRAW : 0, DRAW_MASK);
+}
+```
+    语句解释：
+    -  从注释可以看出来，如果一个View不需要绘制任何内容，那么设置这个标记位为true后，系统就会进行相应的优化。
+    -  默认情况下，View没有启用这个优化标记位，但是ViewGroup会默认启用这个标记位。
+
+<br>**从窗口中添加和移除**
+　　当View和其所在的Activity建立和断开连接时，系统会调用如下两个方法：
+
+	-  Activity关闭或者View从Activity中移除时，View的onDetachedFromWindow方法会被调用。
+	   -  通常在此方法中关闭线程和停止动画，从而避免内存泄漏。
+	-  View被添加到Activity中时，它的onAttachedToWindow方法会被调用。
 
 # 第四节 开始自定义 #
 　　在绘制`View`时会涉及到两个类：`Paint`和`Canvas`，这两个类分别代表`画笔`和`画布`。
@@ -1015,7 +1481,7 @@ public class MyView extends TextView {
     语句解释：
     -  更多关于Btimap与Matrix类的介绍，请参看笔者的另一篇博文《媒体篇　第二章 图片》。
 
-## 实战1：钟表控件 ##
+## 钟表控件 ##
 　　接下来我们综合上面所学的知识，自定义一个钟表控件，程序运行的效果如下：
 
 <center>
@@ -1023,7 +1489,7 @@ public class MyView extends TextView {
 </center>
 
 　　左图是我希望达到的效果，右图是实际达到的效果。 
-　　不要慌！！！由于笔者本人也是边学边用，因此暂时没有好的方法让表盘上的数字显示的正确，所以现在先让它存留一些缺陷，来日方长，日后再说。
+　　不要日！！！由于笔者本人也是边学边用，因此暂时没有好的方法让表盘上的数字显示的正确，所以现在先让它存留一些缺陷，来日方长，日后再说。
 
 <br>　　完整代码如下：
 ``` android

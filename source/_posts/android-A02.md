@@ -141,15 +141,16 @@ public class MainActivity extends Activity {
 
 	-  在Activity被销毁之前不能保证onSaveInstanceState()方法被调用。
 	-  因为有些场景中不需要保存状态，如用户使用“BACK”键退出时，因为用户明确的要关闭Activity就不需要保存状态了。
-	-  如果系统需要调用onSaveInstanceState()方法，则会在onStop()方法和onPause()方法之前调用。
-	-  onRestoreInstanceState()方法会在onResume()之前被调用。
+	-  如果系统需要，则：
+	   -  会在onPause()方法之前调用onSaveInstanceState()方法。
+	   -  会在onResume()之前调用onRestoreInstanceState()方法。
 
-<br>　　但是，如果你没有实现`onSaveInstanceState()`方法，那么Activity类默认的`onSaveInstanceState()`方法也能恢复某些状态：
+<br>　　但是，如果你没有重写`onSaveInstanceState()`方法，那么Activity类默认的`onSaveInstanceState()`方法也能恢复某些状态：
 
 	-  在Android框架中几乎每个Widget都对onSaveInstanceState()方法做了适当的实现。
 	-  Activity的onSaveInstanceState()方法，会依次调用它自己的布局中的View的onSaveInstanceState()方法，来保存数据。
 	   -  比如当Activity被重建时，EditText控件保存用户输入的文本、CheckBox控件保存是否被选中。
-	-  需要你做的工作只是给每个要保存状态的可视控件提供一个唯一的ID（使用android:id属性）即可。如果可视控件没有唯一ID，那么系统就不保存它们的状态。
+	-  需要你做的工作只是给每个要保存状态的View提供一个唯一的ID（使用android:id属性）即可，系统不会保存未提供Id的View的状态。
 
 # 第二节 Task #
 
@@ -222,7 +223,7 @@ Caused by: android.util.AndroidRuntimeException: Calling startActivity()
 	   -  若D的启动模式是singleTop，那么既存的D的实例因为它在堆栈的顶部，所以它会接收通过onNewIntent()方法传递的Intent，堆栈仍然保持着A-B-C-D的组合。
 	-  但是，如果是启动一个B类型Activity，那么即使B类型Activity的启动模式是“singleTop”，也会有一个新的B的实例被添加到堆栈中，因为栈顶是D。
 
-<br>　　在讲解`singleTask`启动模式之前，先说明一下什么是`affinity`（译为亲缘关系，不过还是别用中文称呼它了）。
+<br>　　在讲解`singleTask`启动模式之前，先说明一下什么是`affinity`。
 <br>　　**affinity：**
 　　每个`Task`都有一个`affinity`属性，它相当于`Task`的唯一标识。
 　　每个`<activity>`标签也有一个`taskAffinity`的属性，用来指出当前`Activity`想从属的Task。
@@ -233,7 +234,7 @@ Caused by: android.util.AndroidRuntimeException: Calling startActivity()
 	   -  也就是说，默认情况下同一个应用程序中的所有Activity，会运行在同一个Task中。
 
 　　
-　　问：那么亲缘关系在什么情况下会被用到呢?
+　　问：那么`affinity`在什么情况下会被用到呢?
 　　答：`taskAffinity`属性主要和`singleTask`启动模式或者`allowTaskReparenting`属性配对使用。
 
 <br>　　**singleTask模式**

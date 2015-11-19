@@ -103,6 +103,11 @@ public abstract boolean onTouch(View v, MotionEvent event)
 	-  点击屏幕后立刻松开，事件序列为：ACTION_DOWN -> ACTION_UP。
 	-  点击屏幕后滑动一会再松开，事件序列为：ACTION_DOWN -> ACTION_MOVE -> …… -> ACTION_MOVE -> ACTION_UP。
 
+　　在继续向下进行之前，先介绍一个名词`“事件序列”`。
+<br>**事件序列**
+　　同一个事件序列是指从手指接触屏幕的那一刻起，到手指离开屏幕的那一刻结束，在这个过程中所产生的一系列事件。
+　　通常这个事件序列以`ACTION_DOWN`事件开始，中间含有数量不定的`ACTION_MOVE`事件，最终以`ACTION_UP`事件结束。
+
 <br>　　范例1：MotionEvent类的常用方法：
 ``` java
 //  描述：获取当前产生的事件的类型，常见的取值有：ACTION_DOWN、ACTION_MOVE、ACTION_UP。
@@ -152,15 +157,8 @@ public class MainActivity extends Activity {
 ```
     语句解释：
     -  若您不明白Matrix的含义，请参阅《媒体篇　第二章 图片》。
-    -  若ACTION_DOWN时onTouch方法返回false，则就是在告诉系统当前View不处理当前以及后续事件，随后系统将不会再把ACTION_MOVE事件传过来。
-    -  若ACTION_DOWN时onTouch方法返回true，则随后系统会把ACTION_MOVE事件传过来，且不会把ACTION_MOVE事件再传递给其它人。
 
 ## 高级用法 ##
-　　在继续向下进行之前，先介绍一个名词`“事件序列”`。
-<br>**事件序列**
-　　同一个事件序列是指从手指接触屏幕的那一刻起，到手指离开屏幕的那一刻结束，在这个过程中所产生的一系列事件。
-　　通常这个事件序列以`ACTION_DOWN`事件开始，中间含有数量不定的`ACTION_MOVE`事件，最终以`ACTION_UP`事件结束。
-
 <br>**TouchSlop**
 　　`TouchSlop`是系统所能识别出的被认为是滑动的最小距离。换句话说，当手指在屏幕上滑动时，如果两次滑动之间的距离小于这个值，那么系统就不认为它是滑动。
 
@@ -286,14 +284,14 @@ public class MyView extends View {
 	   -  比如通过修改View的LayoutParams参数来实现。
 	-  第二种，View的内容发生变化。
 	   -  比如当LinearLayout的子元素的尺寸超过了LinearLayout的尺寸，那么超出的部分默认是无法显示的。
-	   -  不过Android中所有的View的内容都是可以滑动的，因此可以通过LinearLayout的滑动，来让被隐藏的部分显示出来。
+	   -  不过Android中所有的View的内容都是可以滑动的，也就是说可以通过滑动LinearLayout的内容，来让被隐藏的部分显示出来。
 
 　　本节就是来介绍如何滑动View的内容。
 
 <br>**使用scrollTo和scrollBy方法**
 　　为了实现`View`内容的滑动，`View`类提供了专门的方法来实现这个功能，那就是`scrollTo`和`scrollBy`，它们的源码为：
 ``` java
-/**
+   /**
      * Set the scrolled position of your view. This will cause a call to
      * {@link #onScrollChanged(int, int, int, int)} and the view will be
      * invalidated.
@@ -325,7 +323,7 @@ public class MyView extends View {
         scrollTo(mScrollX + x, mScrollY + y);
     }
 ```　
-　　其中`scrollBy`转调用了`scrollTo`方法，它实现了基于当前位置的相对滑动，而`scrollTo`则实现了基于所传递参数的绝对滑动。
+　　可以看出来，其中`scrollBy`转调用了`scrollTo`方法，它实现了基于当前位置的相对滑动，而`scrollTo`则实现了基于所传递参数的绝对滑动。
 
 <br>　　使用范例，如下所示：
 ``` java
@@ -369,8 +367,9 @@ public class MyView extends View {
 ``` java
 public class MyView extends View {
 
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+    public MyView(Context context) {
+        super(context);
+        setBackgroundColor(Color.BLACK);
         setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 // 第一步，先为Scroller对象设置滚动参数。
@@ -413,7 +412,7 @@ public class MyView extends View {
 ```
     语句解释：
     -  Scroller的startScroll方法里面什么都没有做，只是记录了一下传递过来的参数。
-    -  也就是说，Scroller对象只是用来协助计算滚动条的位置的，它本身无法使View的内容滚动，它需要和View类的computeScroll、scrollTo、scrollBy方法配合使用。
+    -  Scroller对象只是用来协助计算滚动条的位置的，它本身无法使View的内容滚动，它需要和View类的computeScroll、scrollTo、scrollBy方法配合使用。
 
 <br>　　另外，`Android3.0`中提出的属性动画也可以完成`Scroller`的功能，具体请参阅[《媒体篇　第三章 动画》](http://cutler.github.io/android-D03/)。
 
@@ -427,8 +426,11 @@ public class MyView extends View {
 　　本节将以触摸事件为范例，从源码的角度进行分析，详细说明事件的分发机制。
 
 ## Activity的事件分发 ##
-　　当一个事件产生时，它的传递过程遵循如下顺序：`Activity -> Window -> 顶层View`。
-　　即操作系统总是先把事件传递给`Activity`，然后`Activity`传递给`Window`，最后`Window`再传递给`顶层View`（实际上就是`DecorView`）。
+　　上一章我们已经分析过了，当一个事件产生时，它的传递过程，现在我们在它基础上再次扩展一下，最终的顺序为：
+
+	WMS -> ViewRootImpl -> DecorView -> Activity -> Window -> DecorView
+
+　　即当事件传递给`Activity`后，`Activity`会转交给`Window`，`Window`再传递给`DecorView`。
 
 <br>　　在Activity类中定义了如下几个方法，当对应的事件发生时，系统会调用它们：
 ``` java
@@ -442,7 +444,7 @@ public boolean dispatchKeyEvent(KeyEvent event);
 public boolean dispatchTrackballEvent(MotionEvent ev);
 ```
 
-<br>　　既然是以触摸事件为范例，那么我们先从Activity的`dispatchTouchEvent`方法开始分析：
+<br>　　既然是以触摸事件为范例，那么我们就从Activity的`dispatchTouchEvent`方法开始分析：
 ``` java
 public boolean dispatchTouchEvent(MotionEvent ev) {
     if (ev.getAction() == MotionEvent.ACTION_DOWN) {
@@ -473,12 +475,11 @@ public boolean superDispatchTouchEvent(MotionEvent event) {
     return super.dispatchTouchEvent(event);
 }
 ```
-　　由于`DecorView`继承自`FrameLayout`，因此分析至此，我们就可以认为Activity已经把事件传递到`顶层View`手中了。
+　　由于`DecorView`继承自`FrameLayout`，此时事件就由Activity传到`View`手中了。
 
 ## ViewGroup的事件分发 ##
-　　当事件传递到`顶层View`（`DecorView`）手中时，一切才刚刚开始而已，后面还有很多步骤要执行。
-
-　　由于在`DecorView`和`FrameLayout`类中都没有`dispatchTouchEvent`方法的定义，所以我们只能继续去上级父类中找，最终在`ViewGroup`类中找到了该方法。
+　　当事件传递到`DecorView`手中时，一切才刚刚开始而已，后面还有很多步骤要执行。
+　　接着上面的分析，由于在`DecorView`和`FrameLayout`类中都没有`dispatchTouchEvent`方法的定义，所以我们只能继续去上级父类中找，最终在`ViewGroup`类中找到了该方法。
 　　不过由于该方法太长，所以为了看的清晰，我们下面将会分段来分析。
 
 <br>
@@ -518,7 +519,7 @@ actionMasked == MotionEvent.ACTION_DOWN || mFirstTouchTarget != null
 
 	-  ViewGroup的子类可以重写onInterceptTouchEvent方法，用来决定当前ViewGroup是否拦截本次触摸事件：
 	   -  若重写方法时返回true，则本次的触摸事件将由当前ViewGroup处理，不会再传递给子View了。
-	   -  若重写方法时返回false，则会将本次事件交给某个子View处理。
+	   -  若重写方法时返回false，则表示本次的触摸事件当前ViewGroup将不拦截，事件的传递机制一切照旧。
 	-  当需要处理滑动冲突时，就可以重写此方法，并依据实际情况返回不同的值，该方法默认返回false。
 
 　　上面第`5`行代码用来获取当前ViewGroup是否开启了`“禁止拦截事件”`的功能，若开启了，则ViewGroup就无法拦截事件了，可以使用`requestDisallowInterceptTouchEvent`方法可以修改这个状态。
@@ -531,7 +532,9 @@ actionMasked == MotionEvent.ACTION_DOWN || mFirstTouchTarget != null
 
 <br>
 ### 分发事件 ###
-　　接下来看一下，当ViewGroup不拦截事件的时候，事件会向下分发交给它的子View进行处理，这段源代码如下所示：
+　　上面的代码用来确定ViewGroup是否需要拦截事件，接下来就分别看一下这两种情况。
+
+　　当ViewGroup不拦截事件的时候，事件会向下分发交给它的子View进行处理，这段源代码如下所示：
 ``` java
 final View[] children = mChildren;
 for (int i = childrenCount - 1; i >= 0; i--) {
@@ -593,7 +596,7 @@ for (int i = childrenCount - 1; i >= 0; i--) {
     ev.setTargetAccessibilityFocus(false);
 }
 ```
-<br>　　上面这段代码逻辑也很清晰，首先遍历ViewGroup的所有子元素，然后判断子元素是否能够接收这个事件，判断的依据有两个：
+　　上面这段代码逻辑也很清晰，首先遍历ViewGroup的所有子元素，然后判断子元素是否能够接收这个事件，判断的依据有两个：
 
 	-  !canViewReceivePointerEvents(child)：子元素是否在执行动画。
 	-  !isTransformedTouchPointInView(x, y, child, null)：事件的坐标是否落在了子元素的区域内。
@@ -621,7 +624,7 @@ handled = dispatchTransformedTouchEvent(ev, canceled, null, TouchTarget.ALL_POIN
 	   -  若某个子View能处理这个事件，则会调用该子View的dispatchTouchEvent方法进行处理。
 	   -  若for循环结束后，没有任何一个子View能处理这个事件，则ViewGroup会自己进行处理。
 	-  若ViewGroup拦截了事件，则它也会自己处理这个事件。
-	   -  它会调用继承自View类的dispatchTouchEvent方法，来处理事件。
+	-  当需要ViewGroup自己来处理事件时，ViewGroup会调用继承自View类的dispatchTouchEvent方法来处理。
 
 <br>　　还有一点要知道，当子View的`dispatchTouchEvent`方法返回`true`时，意味着这个事件被处理了，上面的第`51`行代码就会被执行，然后跳出for循环：
 ``` java
@@ -638,9 +641,9 @@ private TouchTarget addTouchTarget(View child, int pointerIdBits) {
 ```
 　　相应的，`ACTION_DOWN`之后的事件都会直接传递给`mFirstTouchTarget`处理，因为`for`循环寻找能处理事件的子View的过程只在`ACTION_DOWN`时才会触发。
 
-<br>　　至此我们就得出了一个结论了，不论事件最终是由`ViewGroup`类处理，还是由某个子`View`处理，程序最终都会调用`View`类的`dispatchTouchEvent`方法，接下来我们就来看一下这个方法。
+　　至此我们就得出了一个结论了，不论事件最终是由`ViewGroup`类处理，还是由某个子`View`处理，程序最终都会调用`View`类的`dispatchTouchEvent`方法，接下来我们就来看一下这个方法。
 ## View的事件分发 ##
-　　View对点击事件的处理过程稍微简单一些，因为它没有子元素不需要向下传递事件，所以它只能处理自己的事件。
+　　View对点击事件的处理过程稍微简单一些，因为它没有子元素不需要向下传递事件，所以它需要处理自己的事件。
 
 　　先看它的`dispatchTouchEvent`方法，如下所示：
 ``` java
@@ -675,6 +678,23 @@ public boolean dispatchTouchEvent(MotionEvent event) {
 	-  第一种，若当前View处于可用状态，且设置了OnTouchListener，则调用监听器的onTouch方法处理事件。
 	-  第二种，若第一种方式未能成功处理事件，则调用自己的onTouchEvent方法来处理。
 	   -  让OnTouchListener优先于onTouchEvent的好处是，方便在外界处理触摸事件。
+
+<br>　　OnTouchListener的应用场景：
+
+	我们使用ScrollView来包含一些控件，同时要求程序可以动态的控制ScrollView是否能滚动。即：
+	-  在手机横屏的时候，允许它滑动。
+	-  在手机竖屏的时候，不许它滑动。
+　　示例代码：
+``` android
+// 此处设置的OnTouchListener会优先于ScrollView本身的onTouchEvent方法执行。
+mScrollView.setOnTouchListener(new View.OnTouchListener(){
+    public boolean onTouch(View v, MotionEvent event) {
+        // 若当前是竖屏状态，则直接返回true，即不需要在执行ScrollView的onTouchEvent方法了。
+        // ScrollView执行滑动的代码是写在onTouchEvent方法中的，该方法不被调用的话，也就没法滑动了。
+        return isShuPing ? true : false;
+    }
+});
+```
 
 <br>　　接下来在看一下`onTouchEvent`方法的源码，由于代码比较长，我们同样分块来看，首先是这段：
 ``` java
@@ -757,7 +777,7 @@ public boolean performClick() {
 　　本节开始综合前面所学的知识。
 
 ## 自定义ScrollView ##
-　　现在有个需求，创建一个ViewGroup控件，包含多个子View，可以通过滑动的方式，切换显示。 和ViewPager的效果类似。
+　　现在有个需求，创建一个ViewGroup控件，可以通过滑动来在多个子View之间切换，效果和ViewPager类似。
 
 　　代码：
 ``` android
@@ -784,11 +804,14 @@ public class MyScrollView extends LinearLayout {
         int currX = (int) event.getX();
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                // 如果当前正在播放动画，则停止它，这样能提供更好的用户体验。
+                // 当然也可以把这三行代码注释掉，注释后的效果请自行体验。
                 if (!mScroller.isFinished()) {
                     mScroller.abortAnimation();
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
+                // 在用户手指滑动的同时滚动内容，这样就模仿了ViewPager随着手指滚动的效果。
                 scrollBy(mLastX - currX, 0);
                 break;
             case MotionEvent.ACTION_UP:
@@ -807,6 +830,7 @@ public class MyScrollView extends LinearLayout {
                 }
                 mTracker.recycle();
                 mTracker = null;
+                // 当手指抬起的时候，开始播放滚动动画，从当前位置开始，到最近的一个子View结束。
                 mScroller.startScroll(getScrollX(), 0, mChildIndex * getChildAt(0).getWidth() - getScrollX(), 0, 1000);
                 postInvalidate();
                 break;
@@ -827,7 +851,6 @@ public class MyScrollView extends LinearLayout {
 
 　　Activity的代码：
 ``` android
-
 public class MainActivity extends Activity {
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -847,9 +870,11 @@ public class MainActivity extends Activity {
 
 }
 ```
+    语句解释：
+    -  创建了三个TextView对象，尺寸与屏幕的宽高一致，可以把这两个类复制到项目中，直接运行。
 
 ## View的滑动冲突 ##
-　　本节开始介绍View体系中的一个深入话题：滑动冲突。只要在界面中存在内外两层同时可以滑动，这个时候就会产生滑动冲突。
+　　本节介绍View体系中的一个深入话题：滑动冲突。只要在界面中存在内外两层同时可以滑动，这个时候就会产生滑动冲突。
 
 　　常见的滑动冲突场景有如下三种：
 
@@ -860,7 +885,7 @@ public class MainActivity extends Activity {
 　　在介绍如何处理这三类冲突之前，要先知道如下几个知识点：
 
 	-  ViewGroup重写onInterceptTouchEvent方法可以拦截事件：
-	   -  若ViewGroup在ACTION_DOWN时返回true，则子View不会传递接到任何事件，事件将由ViewGroup的onTouchEvent处理。
+	   -  若ViewGroup在ACTION_DOWN时返回true，则子View不会接到任何事件，事件将由ViewGroup的onTouchEvent处理。
 	   -  若ViewGroup在ACTION_MOVE时返回true，则子View会接到ACTION_CANCEL事件，后续事件将交给ViewGroup处理。
 	   -  若ViewGroup在ACTION_UP时返回true，则子View只会接到ACTION_CANCEL事件，不会接到ACTION_UP事件。
 	   -  也就是说，只要事件被ViewGroup拦截，那么本事件序列结束之前，都不会在将事件传递给子View。
@@ -871,9 +896,9 @@ public class MainActivity extends Activity {
 	   -  子View在ACTION_UP事件中解除对其父View的禁止，则父View无法接到ACTION_UP事件。
 	   -  子View对父View的禁止，只在一个事件序列内有效，即子View在ACTION_DOWN时禁止父View，即便不将父View解禁，当本次事件序列结束，父再次接到ACTION_DOWN事件时就会清除掉禁用状态。
 
-### 滑动方向不一致 ###
-　　接着刚才的范例，我们把TextView换成ListView，就可以重现这种场景。
-　　解决的思路是，当用户左右滑动时，让外部View处理事件，当上线滑动时，让内部View处理事件。
+<br>**滑动方向不一致**
+　　接着刚才的范例，我们把TextView换成ListView，就可以重现这种场景，即外部是左右滑动，内部是上下滑动。
+　　解决的思路是，当用户左右滑动时，让外部View处理事件，当上下滑动时，让内部View处理事件。
 　　重点在于，我们如何判断用户当前是左右滑，还是上下滑。 有好几种方式：
 
 	-  依据水平方向和垂直方向的距离差来判断
@@ -890,7 +915,11 @@ public boolean onInterceptTouchEvent(MotionEvent ev) {
     int currX = (int) ev.getX();
     int currY = (int) ev.getY();
     switch (ev.getAction()) {
+        // 当手指按下的时候，MyScrollView不能拦截事件，否则子View将无法接到事件。
+        
         case MotionEvent.ACTION_MOVE:
+            // 当手指移动时，如果手指在x轴方向上移动的距离比y轴的距离长，则拦截事件。
+            // 注意，一旦此处拦截了事件，那么在本次事件序列结束之前，子View都接不到事件。
             if (Math.abs(currX - mLastInterceptX) > Math.abs(currY - mLastInterceptY)) {
                 intercept = true;
             }
@@ -927,18 +956,30 @@ public class MainActivity extends ActionBarActivity {
 
 }
 ```
-　　在实际开发中，不会让我们去写ViewGroup，所以效果不用太在意。
-　　但是却经常会让我们处理滑动冲突，所以通过上面的代码只要明白是如何处理滑动冲突的，就ok了。
+    语句解释：
+    -  程序运行后，发现已经解决了滑动冲突。
 
-
-
-**内部解决法**
-　　上面是外部解决法，下面是内部解决：
+<br>**内部解决法**
+　　上面是通过修改外部View的代码来解决滑动冲突的，接下来介绍一下如何通过修改内部View的代码来解决滑动冲突：
 
 	-  首先，然父ViewGroup不拦截action_DWON事件，拦截另外两个事件。
 	-  然后，由子View来决定事件处理。
 
-　　先自定义一个子View：
+<br>　　第一步，创建一个MyScrollView2类，所有代码与MyScrollView相同，但下面的代码不同：
+``` android
+@Override
+public boolean onInterceptTouchEvent(MotionEvent ev) {
+    // 按下事件不能拦截，否则子View将接不到事件。
+    if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+        return false;
+    } else {
+        // 除了按下事件之外的其它所有事件都会拦截。
+        return true;
+    }
+}
+```
+
+<br>　　第二步，定义MyListView类：
 ``` android
 public class MyListView extends ListView {
     public MyListView(Context context) {
@@ -953,10 +994,15 @@ public class MyListView extends ListView {
         int currX = (int) ev.getX();
         int currY = (int) ev.getY();
         switch (ev.getAction()) {
+            // 当子View接到按下事件时，设置不允许父View拦截事件。
+            // 这意味着当前View一定能接到本次事件序列的后续事件。
             case MotionEvent.ACTION_DOWN:
                 ((ViewGroup)getParent()).requestDisallowInterceptTouchEvent(true);
                 break;
             case MotionEvent.ACTION_MOVE:
+                // 如果当前View发现用户手指水平方向移动的距离比垂直方向移动的大，则允许父View拦截事件。
+                // 又由于MyScrollView2的onInterceptTouchEvent方法会拦截任何“非按下”事件。
+                // 这意味着当前View将不会接到后续事件。
                 if (Math.abs(currX - mLastInterceptX) > Math.abs(currY - mLastInterceptY)) {
                     ((ViewGroup)getParent()).requestDisallowInterceptTouchEvent(false);
                 }
@@ -969,25 +1015,15 @@ public class MyListView extends ListView {
     }
 }
 ```
-
-　　然后在创建一个MyScrollView2类，所有代码与1相同，但下面的代码不同：
-``` android
- @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-```
-　　此时Activity的代码为：
+<br>　　第三步，Activity的代码为：
 ``` android
 
 public class MainActivity extends ActionBarActivity {
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        DisplayMetrics dm = getResources().getDisplayMetrics();
         MyScrollView2 scrollView = new MyScrollView2(this);
         for (int i = 0; i < 3; i++) {
             MyListView listView = new MyListView(this);
@@ -995,7 +1031,8 @@ public class MainActivity extends ActionBarActivity {
             for (int j = 0; j < 20; j++) {
                 data.add("MyList" + i + " - " + j);
             }
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_expandable_list_item_1, data);
+            ArrayAdapter<String> adapter 
+                = new ArrayAdapter<String>(this, android.R.layout.simple_expandable_list_item_1, data);
             listView.setAdapter(adapter);
             scrollView.addView(listView, new LinearLayout.LayoutParams(dm.widthPixels, dm.heightPixels));
         }
@@ -1005,7 +1042,9 @@ public class MainActivity extends ActionBarActivity {
 
 }
 ```
-### 滑动方向一致 ###
-　　为了代码简便，直接继承ScrollView来模仿这个过程：
+    语句解释：
+    -  从实现上来看，内部拦截法要复杂一些，因此推荐采用外部拦截法来解决常见的滑动冲突。
+
+<br>　　另外两种滑动冲突的处理方式也是类似，暂时就不举例了，以后有空的时候再补上。
 
 <br><br>
