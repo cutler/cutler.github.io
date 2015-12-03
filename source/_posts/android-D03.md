@@ -6,7 +6,7 @@ categories: android
 
 <br>　　在`Android3.0`之前，我们有两种实现动画效果的方式：帧动画 和 视图动画。
 
-	-  帧动画(Frame Animation)通过短时间内连续播放多张图片，来达到动画的效果，和电影类似。
+	-  帧动画(Frame Animation)通过短时间内连续播放多张图片来实现动画效果，和电影类似。
 	-  视图动画(View Animation)通过让View对象执行平移、缩放、旋转、透明四种操作，来达到动画效果。
 　　从`Android 3.0`开始，系统推出了属性动画(`property animation`)，它的功能非常强大，弥补了之前视图动画的一些缺陷，几乎是可以完全替代掉视图动画了。
 
@@ -27,8 +27,8 @@ categories: android
 　　虽然视图动画已经不常用了，但是我们仍然要介绍一下它们的用法。
 
 　　在Android中实现视图动画的方式有两种：
-	-  通过XML文件。在res/anim文件夹下面建立动画文件，每个动画文件对应一个xml文件。
-	-  通过编写代码。直接在代码中new出一个动画对象。
+	-  通过XML文件：在res/anim文件夹下面建立动画文件，每个动画文件对应一个xml文件。
+	-  通过编写代码：直接在代码中new出一个动画对象。
 
 <br>　　Android提供了四种视图动画：`透明`、`平移`、`旋转`、`缩放`。
 
@@ -37,7 +37,6 @@ categories: android
 
 <br>　　范例1：透明动画(`alpha.xml`)。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android">
     <alpha 
       	android:fromAlpha="1.0"
@@ -47,7 +46,6 @@ categories: android
 ```
     语句解释：
     -  本范例通过XML文件来定义一个透明动画，必须要将动画文件放到res/anim文件夹下。
-    -  动画文件必须以<set>，<objectAnimator>，<valueAnimator>三者之一作为根节点。根节点中必须定义android命名空间。
     -  使用<alpha>标签来定义一个透明动画。
 
     属性解释：
@@ -106,7 +104,6 @@ public class AndroidTestActivity extends Activity {
 
 <br>　　范例1：平移动画(`alpha.xml`)。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android">
     <translate 
         android:fromXDelta="0"
@@ -135,7 +132,6 @@ public class AndroidTestActivity extends Activity {
 
 <br>　　范例1：旋转动画。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android">
     <rotate
         android:fromDegrees="0"
@@ -176,7 +172,6 @@ public RotateAnimation(float fromDegrees, float toDegrees, int pivotXType, float
 
 <br>　　范例1：缩放动画。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android">
     <scale 
         android:fromXScale="1.0" 
@@ -198,7 +193,6 @@ public RotateAnimation(float fromDegrees, float toDegrees, int pivotXType, float
 
 <br>　　范例2：反向。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <scale
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:fromXScale="1"
@@ -215,11 +209,10 @@ public RotateAnimation(float fromDegrees, float toDegrees, int pivotXType, float
        -  Y轴会以中心点Y轴坐标为准从上到下的反向。
 
 <br>**AnimationSet**
-　　使用`<set>`标签来定义一个动画集合，其内部可以嵌套其他动画元素（`<alpha>`，`<scale>`，`<translate>`，`<rotate>`），甚至是另一个`<set>`，`<set>`元素使用`AnimationSet`类来表示。
-　　
-<br>　　范例1：一组动画。
+　　使用`<set>`标签来定义一个动画集合，其内部可以嵌套其他动画，甚至是另一个`<set>`，`<set>`使用`AnimationSet`类来表示。
+
+　　范例1：一组动画。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android" >
     <alpha
         android:duration="1000"
@@ -244,14 +237,16 @@ public RotateAnimation(float fromDegrees, float toDegrees, int pivotXType, float
     -  使用动画的android:startOffset属性可以设置其播放的开始时间，单位是毫秒。
     -  本范例中，当这个动画集合开始时会首先播放前两个动画，等动画集已经播放了三秒时，第三个平移动画才开始播放。
 
-    属性解释：
-    -  android:interpolator为<set>元素设置加速器。
-    -  android:shareInterpolator
-       -  “true” if you want to share the same interpolator among all child elements.
+　　`<set>`标签支持如下两个属性：
+
+    -  interpolator：表示AnimationSet所采用的插值器，插值器影响动画的速度。
+      -  默认取值为@android:anim/accelerate_decelerate_interpolator。 
+    -  shareInterpolator：表示AnimationSet中的动画是否和集合共享一个插值器。
 
 <br>**Interpolators**
-　　`Interpolators`是在xml中定义的动画加速器，它可以影响动画的播放速度，允许您对现有的动画效果进行`加速`、`减速`、`重复`、`反弹`等。Android中所有的加速器都是`Interpolators`类的子类。Android中已提供的加速器如下表所示：
-```
+　　`Interpolators`是动画插值器，它可以影响动画的播放速度，可以对动画进行`加速`、`减速`、`重复`、`反弹`等。
+　　所有的插值器都是`Interpolators`类的子类，现有的插值器如下表所示：
+``` java
 加速器类名				资源id
 AccelerateDecelerateInterpolator	@android:anim/accelerate_decelerate_interpolator
 AccelerateInterpolator			@android:anim/accelerate_interpolator
@@ -271,26 +266,106 @@ OvershootInterpolator			@android:anim/overshoot_interpolator
 ```
     语句解释：
     -  interpolator属性的值必须指向加速器的资源Id，而不是类名。
+    -  <set>标签的子标签也可以使用interpolator属性来指定自己的插值器。
 
-<br>**自定义Interpolators**
-　　如果平台提供的加速器无法满足你的需求，你可以在这些加速器的基础上再创建一个自定义的加速器。
+　　插值器一个常见的应用场景是：
 
-　　文件位置：`res/anim/filename.xml`
-　　语法：
-``` xml
-<?xml version="1.0" encoding="utf-8"?>
-<InterpolatorName 
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:attribute_name="value"/>
+	播放旋转动画时，如果不为其指定插值器，则系统会默认使用AccelerateDecelerateInterpolator，此插值器的特点是，在动画开始时候加速，在动画结束的时候减速。
+	如果我们想循环播放这个旋转动画的话，就会给人一种不连贯的感觉，此时就可以使用LinearInterpolator了，它会线性匀速的播放动画。
+
+　　关于插值器，在属性动画一节会有详细的介绍，不明白的兄弟可以暂时存疑。
+
+<br>**事件监听**
+　　通过`Animation`的`setAnimationListener`方法可以给视图动画添加监听器，接口如下所示：
+``` java
+public static interface AnimationListener {
+    // 动画开始播放时调用
+    void onAnimationStart(Animation animation);
+    // 动画播放结束时调用
+    void onAnimationEnd(Animation animation);
+    // 动画重复播放时调用
+    void onAnimationRepeat(Animation animation);
+}
 ```
-　　如果你不为加速器指定任何属性，那么和直接使用它们是没有任何区别的，关于系统内置的加速器支持哪些属性，请自行搜索。
+
+<br>**出场动画**
+　　在`ViewGroup`类中定义了`android:layoutAnimation`属性，用于给其子元素设置出场动画。
+
+　　首先要创建一个布局动画文件：
+
+　　范例1：`res/anim/anim_layout.xml`。
+``` xml
+<layoutAnimation xmlns:android="http://schemas.android.com/apk/res/android"
+    android:delay="5"
+    android:animationOrder="normal"
+    android:animation="@anim/fade_in">
+
+</layoutAnimation>
+```
+    语句解释：
+    -  delay属性：表示子元素开始动画的时间延迟。
+       -  比如动画的持续时间是1秒，那么delay=5就表示除了第一个子元素之外的每一个子元素都要依次延迟5秒才开始播放。
+       -  也就是说，第一个子元素会立刻显示出来，第二个延迟5秒，第三个会延迟10秒，依次类推。
+       -  delay的值也可以是小数，比如0.5就表示延迟时间为动画播放时间的一半。
+    -  animationOrder属性：表示子元素播放动画的顺序。取值有三个：
+       -  normal：顺序显示，即从第一个子元素开始播放入场动画。
+       -  reverse：倒叙显示，即从最后一个子元素开始播放入场动画。
+       -  random：随机播放入场动画。
+    -  animation属性：每个子元素所要播放的动画。
+
+<br>　　然后创建每个子元素所要播放的动画：
+
+　　范例2：`res/anim/fade_in.xml`。
+``` xml
+<alpha xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="1000"
+    android:fromAlpha="0.0"
+    android:interpolator="@android:anim/decelerate_interpolator"
+    android:toAlpha="1.0" />
+```
+    语句解释：
+    -  渐入动画，在1秒内让View从完全看不见到完全看的见。
+
+<br>　　最后将布局动画设置到`ViewGroup`上：
+
+　　范例3：为控件设置动画。
+``` xml
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layoutAnimation="@anim/anim_layout"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="AAAAAAAAAAAAAAA"
+        android:textSize="20sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="BBBBBBBBBBBBBBB"
+        android:textSize="20sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CCCCCCCCCCCCCCC"
+        android:textSize="20sp" />
+
+</LinearLayout>
+```
+    语句解释：
+    -  任何ViewGroup的子类都可以使用android:layoutAnimation属性，通常用在ListView上。
+
+<br>　　提示：`android:layoutAnimation`属性是`API Level 1`中提供的，可以放心使用。
 
 # 第二节 帧动画 #
 　　帧动画通过在短时间内连续播放多张图片来达到动画的效果。
 
 <br>　　范例1：建立动画文件`res/drawable/look.xml`。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <animation-list xmlns:android="http://schemas.android.com/apk/res/android" android:oneshot="false">
     <item android:drawable="@drawable/girl_1" android:duration="120" />
     <item android:drawable="@drawable/girl_2" android:duration="120" />
@@ -320,19 +395,20 @@ OvershootInterpolator			@android:anim/overshoot_interpolator
     -  使用<ImageView>的android:src属性来指向新建立好的动画文件look.xml。
 
 <br>　　范例3：播放动画。
-``` 
+``` java
 AnimationDrawable drawable = (AnimationDrawable) this.img.getDrawable();
 drawable.start();
 ```
     语句解释：
     -  调用ImageView的getDrawable方法获取动画后，就可以启动动画了。
-    -  提示：帧动画不可以通过AnimationUtils工具类获取，该类仅能获取Tween动画。
+    -  提示：帧动画不可以通过AnimationUtils工具类获取，该类仅能获取视图动画。
 
-<br>　　在`Activity`的`onCreate()`中调用`AnimationDrawable`的`start()`方法动画并不会被播放。这是因为`AnimationDrawable`不能在不完全的窗口上运行。可以在`onCreate()`方法之后的`onWindowFocusChanged()`方法中启动动画。
+<br>　　在`Activity`的`onCreate()`中调用`AnimationDrawable`的`start()`方法动画并不会被播放。
+　　这是因为`AnimationDrawable`不能在不完全的窗口上运行，解决方法是在`onCreate()`方法之后的`onWindowFocusChanged()`方法中启动动画。
 
 
 <br>　　范例4：在`onWindowFocusChanged`中。
-``` android
+``` java
 public void onWindowFocusChanged(boolean hasFocus) {
     super.onWindowFocusChanged(hasFocus);
     if(hasFocus){ // 若当前Activity获得焦点。
@@ -346,23 +422,35 @@ public void onWindowFocusChanged(boolean hasFocus) {
     -  onWindowFocusChanged方法将在Activity的onResume方法之后且用户可操作之前被调用。
 
 # 第三节 属性动画 #
-　　简单的说，视图动画可以实现的功能，属性动画基本都可以实现，视图动画的缺点，在属性动画中都不存在了。而且，使用的时候我们只需要告诉系统`动画的运行时长`，需要执行`哪种类型的动画`，以及`动画的初始值和结束值`，剩下的工作就可以全部交给系统去完成了。
+　　在介绍属性动画之前，笔者要先统一下“动画”的概念：
 
-<br>　　笔者在此声明，本节主要参考阅读下面`CSDN郭霖`的三篇文章（有细节上的修改，但几乎可以算是原样抄袭！）：
+	-  如果笔者说“让一个Button在3秒内放大两倍，其实就是在让它播放一个动画”，相信大家都不会有什么异议。
+	-  那么仔细想一下，可以总结出动画的本质其实就是，“让一个物体在指定时间内，从一个状态转变为另一个状态”。
+	-  进而可以得出：“让一个int变量的值在3秒内从0过度到100，其实也就是让int变量播放一个动画”。
+
+　　前面介绍的视图动画只支持四种（`缩放`、`平移`、`选择`、`透明`）操作，而且只能动画`View`对象。而接下来要介绍的属性动画可以对任何对象做动画，就像上面说的动画一个`int`变量。
+
+　　此时你可能会有疑问，何时会需要动画一个`int`值呢？
+
+	-  在后面的章节中会介绍到，View类提供了scrollTo和scrollBy两个方法，用来滚动View的内容。
+	-  比如说，如果屏幕高800，但是View的高度为1400，那它的内容就没法一屏显示出来，只能通过滚动才能看到后面的内容。
+	-  但是scrollTo和scrollBy两个方有个缺点，它们被调用时会立刻将View的内容滚动到目标位置，也就是说没有滑翔过程，会给人很生硬的感觉。
+	-  此时如果我们把滚动条的当前位置定义为i，那么就可以使用属性动画来动画这个i了，即让i在1秒内从当前位置变为目标位置。
+	-  然后我们只需要在动画的过程中（可以给动画设置回调）不断的调用scrollTo或scrollBy即可。
+　　如果不理解上面举的这个例子也没关系，你只需要知道：“动画一个`int`变量是很常见的一个操作”就行了。事实上，视图动画可以实现的功能，属性动画都可以实现。
+
+<br>　　笔者在此声明，本节主要参考阅读下面三篇文章（有修改）：
 - [Android属性动画完全解析(上)，初识属性动画的基本用法](http://blog.csdn.net/guolin_blog/article/details/43536355#)
 - [Android属性动画完全解析(中)，ValueAnimator和ObjectAnimator的高级用法](http://blog.csdn.net/guolin_blog/article/details/43816093)
-  
-　　本节参考的其他文章将在本节末尾处列出。
+- [Android开发艺术探索 —— 第七章 Android动画深入分析](http://item.jd.com/1710650057.html)
 
 ## 基础入门 ##
-　　属性动画有两个常用的类：`ValueAnimator`和`ObjectAnimator`，我们接下来依次介绍它们。
-<br>
-### ValueAnimator ###
-　　`ValueAnimator`是整个属性动画机制当中最核心的一个类。我们只需要将`初始值和结束值`提供给`ValueAnimator`，并且告诉它动画所需运行的时长，那么`ValueAnimator`就会自动帮我们完成`从初始值平滑地过渡到结束值`这样的效果。除此之外，`ValueAnimator`还负责管理动画的播放次数、播放模式、以及对动画设置监听器等，确实是一个非常重要的类。
+　　属性动画有两个常用的类：`ValueAnimator`和`ObjectAnimator`，接下来依次介绍它们。
 
-<br>　　但是`ValueAnimator`的用法却很简单，比如说想要将一个值从`0`平滑过渡到`1`，时长`300`毫秒，就可以这样写：
-``` android
-// 使用ofFloat()方法来创建一个ValueAnimator对象，其中参数0和1就表示将值从0平滑过渡到1。ofFloat()方法当中允许传入多个float类型的参数。
+### ValueAnimator ###
+<br>　　范例1：`ValueAnimator`的用法很简单，比如说想要将一个值从`0`平滑过渡到`1`，时长`300`毫秒，就可以这样写：
+``` java
+// 使用ofFloat()方法来创建一个ValueAnimator对象，其中参数0和1就表示将值从0平滑过渡到1。
 ValueAnimator anim = ValueAnimator.ofFloat(0f, 1f);
 // setDuration()方法来设置动画运行的时长。
 anim.setDuration(300);
@@ -370,9 +458,10 @@ anim.setDuration(300);
 anim.start();
 ```
     语句解释：
-    -  值得注意的，本范例使用的是android.animation.ValueAnimator类。
+    -  本范例使用的是android.animation.ValueAnimator类。
+    -  我们只需要将初始值和结束值提供给ValueAnimator，并且告诉它动画所需运行的时长，那么ValueAnimator就会自动帮我们完成从初始值平滑地过渡到结束值这样的效果。
 
-<br>　　运行上面的代码时，程序会将值从`0`过渡到`1`，但是我们却无法看到任何界面效果，我们需要借助监听器才能知道这个动画是否已经真正运行了，如下所示：
+<br>　　范例2：运行上面的代码时无法看到任何效果，需要借助监听器才能知道这个动画是否已经真正运行了，如下所示：
 ``` android
 ValueAnimator anim = ValueAnimator.ofFloat(0f, 1f);
 anim.setDuration(300);
@@ -387,10 +476,11 @@ anim.start();
     -  在动画执行的过程中系统会不断地回调onAnimationUpdate()方法，我们只需要在回调方法当中将当前的值取出并打印出来。
     -  回调onAnimationUpdate()方法的时间间隔是ValueAnimator类根据你设置的初始值、结束值、动画时间三个参数来计算出来的，不需要我们设置，它会尽可能的让动画平滑的播放出来（即在使用最少的回调次数的基础上，保证动画流畅）。
 
-<br>　　另外`ofFloat()`方法当中是可以传入任意多个参数的，因此我们还可以构建出更加复杂的动画逻辑，比如说将一个值在`5`秒内从`0`过渡到`5`，再过渡到`3`，再过渡到`10`，就可以这样写：
+<br>　　范例3：`ofFloat()`方法可以传入任意多个参数。
 ``` android
+// 在3秒内从0过渡到5，再过渡到3，再过渡到10。
 ValueAnimator anim = ValueAnimator.ofFloat(0f, 5f, 3f, 10f);
-anim.setDuration(5000);
+anim.setDuration(3000);
 anim.start();
 ```
     语句解释：
@@ -399,12 +489,13 @@ anim.start();
     -  调用anim.setRepeatMode()设置循环播放的模式：
        -  RESTART（默认），动画播放到结尾时，直接从开头再播放。
        -  REVERSE，动画播放到结尾时，再从结尾再往开头播放。
-    -  除此之外，我们还可以调用anim.setStartDelay()方法来设置动画延迟播放的时间等等。
-<br>
-### ObjectAnimator ###
-　　相比于`ValueAnimator`，`ObjectAnimator`可能才是我们最常接触到的类，因为`ValueAnimator`只不过是对值进行了一个平滑的动画过渡，但我们实际使用到这种功能的场景好像并不多。而`ObjectAnimator`则就不同了，它是可以直接对任意对象的任意属性进行动画操作，如`View`的`alpha`属性。
+    -  除此之外，我们还可以调用anim.setStartDelay()方法来设置动画延迟播放的时间。
 
-　　值得注意的是`ObjectAnimator`是`ValueAnimator`的子类，因此它们的用法也非常类似，这里如果我们想要将一个`Button`在`5`秒中内从常规变换成全透明，再从全透明变换成常规，就可以这样写：
+### ObjectAnimator ###
+　　`ObjectAnimator`是`ValueAnimator`的子类。
+　　`ObjectAnimator`除了具有其父类的所有特性之外，还在父类的基础上增加了对对象属性进行动画功能，如动画`View`的`alpha`属性的值。
+
+<br>　　范例1：修改透明度。
 ``` android
 Button btn = (Button) findViewById(R.id.btn);
 // 第一个参数是想动画的对象，第二个参数是该对象的属性。
@@ -413,14 +504,18 @@ animator.setDuration(5000);
 animator.start();
 ```
     语句解释：
+    -  本范例用来将Button在5秒内从不透明变换成全透明，再从全透明变换成不透明。
     -  把代码改成“ObjectAnimator.ofFloat(btn, "rotation", 0, 360)”则按钮就会被旋转。
     -  把代码改成“ObjectAnimator.ofFloat(btn, "scaleY", 1f, 3f, 1f)”则按钮就会在垂直方向上进行缩放，然后还原。
     -  把代码改成“ObjectAnimator.ofFloat(btn, "rotation", 0, 360)”则按钮就会被旋转。
     -  把代码改成“ObjectAnimator.ofFloat(btn, "translationX", curTranslationX, -500f)”则按钮就会从curTranslationX移动到-500。
 
-<br>　　相信肯定会有不少朋友现在心里都有同样一个疑问，就是`ObjectAnimator`的`ofFloat()`方法的第二个参数到底可以传哪些值呢？目前我们使用过了`alpha`、`rotation`、`translationX`和`scaleY`这几个值，那么还有哪些值是可以使用的呢？答案是我们可以传入`任意的值`到`ofFloat()`方法的第二个参数当中。因为`ObjectAnimator`在设计的时候就没有针对于`View`来进行设计，而是针对于任意对象的，它所负责的工作就是不断地向某个对象中的某个属性进行赋值，然后对象根据属性值的改变再来决定如何展现出来。
-　　以`ObjectAnimator.ofFloat(btn, "alpha", 1f, 0f, 1f)`为例，这行代码的意思就是不断的修改`Button`的`alpha`属性值，但不是直接去修改，而是当动画启动时，`ObjectAnimator`会不断的调用`Button`对象的`getAlpha()`和`setAlpha()`方法，这个两个方法定义在`View`类。
-　　相应的，`rotation`对应的就是`setRotation()`和`getRotation()`方法。
+<br>　　此时也许你会有一个疑问，就是`ObjectAnimator`的`ofFloat()`方法的第二个参数到底可以传哪些值呢？
+
+	-  答案是，我们可以传入任意的值，系统在执行动画时会通过反射机制调用对象的get和set方法。
+	   -  比如，若我们给第二个参数传递abc，那么系统就是调用Button的setAbc和getAbc两个方法。
+	-  只要在get和set方法中执行相应的操作即可。
+　　相应的，`rotation`对应的就是`setRotation()`和`getRotation()`方法，这两个方法在`View`类中定义了。
 
 <br>**引入一个问题**
 　　我们现在有个需求，给`Button`加一个动画，让这个`Button`的`paddingLeft`从当前值增加到`500px`。按照上面的思路，我们可以这么写代码：
@@ -436,10 +531,10 @@ public class MainActivity extends Activity {
     }
 }
 ```
-　　上述代码运行后发现没效果，其实没效果是对的。这是因为属性动画如果想成功运行，需要两个条件：
+　　上述代码运行后发现没效果，这是因为属性动画如果想成功运行，需要两个条件：
 
-	-  object必须要提供setXxx方法，如果动画的时候没有传递初始值，那么还要提供getXxx方法，因为系统要去拿xxx属性的初始值。
-	-  object的setXxx对属性xxx所做的改变必须能够通过某种方法反映出来（不然你是看不到的），比如会带来ui的改变。
+	-  object必须要提供set方法，如果动画的时候没有传递初始值，那么还要提供get方法，因为系统要去拿属性的初始值。
+	-  object的set对属性所做的改变必须能够通过某种方法反映出来，比如会带来UI的改变之类的（如果这条不满足，动画就不会有效果）。
 　　上面范例之所以不成功是因为`View`类没有`setPaddingLeft`方法，而只有`setPadding()`方法，为了实现这个需求，我们可以用一个类来包装原始的`Button`对象，代码为：
 ``` android
 public class MainActivity extends Activity {
@@ -448,20 +543,20 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
     }
     public void onClick(View button) {
-        // 将按钮放到一个ButtonWrapper中。
-        ObjectAnimator.ofInt(new ButtonWrapper((Button) button), "paddingLeft", 500).setDuration(5000).start();
+        // 将按钮放到一个ViewWrapper中。
+        ObjectAnimator.ofInt(new ViewWrapper(button), "paddingLeft", 500).setDuration(5000).start();
     }
     // 一个普通的包装类。
-    public class ButtonWrapper {
-        private Button mTarget;
-        public ButtonWrapper(Button mTarget) {
-            this.mTarget = mTarget;
+    public class ViewWrapper {
+        private View mTarget;
+
+        public ViewWrapper(View view) {
+            this.mTarget = view;
         }
-        public int getPaddingLeft() {
-            return mTarget.getPaddingLeft();
-        }
-        public void setPaddingLeft(int paddingLeft){
-            mTarget.setPadding(paddingLeft, 0, 0, 0);
+
+        public void setPaddingLeft(int paddingLeft) {
+            mTarget.setPadding(paddingLeft, mTarget.getPaddingTop(),
+                    mTarget.getPaddingRight(), mTarget.getPaddingBottom());
         }
     }
 }
@@ -474,10 +569,8 @@ public class MainActivity extends Activity {
 <br>**本节参考阅读：**
 - [Android属性动画深入分析：让你成为动画牛人](http://blog.csdn.net/singwhatiwanna/article/details/17841165)
 
-<br>
 ### 组合动画 ###
-　　独立的动画能够实现的视觉效果毕竟是相当有限的，因此将多个动画组合到一起播放就显得尤为重要。幸运的是，Android团队在设计属性动画的时候也充分考虑到了组合动画的功能，因此提供了一套非常丰富的`API`来让我们将多个动画组合到一起。
-　　实现组合动画功能主要需要借助`AnimatorSet`这个类，这个类提供了一个`play()`方法，如果我们向这个方法中传入一个`Animator`对象(`ValueAnimator`和`ObjectAnimator`的父类)将会返回一个`AnimatorSet.Builder`的实例。
+　　我们可以通过`AnimatorSet`类来将多个动画组合到一起播放，这个类提供了一个`play()`方法，如果我们向这个方法中传入一个`Animator`对象（`ValueAnimator`的父类）将会返回一个`AnimatorSet.Builder`的实例。
 　　`AnimatorSet.Builder`中包括以下四个方法：
 
 	-  after(Animator anim)    将现有动画插入到传入的动画之后执行
@@ -496,41 +589,36 @@ animSet.play(rotate).with(fadeInOut).after(moveIn);
 animSet.setDuration(5000);
 animSet.start();
 ```
-<br>　　当然除了上面说的4个方法外，`AnimatorSet`这个类来提供了不少其它有用的方法，比如`playTogether()`、`playSequentially()`等。
-<br>
+    语句解释：
+    -  除了上面说的4个方法外，AnimatorSet类来提供了不少方法，比如playTogether、playSequentially等。
+
 ### Animator监听器 ###
-　　在很多时候，我们希望可以监听到动画的各种事件，比如动画何时开始，何时结束，然后在开始或者结束的时候去执行一些逻辑处理。这个功能是完全可以实现的，`Animator`类(ValueAnimator、AnimatorSet的父类)当中提供了一个`addListener()`方法，这个方法接收一个`AnimatorListener`，我们只需要去实现这个`AnimatorListener`就可以监听动画的各种事件了。
+　　在`Animator`类当中提供了一个`addListener()`方法，这个方法接收一个`AnimatorListener`用于监听动画的各种事件了。
 
 ``` android
 ValueAnimator anim = ValueAnimator.ofInt(0, 10);
 anim.setDuration(1000);
+// 动画播放的过程中，会回调此接口中的方法。
 anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
     public void onAnimationUpdate(ValueAnimator valueAnimator) {
         System.out.println(valueAnimator.getAnimatedValue());
     }
 });
+// 动画播放的状态改变时，会回调此接口中的方法。
 anim.addListener(new Animator.AnimatorListener() {
     // 动画开始的时候调用
-    public void onAnimationStart(Animator animation) {
-        System.out.println("onAnimationStart");
-    }
+    public void onAnimationStart(Animator animation) { }
     // 动画重复执行的时候调用
-    public void onAnimationRepeat(Animator animation) {
-        System.out.println("onAnimationRepeat");
-    }
+    public void onAnimationRepeat(Animator animation) { }
     // 动画结束的时候调用
-    public void onAnimationEnd(Animator animation) {
-        System.out.println("onAnimationEnd");
-    }
+    public void onAnimationEnd(Animator animation) { }
     // 动画被取消的时候调用
-    public void onAnimationCancel(Animator animation) {
-        System.out.println("onAnimationCancel");
-    }
+    public void onAnimationCancel(Animator animation) { }
 });
 anim.start();
 ```
 
-<br>　　但是也许很多时候我们并不想要监听那么多个事件，可能我只想要监听动画结束这一个事件，那么每次都要将四个接口全部实现一遍就显得非常繁琐。没关系，为此Android提供了一个适配器类，叫作`AnimatorListenerAdapter`，使用这个类就可以解决掉实现接口繁琐的问题了，如下所示：
+<br>　　为了方便使用，可以继承`AnimatorListenerAdapter`类，这样我们就可以只重写自己需要的方法了，如下所示：
 ``` android
 anim.addListener(new AnimatorListenerAdapter() {
     @Override
@@ -540,15 +628,14 @@ anim.addListener(new AnimatorListenerAdapter() {
 ```
 <br>
 ### 使用XML编写动画 ###
-　　我们可以使用代码来编写所有的动画功能，这也是最常用的一种做法。不过，过去的补间动画除了使用代码编写之外也是可以使用`XML`编写的，因此属性动画也提供了这一功能，即通过`XML`来完成和代码一样的属性动画功能。
-　　通过`XML`来编写动画可能会比通过代码来编写动画要慢一些，但是在重用方面将会变得非常轻松，比如某个将通用的动画编写到`XML`里面，我们就可以在各个界面当中轻松去重用它。
+　　通过`XML`来编写动画可能会比通过代码来编写动画要慢一些，但是在重用方面将会变得非常轻松。
 <br>　　如果想要使用`XML`来编写动画，首先要在`res`目录下面新建一个`animator`文件夹，所有属性动画的`XML`文件都应该存放在这个文件夹当中。然后在`XML`文件中我们一共可以使用如下三种标签：
 
 	-  <animator>        对应代码中的 ValueAnimator
 	-  <objectAnimator>  对应代码中的 ObjectAnimator
 	-  <set>             对应代码中的 AnimatorSet
 
-<br>　　那么比如说我们想要实现一个从`0`到`100`平滑过渡的动画，在`XML`当中就可以这样写：
+<br>　　比如说我们想要实现一个从`0`到`100`平滑过渡的动画，在`XML`当中就可以这样写：
 ``` xml
 <animator xmlns:android="http://schemas.android.com/apk/res/android"
     android:valueFrom="0"
@@ -563,7 +650,7 @@ anim.addListener(new AnimatorListenerAdapter() {
     android:valueType="floatType"
     android:propertyName="alpha"/>
 ```
-　　其实`XML`编写动画在可读性方面还是挺高的，上面的内容相信不用我做解释大家也都看得懂吧。
+　　其实`XML`编写动画在可读性方面还是挺高的，上面的内容不用解释也都能看得懂。
 
 <br>　　另外，我们也可以使用`XML`来完成复杂的组合动画操作，比如将一个视图先从屏幕外移动进屏幕，然后开始旋转`360`度，旋转的同时进行淡入淡出操作，就可以这样写：
 ``` xml
@@ -605,44 +692,326 @@ anim.addListener(new AnimatorListenerAdapter() {
     </set>
 </set>
 ```
-　　这段`XML`实现的效果和我们刚才通过代码来实现的组合动画的效果是一模一样的，每个参数的含义都非常清楚，相信大家都是一看就懂，我就不再一一解释了。
+    语句解释：
+    -  这段XML实现的效果和刚才代码实现的效果是一模一样的，每个参数的含义都非常清楚，相信一看就懂。
+    -  另外，objectAnimator和animator标签除了上面的属性外，都还包含如下三个属性：
+       -  startOffset、repeatCount、repeatMode
+    -  实际上，objectAnimator标签只是比animator标签多了一个propertyName属性。
 
-<br>　　最后`XML`文件是编写好了，那么我们如何在代码中把文件加载进来并将动画启动呢？只需调用如下代码即可：
-``` android
+<br>　　`XML`文件是编写好了，可以使用如下代码进行播放：
+``` java
+// 加载动画。
 Animator animator = AnimatorInflater.loadAnimator(context, R.animator.anim_file);
+// 设置要播放此动画的View。
 animator.setTarget(view);
+// 开始播放。
 animator.start();
 ```
-　　调用`AnimatorInflater`的`loadAnimator`来将`XML`动画文件加载进来，然后再调用`setTarget()`方法将这个动画设置到某一个对象上面，最后再调用`start()`方法启动动画就可以了，就是这么简单。
-<br>　　最后要注意的是，如果你使用的是`NineOldAndroids`动画库，那么在`Android2.2`设备上加载上面那个动画`XML`文件时会报错。
+<br>　　提示：如果你使用的是`NineOldAndroids`动画库，那么在`Android3.0`之前的设备上，最好通过代码来实现属性动画。
 
 ## 高级用法 ##
-　　正如上一节当中所说到的，属性动画对补间动画进行了很大幅度的改进，之前补间动画可以做到的属性动画也能做到，补间动画做不到的现在属性动画也可以做到了。因此，今天我们就来学习一下属性动画的高级用法，看看如何实现一些补间动画所无法实现的功能。
-<br>
-### ValueAnimator进阶 ###
-　　在上一节中介绍补间动画缺点的时候有提到过，补间动画是只能对`View`对象进行动画操作的。而属性动画就不再受这个限制，它可以对任意对象进行动画操作。比如说我们有一个自定义的`View`，在这个`View`当中有一个`Point`对象用于管理坐标，然后在`onDraw()`方法当中就是根据这个`Point`对象的坐标值来进行绘制的。也就是说，如果我们可以对`Point`对象进行动画操作，那么整个自定义`View`的动画效果就有了。下面我们就来学习一下如何实现这样的效果。
+### 工作原理 ###
+　　为了能深入理解属性动画的两个重要的概念：`TimeInterpolator`和`TypeEvaluator`，我们得需要先知道属性动画的工作流程。
 
-<br>　　在开始动手之前，我们还需要掌握另外一个知识点，就是`TypeEvaluator`的用法。可能在大多数情况下我们使用属性动画的时候都不会用到`TypeEvaluator`，但是大家还是应该了解一下它的用法，以防止当我们遇到一些解决不掉的问题时能够想起来还有这样的一种解决方案。
-　　简单来说，`TypeEvaluator`就是告诉动画系统如何从初始值过度到结束值。我们在上一节中学到的`ValueAnimator.ofFloat()`方法就是实现了初始值与结束值之间的平滑过度，那么这个平滑过度是怎么做到的呢？其实就是系统内置了一个`FloatEvaluator`，它通过计算告知动画系统如何从初始值过度到结束值，我们来看一下`FloatEvaluator`的代码实现：
-``` andriod
-// FloatEvaluator实现了TypeEvaluator接口。
-public class FloatEvaluator implements TypeEvaluator {
-    // fraction：表示动画的完成度的，我们应该根据它来计算当前动画的值应该是多少。
-    // startValue和endValue：表示动画的初始值和结束值。
-    public Object evaluate(float fraction, Object startValue, Object endValue) {
-        float startFloat = ((Number) startValue).floatValue();
-        // 用结束值减去初始值，算出它们之间的差值，然后乘以fraction这个系数，再加上初始值，那么就得到当前动画的值了。
-        return startFloat + fraction * (((Number) endValue).floatValue() - startFloat);
+　　假设我们现在需要动画`Button`的`translationX`属性，让它在`4`秒内从`0`变为`100`。
+　　当我们调用它的`start`方法启动动画时，系统会执行如下过程：
+	-  第一，会开启一个定时器，这个定时器每隔一段时间就会出发一次绘制动画的任务。
+	-  第二，当绘制任务被触发时，会调用当前ObjectAnimator的TimeInterpolator字段来计算出一个跟时间有关系的比例值。
+	-  第三，把计算出来的比例值交给当前ObjectAnimator的TypeEvaluator字段，由其来计算出动画当前的播放位置。
+	-  第四，会通过反射的方式把第三步计算出的播放位置传递给目标方法，执行更新操作。
+
+<br>　　此时你可能会有疑问，为什么要用到`TimeInterpolator`类呢？
+
+	-  按照我们熟悉的逻辑，动画的播放进度是需要和时间相关的，也就是说当动画播放到1秒的时候，translationX的值应该是25，执行到2秒的时候值应该是50。这个逻辑其实是一个线性的变化，即动画的播放进度随着时间的推移，均匀的改变。
+	-  但是在很多时候我们有更高的要求，比如希望动画以加速度或者减速度的形式播放，又或者希望动画在开始的部分加速播放，在结束的部分减速播放。这时候就需要用到TimeInterpolator类了。
+	-  当绘制任务被触发时，系统会调用TimeInterpolator的getInterpolation方法，并过去一个数值input，这个数值表示动画当前已经播放的比率。
+	-  然后，我们可以依据这个input来进行计算出我们想要的结果，并将结果返回。
+	-  最后，系统会把getInterpolation方法返回的结果当作动画最终的播放比例，进行后续的计算。
+
+<br>　　事实上，`TimeInterpolator`类有很多现有的子类，比如`LinearInterpolator`类：
+``` java
+public class LinearInterpolator extends BaseInterpolator implements NativeInterpolatorFactory {
+
+    public LinearInterpolator() { }
+    public LinearInterpolator(Context context, AttributeSet attrs) { }
+
+    public float getInterpolation(float input) {
+        return input;
     }
 }
 ```
     语句解释：
-    -  其中evaluate()方法是在TypeEvaluator接口中定义的。
+    -  由于系统默认使用的就是线性变化，所以LinearInterpolator的getInterpolation方法直接将参数给返回了。
 
-<br>　　上面的`FloatEvaluator`是系统内置好的功能，并不需要我们自己去编写，但介绍它的实现方法是要为我们后面的功能铺路的。
-　　前面我们使用过了`ValueAnimator`的`ofFloat()`和`ofInt()`方法，分别用于对浮点型和整型的数据进行动画操作的，但实际上`ValueAnimator`中还有一个`ofObject()`方法，是用于对任意对象进行动画操作的。但是相比于浮点型或整型数据，对象的动画操作明显要更复杂一些，因为系统将完全无法知道如何从初始对象过度到结束对象，因此这个时候我们就需要实现一个自己的`TypeEvaluator`来告知系统如何进行过度。
+<br>　　再比如，`ValueAnimator`类默认使用的是`AccelerateDecelerateInterpolator`，它的源码为：
+``` java
+public class AccelerateDecelerateInterpolator extends BaseInterpolator
+        implements NativeInterpolatorFactory {
+    public AccelerateDecelerateInterpolator() { }
+    public AccelerateDecelerateInterpolator(Context context, AttributeSet attrs) { }
 
-　　下面来先定义一个`Point`类，如下所示：
+    public float getInterpolation(float input) {
+        return (float)(Math.cos((input + 1) * Math.PI) / 2.0f) + 0.5f;
+    }
+}
+```
+    语句解释：
+    -  这个加速器的作用前面也已经说了，就是在动画开始的时候加速，在动画结束的时候减速。
+
+<br>　　下图是笔者从网上找的一张图，简单的介绍了各个系统内置插值器的特点，但笔者没去验证它的真伪：
+
+<center>
+![](/img/android/android_d03_01.png)
+</center>
+
+<br>　　此时你可能还会有疑问，那`TypeEvaluator`类又是干什么的呢？
+
+	-  我们已经知道，通过TimeInterpolator类计算出来的其实是动画已经播放的比率。也就是说，如果是线性插值器的话，当动画播放到第2秒时，比率的值就是0.5。
+	-  但是比率毕竟是比率，我们还需要依据这个比率来计算出动画真正的位置。
+	-  只有知道了的动画的当前位置，我们才能修改translationX的值，这时候就用到TypeEvaluator类了。
+
+<br>　　事实上，`TypeEvaluator`类也有两个现成的子类，比如`IntEvaluator`类：
+``` java
+public class IntEvaluator implements TypeEvaluator<Integer> {
+
+    public Integer evaluate(float fraction, Integer startValue, Integer endValue) {
+        int startInt = startValue;
+        return (int)(startInt + fraction * (endValue - startInt));
+    }
+}
+```
+    语句解释：
+    -  在上面的代码中，如果把fraction替换成0.5的话，就可以很容易的计算出结果是什么。
+    -  大声的告诉我，结果是什么？ 是的！就是它！
+
+　　`TypeEvaluator`类的另一个子类`FloatEvaluator`的代码和`IntEvaluator`相仿，笔者就不再冗述了。
+
+### 源码阅读 ###
+　　上面简单的介绍了动画播放过程，接下来再从源码的角度来看一下。比如现在需要执行如下代码：
+``` java
+ObjectAnimator moveIn = ObjectAnimator.ofFloat(button, "translationX", -500, 500);
+moveIn.setDuration(1000);
+moveIn.start();
+```
+    语句解释：
+    -  注意：View类定义的setTranslationX方法接收的是float类型的参数，所以调用ObjectAnimator.ofInt方法是无效的。
+
+
+<br>　　首先来看看`ObjectAnimator`类的`ofFloat`方法里面执行了哪些操作：
+``` java
+public static ObjectAnimator ofFloat(Object target, String propertyName, float... values) {
+    ObjectAnimator anim = new ObjectAnimator(target, propertyName);
+    anim.setFloatValues(values);
+    return anim;
+}
+public void setFloatValues(float... values) {
+    if (mValues == null || mValues.length == 0) {
+        if (mProperty != null) {
+            setValues(PropertyValuesHolder.ofFloat(mProperty, values));
+        } else {
+            // 由于是首次调用，所以会执行这个分支，即创建一个PropertyValuesHolder对象。
+            setValues(PropertyValuesHolder.ofFloat(mPropertyName, values));
+        }
+    } else {
+        super.setFloatValues(values);
+    }
+}
+public void setValues(PropertyValuesHolder... values) {
+    // 此处省略若干代码...
+    mValues = values;
+    // 此处省略若干代码...
+}
+```
+    语句解释：
+    -  在上面的代码中，只需要记住两个地方即可，因为后面会用到它们：
+       -  第一，ObjectAnimator类有一个mValues属性后面会用到。
+       -  第二，mValues属性是PropertyValuesHolder[]类型的。
+
+
+<br>　　接着来看看`ObjectAnimator`类的`start`方法，它是动画执行时最先调用的方法：
+``` java
+public void start() {
+
+    // 此处省略若干代码...
+
+    super.start();
+}
+```
+    语句解释：
+    -  为了减少篇幅，就不把start方法里的代码贴出来，因为贴出来并没有什么屌用。
+    -  省略掉的代码做的事情很简单，首先会判断如果正在播放的动画、等待的动画和延迟的动画中有和当前动画相同的动画，那么就把相同的动画给取消掉。
+    -  最后调用父类的start方法。
+
+<br>　　由于`ObjectAnimator`类继承了`ValueAnimator`类，所以接着看一下`ValueAnimator`类的`start`方法：
+``` java
+private void start(boolean playBackwards) {
+    if (Looper.myLooper() == null) {
+        throw new AndroidRuntimeException("Animators may only be run on Looper threads");
+    }
+
+    // 此处省略若干代码...
+
+    AnimationHandler animationHandler = getOrCreateAnimationHandler();
+    animationHandler.mPendingAnimations.add(this);
+    if (mStartDelay == 0) {
+        // This sets the initial value of the animation, prior to actually starting it running
+        if (prevPlayingState != SEEKED) {
+            setCurrentPlayTime(0);
+        }
+        mPlayingState = STOPPED;
+        mRunning = true;
+        notifyStartListeners();
+    }
+    animationHandler.start();
+}
+```
+    语句解释：
+    -  从上面的代码可以看出如下两点：
+       -  属性动画需要运行在有Looper的线程中。
+       -  动画被放到了一个AnimationHandler对象中，并调用AnimationHandler对象的start方法执行播放操作。
+
+<br>　　接着继续跟进`AnimationHandler`类的`start`方法：
+``` java
+public void start() {
+    scheduleAnimation();
+}
+private void scheduleAnimation() {
+    if (!mAnimationScheduled) {
+        mChoreographer.postCallback(Choreographer.CALLBACK_ANIMATION, mAnimate, null);
+        mAnimationScheduled = true;
+    }
+}
+final Runnable mAnimate = new Runnable() {
+    public void run() {
+        mAnimationScheduled = false;
+        doAnimationFrame(mChoreographer.getFrameTime());
+    }
+};
+void doAnimationFrame(long frameTime) {
+    // 此处省略若干代码...
+    for (int i = 0; i < numAnims; ++i) {
+        ValueAnimator anim = mTmpAnimations.get(i);
+        if (mAnimations.contains(anim) && anim.doAnimationFrame(frameTime)) {
+            mEndingAnims.add(anim);
+        }
+    }
+    // 此处省略若干代码...
+    if (!mAnimations.isEmpty() || !mDelayedAnims.isEmpty()) {
+        scheduleAnimation();
+    }
+}
+```
+    语句解释：
+    -  在start方法内部会转调用scheduleAnimation方法，scheduleAnimation方法会将mAnimate安排到Choreographer中。
+    -  Choreographer内部的代码我们不再继续深入了，因为它最终会回调mAnimate的run方法。
+    -  从上面的第20行代码可以看出，doAnimationFrame方法中会调用ValueAnimator的doAnimationFrame方法进行绘制。
+    -  最后，会检测是否还有未绘制的帧，如果有则再次安排下一帧的事件到Choreographer中。
+
+<br>　　在`ValueAnimator`的`doAnimationFrame`方法中又会依次调用`animationFrame`和`animateValue`方法。
+
+``` java
+void animateValue(float fraction) {
+    // 调用当前动画的插值器，计算出动画播放的比率fraction。
+    fraction = mInterpolator.getInterpolation(fraction);
+    mCurrentFraction = fraction;
+    int numValues = mValues.length;
+    for (int i = 0; i < numValues; ++i) {
+        // 将播放比率传递过去，计算出动画当前的播放位置。
+        mValues[i].calculateValue(fraction);
+    }
+    if (mUpdateListeners != null) {
+        int numListeners = mUpdateListeners.size();
+        for (int i = 0; i < numListeners; ++i) {
+            mUpdateListeners.get(i).onAnimationUpdate(this);
+        }
+    }
+}
+```
+    语句解释：
+    -  前面已经说了，mValues是PropertyValuesHolder[]类型的，而calculateValue方法是属于PropertyValuesHolder类的。
+
+<br>　　接着查看`PropertyValuesHolder`类`calculateValue`方法：
+``` java
+void calculateValue(float fraction) {
+    Object value = mKeyframes.getValue(fraction);
+    mAnimatedValue = mConverter == null ? value : mConverter.convert(value);
+}
+```
+    语句解释：
+    -  前面也已经说了，当调用ObjectAnimator.ofFloat时会创建一个FloatPropertyValuesHolder对象。
+    -  但是当时没有进一步查看FloatPropertyValuesHolder里的代码。
+    -  现在回过头去就可以发现mKeyframes初始化代码为：KeyframeSet.ofFloat(values)。
+
+<br>　　因此我们接下来要去查看`KeyframeSet`类的`getValue`方法：
+``` java
+public Object getValue(float fraction) {
+    // 此处省略若干代码...
+
+    return mEvaluator.evaluate(fraction, mFirstKeyframe.getValue(),
+            mLastKeyframe.getValue());
+
+    // 此处省略若干代码...
+}
+```
+    语句解释：
+    -  从上面的代码片段可以看出，在此方法中会调用动画的TypeEvaluator来计算出动画的实际位置，并将位置返回。
+
+<br>　　至此，我们就完成了一开始说的，系统播放动画时所要执行的四步操作中的前三步的源码解读了，还剩最后一步：
+
+	-  第四，会通过反射的方式把第三步计算出的播放位置传递给目标方法，执行更新操作。
+
+　　但是目前来看，线索好像断了，我们无从追踪了。
+
+　　不过不要慌！这里有个坑，那就是`ObjectAnimator`类重写了`animateValue`方法，我们来看一下重写后的代码：
+``` java
+void animateValue(float fraction) {
+
+    // 此处省略若干代码...
+
+    // 调用父类的方法计算当前动画播放的位置。
+    super.animateValue(fraction);
+    int numValues = mValues.length;
+    for (int i = 0; i < numValues; ++i) {
+        // 使用计算出来的播放位置，去绘制。
+        mValues[i].setAnimatedValue(target);
+    }
+}
+```
+    语句解释：
+    -  正如我们看到的那样，在调用父类的animateValue方法计算播放位置之后，它还有后续操作。
+    -  由于知道了mValues里存放的是FloatPropertyValuesHolder类型的，所以直接去查看它的setAnimatedValue方法即可。
+
+<br>　　阅读`setAnimatedValue`方法的源码：
+``` java
+void setAnimatedValue(Object target) {
+
+    // 此处省略若干代码...
+
+    if (mSetter != null) {
+        try {
+            mTmpValueArray[0] = mFloatAnimatedValue;
+            mSetter.invoke(target, mTmpValueArray);
+        } catch (InvocationTargetException e) {
+            Log.e("PropertyValuesHolder", e.toString());
+        } catch (IllegalAccessException e) {
+            Log.e("PropertyValuesHolder", e.toString());
+        }
+    }
+}
+```
+    语句解释：
+    -  到这里就算圆满了，我们看到了反射相关的代码了。
+
+
+### 动画对象 ###
+　　通过前面的学习，我们已经可以实现如下两种属性动画了：
+
+	-  动画一个int或float值。
+	-  动画一个对象的某个属性值。
+
+　　本节就来介绍一下，如何动画一个对象。
+
+<br>　　首先来定义一个`Point`类，如下所示：
 ``` android
 public class Point {
     private float x;
@@ -663,9 +1032,10 @@ public class Point {
     }
 }
 ```
-　　`Point`类非常简单，只有`x`和`y`两个变量用于记录坐标的位置，并提供了构造方法来设置坐标，以及`get`方法来获取坐标。
+    语句解释：
+    -  Point类非常简单，只有x和y两个变量用于记录坐标的位置，并提供了构造方法来设置坐标。
 
-　　接下来定义`PointEvaluator`，如下所示：
+<br>　　接下来定义`PointEvaluator`，如下所示：
 ``` android
 public class PointEvaluator implements TypeEvaluator{
     @Override
@@ -679,7 +1049,10 @@ public class PointEvaluator implements TypeEvaluator{
     }
 }
 ```
-　　这样我们就将`PointEvaluator`编写完成了，接下来我们就可以非常轻松地对`Point`对象进行动画操作了，比如说我们有两个`Point`对象，现在需要将`Point1`通过动画平滑过度到`Point2`，就可以这样写：
+    语句解释：
+    -  这样我们就将PointEvaluator编写完成了，接下来我们就可以非常轻松地对Point对象进行动画操作了。
+
+<br>　　比如说我们有两个`Point`对象，现在需要将`Point1`通过动画平滑过度到`Point2`，就可以这样写：
 ``` android
 Point point1 = new Point(0, 0);
 Point point2 = new Point(300, 300);
@@ -687,15 +1060,14 @@ ValueAnimator anim = ValueAnimator.ofObject(new PointEvaluator(), point1, point2
 anim.setDuration(5000);
 anim.start();
 ```
-　　好的，这就是自定义`TypeEvaluator`的全部用法，掌握了这些知识之后，我们就可以来尝试一下如何通过对`Point`对象进行动画操作，从而实现整个自定义`View`的动画效果。
+    语句解释：
+    -  ValueAnimator.ofObject专门用来动画一个对象。
 
-　　新建一个`MyAnimView`继承自`View`，代码如下所示：
+<br>　　接下来新建一个`MyAnimView`，在其内部播放动画，代码如下所示：
 ``` android
 public class MyAnimView extends View {
     public static final float RADIUS = 50f;
-
     private Point currentPoint;
-
     private Paint mPaint;
 
     public MyAnimView(Context context, AttributeSet attrs) {
@@ -704,21 +1076,12 @@ public class MyAnimView extends View {
         mPaint.setColor(Color.BLUE);
     }
 
-    @Override
     protected void onDraw(Canvas canvas) {
         if (currentPoint == null) {
-            currentPoint = new Point(RADIUS, RADIUS);
-            drawCircle(canvas);
             startAnimation();
         } else {
-            drawCircle(canvas);
+            canvas.drawCircle(currentPoint.getX(), currentPoint.getY(), RADIUS, mPaint);
         }
-    }
-
-    private void drawCircle(Canvas canvas) {
-        float x = currentPoint.getX();
-        float y = currentPoint.getY();
-        canvas.drawCircle(x, y, RADIUS, mPaint);
     }
 
     private void startAnimation() {
@@ -726,7 +1089,6 @@ public class MyAnimView extends View {
         Point endPoint = new Point(getWidth() - RADIUS, getHeight() - RADIUS);
         ValueAnimator anim = ValueAnimator.ofObject(new PointEvaluator(), startPoint, endPoint);
         anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 currentPoint = (Point) animation.getAnimatedValue();
                 invalidate();
@@ -737,8 +1099,10 @@ public class MyAnimView extends View {
     }
 }
 ```
+    语句解释：
+    -  自定义控件相关的知识在后面章节中会详细介绍。
 
-　　下面我们只需要在布局文件当中引入这个自定义控件：
+<br>　　然后我们只需要在布局文件当中引入这个自定义控件：
 ``` xml
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -754,152 +1118,39 @@ public class MyAnimView extends View {
 ![](http://img.blog.csdn.net/20150504225258841)
 </center>
 
-　　这样我们就成功实现了通过对对象进行值操作来实现动画效果的功能，这就是`ValueAnimator`的高级用法。
-<br>
-### ObjectAnimator进阶###
-　　之前我们在吐槽补间动画的时候有提到过，补间动画是只能实现移动、缩放、旋转和淡入淡出这四种动画操作的，功能限定死就是这些，基本上没有任何扩展性可言。比如我们想要实现对`View`的颜色进行动态改变，补间动画是没有办法做到的。
-　　但是属性动画就不会受这些条条框框的限制，它的扩展性非常强，对于动态改变`View`的颜色这种功能是完全可是胜任的，那么下面我们就来学习一下如何实现这样的效果。
-
-<br>　　我们此时就需要在`MyAnimView`中定义一个`color`属性，并提供它的`get`和`set`方法。这里我们可以将`color`属性设置为字符串类型，使用`#RRGGBB`这种格式来表示颜色值，代码如下所示：
-``` android
-public class MyAnimView extends View {
-    //...
-    private String color;
-
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-        // 修改画笔颜色
-        mPaint.setColor(Color.parseColor(color));
-        // 重绘视图，调用此方法后会导致onDraw()方法被调用。
-        invalidate();
-    }
-    //...
+<br>　　我们可以再扩展一下，让圆形在移动的同时变色，代码如下：
+``` java
+private void startAnimation() {
+    // 移动动画
+    Point startPoint = new Point(RADIUS, RADIUS);
+    Point endPoint = new Point(getWidth() - RADIUS, getHeight() - RADIUS);
+    ValueAnimator moveAnim = ValueAnimator.ofObject(new PointEvaluator(), startPoint, endPoint);
+    moveAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        public void onAnimationUpdate(ValueAnimator animation) {
+            currentPoint = (Point) animation.getAnimatedValue();
+            invalidate();
+        }
+    });
+    // 颜色变化的动画。 8位数字表示ARGB，每个颜色占2位。
+    ValueAnimator colorAnim = ValueAnimator.ofInt(0xFF0000FF, 0xFFFF0000);
+    colorAnim.setEvaluator(new ArgbEvaluator());
+    colorAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        public void onAnimationUpdate(ValueAnimator animation) {
+            // 获取动画的当前值，并将它转为16进制的形式。
+            String color = Integer.toHexString((Integer) animation.getAnimatedValue());
+            // 设置画笔的颜色。
+            mPaint.setColor(Color.parseColor("#" + color));
+        }
+    });
+    // 同时播放这两个动画
+    AnimatorSet animSet = new AnimatorSet();
+    animSet.play(colorAnim).with(moveAnim);
+    animSet.setDuration(5000);
+    animSet.start();
 }
 ```
     语句解释：
-    -  在onDraw()方法当中会根据画笔mPaint的颜色来进行绘制，这样颜色也就会动态进行改变了。
-
-<br>　　那么接下来的问题就是怎样让`setColor()`方法得到调用了，毫无疑问，当然是要借助`ObjectAnimator`类，但是在使用`ObjectAnimator`之前我们还要完成一个非常重要的工作，就是编写一个用于告知系统如何进行颜色过度的`TypeEvaluator`。创建`ColorEvaluator`并实现`TypeEvaluator`接口，代码如下所示：
-``` android
-public class ColorEvaluator implements TypeEvaluator {
-    private int mCurrentRed = -1;
-    private int mCurrentGreen = -1;
-    private int mCurrentBlue = -1;
-
-    @Override
-    public Object evaluate(float fraction, Object startValue, Object endValue) {
-        String startColor = (String) startValue;
-        String endColor = (String) endValue;
-        int startRed = Integer.parseInt(startColor.substring(1, 3), 16);
-        int startGreen = Integer.parseInt(startColor.substring(3, 5), 16);
-        int startBlue = Integer.parseInt(startColor.substring(5, 7), 16);
-        int endRed = Integer.parseInt(endColor.substring(1, 3), 16);
-        int endGreen = Integer.parseInt(endColor.substring(3, 5), 16);
-        int endBlue = Integer.parseInt(endColor.substring(5, 7), 16);
-        // 初始化颜色的值
-        if (mCurrentRed == -1) {
-            mCurrentRed = startRed;
-        }
-        if (mCurrentGreen == -1) {
-            mCurrentGreen = startGreen;
-        }
-        if (mCurrentBlue == -1) {
-            mCurrentBlue = startBlue;
-        }
-        // 计算初始颜色和结束颜色之间的差值
-        int redDiff = Math.abs(startRed - endRed);
-        int greenDiff = Math.abs(startGreen - endGreen);
-        int blueDiff = Math.abs(startBlue - endBlue);
-        int colorDiff = redDiff + greenDiff + blueDiff;
-        if (mCurrentRed != endRed) {
-            mCurrentRed = getCurrentColor(startRed, endRed, colorDiff, 0, fraction);
-        } else if (mCurrentGreen != endGreen) {
-            mCurrentGreen = getCurrentColor(startGreen, endGreen, colorDiff, redDiff, fraction);
-        } else if (mCurrentBlue != endBlue) {
-            mCurrentBlue = getCurrentColor(startBlue, endBlue, colorDiff, redDiff + greenDiff, fraction);
-        }
-        // 将计算出的当前颜色的值组装返回
-        String currentColor = "#" + getHexString(mCurrentRed) + getHexString(mCurrentGreen) + getHexString(mCurrentBlue);
-        return currentColor;
-    }
-
-    /**
-     * 根据fraction值来计算当前的颜色。
-     */
-    private int getCurrentColor(int startColor, int endColor, int colorDiff, int offset, float fraction) {
-        int currentColor;
-        if (startColor > endColor) {
-            currentColor = (int) (startColor - (fraction * colorDiff - offset));
-            if (currentColor < endColor) {
-                currentColor = endColor;
-            }
-        } else {
-            currentColor = (int) (startColor + (fraction * colorDiff - offset));
-            if (currentColor > endColor) {
-                currentColor = endColor;
-            }
-        }
-        return currentColor;
-    }
-	
-    /**
-     * 将10进制颜色值转换成16进制。
-     */
-    private String getHexString(int value) {
-        String hexString = Integer.toHexString(value);
-        if (hexString.length() == 1) {
-            hexString = "0" + hexString;
-        }
-        return hexString;
-    }
-
-}
-```
-
-　　`ColorEvaluator`写完之后我们就把最复杂的工作完成了，剩下的就是一些简单调用的问题了，比如说我们想要实现从蓝色到红色的动画过度，历时5秒，就可以这样写：
-``` android
-ObjectAnimator anim = ObjectAnimator.ofObject(myAnimView, "color", new ColorEvaluator(), "#0000FF", "#FF0000");
-anim.setDuration(5000);
-anim.start();
-```
-　　用法非常简单易懂，相信不需要我再进行解释了。
-
-　　接下来我们需要将上面一段代码移到`MyAnimView`类当中，让它和刚才的`Point`移动动画可以结合到一起播放，这就要借助我们在上篇文章当中学到的组合动画的技术了。修改`MyAnimView`中的代码，如下所示：
-``` android
-public class MyAnimView extends View {
-
-    // ...
-
-    private void startAnimation() {
-        Point startPoint = new Point(RADIUS, RADIUS);
-        Point endPoint = new Point(getWidth() - RADIUS, getHeight() - RADIUS);
-        ValueAnimator anim = ValueAnimator.ofObject(new PointEvaluator(), startPoint, endPoint);
-        anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                currentPoint = (Point) animation.getAnimatedValue();
-                invalidate();
-            }
-        });
-        ObjectAnimator anim2 = ObjectAnimator.ofObject(this, "color", new ColorEvaluator(), "#0000FF", "#FF0000");
-        AnimatorSet animSet = new AnimatorSet();
-        animSet.play(anim).with(anim2);
-        animSet.setDuration(5000);
-        animSet.start();
-    }
-
-}
-```
-
-　　可以看到，我们并没有改动太多的代码，重点只是修改了`startAnimation()`方法中的部分内容。这里先是将颜色过度的代码逻辑移动到了`startAnimation()`方法当中，注意由于这段代码本身就是在`MyAnimView`当中执行的，因此`ObjectAnimator.ofObject()`的第一个参数直接传`this`就可以了。接着我们又创建了一个`AnimatorSet`，并把两个动画设置成同时播放，动画时长为`5`秒，最后启动动画。现在重新运行一下代码，效果如下图所示：
-
-<center>
-![](http://img.blog.csdn.net/20150504225554203)
-</center>
+    -  动画的效果是什么，运行代码就知道了。
 
 # 第四节 NineOldAndroids #
 　　前面说了，属性动画是在`Android3.0`中推出的，在`Android3.0`之前没法使用它。
@@ -924,7 +1175,7 @@ You need to physically move the view when the animation ends on pre-Honeycomb.
 　　[点击查看详情](http://stackoverflow.com/questions/13173808/nineoldandroids-not-clickable-view-after-rotation-or-move?rq=1)
 
 　　更劲爆的是，作者本人已经将这个项目给`DEPRECATED`了，下面是他的解释：
-```
+``` c
 NineOldAndroids is deprecated. No new development will be taking place. 
 Existing versions will (of course) continue to function. 
 New applications should use minSdkVersion="14" or higher which has access to the platform animation APIs.
@@ -933,31 +1184,12 @@ Thanks for all your support!
 ```
 
 
-<br>　　这是不是说`NineOldAndroids`动画库就完全没用了？ 并不是！事实上`NineOldAndroids`动画库有两个功能：
-
-	-  第一，让Android3.0之前的平台使用属性动画。
-	-  第二，让Android3.0之前的平台使用setAlpha()、setTranslationX()等方法。
-
-　　经过前面几节的学习，我们已然知道了属性动画解决了视图动画的三个缺点，就算`NineOldAndroids`动画库没法真正修改视图的位置，那么它还是解决了视图动画的另外两个缺点。
-　　另外，通过查看`View`类可以看到，`setAlpha()`、`setTranslationX()`等（透明度、平移、缩放）方法是在`Android3.0`中提出的，这几个`API`是十分有用的，`NineOldAndroids`里帮我们做了一些兼容，让我们在`Android3.0`之前就可以使用它们：
-``` java
-// 让view向下方移50像素。
-ViewHelper.setTranslationY(view, 50);
-// 让view宽度放大2倍。
-ViewHelper.setScaleX(view, 2);
-```
-    语句解释：
-    -  比如我们想让控件随着手指的滑动来平移、放大，就可以使用上面的工具类：ViewHelper。
-       -  示例项目地址：https://github.com/BlueMor/Android-PullLayout 。
-    -  通过查看ViewHelper类的源码可以知道，ViewHelper类也是同样的逻辑，当设备是Android3.0或以上时，则会调用系统API，否则则会调用自己实现的API。 
-       -  相应的，当设备是Android3.0之前时，ViewHelper类也只会改变View的视觉效果，View的实际位置等还是不会改变。
-
-<br>　　因此，笔者提出如下的建议：
+<br>　　这是不是说`NineOldAndroids`动画库就完全没用了？ 并不是！笔者提出如下的建议：
 
 	-  如果你的项目是基于Android3.0或以上开发的，那么完全不需要使用NineOldAndroids库，直接用系统的API即可。
 	-  如果基于Android3.0之前的版本：
 	   -  如果你只是想用属性动画来动画一个非View对象，那么使用NineOldAndroids库完全没问题。
-	   -  如果你想很方便的、真正意义的在Android3.0之前的设备上改变View位置、旋转等属性，那么NineOldAndroids库很难做到。
+	   -  如果你想真正意义的在Android3.0之前的设备上改变View位置、旋转等属性，那么NineOldAndroids库很难做到。
 
 
 <br>**本节参考阅读：**

@@ -1,939 +1,792 @@
-title: 入门篇　第五章 数据存取
-date: 2015-3-5 16:19:10
+title: 入门篇　第五章 网络编程
+date: 2015-3-9 10:38:36
 categories: android
 ---
-　　Android设备中，存在着各种各样的文件（如`数据库文件`、`偏好配置文件`等），它们被保存在`手机内部存储`或`外部存储设备`（如SD卡）中。
-　　通过`Eclipse`或`AndroidStudio`我们可以查看手机的文件系统的结构，打开`DDMS`视图找到`FileExplorer`（文件浏览器），我们可能会看到很多文件夹，其中`system`、`data`、`mnt`三个文件夹比较重要。
+　　本章来讲解一下`Android`开发中网络编程相关的知识。
 
-	-  system：用于保存系统文件。
-	-  data ： 用于保存与应用程序有关的数据。
-	-  mnt ：是一个影射目录，一些手机的外设(如sd卡)的存储数据的文件夹，都在其内部出现。
+# 第一节 HTTP协议 #
+　　本节简单的介绍一些`http`协议的基础知识，如果你没有任何网络编程的经验，那么你不适合阅读本文。
+## 基础知识 ##
+　　超文本传送协议 (`HTTP-Hypertext transfer protocol`) 是一个基于请求与响应模式的、无状态的、应用层的通信协议，它工作在`TCP/IP`协议体系中的`TCP`协议上。 
 
-　　即`system`和`data`目录是放在`手机内部存储`里的，而sd卡等`外部存储设备`的根目录会出现在`mnt`目录下。
-<br>　　本章将详细介绍`Android`中数据存取相关的知识。
+　　如图所示：
 
-# 第一节 数据存储 #
-　　应用程序在运行的时候会产生各种数据文件，它们通常被保存在`/data/data/packagename/`目录下面，每种类型的文件占据一个子目录：
+<center>
+![](/img/android/android_7_1.png)
+</center>
 
-	-  普通文件：用于保存常见的文本、图片信息。如：txt、jpg等文件。
-	   -  被保存在/data/data/packagename/files目录。
-	-  配置文件：用于保存用户的个性化设置，配置文件是xml类型的。
-	   -  被保存在/data/data/packagename/shared_prefs目录。
-	-  数据库文件：用于保存结构化的数据。如：.db文件。
-	   -  被保存在/data/data/packagename/databases目录。
-	-  缓存文件：用于保存临时文件。当手机存储容量不足时，系统会删除一部分缓存文件。
-	   -  被保存在/data/data/packagename/cache目录。
+　　`http`协议是万维网（`world wide web`）交换信息的基础，它允许将超文本标记语言(`HTML`)网页从服务器传送到`Web`浏览器(如`IE`等)。
 
-<br>　　下面就来介绍一下各种文件的读写方法。
+<br>**特点**
+　　`http`协议是无状态的。
 
-## 普通文件 ##
-　　在读写文件之前，我们需要先获取该文件的输入输出流，`Context`类就为我们提供了这样的方法。
+	-  无状态是指协议对于事务处理没有记忆能力。
+	-  也就是说如果后续处理需要前面的信息，则它必须重传，这样可能导致每次连接传送的数据量增大。如：用户登录，若第一次登录密码输入错误，则在第二次登录时，同样需要再次提供账号和密码，而不是只提供密码。
 
-<br>　　范例1：Context类。
+　　基于请求/应答模式的。
+
+	-  客户端发送一个请求(request)给服务器，服务器在接收到这个请求后执行相应的操作，并在操作完成后生成一个响应(response)返回给客户端。
+	-  用户在浏览器地址栏中输入一个网址(URL)，就是在向服务器端发送一个请求，请求查看网页的内容。
+	-  服务器端总是等待客户端发来的请求，而不会主动的向客户端发送请求。
+
+<br>**作用**
+　　`http`能做什么?
+　　浏览网页是`http`的主要应用，但是这并不代表`http`就只能应用于网页的浏览。 `http`是一种协议，只要通信的双方都遵守这个协议，`http`就能有用武之地。
+
+<br>**URI和URL**
+　　URL是URI的子集。
+
+	-  URI 可以描述任意一个(本地系统、互联网等地方的)资源的路径。
+	-  URL 是一种特殊类型的URI，包含了用于查找某个资源的足够的信息，主要用来描述互联网上的一个资源的路径。
+
+　　比如：`“http://www.baidu.com/test/a.txt”`是一个URL，它也是一个URI 。
+
+<br>　　URL 的一般形式是：`<URL的访问方式>://<主机>:[端口][路径]`，比如：`http://www.baidu.com:8080/test/a.txt`。其中：
+
+	-  “http”表示要通过http协议来定位网络资源，常见的访问方式有：http、ftp、news等。
+	-  “www.baidu.com”表示资源所在的地址，它是一个合法的Internet主机域名或者IP地址。
+	-  “8080”表示端口号，若省写了端口则默认访问80端口。
+	-  “/test/a.txt”表示资源在服务器端的存放路径。
+
+<br>**协议版本号**
+　　超文本传输协议已经演化出了很多版本，它们中的大部分都是向下兼容的。
+　　目前有`0.9`(已过时)、`HTTP/1.0`、`HTTP/1.1`。
+　　`HTTP/0.9`只接受`GET`一种请求方法，没有在通讯中指定版本号，且不支持请求头。由于该版本不支持`POST`方法，所以客户端无法向服务器传递太多信息。
+
+　　`HTTP/1.0`这是第一个在通讯中指定版本号的HTTP协议版本，至今仍被广泛采用，特别是在代理服务器中。
+
+　　`HTTP/1.1`是当前版本（现在是2015年），持久连接被默认采用，并能很好地配合代理服务器工作，还支持以管道方式在同时发送多个请求，以便降低线路负载，提高传输速度。
+
+<br>**HTTP/1.0与HTTP/1.1**
+　　网站每天可能要接收到上百万的请求，为了提高系统效率，`HTTP1.0`规定浏览器与服务器只保持短暂的连接，浏览器的每次请求都需要与服务器建立一个`TCP`连接，服务器完成请求处理后立即断开`TCP`连接，服务器不跟踪每个客户也不记录过去的请求。但是，这也造成了一些性能上的缺陷。
+
+　　首先浏览器去请求服务器端的一个网页文件，这个网页文件中又引用了多张图片。
+　　当浏览器访问这个网页文件时，发现其中的`<img>`图像标签后，浏览器会再次向服务器发出下载图像数据的请求。
+　　显然，访问一个包含有许多图像的网页文件的整个过程包含了多次请求和响应，`每次请求和响应都需要建立一个单独的连接`，每次连接只是传输一个文档和图像，上一次和下一次请求完全分离。
+　　客户端和服务器端每次建立和关闭连接却是一个相对比较费时的过程，并且会严重影响客户机和服务器的性能。当一个网页文件中包含 `Applet`，`JavaScript`文件，`CSS`文件等内容时，也会出现类似上述的情况。
+
+　　为了克服`HTTP 1.0`的这个缺陷，`HTTP 1.1`支持持久连接。
+　　在一个`TCP`连接上可以传送多个`HTTP`请求和响应，减少了建立和关闭连接的消耗和延迟。一个包含有许多图像的网页文件的多个请求和应答可以在一个`TCP`连接中传输，但每个单独的网页文件的请求和应答仍然需要使用各自的连接。
+
+<br>　　扩展：
+
+	HTTP 1.1在继承了HTTP 1.0优点的基础上，也克服了HTTP 1.0的性能问题。
+	HTTP 1.1 还通过增加更多的请求头和响应头来改进和扩充HTTP 1.0 的功能。例如，由于HTTP 1.0不支持Host请求头字段，WEB浏览器无法使用主机头名来明确表示要访问服务器上的哪个WEB站点，这样就无法使用WEB服务器在同一个IP地址和端口号上配置多个虚拟WEB站点。在HTTP 1.1中增加Host请求头字段后，WEB浏览器可以使用主机头名来明确表示要访问服务器上的哪个WEB站点，这才实现了在一台WEB服务器上可以在同一个IP地址和端口号上使用不同的主机名来创建多个虚拟WEB站点。HTTP 1.1 的持续连接，也需要增加新的请求头来帮助实现，例如，Connection 请求头的值为Keep-Alive 时，客户端通知服务器返回本次请求结果后保持连接；Connection 请求头的值为close 时，客户端通知服务器返回本次请求结果后关闭连接。 HTTP 1.1还提供了与身份认证、状态管理和Cache缓存等机制相关的请求头和响应头。
+
+<br>**本节参考阅读：**
+- [HTTP协议详解（真的很经典）](http://www.cnblogs.com/li0803/archive/2008/11/03/1324746.html) 
+- [HTTP_互动百科](http://www.baike.com/wiki/HTTP)
+- [超文本传输协议_维基百科](http://zh.wikipedia.org/wiki/%E8%B6%85%E6%96%87%E6%9C%AC%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE#.E5.8D.8F.E8.AE.AE.E7.89.88.E6.9C.AC.E5.8F.B7)  
+
+## HTTP请求 ##
+　　客户端连上服务器后，并请求访问服务器内的某个`web`资源，称之为客户端向服务器发送了一个HTTP请求(`request`)。一个完整的HTTP请求包括如下内容：
+
+	-  一个请求行。
+	-  若干请求报头。
+	-  一个空白行(起到间隔作用)。
+	-  请求正文(以post方式发送的请求才有此项)。
+
+<br>**请求行**
+　　请求行由三部分组成：请求的方式，请求的资源名称，请求使用的协议以及版本。
+　　HTTP请求的方式有：`POST`、`GET`、`HEAD`、`OPTIONS`、`DELETE`、`TRACE`、`PUT`、`CONNECT`。其中`GET`和`POST`最常用。
+
+<br>　　范例1：请求行。
+``` 
+GET / books/java.html  HTTP/1.1
 ```
-// 指定文件名称，从/data/data/packagename/files目录下获取该文件的输入流，若文件不存在则抛异常。
-public abstract FileInputStream openFileInput(String name) 
 
-// 指定文件名称，从/data/data/packagename/files目录下获取该文件的输出流，若文件不存在则创建一个空文件。
-// 参数mode：指定文件的打开方式，取值有四种，后面将进行具体介绍：
-// -  Context.MODE_PRIVATE
-// -  Context.MODE_APPEND
-// -  Context.MODE_WORLD_READABLE
-// -  Context.MODE_WORLD_WRITEABLE 
-public abstract FileOutputStream openFileOutput(String name, int mode)
+<br>　　`GET`方式：将需要传递给服务器的数据直接写在URL后面。
 
-// 返回当前应用程序的/data/data/packagename/cache目录。
-public abstract File getCacheDir()
+<center>
+![](/img/android/android_7_2.png)
+</center>
 
-// 返回当前应用程序的/data/data/packagename/files目录。如：/data/data/org.cxy.file/files。
-public abstract File getFilesDir()
+　　如：`GET / cxy/a.html?name=tomcat&password=123 HTTP/1.1`
+　　含义：请求查看`a.html`文件，并向服务器中传递两个参数，`name`和`password`，多个参数之间使用`&`间隔。 文件名与参数之间使用`?` 间隔。
+　　缺点：由于浏览器地址栏的长度有限，因此若参数过多，则就不要使用此方式。
+
+<br>　　`POST`方式：参数将通过“请求正文”发送给服务器，因此参数的数量、长度是无限制。
+
+<center>
+![](/img/android/android_7_3.png)
+</center>
+
+<br>**请求报头**
+　　请求报头是客户端向服务器端发送请求时，请求中附加的信息以及客户端自身的信息。
+
+<br>　　范例1：请求头中的常见信息。
+```
+Accept: image/gif, image/jpeg, image/pjpeg, image/pjpeg, application/x-shockwave-flash, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword, */*
+Referer: http://localhost/cxy/a.html?name=tomcat&password=123
+Accept-Language: zh-CN,en-US;q=0.5
+User-Agent: Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727)
+Content-Type: application/x-www-form-urlencoded
+Accept-Encoding: gzip, deflate
+Host: localhost
+Content-Length: 24
+Connection: Keep-Alive
+Cache-Control: no-cache
+```
+    语句解释：
+    -  请求头Accept：告知服务器，客户端浏览器可接受的文件的类型。如：
+       -  Accept:image/gif，表明客户端希望接受 gif 图象。
+       -  Accept:text/html，表明客户端希望接受 html 文本。
+    -  请求头Accept-Encoding：告知服务器，客户端浏览器可接受的数据压缩编码。
+    -  请求头Accept-Language：告知服务器，客户端浏览器当前语言环境(用于国际化程序设计)。
+    -  请求头Host：告知服务器，客户端浏览器要访问的主机。必须要提供此请求头。
+    -  请求头Referer：告知服务器，当前请求是由客户端浏览器的哪个页面发出的。
+    -  请求头User-Agent：告知服务器，客户端操作系统、浏览器的类型、版本号等信息，此属性由浏览器来设置。
+    -  请求头Cookie：告知服务器，客户端浏览器中的Cookie 。
+    -  请求头Connection：取值有两个“Keep-Alive和close” 。
+    -  请求头Date：告知服务器，客户端浏览器发送请求的时间。
+    -  请求头Content-Length：告知服务器，请求中的请求正文的长度。
+
+## HTTP响应 ##
+　　服务器接收到客户端的请求后，会将用户请求的数据，以一个回应(`response`)的方式返回给客户端。一个完整的HTTP回应包括如下内容：
+
+	-  一个响应行。
+	-  若干响应报头。
+	-  一个空白行(起到间隔作用)。
+	-  响应正文。
+
+<br>**响应行**
+　　响应行由三部分组成：协议及版本号，响应码，响应信息。
+
+<br>　　范例1：响应行。
+```
+HTTP/1.1  200  OK
+```
+　　响应码用于表示服务器对请求的处理结果。常见的HTTP响应码有：
+```
+状态码                                   表示的含义
+100～199                        表示成功接收请求，要求客户端继续提交下一次请求才能完成整个处理过程。
+200～299                        表示成功接收请求并已完成整个处理过程，常用200 。
+300～399                        重定向，客户需进一步细化请求。例如，请求的资源已经移动一个新地址，常用302、304。
+400～499                        客户机中出现的错误
+                                403 服务器收到请求，但是拒绝提供服务
+                                404 服务器找不到客户端请求的资源
+500～599                        服务器中出现的错误
+                                500 服务器内部错误 —— 因为意外情况，服务器不能完成请求。
 ```
 
-<br>　　范例2：文件打开方式。
-```
-打开方式                     当前应用程序对文件的权限              其他应用程序对文件的权限
-MODE_PRIVATE                读/写                                无
-MODE_APPEND                 读/写 写的时候采用追加方式             无
-MODE_WORLD_READABLE         读/写                                只读
-MODE_WORLD_WRITEABLE        读/写                                只写，不会追加。
-```
-　　提示：若想让其他程序对当前应用程序的文件既可以写，又可以读，则可以这么做：
-``` android
-Context.MODE_WORLD_READABLE + Context.MODE_WORLD_WRITEABLE
-```
-　　也就是说其他程序可以通过指定某个文件的绝对路径（`/data/data/...`），来访问某个应用程序的文件，具体如何访问，后面会有详细描述。
+　　提示：响应码为`200`，则意味着请求被处理完成，客户端请求的数据被完整的返回。关于响应码的详细描述，请参看：[HTTP状态码_百度百科](http://baike.baidu.com/view/1790469.htm)。
 
-<br>　　范例3：创建文件。
-``` android
-public class MyActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        try {
-            OutputStream out = openFileOutput("a.txt",Context.MODE_PRIVATE);
-            out.write("Android 程序员".getBytes());
-            out.close();
-        } catch(Exception e) {}
+<br>**响应报头**
+　　响应报头允许服务器传递不能放在响应行中的附加响应信息，以及关于服务器的信息和对`Request-URI`所标识的资源进行下一步访问的信息。
+
+<br>　　范例1：响应头中的常见信息。
+```
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Length: 10
+Date: Sun, 21 Aug 2011 13:32:33 GMT
+Location: http://www.baidu.com
+Content-Encoding: gzip 
+Content-Type: text/html;charset=gbk
+Refresh: 1;url=http://www.qq.com
+Content-Disposition: attachment; filename=aaa.zip
+Expires: -1
+Cache-Control: no-cache  
+Pragma: no-cache   
+Connection: close/Keep-Alive   
+
+Hi Tomcat!
+```
+    语句解释：
+    -  响应头Server：包含了服务器用来处理请求的软件信息。与 User-Agent 请求报头域是相对应的。
+    -  响应头Content-Length：指出返回的“回应正文”的长度。
+    -  响应头Date：服务器回应的时间，和咱们东八区有8个小时的时差。
+    -  响应头Location：告知客户端浏览器，需要将浏览器窗口重定位到其指向的页面中。只有响应码为302时，浏览器才会执行重定位。
+    -  响应头Content-Encoding：告知客户端浏览器，数据(回应正文)的压缩格式。
+    -  响应头Content-Type：告知浏览器，服务器返回给浏览器的数据，是什么格式的。即MIME类型。
+    -  响应头Refresh：告知浏览器，定时刷新页面。
+    -  响应头Expires、Cache-Control、Pragma：都是用来告知浏览器不要缓存资源数据。由于浏览器的种类繁多，所以有3种头信息。
+
+# 第二节 HttpURLConnection #
+<br>　　范例1：发送GET请求。
+``` java
+public boolean sendGet() throws Exception{
+    boolean mark = false;
+    // 根据一个String来构造一个URL对象。
+    // URLEncoder.encode()方法用来将给定字符串s按照指定编码enc的方式进行编码。
+    URL url = new URL("http://192.168.1.108/Picture/PersonServlet?name="+URLEncoder.encode("张三","GBK"));
+    // 返回一个 URLConnection 对象，它表示URL 所引用的远程对象的连接。通过这个连接，可以获取远程对象的IO流。
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    // 设置超时的时间。当程序请求访问当前URLConnection指向的资源时，若服务器端在timeout毫秒内没有响应程序的请求
+    // 则程序会抛java.net.SocketTimeoutException异常。
+    // 设置为0则意味着无限等待，即没有超时时限。默认值也为0 。
+    // 设置为负数，则此方法将抛IllegalArgumentException异常。
+    conn.setConnectTimeout(5000);
+    // 设置当前HttpURLConnection对象向服务器端发送请求时，所使用的请求方式。默认为GET。注意：请求的方式要使用大写字母 。
+    conn.setRequestMethod("GET");
+    if( conn.getResponseCode() == 200){
+        mark = true;
     }
+    return mark;
 }
 ```
     语句解释：
-    -  String类的getBytes方法将字符串转为byte[]时，会根据当前系统默认编码进行转换。
-       -  Android手机系统默认的编码为UTF-8 。
-       -  中文PC机的操作系统，系统的默认编码通常为GB2312和GBK。
-	-  由于使用的是输出流，所以若文件不存在，则会自动创建。
-	-  本范例中，a.txt会默认被创建在/data/data/packagename/files文件夹下。
-	-  应用程序只能向自己的“数据目录或数据目录的子目录”中写文件，不可以向其他应用程序的数据目录中写数据。
-	   -  数据目录就是：/data/data/packagename/。
+    -  使用GET方式提交数据时，若需要传递中文，则可以使用URLEcoder类对汉字进行编码。
 
-<br>　　范例4：读入文件。
-``` android
-public class ViewTextActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        try {
-            // 前往/data/data/packagename/files目录中查找a.txt
-            InputStream input = this.openFileInput("a.txt");
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            int len;
-            byte[] array = new byte[1024];
-            while((len = input.read(array)) != -1){
-                bos.write(array,0,len);
-            }
-            input.close();
-            Toast.makeText(this, new String(bos.toByteArray()), 0).show();
-            bos.close();
-        } catch(Exception e) {}
+<br>　　范例2：Post请求。
+``` java
+public void sendPost()throws Exception{
+    StringBuilder sb = new StringBuilder();
+    sb.append("name=").append("张三").append("&");
+    sb.append("age=").append("30"); 
+	
+    URL url = new URL("http://192.168.0.101/Picture/2.jsp");
+    HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+    conn.setConnectTimeout(5000);
+    conn.setRequestMethod("POST");// 设置请求方式为post。
+	
+    // 设置数据。
+    byte[] array = sb.toString().getBytes();
+    // 设置允许程序通过conn向服务器写数据。默认是不允许的。
+    conn.setDoOutput(true);
+    // 将数据写入内存。
+    OutputStream out = conn.getOutputStream();
+    out.write(array);
+    // 发送数据，并获得服务器端的响应。
+    if(conn.getResponseCode() == 200){
+        // Do something
     }
-}
-```
-    语句解释：
-    -  使用new String(byte[] data)创建字符串时，同样会调用系统的默认编码，将byte[]转换成一个String对象。
-
-<br>　　范例5：Linux下文件操作权限。
-```
-在Linux中文件的操作权限由10位字符组成，如：-rw-rw-rw- 。
--  第一位字符表示文件的类型：
-   -  若是一个文件，则使用‘-’表示。若是一个目录，则使用‘d’表示。
--  第2~4个字符表示文件所有者对文件的权限。
-   -  r表示可读，w表示可写，x表示可执行。
--  第5~7个字符表示与文件所有者处于同一个用户组的其他用户，对该文件的访问权限。
-   -  r表示可读，w表示可写，x表示可执行。
--  第8~10个字符表示，其他用户对文件的访问权限。
-   -  r表示可读，w表示可写，x表示可执行。
-```
-
-<br>**扩展：**
-　　`Android`有一套自己的安全模型，在`.apk`被安装时系统就会分配给该应用程序一个`userid`。当它要去访问某个资源(比如文件)的时候，就需要与文件的`userid`匹配。默认情况下，任何应用创建的文件、`sharedpreferences`、数据库都应该是私有的，其他程序无法直接访问。
-　　除非在创建时指定了`MODE_WORLD_READABLE`和`MODE_WORLD_WRITEABLE`，只有这样其他程序才能正确访问。
-
-## 存储卡文件 ##
-　　一般来说，手机本身的存储容量是很小的，但是手机中往往都会存储一些容量较大的音乐、视频等文件，此时可以单独购买一个SD卡。 
-　　所有兼容`Android`的设备都支持一个可共享的`“外部存储(external storage)”`，可用来保存文件。值得注意的是：
-
-	-  不同的手机情况会有所不同：
-	   -  有的手机提供了一个卡槽，你可以自己购买一个SD卡插进去。
-	   -  有的手机直接就集成了一个SD卡在手机里，你没法把它拆下来，比如小米手机。
-	-  但是不论是哪种，它们都算是外部存储。
-　　注意：保存在外部存储的文件，没有强制的安全措施。所有的应用都可以读/写这些文件，用户也能够删除它们，因此重要的文件请不要保存在外部存储设备上。
-
-<br>　　相应的，`Android`也为我们提供了操作外部存储设备上的文件的`API`。
-
-<br>　　范例1：Environment类。
-``` android
-// 获取当前系统，外部存储器的根目录。
-public static File getExternalStorageDirectory()
-
-// 获取当前系统，data目录。
-public static File getDataDirectory()
-
-// 获取当前系统，system目录。
-public static File getRootDirectory()
-
-// 获取当前系统存储卡的状态。在Environment类中定义了如下几个String类型的状态：
-// -  MEDIA_MOUNTED ：已经安装到手机中，并可以对其进行读写操作。
-// -  MEDIA_MOUNTED_READ_ONLY ：已经安装到手机中，只可以对其进行读操作。
-// -  MEDIA_UNMOUNTABLE ：存储卡在手机中，但是没有装载到操作系统上。
-// -  MEDIA_REMOVED ：存储卡不在手机中。
-public static String getExternalStorageState()
-```
-
-<br>　　范例2：向SDCard写文件。
-``` android
-// 若sdcard已经装载到手机中。
-if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){  
-    File file = new File(Environment.getExternalStorageDirectory(),"a.txt");
-    OutputStream out = new FileOutputStream(file);
-    out.write("Android开发!".getBytes("UTF-8"));   
     out.close();
 }
 ```
     语句解释：
-    -  向存储卡写数据之前应该先判断一下，用户手机是否成功安装了存储卡。
-    -  文件会自动被写到SDCard的根目录下面。
+    -  默认情况下，当调用服务器端输出流的write方法写数据时，数据将被写入内存(HttpURLConnection对象)中，而不会发送到服务器端。 只有调用了HttpURLConnection类的getResponseCode、getResponseMessage等方法请求获取服务器端的响应时，数据才会被发送到服务器端。
 
-　　应用程序向存储卡写数据是需要权限的，因此需要在清单文件的根节点下面声明，如下权限：
+<br>　　扩展：断点下载。
 
-``` xml
-<!-- 往SDCard写入数据权限 -->
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-```
+	-  向服务器发送请求时，需要设定如下头字段：
+	   -  conn.setRequestProperty("range", "bytes="+start+"-"+end);
+	   -  其中start和end就是需要请求下载数据的范围。
 
-<br>　　范例3：在SD卡上创建目录。
+
+# 第三节 HttpClient #
+
+## 简介 ##
+　　`java.net`包中已经提供了访问网络资源所需要使用的API（如`HttpURLConnection`等），但是对于一些应用程序来说，它的功能还不够丰富和灵活，实现稍微复杂点业务时比较难（比如文件上传）。
+
+<br>**是什么?**
+　　`HttpClient`是`Apache Jakarta Common`下的子项目，用来提供高效的、最新的、功能丰富的支持HTTP协议的客户端编程工具包，简单地说它就是用来接收和发送HTTP消息的。
+
+　　下载地址为：http://hc.apache.org/downloads.cgi （本文基于`4.1.2`版本）。
+
+　　`HttpClient`不是一个浏览器，它不会去缓存内容、执行嵌入在HTML页面中的`javascript`代码。
+
+<br>**核心接口**
+　　在`HttpClient`框架中最核心的一个接口就是`HttpClient`接口，使用它的实例可以向服务器端发送请求。
+
+<br>　　范例1：`HttpClient`接口。
 ``` android
-File file = new File(Environment.getExternalStorageDirectory(),"lib/file/about.txt");
-file.getParentFile().mkdirs();
-FileOutputStream out = new FileOutputStream(file);
-String content = "Hi 汤姆!";
-out.write(content.getBytes());
-out.close();
-```
-
-<br>　　范例4：从SD卡读文件。
-``` android
-if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
-    File file = new File(Environment.getExternalStorageDirectory(),"a.txt");
-    InputStream input = new FileInputStream(file);
-    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    int len ;
-    byte[] array = new byte[1024];
-    while( (len = input.read(array)) != -1){
-        bos.write(array,0,len);
-    }
-    input.close();
-    System.out.println(new String(bos.toByteArray(),"UTF-8"));
-    bos.close();
+public interface HttpClient {
+    // 使用当前HttpClient对象，发送一个HTTP请求，并将返回值封装成一个HttpResponse对象。
+    public abstract HttpResponse execute(HttpUriRequest request)
 }
 ```
     语句解释：
-    -  用户应用程序从存储卡中读取数据，是不需要权限的。
+    -  前面说了，基于HTTP协议发送请求有多种不同的请求方式（如Get、Post等）。
+    -  这些请求方式在HttpClient框架中也被封装成了具体的类。如：HttpGet类、HttpPost等类。
 
-<br>**在媒体扫描器下隐藏你的文件**
-　　在你的外部文件目录中放置一个空的文件，命名为`.nomedia`，这会阻止Android的媒体扫描器读取你的媒体文件，如`Gallery`或者`Music`这样的应用。
+<br>　　`HttpClient`会将服务器返回的数据封装成一个`HttpResonse`对象，客户端通过该对象提供的方法查看响应的内容。
 
-## 偏好设置 ##
-　　在`Android`中可以使用`SharedPreferences`类管理软件的偏好(`hào`)设置。所谓的偏好设置就是指用户对软件进行的一些个性化配置。如：软件使用的主题、皮肤等设置。
-　　`SharedPreferences`类提供了一个通用的框架，可以保存和检索以持久化的键值对形式存储的原始数据类型。 你可以使用`SharedPreferences`保存任意类型的原始数据：布尔（`boolean`），浮点（`float`），整型（`int`），长整型（`long`）和字符串（`string`）。
-
-　　`Andriod`偏好设置默认使用`xml`文件来保存用户数据，文件存储在`“/data/data/packagename/shared_prefs”`。
-
-<br>　　范例1：`SharedPreferences`接口。
+<br>　　范例2：`HttpResponse`接口。
 ``` android
-// 指定key从当前SharePreferences对象中，获取所对应的一个values 。
-// -  若当前对象中没有指定的key，则返回defValue 。
-// -  若当前对象中存在指定的key，但是value的值不是String类型的，则抛异常。
-// -  除了此方法外，还有：getInt、getLong、getBoolean、getFloat四个方法，它们同样要求value的值与方法返回值的类型相同，否则就抛ClassCast Exception，并且终止程序执行。
-public abstract String getString(String key, String defValue);
+public interface HttpResponse extends HttpMessage {
+    // 返回服务器端返回的响应的正文数据。若没有响应则返回null。
+    public abstract HttpEntity getEntity()
 
-// 获取当前对象的SharedPreferences.Editor对象，该对象代表SharedPreferences对象的编辑器，可以向SharedPreferences文件中添加数据。
-public abstract SharedPreferences.Editor edit();
-
-// 返回当前对象中的所有的key-value。
-public abstract Map<String, ?> getAll();
-
-// 返回当前对象中是否包含指定的key。
-public abstract boolean contains(String key);
+    // 返回服务器端返回的响应的响应行。
+    public abstract StatusLine getStatusLine()
+}
 ```
 
-<br>　　范例2：`SharedPreferences.Editor`接口。
+## 请求 ##
+　　`DefaultHttpClient`类是`HttpClient`接口的具体实现类，我们用它来与服务器进行交互。
+
+<br>　　范例1：发送Get请求。
 ``` android
-// 向Editor对象中，添加一个Boolean类型的属性 。
-// -  除了此方法外，还有：putInt、putLong、putString、putFloat四个方法。
-// -  在Editor对象中key是唯一的，若重复添加多个相同的key，则会新值覆盖旧值。
-public abstract SharedPreferences.Editor putBoolean(String key, boolean value);
-
-// 你懂的。
-public abstract SharedPreferences.Editor clear ();
-public abstract SharedPreferences.Editor remove (String key);
-
-// 将当前Editor对象中的数据，从手机内存持久化到SharedPreferences文件中。
-public abstract boolean commit();
-```
-
-<br>　　范例3：Activity类。
-``` android
-// 指定文件名称name ，系统会默认从<当前应用>/shared_prefs文件夹下，查找xml文件。
-// -  mode：指定文件的打开方式。
-// -  若未找到指定的文件，则创建该文件并返回该文件的SharedPreferences对象。
-public abstract SharedPreferences getSharedPreferences (String name, int mode)
-```
-
-<br>　　范例4：创建文件。
-``` android
-public class MainActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        this.setContentView(R.layout.main); 
-        // 获取指定的xml文件，不用指定文件扩展名。
-        SharedPreferences shared = this.getSharedPreferences("shp", Context.MODE_PRIVATE);
-        // 调用edit()，取得一个SharedPreferences.Editor。
-        Editor e = shared.edit();
-        // 往SharedPreferences对象里添加值。
-        e.putString("name", "jay_Cui");
-        // 提交新值，更新本地文件。
-        e.commit();
+public class HttpClientDemo{
+    public static void main(String[] args) throws Exception{
+        HttpClient client = new DefaultHttpClient();
+        // 指定当前请求对象所要请求的位置，构造一个HttpGet对象。
+        // uri的格式为：协议名、主机名、端口、资源的路径、请求参数，其中前两者是必须要提供的。
+        HttpGet httpget = new HttpGet("http://www.baidu.com");
+        // 向服务器发送get请求。
+        HttpResponse response = client.execute(httpget);
+        System.out.println(response);
+        // 关闭HttpClient的连接管理器，并释放已经分配的资源。
+        client.getConnectionManager().shutdown();
     }
 }
 ```
     语句解释：
-    -  使用commit方法将SharedPreferences对象持久化向xml文件中。注意：不论您是否为文件指定了后缀名，系统都会自动在文件名后面加上.xml。
+    -  默认情况下，若服务器端一直无响应，则HttpClient是会永远等待下去。
 
-<br>　　范例5：读取文件。
+<br>　　范例2：拼接URI。
 ``` android
-public class MainActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        this.setContentView(R.layout.main); // 在程序中直接添加控件。
-        // 获取指定的xml文件,不用指定文件扩展名。
-        SharedPreferences shared = this.getSharedPreferences("shp",Context.MODE_PRIVATE);
-        System.out.println(shared.getString("name", "not find!"));
+public class HttpClientDemo{
+    public static void main(String[] args) throws Exception{
+        // 依据指定参数创建一个URI对象。
+        // 参数依次为：scheme 协议名、host主机名、port端口、path请求路径、query请求参数。
+        URI uri = URIUtils.createURI("http","localhost",-1,"/Server", "name=cxy",null);
+        HttpGet httpget = new HttpGet(uri);
+        HttpClient client = new DefaultHttpClient();
+        client.execute(httpget);
+        client.getConnectionManager().shutdown();
     }
 }
 ```
-
-## 数据库编程 ##
-　　数据库编程：
-
-	-  首先，在Android手机中使用的数据库是SQLite，使用android.database.sqlite.SQLiteDatabase类来操作数据库。
-	-  然后，在操作数据库之前，需要先创建一个数据库。
-
-<br>
-### 创建数据库 ###
-　　在`Android`中使用`SQLiteOpenHelper`类来创建/打开数据库。
-
-<br>　　范例1：SQLiteOpenHelper类。
-``` android
-// context ：上下文对象。
-// name ：数据库的名称。
-// factory：游标工厂，若为null，则使用Android系统默认的游标工厂。通常都为null 。
-// version ：数据库的版本号，具体作用后述。
-public SQLiteOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version);
-
-// 以只读的方式打开当前对象所指向的数据库。前程序可以对打开的数据库进行读写操作。若数据库不存在，则创建数据库。 
-public synchronized SQLiteDatabase getReadableDatabase();
-
-// 以读写的方式打开当前对象所指向的数据库。当前程序可以对打开的数据库进行读写操作。若数据库不存在，则创建数据库。
-public synchronized SQLiteDatabase getWritableDatabase();
-
-// 数据库被创建出来后Android系统会自动调用此方法。一般会在此方法中创建表。
-public abstract void onCreate(SQLiteDatabase db);
-
-// 数据库更新(当前对象指定的版本号和已存在的数据库文件中的版本号不相同)时调用此方法。一般会在此方法中修改表结构。
-public abstract void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion);
-```
-
-<br>　　范例2：创建数据库。
-``` android
-SQLiteOpenHelper helper = new SQLiteOpenHelper(this,"data.db",null,1){
-    public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE person(id int primary key,name varchar(20))");
-    }
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
-};
-SQLiteDatabase db = helper.getReadableDatabase();
-```
     语句解释：
-    -  在Android中可以使用SQLiteDatabase类来执行SQL语句，该类具体用法，后述。
-    -  只有在调用了SQLiteOpenHelper类的getReadableDatabase或getWritableDatabase方法时，虚拟机才会去执行打开数据库操作，若要打开的数据库不存在，则会创建数据库，并在创建完数据库之后调用SQLiteOpenHelper类的onCreate方法。
-    -  数据库文件被保存在packagename/databases文件夹下面。
+    -  使用HttpClient提供的URIUtils类可以动态的组装出一个URI。
+       -  若端口号≤0 ，则默认访问服务器的80端口。
+       -  在第一个请求参数前面一定不要加“?”号，请求参数之间使用“&”间隔。
+    -  URIUtils类会使用UTF-8编码来创建出一个URI对象，请求参数的值可以包含中文，在服务器端使用UTF-8进行解码即可，但是请求参数的值不可以包含空格。
+       -  因为使用UTF-8编码时，空格会被转换为“+”号。
+    -  使用HttpRequestBase类定义的getURI方法可以获取当前请求路径，HttpPost和HttpGet都是HttpRequestBase的子类。
 
-<br>　　范例3：它们的区别。
+<br>　　若想在请求参数的值中包含空格等字符，也可以使用如下两个类：
 
-	若只需要对数据库执行读操作，那么就应该调用getReadableDatabase方法来打开数据库。否则，则调用getWritableDatabase方法来打开数据库。这是因为：
-	-  若数据库文件的容量未满，则在程序中调用getReadableDatabase方法打开数据库时，该方法会转调用getWritableDatabase方法。
-	-  若数据库文件的容量满了，则在程序中调用getReadableDatabase方法打开数据库时，会以只读的方式打开数据库。
-	-  若数据库文件的容量满了，且程序通过调用getWritableDatabase打开数据库，则就会抛异常。因为系统认为您可能会执行写操作。 即便您的目只是想执行读操作。
+	-  NameValuePair：请求中的每个参数都被看作成一个名值对（key=value），使用一个NameValuePair实例来表示。
+	-  URLEncodedUtils：将一个List<NameValuePair>按照指定的编码转换成字符串的形式。
 
-<br>　　范例4：数据库版本号。
-
-	-  构造SQLiteOpenHelper对象时，需要为其提供一个版本号(必须是大于0的正整数)，以供创建(若数据库不存在)或更新数据库时使用。
-	-  系统最初创建数据库的时候，数据库的版本号为0，创建完成之后才会将数据库的版本号设置为SQLiteOpenHelper构造方法中指定的版本号。 
-	-  若数据库文件在databases文件夹中已经存在了，但是数据库文件的版本号和构造方法给出的版本号不相同，则会调用SQLiteOpenHelper类的onUpgrade方法。因此可以在此方法中更新数据库的表结构。
-
-<br>　　提示：
-
-	-  在SQLite数据库中表的列可以不指定数据类型，即便指定了也不起作用。
-	-  若表的主键列是integer类型，则主键列的值会自动增长，主键不能重复。
-
-<br>
-### 操作数据库 ###
-
-<br>　　范例1：`SQLiteDatabase`类。
-``` android
-// 执行指定的sql语句。
-public void execSQL(String sql)
-
-// 执行指定的sql语句，在sql语句中可以使用占位符( ?号 )。bindArgs用于替换占位符。
-// -  提示：SQLite可以解析大部分标准SQL语句，但并不是全部。
-public void execSQL(String sql, Object[] bindArgs)
-
-// 执行指定的sql语句查询数据，在sql语句中可以使用占位符。selectionArgs用于替换占位符。若不需要占位符，则可以将selectionArgs置为null。 
-public Cursor rawQuery(String sql, String[] selectionArgs)
-
-// 用来关闭数据库。
-public void close()
-```
-
-<br>　　范例2：插入数据。
-``` android
-SQLiteOpenHelper helper = new SQLiteOpenHelper(this,"data.db",null,1){
-    public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE person(id integer primary key,name)");
+<br>　　范例3：发送Get请求。
+``` java
+public class HttpClientDemo{
+    public static void main(String[] args) throws Exception{
+        List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>();
+        params.add(new BasicNameValuePair("name","张   三"));
+        params.add(new BasicNameValuePair("age","29"));
+        HttpGet httpget = new HttpGet("http://localhost/Server?"+URLEncodedUtils.format(params, "utf-8"));
+        HttpClient client = new DefaultHttpClient();
+        client.execute(httpget);
+        client.getConnectionManager().shutdown();
     }
-    public void onUpgrade(SQLiteDatabase db, int oldVersion,int newVersion) {}
-};
-SQLiteDatabase db = helper.getReadableDatabase();
-db.execSQL("INSERT INTO person(name) VALUES(?)",new Object[]{"李四"});
-db.close();
-```
-    语句解释：
-    -  数据库删除和更新的做法和本范例类似。
-
-<br>　　范例3：数据库查询操作。
-``` android
-SQLiteOpenHelper helper = new SQLiteOpenHelper(this,"data.db",null,1){
-    public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE person(id integer primary key,name)");
-    }  
-    public void onUpgrade(SQLiteDatabase db, int oldVersion,int newVersion){}
-};
-SQLiteDatabase db = helper.getReadableDatabase();
-
-Cursor c = db.rawQuery("SELECT id,name FROM person", null);
-while(c.moveToNext()){
-    int id = c.getInt(c.getColumnIndex("id"));
-    String name = c.getString(c.getColumnIndex("name"));
-    System.out.println("id = "+id+",name = "+name);
 }
-c.close();
-db.close();
 ```
     语句解释：
-    -  调用Cursor的get方法时也可以直接使用列的下标，下标从0开始。如在本范例中id列的下标为0，name列的下标为1 。
-    -  若需要限定查询范围，则可以使用limit子句。
-    -  若需要排序，则order by子句必须出现在limit之后。
+    -  此时可以在请求参数的值中包含空格字符。
 
-<br>　　范例5：`SQLiteDatabase`类。
-``` android
-// 执行指定的sql语句，在sql语句中可以使用占位符。
-// -  table 要操作的表。 whereclause ：where子句的条件。 whereArgs子句的所用到的参数。
-public int delete(String table, String whereClause, String[] whereArgs);
-
-// 执行指定的sql语句，在sql语句中可以使用占位符。
-// -  table 要操作的表。
-// -  values：sql语句中的所用到的参数，参数名必须要和表中的列名一致。
-// -  nullColumnHack ：后述。
-// 返回值：
-// -  返回行号。提示：每成功插入一条数据，行号+1。
-// -  行号类似于Oracle的序列，若删除数据，也不会导致行号回退。
-// -  若主键是integer类型的，则此方法返回，新插入的行的主键。
-public long insert(String table, String nullColumnHack, ContentValues values)
-
-// 执行指定的sql语句更新数据，在sql语句中可以使用占位符。
-public int update(String table, ContentValues values, String whereClause, String[] whereArgs)
-
+<br>　　范例4：设置请求头。
+``` java
+HttpGet get = new HttpGet(URI.create("http://192.168.0.110/Service/index.jsp"));
+get.addHeader("Content-Length", "1011");
+get.addHeader("cxy","tsx");
+client1.execute(get);
 ```
+    语句解释：
+    -  在服务器端就可以获取此时设置的请求头。
 
-<br>**关于nullColumnHack**
-　　在SQL中是不允许执行一个类似于`insert into emp() values()`的语句。但是，使用拼接的方式组织`sql`插入语句时若`values==null`或者`values.size<0`，则最终组织成的`sql`语句就是上面的语句。
-　　因此，需要指定一个列，当`values`为`null`或`size=0`时，默认为其自动赋值为`null`。如`insert("person","id",null)`拼接后的SQL语句为：`insert into(id) values(null)`。
-　　但是若`insert`方法的`values`的`size>0`，则参数`nullColumnHack`将不起作用。 
-
-<br>　　范例6：更新操作。
-``` android
-SQLiteOpenHelper helper = new SQLiteOpenHelper(this,"data.db",null,1){
-    public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE person(id integer primary key,name)");
-    }  
-    public void onUpgrade(SQLiteDatabase db, int oldVersion,int newVersion) {}
-};
-SQLiteDatabase db = helper.getReadableDatabase();
-ContentValues values = new ContentValues();
-values.put("name", "周杰伦");
-db.insert("person", "name", values);
-db.close();
+<br>　　范例5：发送表单实体。
+``` java
+public void test() {
+    HttpClient client = new DefaultHttpClient();
+    HttpPost httppost = new HttpPost("http://localhost/Server/index.jsp");
+    // 创建请求参数。
+    List<NameValuePair> params = new ArrayList<NameValuePair>();
+    params.add(new BasicNameValuePair("name", "张 三 啊"));
+    params.add(new BasicNameValuePair("age", "422"));
+    // 创建表单实体
+    UrlEncodedFormEntity form = new UrlEncodedFormEntity(params,"utf-8");
+    httppost.setEntity(form);
+    // 发送请求。
+    HttpResponse response = client.execute(httppost);
+    client.getConnectionManager().shutdown();
+}
 ```
+    语句解释：
+    -  若需要使用post方式发送一些字符串类型的请求参数，可以使用此种方式。
 
-<br>
-### 事务管理 ###
-
-<br>　　范例1：SQLiteDatabase类。
-``` android
-// 开启一个事务。
-public void beginTransaction()
-
-// 结束当前事务。
-public void endTransaction()
-
-// 将当前事务标识设为true。
-public void setTransactionSuccessful()
+<br>　　范例6：字符串参数。
+``` java
+public viod text() {
+    HttpClient client = new DefaultHttpClient();
+    HttpPost httppost = new HttpPost("http://localhost/Server/index.jsp");
+    // 在发送Post请求时，若请求正文中需要包含多媒体类型的数据，则可以使用MultipartEntity类。
+    MultipartEntity entity = new MultipartEntity();
+    StringBody body = new StringBody("cxy");
+    entity.addPart("name",body);
+    httppost.setEntity(entity);
+    // 发送请求。
+    HttpResponse response = client.execute(httppost);
+    client.getConnectionManager().shutdown();
+}
 ```
+    语句解释：
+    -  MultipartEntity类代表一个多媒体表单，它会在请求中加上一个相当于HTML中的form的enctype="multipart/form-data"属性，在服务器端获取请求中的参数时，要注意一下。
+    -  ContentBody常用的子类还有：FileBody、ByteArrayBody、InputStreamBody，如果决定这些子类提供的功能扔不够用，也可以自定义。
 
-<br>　　范例2：事务操作。
+## 响应 ##
+　　在`HttpClient`中使用`HttpResponse`类表示服务器对客户端的响应。
+
+<br>　　范例1：获取响应中的数据。
 ``` android
 public void test() {
-    SQLiteDatabase db = dbOpenHelper.getWritableDatabase();
-    db.beginTransaction();//开启事务，默认情况下，事务标志为False 。
-    try{
-        db.execSQL("update person set amount=amount-10 where personid=2");
-        db.execSQL("update person set amount=amount+10 where personid=3");
-        db.setTransactionSuccessful();//将事务标志，设置为true 意味着，事务成功。
-    } finally {
-        //调用此方法结束事务，事务最终是提交还是回滚，是由事务标志决定的，若事务的标志为True，就会提交事务，否则回滚事务。
-        db.endTransaction();
-    }
-}
-```
-
-<br>　　提示：SQLite数据库单列数据容量要小于`1M`。
-
-## XML解析 ##
-<br>　　范例1：解析XML涉及API。
-
-	-  使用XMLPullParser接口来解析XML文档。
-	-  使用Xml类来实例化XMLPullParser。
-	-  XMLPullParser基于sax解析，它每读到一个东西时，会触发相应的事件，事件是int型的。XMLPullParser的解析方式被称为pull解析，pull解析比sax解析更灵活，因为它可以灵活的控制程序是否继续触发下一事件。
-	-  常见的事件：
-	   -  XmlPullParser.END_DOCUMENT 文档结束。
-	   -  XmlPullParser.END_TAG  标签结束。
-	   -  XmlPullParser.START_DOCUMENT 文档开始。
-	   -  XmlPullParser.START_TAG标签结束。 
-
-<br>　　范例2：XMLPullParser接口。
-``` android
-// 指定属性的下标，获取当前元素的某个属性的值，下标从0开始。
-public abstract String getAttributeValue(int index);
-
-// 返回当前元素的名称。 在开始标签和结束标签时调用此方法。
-public abstract String getName();
-
-// 若当前节点是开始节点，则返回开始节点之后的文本节点的内容。
-public abstract String nextText();
-
-// 返回当前事件的类型。
-public abstract int getEventType();
-
-// 继续触发下一个事件，并返回下一个事件的类型。
-public abstract int next();
-```
-
-<br>　　范例3：Xml类。
-```
-// 创建一个XML解析器。
-public static XmlPullParser newPullParser()
-```
-
-<br>　　范例4：读取文件。
-``` android
-public void xmlParse() throws Exception{
-    XmlPullParser parser = Xml.newPullParser();
-    InputStream input = getClassLoader().getResourceAsStream("person.xml");
-    parser.setInput(input, "UTF-8");
-	
-    List<Person> list = null;
-    Person p = null;
-    // 开始读取数据。
-    int event = parser.getEventType();
-    while(event != XmlPullParser.END_DOCUMENT){
-        if(event == XmlPullParser.START_DOCUMENT){
-            list = new ArrayList<Person>();
-        }else if(event == XmlPullParser.START_TAG){
-            if("person".equals(parser.getName())){
-                p = new Person();
-                p.setId(parser.getAttributeValue(0));
-            }else if("name".equals(parser.getName())){
-                p.setName(parser.nextText());
-            }else if("age".equals(parser.getName())){
-                p.setAge(Integer.parseInt(parser.nextText()));
-            }
-        }else if(event == XmlPullParser.END_TAG){
-            if("person".equals(parser.getName())){
-                list.add(p);
-                p = null;  
-            }
-        }
-        event = parser.next();
-    }
-    for(Person temp : list)
-        System.out.println(temp.toString());
+    HttpGet get = new HttpGet(URI.create("http://www.google.com.tw"));
+    HttpResponse response = client1.execute(get);
+    System.out.println(response.getStatusLine().getStatusCode());// 响应码
+    System.out.println(response.getStatusLine().getReasonPhrase());// 响应信息
+    System.out.println(response.getStatusLine().getProtocolVersion());//协议版本号
 }
 ```
     语句解释：
-    -  调用setInput方法时，parser就处于了start_document状态。
-    -  文件person.xml保存在src文件夹下面。
+    -  程序输出：200 OK HTTP/1.1。
 
-　　使用`XmlSerializer`接口来创建XML文档，使用`Xml`类来实例化`XmlSerializer`。
-
-<br>　　范例6：XmlSerializer接口。
+<br>　　范例2：响应头字段。
 ``` android
-// 创建一个文档开始标记。
-public abstract void startDocument(String encoding, Boolean standalone);
-
-// 创建一个标签开始标记。
-public abstract XmlSerializer startTag (String namespace, String name);
-
-// 为当前标签，添加一个属性。
-public abstract XmlSerializer attribute(String namespace, String name, String value);
-
-// 为当前标签，添加一个文本节点。
-public abstract XmlSerializer text(String text);
-
-// 设置当前XmlSerializer接口中的数据，输出的目的地以及编码。
-public abstract void setOutput(OutputStream os, String encoding);
-
-// 将数据刷新到OutputStream中，再由OutputStream对象将数据写入到目的地。
-public abstract void flush();
-```
-
-<br>　　范例7：Xml类。
-```
-// 创建一个XmlSerializer对象。
-public static XmlSerializer newSerializer ()
-```
-
-<br>　　范例8：代码。
-``` android
-public void xmlWrite()throws Exception{
-    XmlSerializer serializer = Xml.newSerializer();
-    File file = new File(this.getContext().getFilesDir(),"cxy.xml");
-    OutputStream out = new FileOutputStream(file);
-    serializer.setOutput(out, "UTF-8");
-		
-    List<Person> list = new ArrayList<Person>();
-    Person p = null;
-    for(int i=0;i<3;i++){
-        p = new Person();
-        p.setId(i+"");
-        p.setName("周杰伦");
-        p.setAge(40+i);
-        list.add(p);
+public void test() {
+    HttpGet get = new HttpGet(URI.create("http://www.google.com.tw"));
+    HttpResponse response = client1.execute(get);
+    Header[] heads = response.getAllHeaders();
+    for(Header head:heads){
+        System.out.println(head.getName()+" = "+head.getValue());
     }
-		
-    serializer.startDocument("UTF-8", true);
-    serializer.startTag("", "persons");
-    for(Person p1 : list){
-        serializer.startTag("", "person");
-        serializer.attribute("", "id", p1.getId());
-        serializer.startTag("", "name");
-        serializer.text(p1.getName());
-        serializer.endTag("", "name");
-        serializer.startTag("", "age");
-        serializer.text(p1.getAge()+"");
-        serializer.endTag("", "age");
-        serializer.endTag("", "person");
+}
+```
+
+<br>　　范例3：迭代器遍历。
+``` java
+public void test() {
+    HttpGet get = new HttpGet(URI.create("http://www.google.com.tw"));
+    HttpResponse response = client1.execute(get);
+    HeaderIterator iterator = response.headerIterator();
+    while(iterator.hasNext()){
+        Header item = iterator.nextHeader();
+        System.out.println(item.getName()+" = "+item.getValue());
     }
-    serializer.endTag("", "persons");
-    serializer.endDocument();
-		
-    serializer.flush();
-    out.close();
 }
 ```
     语句解释：
-    -  也可以直接StringBuilder一个字符串，通过输出流将输出写出去。
+    -  方法headerIterator是从其父接口HttpMessage中继承而来。
+    -  在HttpResponse对象中可能返回多个具有相同name的头信息。此时可以使用HttpResponse类提供的getFirstHeader(name)和getLastHeader(name)来分别获取第一个和最后一个头信息。
 
-# 第二节 数据访问 #
-　　`Android`项目中有三个比较重要的文件夹：`src`、`assets`、`res`，本节将依次介绍如何获取上述三个文件夹内的文件。
-
-## ClassLoader ##
-　　在JavaSE中通常都会使用`ClassLoader`(类加载器)来访问`src`文件夹下的某个文件。在Android中也是同样如此。
-
-<br>　　范例1：ClassLoader类。
-``` android
-// 在当前类加载器的工作目录下，查找名为resName的文件，并获取其输入流。若未找到名为resName的文件，则返回null。
-public InputStream getResourceAsStream(String resName)
-```
-
-<br>　　问：什么是类加载器?
-　　答：虚拟机若想运行某一个类，则必须先将其加载入内存，而加载类到内存的工具，就是`类加载器`。换句话说，每一个存在于虚拟机(不论是`JVM`还是`Dalvik`)中的类，都是被类加载器载入内存的。
-
-<br>　　再问：类加载器的功能还有什么?
-　　再答：类加载器除了可以加载字节码文件，还可以加载其他文件，只要该文件存在于类加载器所在的`工作目录`下面即可。
-
-<br>　　还问：类加载器的工作目录是哪个目录?
-　　还答：类加载器有多种，每种加载器的所加载的类是不同的。如：`boot`类加载器加载Java核心类库中的类(`String`类等)。 `app`类加载器：加载用户自定义的类。它们两个类加载器的工作目录是不一样的。 
-
-<br>**重要提示：**
-　　观察Eclipse创建出来的项目，不论是`JavaSE`、`JavaEE`或是`Android`项目，项目的目录下面都会有一个名为`.classpath`的文件，以Android为例里面的内容大致如下：
-``` xml
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-    <classpathentry kind="src" path="src"/>
-    <classpathentry kind="src" path="gen"/>
-    <classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
-    <classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
-    <classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
-    <classpathentry kind="output" path="bin/classes"/>
-</classpath>
-```
-　　在`.classpath`文件中有多个`<classpathentry>`元素。我们可以通过Eclipse和命令行两种方式来运行一个项目，使用不同的运行方式，`app`类加载器加载类的路径也不同：
-
-	-  使用Eclipse运行项目时，app类加载器就会去kind属性值为src的路径下面加载（即上面代码的前两项）。
-	-  使用命令行运行项目时，app类加载器会获取操作系统的classpath变量。
-
-
-　　当通过Eclipse发布项目的时候（将项目从Eclipse中导出并交给客户），Eclipse会将src目录下的非(`.java`)文件原样不动(`保持文件的目录结构`)的转移到`.classpath`文件的`<classpathentry kind="output" path="..."/>`所指向的路径中。
-　　对于Android项目来说，最终会生成一个`apk`文件，此时`app`类加载器的起始工作目录为`apk`文件的根目录。
-　　
-<br>　　接着问：如何获取一个`ClassLoader`对象呢?
-　　接着答：所有的类都是被类加载加载到内存的，在Java中使用`Class`类来代表字节码，通过某个类的`Class`对象就可以获取该类的加载器。
-
-<br>　　范例2：`Class`类。
-``` android
-// 返回当前Class对象所代表的类的类加载器。若此对象表示一个基本类型或void，则返回 null。
-public ClassLoader getClassLoader()
-```
-
-<br>　　范例3：获取`int`的类加载器。
-``` android
-System.out.println(int.class.getClassLoader());  // 输出null。
-```
-
-<br>　　范例4：加载文件。
-``` android
-public class AndroidTestActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        // 获取AndroidTestActivity的类加载器,由于该类是自定义的类,因此其类加载器是app。
-        InputStream input = getClassLoader().getResourceAsStream("a.txt");
-        try{
-            System.out.println("content="+this.readFile(input));
-        }catch(Exception e){
-            e.printStackTrace();
-        }
+<br>　　范例4：获取响应正文。
+``` java
+public class HttpClientDemo{
+    public static void main(String[] args) throws Exception{
+        HttpClient client = new DefaultHttpClient();
+        HttpGet get = new HttpGet(URI.create("http://www.baidu.com"));
+        HttpResponse response = client.execute(get);
+        HttpEntity entity = response.getEntity();
+		
+        System.out.println(entity.getContentEncoding());
+        System.out.println(entity.getContentType());
+        System.out.println(entity.getContentLength());
+        System.out.println(EntityUtils.toString(entity,"UTF-8"));
+        entity.consumeContent();
+        client.getConnectionManager().shutdown();
     }
-    private String readFile(InputStream input)throws Exception{
-        String resultStr = null;
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        int len;
-        byte[] array = new byte[1024];
-        while ((len = input.read(array)) != -1) {
-            out.write(array,0,len);
+}
+```
+    语句解释：
+    -  使用EntityUtils类中的toString()方法，可以将HttpEntity中的数据转换成指定编码格式的文本。
+    -  当响应实体使用完毕后，应该立刻将其与服务器端的连接断开。使用HttpEntity类的consumeContent方法回收实体所占有的资源。
+    -  注意：若HttpEntity中的数据量很多，则不要使用EntityUtils类。
+
+## 其它 ##
+
+<br>　　范例1：设置超时时间。
+``` java
+public class HttpClientDemo{
+    public static void main(String[] args) throws Exception{
+        HttpClient client = new DefaultHttpClient();
+        HttpParams params = client.getParams();
+        // 设置连接超时时间。
+        params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,1000);
+        // 设置连接成功后，读取数据超时时间。
+        params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT, 1000);
+        HttpGet httpget = new HttpGet("http://www.apache.org");
+        // 向服务器发送get请求。
+        HttpResponse response = client.execute(httpget);
+        System.out.println(response);
+        // 关闭连接。
+        client.getConnectionManager().shutdown();
+    }
+}
+```
+
+<br>　　范例2：设置缓冲区大小。
+``` java
+public class HttpClientDemo{
+    public static void main(String[] args) throws Exception{
+        HttpClient client = new DefaultHttpClient();
+        HttpParams params = client.getParams();
+        params.setIntParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE,1);
+        HttpGet httpget = new HttpGet("http://www.apache.org");
+        // 向服务器发送get请求。
+        HttpResponse response = client.execute(httpget);
+        System.out.println(response);
+        // 关闭连接。
+        client.getConnectionManager().shutdown();
+    }
+}
+```
+    语句解释：
+    -  HttpClient的默认缓冲区是8k ，当数据存满时HttpClient会自动将数据发送出去。
+
+<br>　　默认情况下，HttpClient 会试图自动从 I/O 异常中恢复：
+ 
+	-  HttpClient 不会从任意逻辑或 HTTP 协议错误（那些是从 HttpException 类中派生出的）中恢复的。 
+	-  HttpClient 将会自动重新执行那些假设是幂等的方法。 
+	-  HttpClient 将会自动重新执行那些由于运输异常失败，而 HTTP 请求仍然被传送到目标服务器（也就是请求没有完全被送到服务器）失败的方法。
+	-  HttpClient 将会自动重新执行那些已经完全被送到服务器，但是服务器使用 HTTP 状态码（服务器仅仅丢掉连接而不会发回任何东西）响应时失败的方法。在这种情况下，假设请求没有被服务器处理，而应用程序的状态也没有改变。如果这个假设可能对于你应用程序的目标 Web 服务器来说不正确，那么就强烈建议提供一个自定义的异常处理器。
+
+<br>　　范例3：请求重试。
+``` java
+private void setRetryTimes(DefaultHttpClient httpclient) {
+    HttpRequestRetryHandler myRetryHandler = new HttpRequestRetryHandler() {
+        public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
+            if (executionCount >= 5) {
+                return false;
+            }
+            if (exception instanceof NoHttpResponseException) {
+                return true;
+            }
+            if (exception instanceof SSLHandshakeException) {
+                return false;
+            }
+            HttpRequest request = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
+            boolean idempotent = !(request instanceof HttpEntityEnclosingRequest);
+            if (idempotent) {
+                return true;
+            }
+            return false;
         }
-        resultStr = out.toString("UTF-8"); // 可以不写UTF-8,默认就为UTF-8。
+    };
+    httpclient.setHttpRequestRetryHandler(myRetryHandler);
+}
+```
+    语句解释：
+    -  若是没有设置请求重试处理器，且发生了上述之一的情形，则HttpClient会不断的自动重新请求。因此强烈建议提供一个自定义的异常处理器。
+
+# 第四节 WebService #
+　　`WebService`相当于一个部署在服务器上的公共接口，它接收用户的请求，并返回相应的数据。它主要为用户提供一些方便、实用的服务。 如：电话归属地查询、QQ在线状态查询等。
+　　常用的Webservice站点有：[WebXml](http://www.webxml.com.cn/zh_cn/index.aspx) 。 
+
+　　问题：如何调用Webservice呢?
+
+	-  Webservice是基于HTTP协议和XML文件的，由于这二者是跨平台的，因此在任何语言中都可以使用Webservice技术。
+	-  在客户端程序中只需要向Webservice所在的服务器发送一个http请求即可实现Webservice的调用。
+	   -  调用Webservice有两种方式：通过HTTP协议和通过SOAP协议。
+	   -  调用Webservice后，Webservice会将结果以XML文件的形式返回给用户。 
+
+## HTTP协议 ##
+　　下面将以`“电话号码归属地查询”`为例，讲述如何通过HTTP方式调用Webservice。
+
+<br>　　范例1：准备工作。
+
+	-  首先，打开http://www.webxml.com.cn/zh_cn/index.aspx页面。
+	-  然后，找到“国内手机号码归属地查询WEB服务”。
+	-  最后，点击“getMobileCodeInfo”，通过此接口可以获取国内手机号码归属地省份、地区和手机卡类型信息。
+
+<br>　　范例2：阅读发送规范。
+``` c
+POST /WebServices/MobileCodeWS.asmx/getMobileCodeInfo HTTP/1.1
+Host: webservice.webxml.com.cn
+Content-Type: application/x-www-form-urlencoded
+Content-Length: length
+
+mobileCode=string&userID=string
+```
+    语句解释：
+	-  接收用户请求的地址为：/WebServices/MobileCodeWS.asmx/getMobileCodeInfo 。
+	-  头字段Content-Type：指出客户所发送的数据的MIME类型 ，属性值固定。
+	-  头字段Content-Length：指出客户所发送的数据长度，属性值由客户设置。  
+	-  消息正文中的mobileCode属性：指出要查询的手机号 。
+	-  消息正文中的userID属性：指出客户在webservice.webxml.com.cn网站上注册的ID 。
+	   -  若为userID属性指定了值，则查询出来的数据会很详细，但是需要收费。否则仅会查询出基本的数据。通常不会为userID属性赋值。
+
+　　通过阅读上述规范得知`“国内手机号码归属地查询WEB服务”`，客户端应该将请求发送到：
+``` c
+	http://webservice.webxml.com.cn/WebServices/MobileCodeWS.asmx/getMobileCodeInfo
+```
+
+<br>　　范例3：POST请求。
+``` java
+public static void sendXMLPOST()throws Exception{
+    URL url = new URL("http://webservice.webxml.com.cn" + "/WebServices/MobileCodeWS.asmx/getMobileCodeInfo");	
+    String xml = "mobileCode=13412345678&userID="; 
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+    conn.setRequestProperty("Content-Length", String.valueOf(xml.getBytes().length));
+    conn.setDoOutput(true);
+    // 获取连接的输出流。
+    OutputStream out = conn.getOutputStream();
+    out.write(xml.getBytes("UTF-8"));
+    // 向服务器端发送请求。
+    if(conn.getResponseCode() == 200){
+        // 调用自定义的readSendXML方法将服务器端返回的xml文件中包含的信息解析出来。
+        InputStream input = conn.getInputStream();
+        System.out.println(this.readSendXML(input));
         input.close();
-        out.close();
-        return resultStr;
     }
+    out.close();
+    conn.disconnect();
 }
 ```
     语句解释：
-    -  首先在src根目录下面建立一个a.txt ，内容为：Hi Android世界。
-    -  若程序执行的时候出现了乱码，请检查您Android项目的编码是否使用的UTF-8。
+	-  若没有userID，则可以不为其指定值，但是在请求的时候必须要写上它。
 
-<br>　　范例5：加载文件2.0 。
-``` android
-InputStream input=getClassLoader().getResourceAsStream("org/cxy/test/b.txt");
-```
-    语句解释：
-    -  首先在src目录下面的org.cxy.test包下面建立一个b.txt。
-    -  若需要访问某个包中的文件，则需要将包名中的“.”换成路径分隔符“/”。但是文件后缀名中的“.”不需要换。 
-    -  Andoird是基于Linus内核的，因此不可使用“\\”作为路径分隔符，因为那是Windows中使用的。ClassLoader类可以在JavaSE和JavaWeb项目中使用，若该项目是运行在Windows系统中的，则就可以使用“\\”作为路径分隔符了。
-
-
-<br>**类装载器缺点**
-
-	-  首先，类装载器会将文件一次性全部读入内存后，再处理。因此，读取的文件不能太大。
-	-  第二，类装载器，对于一个文件只会装载一次，若文件的内容在程序运行的时候被更新，则程序无法及时获得新的数据。
-
-<br>　　范例6：思考题，下面`File`对象的相对路径相对于谁?。
-``` android
-package org.cxy.test;
-import java.io.File;
-import android.app.Activity;
-import android.os.Bundle;
-public class AndroidTestActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-		
-        File file = new File("a.txt");
-        System.out.println(file.exists());
+<br>　　范例4：GET请求。
+``` java
+public static void sendXMLGET()throws Exception{
+    URL url = new URL("http://webservice.webxml.com.cn" +"/WebServices/MobileCodeWS.asmx/getMobileCodeInfo?mobileCode=13412345678&userID="); 
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    if(conn.getResponseCode() == 200){
+        InputStream input = conn.getInputStream();
+        System.out.println(readSendXML(input));
+        input.close();
     }
+    conn.disconnect();
 }
 ```
     语句解释：
-    -  答：相对于用户手机的根目录“/”，而不是apk包的根目录。
-    -  前面已经说了，用户手机中存在有三个目录：system、data、mnt ，这三个目录就是存在于根目录“/”下面的。
-    -  若File对象的构造方法中指定的路径是以“/”开头，则意味着该路径是绝对路径。若想访问data/a.txt文件，则可以使用“File("/data/a.txt")”构造File对象。
-    -  因此，若在某个应用程序中想访问其他应用程序的文件(前提是该文件允许你访问他)，就可以使用绝对路径的方式：
-       -  如：/data/data/org.cxy.file/files/a.txt 。
+	-  服务器端返回的数据是一个XML文件，使用dom、sax、pull等方式可以对其进行解析。
 
-## AssetManager ##
-　　在`Android`中可以使用`AssetManager`类来访问`assets`目录下的文件。`assets`目录的特点：
+## SOAP协议 ##
+　　在传统的方式中，客户端与服务器端数据交换的格式为：`属性名1=属性值1&属性名2=属性值2`。
 
-	-  首先，assets文件夹内单个文件的大小必须<=1MB 。
-	-  然后，assets文件夹内的文件不会被注册到R文件中。
-	-  接着，assets文件夹内可以任意自定义子文件夹。
-	-  最后，assets文件夹主要用于保存一些“容量小且固定不变”的文件，如：游戏音乐等。所谓的“固定不变”指的是在程序运行的时候，该文件仅会被程序读取而不会去修改其内容。 
+　　而在`Webservice`技术中，客户端和服务器端收发请求时都需要将数据封装成`SOAP消息`再传递。 
 
-<br>　　范例1：`AssetManager`类。
-``` android
-// 从asset目录下获取指定文件的输入流。
-public final InputStream open(String fileName)
+<br>　　问题：怎么构建一个SOAP消息?
 
-// 将assets/path目录下的所有文件的名称列出来，不包含子目录的名称。
-public final String[] list(String path)
-
-// 关闭当前AssetManager对象。
-public void close()
-```
-
-<br>　　范例2：`ContextWrapper`类。
-``` android
-// 获取当前应用程序的AssetManager实例。
-public AssetManager getAssets()
-```
-
-<br>　　范例3：获取输入流。
-``` android
-public class AndroidTestActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        try {
-            AssetManager manager = getAssets();
-            System.out.println(this.readFile(manager.open("a.txt")));
-            manager.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-    语句解释：
-    -  open方法会自动去assets文件夹下面查找文件。
-
-
-<br>　　范例4：遍历所有文件。
-``` android
-public void test(){
-    String folder="a";
-    AssetManager manager = getAssets();
-    for(String name:manager.list(folder)){
-        System.out.println(name);
-        System.out.println(readFile(manager.open(folder+File.separator+name)));
-    }
-    manager.close();
-}
-```
-    语句解释：
-    -  本范例中“manager.list(folder)”的含义为：将"assets/a"目录下面的所有文件的文件名称列出来。
-    -  将文件的路径path与list方法返回的文件的名称组合在一起后，就可以调用open方法获取该文件的输入流了。
-
-## Resources ##
-　　在`Android`中可以使用`Resources`类来访问`res`目录下的文件。 `res`目录下常见的子目录为：
-```
-目录名称                       作用
-drawable                      存放图片资源。
-layout                        存放布局文件。
-values                        存放数值文件。
-anim                          存放动画文件。
-xml                           存放xml文件。
-menu                          存放菜单文件。
-raw                           存放应用使用到的原始文件。
-```
-　　`res`目录的特点：其内的每个资源都会在`R`文件中注册。
-
-<br>　　范例1：Resources类。
-``` android
-// 指定资源ID，然后从res/values文件中获取String类型的数据。
-public String getString(int id)
-
-// 指定资源ID，然后从res/xml文件中获取xml文件的XmlResourceParser对象，通过这个对象可以解析该xml文件。
-public XmlResourceParser getXml(int id)
-
-// 指定资源ID，然后从res/raw文件中获取文件的输入流。
-public InputStream openRawResource(int id)
-```
-
-<br>　　范例2：定义各种类型的值。
-``` xml
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">AndroidTest</string>
-    <color name="white">#FFFFFF</color>
-    <dimen name="width">20dp</dimen>
-    <dimen name="height">20dp</dimen>
-    <integer-array name="id">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-    </integer-array>
-    <string-array name="name">
-        <item>张三</item>
-        <item>李四</item>
-        <item>王五</item>
-    </string-array>
-</resources>
-```
-    语句解释：
-    -  各种数值类型可以写在一个文件中，也可以单独定义到新的文件中。
-
-<br>　　范例3：Context类。
-``` android
-// 获取当前应用程序的Resources对象。
-public abstract Resources getResources()
-```
-
-<br>　　范例4：获取各种类型的值。
-``` android
-public class AndroidTestActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-
-        Resources res = getResources();
-		
-        System.out.println(res.getString(R.string.app_name));
-        System.out.println(res.getColor(R.color.white));
-        System.out.println(res.getDimension(R.dimen.width));
-        System.out.println(res.getDimension(R.dimen.height));
-
-        int[] ids = res.getIntArray(R.array.id);
-        String[] names = res.getStringArray(R.array.name);
-        for(int i=0;i<ids.length;i++){
-            System.out.println("id="+ids[i]+",name="+names[i]);
-        }
-    }
-}
-```
-
-<br>　　范例5：XmlResourceParser接口。
-``` android
-// XmlResourceParser是XmlPullParser的子接口，因此可以使用pull解析来解析xml文档。
-// 关闭当前XmlResourceParser对象。
-public abstract void close()
-```
+	-  使用xml文件来构建SOAP消息。
 
 <br>
-　　`res/raw`目录用于存放应用使用到的原始文件，如音效文件等。与`assets`目录比较：
+### XML调用 ###
+　　使用SOAP协议发送请求时，需要按照如下代码列出的数据，向服务器发送数据。
 
-	-  相同点：在编译项目时，这些数据不会被编译，它们被直接加入到程序安装包里。
-	-  不同点：此目录下的文件都会在R文件中注册，若在其内自定义子目录，则子目录中的文件不会被注册到R文件中。自由度较assets目录略低。
-
-# 第三节 App安装位置 #
-　　从`API level 8`开始，用户可以将应用程序安装到外部存储设备中（如SD卡）。可以通过在`manifest`中声明`android:installLocation`属性。如果不声明该属性，应用程序将只会安装在内存中，而且不能移动到外部存储设备。
-　　要将应用程序安装到外部存储设备中，只需修改`manifest`文件，在`manifest`元素中添加`android:installLocation`属性，属性值为`preferExternal`或`auto`。
-
-<br>　　例如：
+<br>　　范例1：阅读发送规范。
 ``` xml
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    android:installLocation="preferExternal"
-    ... >
+POST /WebServices/MobileCodeWS.asmx HTTP/1.1
+Host: webservice.webxml.com.cn
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: length
+
+<?xml version="1.0" encoding="utf-8"?>
+<soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+  <soap12:Body>
+    <getMobileCodeInfo xmlns="http://WebXml.com.cn/">
+      <mobileCode>string</mobileCode>
+      <userID>string</userID>
+    </getMobileCodeInfo>
+  </soap12:Body>
+</soap12:Envelope>
 ```
-　　如果该属性值设为`preferExternal`，表明用户要求应用程序优先安装在外部存储设备中，但是系统并不保证应用程序真的安装在外部存储设备中。如果外部存储设备的空间已满，系统仍然会将应用程序安装在内存中。用户也可以在两个位置之间移动应用程序。
-　　如果该属性值设为`auto`，表明应用程序可能安装在外部存储设备中，但是用户本身对安装位置没有特殊要求。系统会根据多种因素决定将应用程序安装在哪里。用户也可以在两个位置之间移动应用程序。
+    语句解释：
+	-  SOAP协议有两个版本：SOAP1.1和SOAP1.2，本范例是SOAP1.2的规范。
+	-  本范例中的xml文件就是一个SOAP消息，SOAP消息的语法规则：
+	   -  SOAP 消息的根节点必须是Envelope 。
+	   -  SOAP 消息中必须要存在一个节点Body 。Body节点内列出要当前消息要访问服务器端的webservice中的哪个方法以及传递给该方法的参数。 
+	-  本范例中，将调用服务器端webservice的getMobileCodeInfo方法，该方法接收两个参数mobileCode和userID 。
 
-　　当应用程序安装在外部存储设备中时：
+<br>　　范例2：创建SOAP消息。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+  <soap12:Body>
+    <getMobileCodeInfo xmlns="http://WebXml.com.cn/">
+      <mobileCode>13412345678</mobileCode>
+      <userID></userID>
+    </getMobileCodeInfo>
+  </soap12:Body>
+</soap12:Envelope>
+```
+    语句解释：
+	-  若不需要为<userID>传递值，则可以不写。但是标签<userID>必须要写上。
 
-	-  只要外部存储设备装载在设备上，应用程序的性能就不会受到影响。
-	-  .apk文件是保存在外部存储设备中的，但是所有的私有用户数据、数据库、优化的.dex文件和提取的本地代码都是保存在设备的内存中的。
-	-  保存应用程序的唯一容器经过一个随机产生的密钥进行加密。该密钥只能由最初安装该程序的设备解密。因此，安装在SD卡上的应用程序只能在某一个固定的设备上运行。
-	-  用户可以通过系统设置将应用程序移动到内存上。
+<br>　　范例3：发送消息。
+``` android
+public static void sendXML(String xml)throws Exception {
+    // 核心代码如下。
+    URL url = new URL("http://webservice.webxml.com.cn/WebServices/MobileCodeWS.asmx");
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.setConnectTimeout(4000);
+    conn.setRequestMethod("POST");
+    conn.setRequestProperty("Content-Type", "application/soap+xml; charset=utf-8");
+    conn.setRequestProperty("Content-Length",xml.getBytes().length+"");
+    conn.setDoOutput(true);
 
-　　注意：当用户使用`USB大容量存储器`与计算机共享文件时，或通过系统设置卸载SD卡时，外部存储设备将从本设备卸载，并且所有在该外部存储设备中安装的应用程序将立刻被关闭。
+    OutputStream out = conn.getOutputStream();
+    out.write(xml.getBytes("UTF-8"));
+    // 其它代码省写 ... 
+}
+```
+    语句解释：
+	-  注意：“国内手机号码归属地查询WEB服务”中soap协议与http协议数据提交的目的地是不一样的。
+
+<br>
+### WSDL调用 ###
+　　通过发送SOAP消息的方式访问Webservice时，通信双方都需要对SOAP消息进行解析。
+　　但有些Webservice返回的SOAP消息包含的数据很多，解析起来很麻烦，因此也会使用`WSDL方式`来发送SOAP消息，这样客户端开发人员就不需要编写解析SOAP消息的代码了。
+
+<br>　　`WSDL(Web Service Description Language)`
+
+	-  它是一个用来描述Webservice的语言，这门语言使用的是xml语言的语法规则。
+	   -  WSDL描述了Webservice内部提供的各个接口所用到的数据类型(如每个接口的形参的类型、返回值的类型)、以及接口的名称等信息，它更像一本关于Webservice的说明书。 
+	-  通过阅读某个Webservice的WSDL文件，可以知道该Webservice提供了哪些接口。
+
+<br>　　范例1：使用WSDL发送SOAP消息的具体流程。
+
+	-  首先，客户端向服务器端发送请求，获取某个Webservice的WSDL文件。
+	-  然后，客户端依据WSDL文件的内容，发送SOAP消息。
+	-  最后，该Webservice接到SOAP消息后，会解析SOAP消息，根据消息中的信息做出相应的操作，并将操作的结果封装成SOAP消息，返回给客户端。 
+
+　　下面将以`“2400多个城市天气预报Web服务”`为例，讲述如何通WSDL方式调用Webservice。
+
+<br>　　范例2：下载WSDL文件。
+
+	-  首先，打开http://webservice.webxml.com.cn页面。
+	-  然后，找到“2400多个城市天气预报Web服务”。 
+	-  接着，找到“服务说明”，然后点击去。然后将该xml文件另存为到本地，名为test.xml。
+	-  然后，使用JDK提供的“wsimport”工具，生成此wsdl所描述的api的源代码。
+	-  最后，使用生成的源代码调用Webservice即可。
+
+<br>　　范例3：wsimport工具。
+```
+wsimport -s . test.xml
+```
+    语句解释：
+	-  含义为：解析test.xml文件，并将生成的.java和.class文件放到当前目录下面。
+	-  提示：若解析的时候报错，则将wsdl文件中导致报错的那行代码给删掉即可。
+	-  wsimport.exe位于JAVA_HOME\bin目录下.
+	-  常用参数为：
+	   -  “-d  <目录>”            将生成.class文件，放于指定的目录下。默认参数。
+	   -  “-s  <目录>”            将生成.java文件和.class文件，放于指定的目录下。
+	   -  “-p  <生成的新包名>”     将生成的类，放于指定的包下。
+
+<br>　　范例4：查询天气。
+``` android
+public class Test {
+    public static void main(String[] args){
+        WeatherWS service = new WeatherWS();
+        WeatherWSSoap soap = service.getWeatherWSSoap();
+        // 获取中国的所有省、直辖市、地区的编号。
+        ArrayOfString provinceList = soap.getRegionProvince();
+        // 依次遍历每一个城市。
+        for(String province : provinceList.getString()){
+            System.out.println(province);// 得出山东的代号为3119 。
+        }
+        // 查询出山东省下面的所有市、区。
+        ArrayOfString cityList = soap.getSupportCityString("3119");
+        for(String city : cityList.getString()){
+            System.out.println(city); // 获取到台儿庄的编号为1869。 
+        }
+        // 查询出台儿庄的天气。
+        ArrayOfString skyInfo = soap.getWeather("1869", null);
+        for(String sky : skyInfo.getString()){
+            System.out.println("☆☆☆☆ "+sky);
+        }
+    }
+}
+```
+    语句解释：
+	-  在webxml.com.cn中的“2400多个城市天气预报Web服务”中提供了各个类的API，可以在线观看。
+	-  通常，在wsdl文件中的“<wsdl:service name="WeatherWS">”节点的name属性的值就是Webservice所对应的主类，通过主类就可以找出调用Webservice的具体方法。
+	-  提示：这些API不需要记忆，用到某个新技术时，可以看着官方提供的Demo慢慢摸索。
+
+
 
 <br><br>

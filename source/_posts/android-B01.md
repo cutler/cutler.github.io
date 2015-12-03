@@ -96,7 +96,7 @@ android:id="@android:id/empty"
 	-  垂直线性布局：布局内的所有控件，每个控件独占一行，所有控件从上到下垂直排放 。
 	-  水平线性布局：布局内的所有控件从左到右排在一行中，若当前屏幕显示不下，则也不会另起一行。 整个行的行高，为高度最高的那个组件的高度。
 
-<br>　　属性`android:orientation`指出线性布局的方式(默认值为水平布局)，取值有两个： 
+<br>　　属性`android:orientation`指出线性布局的方式（默认值为水平布局），取值有两个： 
 
 	-  垂直布局：vertical
 	-  水平布局：horizontal
@@ -104,7 +104,6 @@ android:id="@android:id/empty"
 	
 <br>　　范例1：`main.xml`文件。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"	android:layout_height="match_parent"
@@ -121,7 +120,6 @@ android:id="@android:id/empty"
 
 <br>　　范例2：`android:layout_weight`属性。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -150,7 +148,6 @@ android:id="@android:id/empty"
 
 <br>　　范例1：相对布局。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -216,8 +213,7 @@ android:paddingBottom="30dp"
     -  也可以使用其他四个属性，为当前控件的某条边框设置间距。
 
 <br>　　范例4：margin。
-``` android
-<?xml version="1.0" encoding="utf-8"?>
+``` xml
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
@@ -239,7 +235,6 @@ android:paddingBottom="30dp"
 
 <br>　　范例1：`main.xml`文件。
 ``` android
-<?xml version="1.0" encoding="utf-8"?>
 <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
     <TableRow>
@@ -256,8 +251,7 @@ android:paddingBottom="30dp"
 <br>　　`TableLayout`的每行有`0`或多个单元格，每个单元格都可以定义为任意类型的View对象。
 
 <br>　　范例2：其他属性。
-``` android
-<?xml version="1.0" encoding="utf-8"?>
+``` xml
 <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:stretchColumns="1" android:shrinkColumns="1">
@@ -272,8 +266,7 @@ android:paddingBottom="30dp"
     -  属性android:stretchColumns：若某行中空间未填满，则拉伸指定的列，编号从0开始。
 
 <br>　　范例3：跨列。
-``` android
-<?xml version="1.0" encoding="utf-8"?>
+``` xml
 <TableLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
@@ -306,8 +299,7 @@ android:paddingBottom="30dp"
 　　在帧布局中，组件是以覆盖的方式排列的，即将两个组件A和B依次放入帧布局中时，B组件会压在A组件的上方，这类似于一摞扑克牌。 
 
 <br>　　范例1：帧式布局。
-``` android
-<?xml version="1.0" encoding="utf-8"?>
+``` xml
 <FrameLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" 
@@ -321,7 +313,6 @@ android:paddingBottom="30dp"
 
 <br>　　范例2：前景图像。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"  
     android:layout_width="match_parent"  
     android:layout_height="match_parent"  
@@ -726,12 +717,6 @@ button.setOnClickListener(new View.OnClickListener() {
 });
 ```
 
-<br>**按钮的样式**
-　　按钮的外观（背景图片和字体）可能会因为机器不同而有所不同，因为不同厂家的设备的输入控件的默认样式往往不同。
-　　您可以控制控件使用适用于整个应用程序的样式。例如，要确保所有运行`Android4.0`甚至更高版本的设备在您的应用程序使用Holo主题，需要在manifest的`<application>`元素中声明`android:theme="@android:style/Theme.Holo"`。
-　　
-　　另外，您可以使用一种类似于HTML的样式来定义按钮的样式，可以定义多种属性，如背景、字体、大小等等。关于应用样式的更多信息，请参阅后面章节。
-
 <br>**无边框按钮**
 　　一种有用的设计是无边框按钮。无边框按钮与基本按钮相似，但是无边框按钮没有无边框或背景，但在不同状态如点击时，会改变外观。要创建一个无边框“按钮，为按钮应用`borderlessButtonStyle`样式。
 
@@ -750,53 +735,12 @@ button.setOnClickListener(new View.OnClickListener() {
     style="?android:attr/borderlessButtonStyle" />
 ```
 
-<br>**定制背景**
-　　如果你想真正重新定义按钮的外观，你可以指定一个自定义的背景。而不是提供一个简单的位图或颜色，然而，你的背景应该是一个状态列表资源，可以使按钮能取决于按钮的当前状态而改变外观。
-　　您可以在一个XML文件中定义状态列表，定义三种不同的图像或颜色，用于不同的按钮状态。
-
-　　要为按钮的背景创建一个状态列表资源：
-　　1、创建三个按钮背景位图以表示默认、按下和选中的按钮状态。为了确保图像适合不同大小的按钮，以`9-patch`的格式创建图像。
-　　2、位图放到你工程的`res/drawable/`下面，确保每个位图命名正确能够反映它们分别代表的按钮状态。如：
-
-	button_default.9.png、button_pressed.9.png、button_focused.9.png
-　　3、在`res/drawable/ directory`下创建一个新的XML文件。使用下面的XML：
-``` xml
-<?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@drawable/button_pressed"
-          android:state_pressed="true" />
-    <item android:drawable="@drawable/button_focused"
-          android:state_focused="true" />
-    <item android:drawable="@drawable/button_default" />
-</selector>
-```
-    语句解释：
-    -  这定义一个单一的绘制资源，将基于按钮的当前状态改变其图像。
-       -  第一个<item>定义了按下按钮（激活）时使用的位图。
-       -  第二个<item>定义了按钮按下时（按钮高亮时，使用轨迹球或方向键）使用的位图。
-       -  第三个<item>定义了默认状态下的按钮（既不是按下也不是选中）使用的位图。
-    -  注意：<item>元素的顺序是重要的。当图像可用时，按顺序遍历<item>元素，以确定哪一个适合当前按钮状态。因为默认的位图在最后，当android:state_pressed 和android:state_focused的值都为false时才会被应用。
-
-
-<br>　　现在，这个XML文件代表一个`Drawable`资源，当`<Button>`引用它作为背景，图像将基于按钮的三种状态而改变。
-　　然后，只需应用此XML文件作为按钮的背景：
-``` xml
-<Button
-    android:id="@+id/button_send"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="@string/button_send"
-    android:onClick="sendMessage"
-    android:background="@drawable/button_custom"  />
-```
-
 ## EditText ##
-　　文本框允许用户在应用程序中输入文本。它们可以是单行的，也可以是多行的。点击文本框后显示光标，并自动显示键盘。除了输入，文本框还包含其它操作，比如文本选择（剪切，复制，粘贴）以及自动完成的数据查找。
-　　你可以在布局中添加一个文本框字段`EditText`， android里的写法通常是在XML布局文件中添加`<EditText>`元素
+　　文本框允许用户在应用程序中输入文本，在XML布局文件中添加`<EditText>`元素。
 
 <br>**指定键盘类型**
-　　EditText可以限制用户不同的输入类型，如数字，日期，密码，或电子邮件地址。输入类型决定文本框内允许输入什么样的字符，它可能会提示虚拟键盘，其布局优化常用的字符。
-　　你可以使用EditText对象的`android:inputType`属性指定输入类型的键盘，例如：你想输入一个电子邮件地址上的用户，`inputType`属性应为`textEmailAddress`。
+　　`EditText`可以限制用户不同的输入类型，如数字，日期，密码，或电子邮件地址。
+　　你可以使用`EditText`对象的`android:inputType`属性指定输入类型的键盘，例如：
 ``` xml
 <EditText
     android:id="@+id/email_address"
@@ -825,10 +769,7 @@ button.setOnClickListener(new View.OnClickListener() {
 	-  number：普通的数字键盘。
 	-  phone：电话号码类型的键盘。
 
-<br>**控制其他行为**
-　　`android:inputType`还允许您指定操作行为，如在键盘上是否要首字母大写所有新词，或使用自动完成和拼写建议功能。
-　　`android:inputType`属性允许按位组合，让您可以一次指定一个键盘布局和一个或多个操作行为。例如，你如何收集邮政地址，利用每一个字，并禁用文字的行为。
-　　下面列出了常见的定义键盘行为的`inputType`值：
+<br>　　下面列出了常见的定义键盘行为的`inputType`值：
 
 	-  textCapSentences：普通的文本键盘，将每个新句子的第一个字母转为大写。
 	-  textCapWords：普通的文本键盘，将每个单词的第一个字母转为大写，适用于人名。
@@ -857,10 +798,6 @@ button.setOnClickListener(new View.OnClickListener() {
     android:text="actionSearch" />
 ```
 
-　　如果你不明确指定一个输入动作(`action`)，当用户点击右下角的按钮时，系统将尝试确定是否有任何后续的`android:focusable`属性动作。
-　　如果发现了有`android:focusable`属性动作，那么这个系统适用于在当前的EditText的action则为`actionNext`，这样使用户可以选择“下一步”或移动到下一个字段。
-　　如果是没有后续的`focusable`属性，那该系统适用`actionDone`动作，你也可以通过设置`android:imeOptions`属性使系统更改到其它值，如`actionSend`或`actionSearch`或禁止使用`actionNone`动作的默认行为。
-
 　　这里举几个常用的常量值：
 
 	-  actionGo 去往，对应常量EditorInfo.IME_ACTION_GO。 
@@ -873,8 +810,7 @@ button.setOnClickListener(new View.OnClickListener() {
 　　提示：EditText的`android:inputType`属性的值默认是`none`，若不去修改它的默认值，则`android:imeOptions`属性是不起作用的，将`none`改为`text`即可。
 
 <br>**响应按钮事件**
-　　如果您已指定键盘采用`android:imeOptions`属性（`actionSend`等）的操作方法，你可以使用`TextView.OnEditorActionListener`监听事件行为。
-　　`OnEditorActionListener`接口提供了一个回调方法`onEditorAction()`，它通过输入的动作ID，如`IME_ACTION_SEND`或`IME_ACTION_SEARCH`行为调用相关的动作类型方法。
+　　如果您已指定键盘采用`android:imeOptions`属性，则可以使用`TextView.OnEditorActionListener`监听事件行为。
 ``` android
 EditText editText = (EditText) findViewById(R.id.search);
 editText.setOnEditorActionListener(new OnEditorActionListener() {
@@ -889,7 +825,8 @@ editText.setOnEditorActionListener(new OnEditorActionListener() {
     }
 });
 ```
-
+    语句解释：
+    -  OnEditorActionListener接口提供了一个回调方法onEditorAction。
 <br>**其他用法**
 
 <br>　　范例1：`<EditText>`标签。
@@ -961,7 +898,7 @@ editText.setTransformationMethod(PasswordTransformationMethod.getInstance());
 ```
 
 ## CheckBox ##
-　　复选框(俗称`多选按钮`)允许用户从列表中选择一个或多个选项。通常，你应该在垂直的列表中显示每一个选项。
+　　复选框（俗称`多选按钮`）允许用户从列表中选择一个或多个选项。通常，你应该在垂直的列表中显示每一个选项。
 
 <center>
 ![](/img/android/android_3_8.png)
@@ -1038,7 +975,6 @@ public void onCheckboxClicked(View view) {
 ## RadioButton ##
 　　复选框允许用户从一系列选项中选择其中某个选项。
 　　如果认为有必要让用户看到所有并列的可选项，并且各个选项中只能有一个被选择，那么单选框是个好选择。 
-　　如果没有必要显示所有的并列选项，那么可以用`Spinner`下拉列表代替。
 
 <center>
 ![](/img/android/android_3_9.png)
@@ -1111,7 +1047,7 @@ g.setOnCheckedChangeListener(
     -  当然直接在RadioButton上进行监听也是可以的，选择哪种方案就看具体情况了。
 
 ## ToggleButton ##
-　　`ToggleButton`是一个开关按钮，与普通Button的区别在于它有两种状态，选中和未选中。程序可以根据ToggleButton的当前状态，设置其所要显示的文本。
+　　`ToggleButton`是一个开关按钮，与普通`Button`的区别在于它有两种状态，选中和未选中。
 　　Android有两种开关按钮，在`Android4.0`之前，你可以添加一个基本的`ToggleButton`开关按钮对象到布局文件。 `Android 4.0`（API 级别14）中介绍了另外一种叫做`Switch`的切换按钮，这个按钮提供一个滑动控件，可以通过添加`Switch`对象来实现。
 
 <center>
@@ -1122,7 +1058,6 @@ g.setOnCheckedChangeListener(
 
 <br>　　范例1：开关按钮。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
@@ -1147,7 +1082,6 @@ android:checked   设置按钮的当前是否处于选中状态。
 
 <br>　　范例2：`toggle_btn_bg.xml`。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_checked="true" android:drawable="@drawable/bn_yes_bg"/>
     <item android:state_checked="false" android:drawable="@drawable/bn_no_bg"/>
@@ -1199,15 +1133,10 @@ public void onClick(View view) {
 　　例如，你能把`CodeFont style`作为`theme`应用于一个`Activity	`，那么这个`Activity`中所有文本都将是绿色等宽字体。
 
 ## 样式 ##
-　　若想创建`style`，则需保存一个XML文件到你的工程的`res/values/`目录下，这个XML文件的名称可以随便定义，但必须使用`.xml`作为后缀，且要保存在`res/values/`文件夹中。
-　　这个XML文件的根节点必须是`<resources>`。
-　　每个`style`都使用一个`<style>`元素来表示，该元素有一个用来唯一标识该`style`的`name`属性（这个属性是必需的）。 
-
-　　在`style`元素内部可以添加多个属性，每个属性使用一个`<item>`元素表示，该元素也包含一个`name`属性（这个属性是必需的），以及一个使用的值。这个`<item>`的值可以是一个关键字符串、十六进制颜色、到另一个资源类型的引用或其他值，取决于`style`的属性。这里有一个单独`style`的例子：
+　　若想创建`style`，则需保存一个XML文件到你的工程的`res/values/`目录下，文件的名称可以随便定义。
 
 <br>　　范例1-1：定义样式。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="CodeFont">
         <item name="android:layout_width">fill_parent</item>
@@ -1218,12 +1147,13 @@ public void onClick(View view) {
 </resources>
 ```
     语句解释：
-    -  CodeFont就是样式的名称，它内部包含了4个属性。 当某个控件使用此样式时，实际上就是在使用样式内部的各属性的值。
-    -  每个<resources>元素的子节点在编译时都被转换为一个应用程序资源对象，其可通过<style>元素的name属性的值来引用。
+    -  每个style都使用一个<style>元素来表示，该元素有一个用来唯一标识该style的name属性（这个属性是必需的）。 
+    -  在<style>内部可以添加多个属性，每个属性使用一个<item>元素表示。
+    -  在本范例中，CodeFont就是样式的名称，它内部包含了4个属性。 
+    -  当某个控件使用此样式时，实际上就是在使用样式内部的各属性的值。
 
 <br>　　范例1-2：定义样式2。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name=".20STYLE">
         <item name="android:textColor">#FF0000</item>
@@ -1232,7 +1162,7 @@ public void onClick(View view) {
 </resources>
 ```
     语句解释：
-    -  第5行代码的含义为：将控件的“android:text”属性的值设置为20sp。
+    -  第4行代码的含义为：将控件的“android:text”属性的值设置为20sp。
 
 <br>　　范例2：使用样式。
 ``` xml
@@ -1243,7 +1173,8 @@ public void onClick(View view) {
     android:text="周•杰伦\n崔•杰伦/>
 ```
     语句解释：
-    -  使用控件的style属性可以为当前控件设置一个style。在本范例中TextView控件的字体的颜色为FF0000字体的大小为20sp。
+    -  使用控件的style属性可以为当前控件设置一个style。
+    -  在本范例中TextView控件的字体的颜色为FF0000字体的大小为20sp。
 
 <br>　　颜色常量有四种常见的书写格式：
 
@@ -1258,7 +1189,6 @@ public void onClick(View view) {
 
 <br>　　范例3：样式继承。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="STYLE_WH">
         <item name="android:layout_width">wrap_content</item>
@@ -1285,7 +1215,6 @@ public void onClick(View view) {
 
 <br>　　范例5：属性继承2.0。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="STYLE_WH">
         <item name="android:layout_width">wrap_content</item>
@@ -1297,24 +1226,19 @@ public void onClick(View view) {
 </resources>
 ```
     语句解释：
-    -  可以通过改变style名称的写法，来继承指定的style，命名规则为：父style名.当前style名。你可以像这样继续继承很多次，只要修改句点之前的名称。
+    -  可以通过改变style名称的写法，来继承指定的style，命名规则为：“父style名.当前style名”。你可以像这样继续继承很多次，只要修改句点之前的名称。
     -  若指定的父style不存在，则会报错。范例1-2中的“.” 没有这种含义，它仅仅代表一个字符“.”。
     -  这种技巧仅适用于将你自己定义的资源链接起来。你不能用这种方式继承Android内建的style。要引用一个诸如TextAppearance的内建style，你必须使用parent属性。
 
 <br>**一些提示：**
 
-	1、如果你对一个View应用了style，而其并不支持此style中某些属性，那么此View将应用那些它支持的属性，并忽略那些不支持的。
-	2、一些style属性只能被当作一个theme来应用，而不支持任何View元素。如用于隐藏应用标题(windowNoTitle)、隐藏状态栏或改变窗口背景(windowBackground)的style属性，它们不属于任何View对象。
-	3、不要忘记对每个<item>元素中的属性冠以“android:”命名空间前缀。如：android:inputType。
+	-  若View不支持style中某些属性，那么该View将应用那些它支持的属性，并忽略那些不支持的。
+	-  一些style属性只能被当作一个theme来应用，而不支持任何View元素。
+	   -  如用于隐藏应用标题(windowNoTitle)、隐藏状态栏或改变窗口背景(windowBackground)的style属性。
+	-  如果一个style应用到一个ViewGroup上，那么子View元素并不会继承应用此style属性（只有你直接应用了style的元素才会应用其属性）。
 
 ## 主题 ##
 　　用于Activity或者整个应用程序的`style`我们称之为主题(`Theme`)。
-
-<br>　　当你应用一个`style`到布局中一个单独的View上时，由此`style`定义的属性会仅应用于那个View。
-　　如果一个`style`应用到一个`ViewGroup`上，那么子View元素并不会继承应用此`style`属性(只有你直接应用了`style`的元素才会应用其属性)。
-
-　　将一个style作为一个`theme`来应用，你必须在`Android manifest`中将其应用到一个`<activity>`或`<application>`中。
-　　当你这样做，此Activity或应用中的每个View都将应用其所支持的属性。例如，如果你应用前面示例中的`CodeFont style`到一个Activity，那么支持此文本`style`属性的所有View元素都将应用它们。所有View所不支持的属性都会被忽略。如果一个View仅支持某些属性，那么它就只应用那些属性。
 
 <br>　　范例1：定义主题。
 ``` xml
@@ -1334,6 +1258,7 @@ public void onClick(View view) {
     android:theme="@style/FullScreen" />
 ```
     语句解释：
+    -  此Activity中的每个View都将应用FullScreen所支持的属性。
     -  在清单文件中使用<activity>标签的android:theme属性来引用建立好的style。
     -  若使用<application>标签的android:theme属性引用style，则style将作用于该应用程序内的所有Activity。
 
@@ -1492,8 +1417,8 @@ You may try using --multi-dex option.
 <br>**仍需控制项目大小**
 　　虽然`Google`解决了应用总方法数限制的问题，但并不意味着开发者可以任意扩大项目规模。`Multidex`仍有一些限制：
 
-	1、DEX文件安装到设备的过程非常复杂，如果第二个DEX文件太大，可能导致应用无响应。此时应该使用ProGuard减小DEX文件的大小。
-	2、由于Dalvik linearAlloc的Bug，应用可能无法在Android 4.0之前的版本启动，如果你的应用要支持这些版本就要多执行测试。
+	1、DEX文件安装到设备的过程非常复杂，如果第二个DEX文件太大，可能导致应用无响应。
+	2、由于Dalvik linearAlloc的Bug，应用可能无法在Android 4.0之前的版本启动，如果你的应用要支持这些版本就要多测试。
 	3、同样因为Dalvik linearAlloc的限制，如果请求大量内存可能导致崩溃。Dalvik linearAlloc是一个固定大小的缓冲区。在应用的安装过程中，系统会运行一个名为dexopt的程序为该应用在当前机型中运行做准备。dexopt使用LinearAlloc来存储应用的方法信息。Android 2.2和2.3的缓冲区只有5MB，Android 4.x提高到了8MB或16MB。当方法数量过多导致超出缓冲区大小时，会造成dexopt崩溃。
 	4、Multidex构建工具还不支持指定哪些类必须包含在首个DEX文件中，因此可能会导致某些类库（如某个类库需要从原生代码访问Java代码）无法使用。
 

@@ -45,7 +45,7 @@ categories: android
 	-  如果ActivityA不再屏幕上显示，它的onStop方法就会被执行。
 
 　　这意味着，在`ActivityA`的`onPause`方法返回之前，`ActivityB`的`onCreate`方法不会被调用，因此请不要在`onPause`方法中执行耗时操作。
-　　另外，当操作系统内存不足且需要为高优先级的应用程序分配内存资源时，系统可能销毁处于pause状态的Activity，因此onPause()方法是Activity可以保证一定会执行的最后的一个生命周期方法。
+　　另外，当操作系统内存不足且需要为高优先级的应用程序分配内存资源时，系统可能销毁处于pause状态的Activity，因此`onPause()`方法是Activity可以保证一定会执行的最后的一个生命周期方法。
 
 <br>　　**onStop()**
 
@@ -59,13 +59,13 @@ categories: android
 	-  在Activity被销毁之前调用这个方法，这是Activity收到的最后的调用。
 	-  注意：当系统内存不足时系统会将已经调用过onPause()方法Activity给回收掉，也就是说此方法不一定会被调用。
 
-<br>
+
 ## 异常生命周期 ##
-　　上一节我们介绍了`Activity`常见的`7`个生命周期方法，这些方法主要是依靠用户的操作来触发的，比如用户打开一个新的`Activity`，会导致当前界面的`onPause`等方法调用。
+　　上一节我们介绍了`Activity`常见的`7`个生命周期方法，这些方法主要是依靠用户的操作来触发的，比如用户打开一个新的`Activity`，会导致当前界面的`onCreate`等方法调用。
 　　但是实际开发时，情况会稍微复杂一些，我们还会涉及到其它几个生命周期方法，本节就来介绍一下它们。
 <br>
 ### 设备配置改变 ###
-　　当设备配置在运行期间改变（如屏幕方向、语言等）时，系统会重建正在运行的Activity（系统调用onDestroy()方法后，立即调用onCreate()方法）。
+　　当设备配置在运行期间改变（如屏幕方向、语言等）时，系统会重启正在运行的Activity（系统调用onDestroy()方法后，立即调用onCreate()方法）。
 　　但是你也可以修改这个默认的行为，从而阻止系统重启你的Activity，即告诉系统由Activity自己来处理配置变化。
 
 <br>　　我们只需要设置清单文件的`<activity>`元素的`android:configChanges`属性即可，该属性最常用的值是`orientation`(处理当屏幕的方向变化)，多个配置的值之间通过`“|”`符号将它们分隔开。例如：
@@ -81,7 +81,7 @@ categories: android
 	-  从Android3.2(API level 13)开始，当屏幕在横竖屏间切换时也会导致“screenSize”改变。
 	-  因此若想在APILevel 13或更高的版本中防止屏幕方向变化时重启Activity，你必须同时包含“screenSize”和“orientation”两个值。
 
-<br>　　例如，接下来的`onConfigurationChanged()`方法中实现了检查硬件键盘的可用性和当前设备的方向：
+<br>　　例如，接下来的`onConfigurationChanged()`方法中实现了检查当前设备的方向：
 ``` android
 // 当这个方法被调用时，你的Activity的Resources对象会被更新并返回一个基于新配置的Resources对象。
 // 因此你可以在不用系统重启你的Activity的情况下很容易地重置你的UI元素。
@@ -173,7 +173,7 @@ public class MainActivity extends Activity {
 
 <br>　　`Task`的默认行为：
 
-	-  当用户通过按主页(Home)按钮离开一个任务时，当前Task的栈顶Activity会被stop，并且Task会被放入后台，但系统会保留Task中每个Activity的状态。
+	-  当用户通过按主页（Home）按钮离开一个Task（任务）时，当前Task的栈顶Activity会被stop，并且Task会被放入后台，但系统会保留Task中每个Activity的状态。
 	   -  如果用户随后通过选择启动图标来恢复这个任务，那么任务会来到前台，并且恢复了堆栈顶部的Activity。
 	-  如果用户按下回退按钮，当前的Activity会从堆栈中被弹出并且被销毁，堆栈中的前一个Activity会被恢复。
 
@@ -271,7 +271,7 @@ Running activities (most recent first):
     Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
 ```
 　　若修改`Activity1`的启动模式为`singleTask`：
-``` android
+``` xml
 <activity android:name=".Activity1" android:launchMode="singleTask" >
 ```
 　　则在`MainAcitivity`中启动它后，栈中的情况如下：
@@ -288,7 +288,7 @@ Running activities (most recent first):
 
 <br>　　范例2：开启新`Task`。
 　　首先为`Activity1`设置`taskAffinity`属性的值。
-``` android
+``` xml
 <activity android:name=".Activity1" android:launchMode="singleTask"
     android:taskAffinity="ni.die" >
 ```
@@ -307,8 +307,8 @@ Running activities (most recent first):
 　　这里需要指出一种情况，我们假设目前有2个任务栈，前台栈中有AB，后台栈中有CD，且假设CD的启动模式均为`singleTask`。
 　　然后处于前台栈顶的B：
 
-	-  如果请求启动D：由于D是栈顶，那么整个后台栈都会被切换到前台，此时栈内为ABCD。
-	-  如果请求启动C：由于C不是栈顶，因此请求C时，D会被直接出栈，此时栈内为ABC。
+	-  如果请求启动D：由于D是栈顶，那么整个后台栈都会被切换到前台，此时的序列为ABCD。
+	-  如果请求启动C：由于C不是栈顶，因此请求C时，D会被直接出栈，此时的序列为ABC。
 
 <br>　　**singleInstance模式**
 　　使用此启动模式的`Activity`总是单独占有一个`Task`，若在该`Activity`中又启动了另外一个`Activity`，则新启动的`Activity`将不会和该`Activity`处于同一个`Task`中。
@@ -390,7 +390,7 @@ public class MainActivity extends Activity {
 ```
     语句解释：
     -  我们可以通过Intent对象的mExtras属性，来将一些参数传递到目标组件中去。
-    -  除了构造ComponentName对象外，我们也可以在创建Intent对象的同时，设置当前Intent对象从何处跳往何处：
+    -  也可以在创建Intent对象的同时，设置当前Intent对象从何处跳往何处：
        -  Intent intent = new Intent(MainActivity.this,MyActivity.class);
 
 <br>　　范例2：接收参数。
@@ -440,13 +440,12 @@ public class SecondActivity extends Activity{
 　　数据：`“动作”`所要操作的数据，显然不同的动作要跟不同的数据规范类型配合使用，比如：
 	-  如果动作是ACTION_VIEW，那么数据就应该指向一个可被查看的东西，比如网页、图片、视频等。
 	-  如果动作字段是ACTION_EDIT，那么它的数据应该指向它所要编辑的数据。
-	-  如果动作是ACTION_CALL，那么数据就应该是一个呼叫号码。在Android中会使用“tel:呼叫号码”来表示这个数据。
+	-  如果动作是ACTION_CALL，那么数据就应该是一个呼叫号码。
 
+　　再具体点说，数据包括两部分：`mData`和`mType`：
 
-　　准确的说数据包括两部分：`mData`和`mType`：
-
-	-  数据的URI(mData)：如file:///tmp/android.txt 。
-	-  数据的类型(mType)：即数据的MIME类型。如：text/html 。
+	-  数据的URI(mData)：用来指出数据所在的位置。如file:///tmp/android.txt。
+	-  数据的类型(mType)：用来指出数据的MIME类型。如：text/html 。
 
 <br>**分类**
 　　`mCategories`：`“动作”`的附加信息（可以有多个）。在Android中内置的类型有：
@@ -456,8 +455,8 @@ public class SecondActivity extends Activity{
 	-  Intent.CATEGORY_HOME ：目标Activity显示在主屏幕上。
 
 <br>
-### IntentFilter ###
-　　读者应该都知道这三点：
+### IntentFilter类 ###
+　　通过前面的介绍，我们已经知道这三点：
 
 	-  创建完Activity等组件后，还需要在清单文件中配置它们，以便让系统知道这些组件的存在。
 	-  在配置它们的时候，除了ContentProvider之外的另外三个组件都可以配置一个或多个<IntentFilter>，它表示过滤器。
@@ -466,11 +465,11 @@ public class SecondActivity extends Activity{
 	   -  然后，系统会检测Intent，若它是显式意图的直接启动目标组件，否则会依据Intent内部的信息进行匹配。
 	   -  接着，如果我们调用的startActivity来启动组件，那么系统会获取当前所有注册到系统中的Activity，并获取它们的<IntentFilter>。
 	   -  最后，让Intent对象和这些Activity的<IntentFilter>进行匹配，匹配成功就会启动该Activity，若有多个Activity都匹配成功，则系统会让用户选择启动哪一个。
+	   -  另外，组件可以有多个<IntentFilter>标签，只要该组件有一个匹配成功，则就能启动。
 
 
-　　`IntentFilter`类与`<IntentFilter>`标签对应，它有类似于Intent对象的动作、数据、和分类字段，过滤器会用这三个字段来检测一个隐式的Intent对象。
+　　`IntentFilter`类与`<IntentFilter>`标签对应，它有类似于Intent对象的动作、数据、和分类字段。
 
-　　由于组件可以有多个`<IntentFilter>`标签，因此只要该组件有一个`IntentFilter`匹配成功，则就能启动。
 
 <br>**Action匹配**
 　　在清单文件中的`<intent-filter>`元素内的`<action>`子元素对应咱们前面说的“动作”。如：
@@ -486,7 +485,7 @@ public class SecondActivity extends Activity{
     -  要通过这个检测，在Intent对象中指定的Action必须跟这个过滤器的动作列表中的某个Action一致匹配。
 
 　　
-　　进行意图匹配时，只有在Intent的`mAction`属性与`<intent-filter>`下的某个`<action>`标签的值匹配成功后，才会去匹配`mCategories`属性。 若意图过滤器中没有定义`mAction`属性，则当前`<intent-filter>`将被直接忽略，系统不会再与之进行匹配。
+　　进行意图匹配时，只有在Intent的`mAction`属性与`<intent-filter>`下的某个`<action>`标签的值匹配成功后，才会去匹配`mCategories`属性。 
 
 <br>**Category检测**
 　　`<intent-filter>`元素内的`<category>`子元素对应前面说的“分类”。例如：
@@ -566,7 +565,7 @@ intent.setData(Uri.parse("http://www.cxy.com:80/hi.jsp"));
 this.startActivity(intent);
 ```
     语句解释：
-    -  使用scheme属性匹配代码中的协议名，scheme属性的值中不要包含“:”号。
+    -  使用scheme属性匹配代码中的协议名。
 	-  使用host属性匹配代码中的主机名，使用此属性之前，必须要先指定scheme属性，在代码中scheme和host之间要写上“://”作为间隔。 
 	-  使用port属性匹配代码中的端口号，使用path属性匹配代码中的路径。
 
@@ -659,7 +658,7 @@ startActivity(intent);
 　　`PackageManager`类中有一组`query…()`以及`resolve…()`方法。
 　　前者返回能够接受一个特殊`Intent`对象的所有组件，后者返回最佳匹配结果（即只返回1个结果），例如：
 
-	-  queryIntentActivities()方法返回一个能够执行这个Intent对象要求动作的所有Activity。
+	-  queryIntentActivities()方法返回能够执行这个Intent对象的所有Activity。
 	-  queryIntentServices()方法类似地返回Service列表。
 	-  queryBroadcastReceivers()方法类似地返回Broadcast Receiver列表。
 　　这些方法都不激活组件，它们只是列出能够响应这个`Intent`对象的所有组件。
@@ -669,7 +668,7 @@ startActivity(intent);
 ## 背景介绍 ##
 <br>**问题是这样的：**
 　　在一个小屏幕的设备上，一个`Activity`通常占据了整个屏幕，其内显示各种UI视图组件。但是当一个`Activity`被显示在一个大屏幕的设备上时，例如平板，总会显得有些不适应，因为平板的屏幕太大了，UI组件会被拉长、模糊。
-　　因此若想使`Activity`的UI组件在大屏幕中美观且充满整个屏幕，则就需要在其内添加更多的组件，但是这样一来，视图的层次结构就很复杂了。但层次结构复杂也许并不是问题的关键，对于两个功能相似的`Activity`来说，他们UI界面也会高度相仿，这也就意味着代码的重复量会大大增加(这个问题也存在于手机设备上，只不过在大屏幕设备上更为突出而已)。
+　　因此若想使`Activity`的UI组件在大屏幕中美观且充满整个屏幕，则就需要在其内添加更多的组件，但是这样一来，视图的层次结构就很复杂了。但层次结构复杂也许并不是问题的关键，对于两个功能相似的`Activity`来说，他们UI界面也会高度相仿，这也就意味着代码的重复量会大大增加（这个问题也存在于手机设备上，只不过在大屏幕设备上更为突出而已）。
 
 　　因此`Android3.0`为了支持更加动态和灵活的UI设计，它引入了`fragments`的概念。
 
@@ -751,7 +750,7 @@ public static class MyFragment extends Fragment {
 <br>　　第二种，在`Activity`运行的任何时候都可以通过`FragmentManager`来操作和管理`Fragment`。有两种方式可以获取到`FragmentManager`的实例：
 
 	-  若项目的SDK版本为3.0以上，则通过Activity的getFragmentManager()方法获取。
-	-  若项目的SDK版本低于3.0，则通过FragmentActivity（稍后介绍）的getSupportFragmentManager()方法获取。
+	-  若项目的SDK版本低于3.0，则通过FragmentActivity的getSupportFragmentManager()方法获取。
 
 <br>　　另外，每个`Fragment`都需要一个唯一的标识，以便在程序中引用它。有`3`种方法来为一个Fragment提供一个标识：
 
@@ -819,9 +818,9 @@ public abstract class FragmentTransaction extends Object {
 ```
 
 　　`trans.add(R.id.layout,f)`将`Fragment`对象添加到`Activity`的组件下，此语句等价于：
-``` android
-		ViewGroup container = (ViewGroup)activity.findViewById(R.id.layout);
-		container.addView(f.mView);
+``` java
+ViewGroup container = (ViewGroup)activity.findViewById(R.id.layout);
+container.addView(f.mView);
 ```
 　　其中`f.mView`就是Fragment内部所封装的View。
 
@@ -952,15 +951,14 @@ public class FragmentA extends ListFragment {
 
 <br>**各声明周期方法的调用**
 
-	-  onAttach()
-	   -  当Fragment通过事务对象被绑定到Activity时被调用(宿主Activity的引用会被传入)。在onAttach()方法被调用后，其宿主Activity的onAttachFragment()方法将被调用。
-	-  onCreate()：通常情况下，在宿主Activity的onAttachFragment()方法将被调用后，会调用Fragment的onCreate方法。
-	-  onCreateView()：不论Fragment的onCreate是否调用，都将继续调用onCreateView()方法，此方法需要返回Fragment内封装的view的根节点。
-	-  onActivityCreated()：若Activity的onCreate()方法已经返回，则此方法将会在onCreateView()方法被调用后被调用。
-	-  onStart()、onResume()、onPause()、onStop()：这四个方法的调用情形与Activity一样。
-	-  onDestroyView()：当和Fragment关联的view hierarchy被移除之前会调用此方法，此方法返回后就会执行移除操作。
-	-  onDestroy()：当Fragment被销毁时被调用。
-	-  onDetach()：当Fragment与宿主Activity解除关联时被调用。
+	-  onAttach：当Fragment通过事务对象被绑定到Activity时被调用(宿主Activity的引用会被传入)。在onAttach方法被调用后，其宿主Activity的onAttachFragment方法将被调用。
+	-  onCreate：通常情况下，在宿主Activity的onAttachFragment方法将被调用后，会调用Fragment的onCreate方法。
+	-  onCreateView：不论Fragment的onCreate是否调用，都将继续调用onCreateView方法，此方法需要返回Fragment内封装的view的根节点。
+	-  onActivityCreated：若Activity的onCreate方法已经返回，则此方法将会在onCreateView方法被调用后被调用。
+	-  onStart、onResume、onPause、onStop：这四个方法的调用情形与Activity一样。
+	-  onDestroyView：当和Fragment关联的view hierarchy被移除之前会调用此方法，此方法返回后就会执行移除操作。
+	-  onDestroy：当Fragment被销毁时被调用。
+	-  onDetach：当Fragment与宿主Activity解除关联时被调用。
 
 ## 销毁重建 ##
 　　`Fragment`的生命周期受其宿主`Activity`的影响，当宿主`Activity`因为某种原因被摧毁(如手机横竖屏切换、内存不足导致后台`Activity`被回收等)，且用户再次导航回来时，接着宿主`Activity`就会执行重建操作，其内部的各个`Fragment`也会跟随着它执行重建。
@@ -972,7 +970,8 @@ public class FragmentA extends ListFragment {
 　　因此我们要保证自定义的`Fragment`类必须要有一个无参的构造方法，以便系统对其重建时调用。
 <br>　　找到`Fragment`类看到如下代码：
 　　　　　![Fragment类代码片段](/img/android/android_2_6.png)
-　　通过查看源码（此处省略具体步骤）得知，必须要为`Fragment`提供一个无参的构造方法。其实`Activity`也必须要定义一个无参的构造方法，只是由于`Activity`的实例通常由操作系统来创建，所以我们以前并没有涉及到此问题。
+　　上面的源码也可以证实，必须要为`Fragment`提供一个无参的构造方法。
+　　其实`Activity`也需要无参的构造方法，只是由于它的实例由操作系统来创建，所以我们以前并没有涉及到此问题。
 
 <br>**实例化的方法**
 　　现在我们又遇到一个问题： 很多时候我们需要在实例化`Fragment`的同时为其传递一些参数，而系统在重建`Fragment`时只会调用无参的构造方法，也就跳过传参的这一步骤，这必然会导致程序出问题。
@@ -1001,14 +1000,17 @@ public class MainActivity extends FragmentActivity {
 public class MyFragment extends Fragment {
     private String property;
     public static MyFragment getInstance(String property) {
+        // 我们也调用无参构造方法。
         MyFragment f = new MyFragment();
         Bundle data = new Bundle();
         data.putString("property", property);
+        // 将参数设置到MyFragment中。
         f.setArguments(data);
         return f;
     }
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // 当MyFragment被创建时，读取参数。
         property = getArguments().getString("property");
     }
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

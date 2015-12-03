@@ -4,7 +4,7 @@ categories: android
 ---
 
 # 第一节 高效的显示图片 #
-　　本节将讲解一些常用的处理和加载`Bitmap`(位图)对象到应用程序中的技巧，这些技术可以在某种程度上保持你的`UI组件`能够及时响应操作，并且避免图片超出应用的内存限制。 如果你不注意这些，那么图片就会迅速地消耗你的可利用内存，甚至于会抛出一个可怕的异常并导致应用的崩溃：
+　　本节将讲解一些处理和加载`Bitmap`（位图）对象的技巧，这些技术可以在某种程度上避免图片超出应用的内存限制。 如果你不注意这些，那么图片就会迅速地消耗你的可用内存，甚至于会抛出一个可怕的异常并导致应用崩溃：
 ```
 java.lang.OutofMemoryError: bitmap size exceeds VM budget
 ```
@@ -17,11 +17,13 @@ java.lang.OutofMemoryError: bitmap size exceeds VM budget
 	-  不同的Android版本，虚拟机所分配的内存大小是不同的，在各个版本的Android兼容性定义文档(CDD)的3.7章节中，虚拟机兼容性给出了不同尺寸和密度的手机屏幕下应用程序所需的最小内存。如：
 	   -  Android2.2中，对于中等或者低密度的屏幕尺寸，虚拟机必须为每个应用程序分配至少16MB的内存。
 	   -  Android4.2中，内存分配的情况如下图所示。
-	-  由于存在最小的内存的限制（即系统最小会分配的内存大小，相应的也会存在最大内存），因此应用程序应当进行优化处理后再运行。注意，上述的内存值被认为是最小值，在很多设备中可能会为每个应用程序分配更多的内存。
+	-  Android不光存在最小的内存的限制（即系统最小会分配的内存大小），也存在最大内存限制，因此应用程序应当进行优化处理后再运行。
 
 <center>
 ![最小内存示意图](/img/android/android_e02_1.png)
 </center>
+
+　　注意：上述的内存值被认为是最小值，在很多设备中可能会为每个应用程序分配更多的内存。
 
 <br>　　2、位图占据了大量的内存空间，特别是像图册这种富图像的应用。
 
@@ -29,90 +31,80 @@ java.lang.OutofMemoryError: bitmap size exceeds VM budget
 	-  如果位图的配置使用ARGB_8888(Android 2.3的默认配置)那么加载这个图像到内存需要19MB的存储空间(2592*1936*4bytes)，直接超过了许多设备上的单应用限制。
 	-  值得注意的是，图片在磁盘中占据2M的大小，并不意味着它在内存中也占据2M。图片在内存中大小的公式：分辨率*单个像素点占据的字节大小。
 
-<br>　　3、Android中一些UI通常需要一次加载多个图片进行显示。
+<br>　　3、`ListView`，`GridView`等在一屏中会包含多个位图的组件，通常要求在手指滑动后马上就要在屏幕上马上显示出来。
 
-	-  像ListView，GridView和ViewPager等在一屏中会包含多个位图的组件，通常要求在手指滑动后马上就要在屏幕上马上显示出来。
+<br>　　总而言之，上面这三个问题其实就是在要求我们：
+
+	-  在有限的内存空间里，尽可能快速且平滑的，显示更多的图片。
+　　本章介绍的知识就是为了完成这个目标。
 
 ## 加载大尺寸图片 ##
-　　图像可以有各种各样的形状和大小，在很多情况下，它们的`实际尺寸往往会比UI界面的显示尺寸更大`。
+　　图像会有各种各样的尺寸，在很多情况下，图片的实际尺寸往往会比UI界面的显示尺寸更大。
 
-	-  例如，系统的Gallery程序展示使用Android设备的摄像头拍摄的照片时，照片的分辨率往往要远高于设备的屏幕分辨率。
- 
-　　考虑到你所使用的内存有限，理想的情况是你只会想加载一个分辨率相对较低的图片到内存中来。低分辨率版本的图片与相应UI组件的尺寸应该是相匹配的。`一张比相应的UI组件尺寸大的高分辨率的图片并不能带给你任何可见的好处，却要占据着宝贵的内存`，以及间接导致由于动态缩放引起额外的性能开销。
-　　本节将向你演示如何解码大图片，通过加载较小的图片样本以避免超出应用的内存限制。
+	-  例如，使用Android设备的摄像头拍摄的照片，照片的分辨率往往要远高于设备的屏幕分辨率。
+　　考虑到手机内存有限，在需要显示图片时理想的做法是，程序会先将大分辨率的图片缩小到与UI组件相同的尺寸后，再将它加载到内存中来。因为一张比UI组件尺寸大的高分辨率的图片并不能带给你任何可见的好处，却要占据着宝贵的内存，以及间接导致由于动态缩放引起额外的性能开销。
 
-
-<br>　　那么我们应该如何去将一张大图缩放成我们所需要的尺寸的样图呢?
-
-	-  首先，需要获取图片的原始尺寸，以及UI组件的尺寸。
-	-  然后，使用“图片尺寸/UI组件尺寸”来计算出两者相差的倍数n。
-	-  最后，将图片缩放n倍后再加载入内存，交给UI组件显示。
-　　我们可以使用`BitmapFactory`所提供的几个解码方法(`decodeByteArray()`，`decodeFile()`，`decodeResource()`等等)，来从各种渠道中创建一个`Bitmap`(位图)对象，具体使用哪个方法取决于你的图片数据来源。
-<br>　　范例1：`BitmapFactory`类。
-``` android
+<br>　　范例1：使用`BitmapFactory`所提供的如下几个方法，可以将图片加载到内存中。
+``` java
 public static Bitmap decodeFile(String pathName);
 public static Bitmap decodeStream(InputStream is);
 public static Bitmap decodeResource(Resources res, int id);
 public static Bitmap decodeByteArray(byte[] data, int offset, int length);
 ```
+    语句解释：
+	-  这些方法会按照位图的实际大小来将位图加载到内存中，并构造出Bitmap对象。
 
-　　但是这些方法会试图按照位图的实际大小来分配内存并构造出`Bitmap`对象，这很容易导致`OutOfMemory(OOM)`异常。按照通常的思路，只有先将图片加载入内存后，我们才可以获取图片的尺寸等信息，这样一来我们好像就无法完成`“先缩放后加载”`的任务了。
+<br>　　现在已经知道要使用哪些方法来加载图片了，但应该如何去将一张大图缩放成我们所需要的尺寸的图片呢?
 
-　　上面列出每一个解码方法都有一个重载方法，接收`BitmapFactory.Options`类型的参数。你可以通过`BitmapFactory.Options`类指定一些解码参数，`BitmapFactory`类在解码图片的时候会依据这些参数的值做出相应的操作。如：
-```
+	-  首先，需要获取图片的原始尺寸，以及UI组件的尺寸。
+	-  然后，使用“图片尺寸/UI组件尺寸”来计算出两者相差的倍数n。
+	-  最后，将图片缩放n倍后再加载入内存，交给UI组件显示。
+
+　　按照正常的思路，如果不把图片加载到内存就无法知道尺寸，但是如果先把图片加载到内存，那还计算个蛋缩放尺寸？因为图片的尺寸过大就直接导致OOM异常了。
+　　这样一看好像就无法完成`“先缩放后加载”`的任务了。
+
+<br>　　不要慌！上面列出的方法都有一个重载方法，接收`BitmapFactory.Options`类型的参数：
+``` java
 public static Bitmap decodeFile(String pathName, BitmapFactory.Options ops);
 public static Bitmap decodeResource(Resources res, int id, BitmapFactory.Options ops);
 public static Bitmap decodeByteArray(byte[] data, int offset, int length, BitmapFactory.Options ops);
 ```
-　　使用这些方法解码图片的时候，若设置`BitmapFactory.Options`类的`inJustDecodeBounds`属性为`true`，则`BitmapFactory`不会加载图片的真正数据，即这些方法的返回值对象为`null`。
-　　但是却会将图片的实际宽度、高度、类型设置到`outWidth`，`outHeight`和`outMimeType`属性中。 这项技术允许你在创建`Bitmap`(并分配内存)之前读取图片的尺寸和类型。
+    语句解释：
+	-  使用这些方法加载图片的时候，若设置BitmapFactory.Options类的inJustDecodeBounds属性为true，则BitmapFactory不会加载图片的真正数据，即这些方法的返回值对象为null。
+	-  但是却会将图片的实际宽度、高度、类型设置到outWidth，outHeight和outMimeType属性中。
+	-  这项技术允许你在创建Bitmap（并分配内存）之前读取图片的尺寸和类型。
 
 <br>　　范例2：加载图片尺寸。
 ``` java
 public void loadSize(){
     BitmapFactory.Options options = new BitmapFactory.Options();
+    // options.inJustDecodeBounds标识是否仅获取图片的尺寸信息。
+    // 若值为true则BitmapFactory不会加载图片，只是获取图片的尺寸信息。
     options.inJustDecodeBounds = true;
     BitmapFactory.decodeResource(getResources(), R.id.myimage, options);
+
+    // 当inJustDecodeBounds为true且图片加载完毕后，图片的高度会保存在options.outHeight中。
     int imageHeight = options.outHeight;
+
+    // 当inJustDecodeBounds为true且图片加载完毕后，图片的宽度会保存在options.outWidth中。
     int imageWidth = options.outWidth;
     String imageType = options.outMimeType;
 }
 ```
-    语句解释：
-    -  为了避免OOM错误，在解码图片之前就要检查图片的尺寸，除非你十分确信图片资源的尺寸是可预见的并且有着充裕的可用内存。
 
-<br>　　范例3：`BitmapFactory`类常用字段。
-``` android
-// 图片的缩放倍数。若值>1则执行缩小操作，返回的图片是原来1/ inSampleSize 。 若值<=1则结果与1相同。
-public int inSampleSize;
+<br>　　现在图片的尺寸已经知道了，为了告诉解码器如何对图像进行采样，加载更小版本的图片，需要为`BitmapFactory.Options`对象中的`inSampleSize`属性设置值。
 
-// 标识是否仅获取图片的尺寸信息。
-// 若值为true则BitmapFactory不会加载图片，只是获取图片的尺寸信息。即后返回值为null。
-public boolean inJustDecodeBounds;
+	-  inSampleSize表示图片的缩放倍数。
+	   -  若inSampleSize > 1则执行缩小操作，返回的图片是原来 1/inSampleSize 。
+	   -  若inSampleSize <= 1则结果与1相同。
 
-// 当inJustDecodeBounds为true且图片加载完毕后，图片的宽度会保存在此变量中。
-public int outWidth;
-
-// 当inJustDecodeBounds为true且图片加载完毕后，图片的高度会保存在此变量中。
-public int outHeight;
-```
-
-<br>　　现在图片的尺寸已经知道了，这些信息可以用来决定是将一个完整尺寸的图片加载到内存中，还是应该用一个图片的子样本来取代它。这里有一些可供考虑的因素：
-
-	1、 估计加载全尺寸的图片所要消耗的内存。
-	2、 在考虑应用中其他内存需求的情况下，你愿意给加载这个图片分配的内存空间。
-	3、 准备加载该图像的目标ImageView或者UI组件的尺寸。
-	4、 当前设备的屏幕的尺寸和密度。
-　　例如，如果最终只是要在`ImageView`中显示一张`128*96px`大小的缩略图，而直接加载`1024*768px`的图片是非常不值得的。
-
-<br>　　为了告诉解码器如何对图像进行采样，加载更小版本的图片，需要为`BitmapFactory.Options`对象中的`inSampleSize`属性设置值。
 　　例如一张分辨率为`2048*1536px`的图像，假设`Bitmap`配置为`ARGB_8888`，整张图片加载的话需要`12M`。
 
 	-  2024*1536个像素点 * 每个像素点使用4字节表示 /1024/1024 = 12MB
 	-  ARGB4_8888，即每个像素中A、R、G、B的色值各使用1字节(0~255)来表示。
-　　若使用`inSampleSize`值为`4`的设置来解码，产生的`Bitmap`大小约为`512*384px`。相较于完整图片占用`12M`的内存，这种方式只需`0.75M`内存。这里有一个方法用来计算基于目标高宽的`sample size`的值：
+　　若使用`inSampleSize`值为`4`的设置来解码，产生的`Bitmap`大小约为`512*384px`，相较于完整图片占用`12M`的内存，这种方式只需`0.75M`内存。
 
-<br>　　范例4：计算`inSampleSize`。
+<br>　　范例3：这里有一个方法用来计算基于目标高宽的`sample size`的值：
 ``` android
 public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
     // Raw height and width of image
@@ -130,11 +122,9 @@ public static int calculateInSampleSize(BitmapFactory.Options options, int reqWi
 }
 ```
     语句解释：
-    -  使用2的次幂来设置inSampleSize值可以使解码器执行地更加迅速、更加高效。但是，如果你想在内存或者硬盘上缓存一个调整过大小的图片，通常还是解码到合适的图片尺寸更加节省空间。
+    -  使用2的次幂来设置inSampleSize值可以使解码器执行地更加迅速、更加高效。
 
-<br>　　要使用这个方法，首先要使用`inJustDecodeBounds`为`true`来解码尺寸信息，将`options`传递过去使用新的`inSampleSize`值再次解码并且要将`inJustDecodeBounds`值设置为`false`。
-
-<br>　　范例5：完整范例。
+<br>　　范例4：完整范例。
 ``` android
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
@@ -156,19 +146,20 @@ public class MainActivity extends Activity {
 }
 ```
     语句解释：
-    -  值得注意的是，ImageView在默认情况下会自动帮助我们缩放图片，从而使该图片的内容可以全部显示在ImageView中。 但是它仅仅是将显示的内容缩放了，却并不会同时将图片的容量也给缩小。
-    -  本范例就是将图片的容量也一起缩小了。换句话说ImageView的缩放是在图片加载入内存之后进行的，而本范例则是在图片加载之前执行的。
+    -  值得注意的是，ImageView在默认情况下会自动帮助我们缩放图片，从而使该图片的内容可以全部显示在ImageView中。 
+    -  但是它仅仅是将显示的内容缩放了，却并不会将图片的容量也给缩小。
+    -  换句话说ImageView的缩放是在图片加载入内存之后进行的，而本范例则是在图片加载之前执行的。
 
 ## 在非UI线程处理图片 ##
-　　在上一节中我们讲解了`BitmapFactory.decode*`系列方法，但如果源数据来自硬盘或者网络(或者除内存之外的来源)，是不应该在主UI线程执行的。
-　　这是因为读取这样的数据所需的加载`时间是不确定的`，它依赖于多种因素(从`硬盘`或`网络的读取速度`、`图片的大小`、`CPU的功率`等等)。如果这些任务里面任何一个阻塞了UI线程，系统会将你的应用标记为未响应，并且用户可以选择关闭应用。
+　　在上一节中我们讲解了`BitmapFactory.decode*`系列方法，这些方法主要用来加载本地的图片，但如果源数据来自网络，是不应该在主线程加载的。
+　　这是因为读取这样的数据所需的加载时间是不确定的，如果时间过长就会阻塞了主线程，系统会弹出`ANR`对话框。
+　　本节将使用`AsyncTask`类来加载并显示来自网络的图片，接下来先简单的介绍一下`AsyncTask`类。
 
-<br>　　本节将使用`AsyncTask`类来加载并显示`Bitmap`对象，以及处理并发问题，接下来先简单的介绍一下`AsyncTask`类。
+### AsyncTask基础 ###
+　　`AsyncTask`与`Thread`一样，都是用来执行一些耗时的操作的类，但与传统方式不同：
 
-### AsyncTask ###
-　　使用传统方式，执行下载有弊端：`线程数多`、`更新UI时需要手工编写代码在子线程和主线程之间来回切换`。
-　　`AsyncTask`(异步任务)，它同样是用来执行一些耗时的操作，如下载文件等。与传统方式不同，在`AsyncTask`内部封装了线程池、`Handler`等。`AsyncTask`执行任务时，会自动从线程池中取出线程，若需要更新`UI`，则可以调用`AsyncTask`内置的`Handler`。因此，使用`AsyncTask`会更方便、高效率。
-　　`AsyncTask`类有效地降低了线程创建数量及限定了同时运行的线程数。若一个类继承了`AsyncTask`，则该类就成为了一个异步任务。
+	-  内部使用线程池管理线程，这样就减少了线程创建和销毁时的消耗。
+	-  内部使用Handler处理线程切换，这样省去了我们自己处理的过程，代码直观、方便。
 
 <br>　　范例1：最简单的`AsyncTask`。
 ``` android
@@ -253,186 +244,465 @@ private final class MyAsyncTask extends AsyncTask {
 ```
     语句解释：
     -  AsyncTask内的各个方法调用顺序：
-       -  首先，用户调用execute方法，启动AsyncTask 。然后在execute方法中：
-          -  首先调用onPreExecute方法，执行初始化操作。
-          -  然后从线程池中取出一个空闲的线程，并使用该线程调用doInBackground方法，执行耗时的操作，如文件下载等。
-             -  提示：调用execute方法时设置的参数会被直接传递给doInBackground方法。
-       -  当doInBackground方法执行完毕后，onPostExecute方法将被调用。onPostExecute方法的参数就是doInBackground方法的返回值。
-       -  若doInBackground方法中途被终止，则同样会调用onPostExecute方法，但是方法的参数却为null 。
-       -  若想更新UI控件，则可以在doInBackground方法中调用publishProgress方法向主线程中的Handler发送消息，Handler接到消息后会转调用onProgressUpdate方法来更新UI。
-       -  提示：调用publishProgress方法时设置的参数将被传递给onProgressUpdate方法。
+       -  第一，我们调用execute方法启动AsyncTask 。
+       -  第二，调用onPreExecute方法，执行初始化操作。
+       -  第三，从线程池中取出一个空闲的线程，并使用该线程调用doInBackground方法，执行耗时的操作。
+       -  第四，当doInBackground方法执行完毕后，onPostExecute方法将被调用（onPostExecute方法的参数就是doInBackground方法的返回值）。
+       -  第五，若想更新UI控件，则可以在doInBackground方法中调用publishProgress方法。
+          -  提示：调用publishProgress方法时设置的参数将被传递给onProgressUpdate方法。
 
-<br>　　在上面的范例中，各个方法的参数、返回值都是`Object`类型的，这对于严格控制程序有很大负面的影响。但是事实上，`AsyncTask`类是有泛型的。即`AsyncTask<Params, Progress, Result>`其中：
+<br>　　在上面的范例中，各个方法的参数、返回值都是`Object`类型的，这对于严格控制程序有很大负面的影响。
+　　但是事实上，`AsyncTask`类是有泛型的。即`AsyncTask<Params, Progress, Result>`其中：
 
 	-  Params：用于设置execute和doInBackground方法的参数的数据类型。
 	-  Progress：用于设置onProgressUpdate和publishProgress方法的参数的数据类型。
 	-  Result：用于设置onPostExecute方法的参数的数据类型和doInBackground方法的返回值类型。
 
-<br>　　范例3：泛型。
-``` android
-public class MyAsyncTask extends AsyncTask<Integer,Integer,Integer> {
-    protected void onPreExecute(){}
-    protected void onPostExecute(Integer result){}
-    protected void onProgressUpdate(Integer... values){}
-    protected Integer doInBackground(Integer... params){}
-}
-```
-<br>　　其实在Android中，很少会去直接使用`Thread`类来完成异步下载任务的。
-　　若程序在运行的时候，用户切换了手机屏幕显示方式(如：将手机从竖屏转为横屏)，那么当前`Activity`会被摧毁，然后系统会再重新建立一个。 
-　　这意味着，`Activity`被摧毁，但是其内的`Thread`仍然会存在。这就导致，当`Activity`被重建的时候，会再开启一个线程，此时系统中就有`2`个线程在执行相同的任务，当这两个线程都结束的时候，将导致一个任务被执行两遍。
-　　解决方案：
+<br>　　这里有一个使用`AsyncTask`和`decodeSampledBitmapFromResource()`加载大图片到`ImageView`中的例子：
+``` java
+public class MainActivity extends ActionBarActivity {
 
-	-  利用Activity的两个生命周期函数：onPause、onResume ，当Activit失去焦点的时候，就停止其内的线程继续运行。
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-　　如果想让`Thread`可以被终止，我们就得修改一下我们的`Thread`或`Runnable`类。而`AsyncTask`类已经帮我们提供了一个可以“取消当前正在执行的任务”的方法。
-
-<br>　　范例4：cancel方法。
-``` android
-// 停止当前AsyncTask的执行。可以在任何时候调用此方法，调用这个方法后会导致：
-// -  随后调用isCancelled()则返回true。
-// -  若AsyncTask未启动，则将永远不会被启动，并会立刻调用onCancelled(Object)方法。
-// -  若AsyncTask已启动，且mayInterruptIfRunning值为true，则会调用AsyncTask内线程的interrupt()方法。
-//    若线程没被终止，则当线程运行完毕后，会调用onCancelled(Object)方法。
-// -  不论AsyncTask是否已经启动，最终都将调用onCancelled(Object)方法，而不是onPostExecute(Object)方法。
-public final boolean cancel(boolean mayInterruptIfRunning);
-```
-
-<br>
-### 加载图片 ###
-　　`AsyncTask`类提供了一种简单的方法，可以在后来线程处理一些事情，并将结果返回到`UI线程`。要使用它，需要创建一个继承于它的子类，并且覆写它提供的方法。
-　　这里有一个使用`AsyncTask`和`decodeSampledBitmapFromResource()`加载大图片到`ImageView`中的例子。
-
-<br>　　范例1：通过图片的资源id来加载图片。
-``` android
-class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
-    private final WeakReference<ImageView> imageViewReference;
-    private int data = 0;
-    public BitmapWorkerTask(ImageView imageView) {
-        imageViewReference = new WeakReference<ImageView>(imageView);
+        ImageView imageView = (ImageView) findViewById(R.id.img);
+        BitmapWorkerTask task = new BitmapWorkerTask(imageView);
+        task.execute(R.drawable.ic_launcher);
     }
-    protected Bitmap doInBackground(Integer... params) {
-        data = params[0];
-        return decodeSampledBitmapFromResource(getResources(),data,100,100));
-    }
-    protected void onPostExecute(Bitmap bitmap) {
-        if (imageViewReference != null && bitmap != null) {
-            final ImageView imageView = imageViewReference.get();
-            if (imageView != null) {
-                imageView.setImageBitmap(bitmap);
+
+    class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
+        private final WeakReference<ImageView> imageViewReference;
+        private int data = 0;
+
+        public BitmapWorkerTask(ImageView imageView) {
+            imageViewReference = new WeakReference<ImageView>(imageView);
+        }
+
+        protected Bitmap doInBackground(Integer... params) {
+            data = params[0];
+            return decodeSampledBitmapFromResource(getResources(), data, 100, 100);
+        }
+
+        protected void onPostExecute(Bitmap bitmap) {
+            if (imageViewReference != null && bitmap != null) {
+                final ImageView imageView = imageViewReference.get();
+                if (imageView != null) {
+                    imageView.setImageBitmap(bitmap);
+                }
             }
         }
     }
-}
-```
-　　`ImageView`的`WeakReference`(弱引用)可以确保`AsyncTask`不会阻止`ImageView`和它的任何引用被垃圾回收器回收。由于不能保证在异步任务完成后`ImageView`依然存在，因此你必须在`onPostExecute()`方法中检查引用。`ImageView`可能已经不存在了，比如说，用户在任务完成前退出了当前`Activity`或者应用配置发生了变化(横屏)。
-
-<br>　　为了异步加载`Bitmap`，我们创建一个简单的异步任务并且执行它：
-``` android
-public void loadBitmap(int resId, ImageView imageView) {
-    BitmapWorkerTask task = new BitmapWorkerTask(imageView);
-    task.execute(resId);
-}
-```
-
-<br>
-### 处理并发 ###
-　　在`ListView`和`GridView`等控件中，与`AsyncTask`配合使用的时候会引出了另外一个问题。
-　　为了提升内存效率，当用户滚动`ListView`和`GridView`等控件时候，这些控件会进行子视图的回收(主要是回收不可见的视图)。
-　　因此如果我们为每个子视图都触发了一个`AsyncTask`，无法保证在任务完成的时候，该子视图还没有被回收而被用来显示另一个子视图。此外，也无法保证异步任务结束的顺序与它们开始的顺序一致。
-
-　　解决这个问题大致的步骤为：
-
-	-  首先，自定义一个Drawable子类，其内存储worker task的引用，以备稍后使用。
-	-  然后，将自定义的Drawable设置到ImageView中，充当占位符。
-	-  接着，每开启一个下载任务都会实例化自定义Drawable并设置到ImageView中。即后一次设置的Drawable会覆盖掉前一次设置的Drawable对象。
-	-  最后，若当ImageView的前一个任务没有执行完成时又为其设置了第二个任务，则第一个任务完成后将不会把数据设置到ImageView中。
-
-<br>　　范例1：自定义`Drawable`。
-``` android
-static class AsyncDrawable extends BitmapDrawable {
-    private final WeakReference<BitmapWorkerTask> bitmapWorkerTaskReference;
-    public AsyncDrawable(Resources res, Bitmap bitmap, BitmapWorkerTask bitmapWorkerTask) {
-        super(res, bitmap);
-        bitmapWorkerTaskReference = new WeakReference<BitmapWorkerTask>(bitmapWorkerTask);
-    }
-    public BitmapWorkerTask getBitmapWorkerTask() {
-        return bitmapWorkerTaskReference.get();
-    }
+    // 此处省略了decodeSampledBitmapFromResource和calculateInSampleSize方法。
 }
 ```
     语句解释：
-    -  本类保存BitmapWorkerTask对象的若引用在后面的程序中会用到。
-
-<br>　　在执行`BitmapWorkerTask`前，你需要创建一个`AsyncDrawable`并将之绑定到目标`ImageView`：
-``` android
-public void loadBitmap(int resId, ImageView imageView) {
-    if (cancelPotentialWork(resId, imageView)) {
-        final BitmapWorkerTask task = new BitmapWorkerTask(imageView);
-        final AsyncDrawable asyncDrawable = new AsyncDrawable(getResources(), mPlaceHolderBitmap, task);
-        imageView.setImageDrawable(asyncDrawable);
-        task.execute(resId);
-    }
-}
-```
-    语句解释：
-    -  变量mPlaceHolderBitmap是在AsyncTask加载完成之前所显示的默认图片，由您来自定义。 
-    -  也就是说在本方法执行完毕后，ImageView会首先显示mPlaceHolderBitmap。
-
-<br>　　在上面的代码示例中引用的`cancelPotentialWork`方法可以检测一个执行中的任务是否与当前这个`ImageView`有关联。如果有关联，它将通过调用`cancel()`方法试图取消之前的任务。在少数情况下，新的任务中的数据与现有的任务相匹配，因此不需要做什么。下面是`calcelPotentialWork`的具体实现：
-``` android
-public static boolean cancelPotentialWork(int data, ImageView imageView{
-    final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
-    if (bitmapWorkerTask != null) {
-        final int bitmapData = bitmapWorkerTask.data;
-        if (bitmapData != data) {
-            bitmapWorkerTask.cancel(true);
-        } else {
-            return false;
-        }
-    }
-    return true;
-}
-
-// 本方法是一个助手方法，在上面用来检索和指定ImageView相关的任务。
-private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView){
-   if (imageView != null) {
-       final Drawable drawable = imageView.getDrawable();
-       if (drawable instanceof AsyncDrawable) {
-           final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
-           return asyncDrawable.getBitmapWorkerTask();
-       }
-    }
-    return null;
-}
-```
-
-<br>　　最后一步是更新`BitmapWorkerTask`中的`onPostExecute()`方法，以便检测与`ImageView`关联的任务是否被取消或者与当前任务相匹配。
-``` android
-class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
-    // ...
-    protected void onPostExecute(Bitmap bitmap) {
-        if (isCancelled()) {
-            bitmap = null;
-        }
-        if (imageViewReference != null && bitmap != null) {
-            final ImageView imageView = imageViewReference.get();
-            final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
-            if (this == bitmapWorkerTask && imageView != null) {
-                imageView.setImageBitmap(bitmap);
-            }
-        }
-    }
-}
-
-```
-    语句解释：
-    -  这里的方法也适合用在ListView、GridView以及其他任何需要回收子视图的组件中。
-    -  当你只需要为ImageView设置图片，调用loadBitmap就可以了。例如，在GridView中实现的方式是在Adapter的getView()方法中。
+    -  ImageView的WeakReference(弱引用)可以确保AsyncTask不会阻止ImageView和它的任何引用被垃圾回收器回收。
 
 <br>**本节参考阅读：**
 - [【Google官方教程】第一课：高效地加载大Bitmap(位图)](http://my.oschina.net/ryanhoo/blog/88242) 
 
-# 第二节 EXIF #
+### AsyncTask原理 ###
+
+# 第二节 图片的缓存 #
+　　不论是Android还是iOS设备，流量对用户来说都是一种宝贵的资源，所以在开发中无能都尽可能的少消耗用户的流量，为此就需要对网络上的图片进行缓存。
+
+　　目前比较常见的图片缓存策略是三级缓存：
+
+	-  首先，将图片从服务器端下载到本地，然后保存起来，当下次再次需要显示该图片时，首先从本地查找，若找到了则不再去服务端下载了。这样就为用户节省了不少流量，也减少了图片加载的时间，这一步会使用DiskLruCache类来完成。
+	-  然后，由于将图片从磁盘读到内存也是需要时间的，所以我们会把一些频繁被使用到的图片缓存再内存中。这样能进一步减少图片加载的时间，这一步会使用LruCache类来完成。
+	-  最后，由于内存的大小是有限制的，所以能给给内存缓存的空间也不可能过多，当内存缓存满时，则将踢出的数据放入到软引用中。这一步会使用SoftReference类来完成。
+
+
+　　接下来就依次来介绍一下这三级缓存。
+## LruCache ##
+　　`LruCache`是Android3.1中所提供的一个工具类，通过support-v4兼容包也可以使用它。
+　　`LruCache`的特点有：
+
+	-  第一，实现原理基于LRU算法，这种算法的核心思想为：当缓存快满时，会将近期最少使用的数据从缓存中删除。
+	-  第二，它内部采用LinkedHashMap以强引用的方式存储数据。
+
+<br>　　`LruCache`的使用也很简单，这里给出一个范例：
+``` java
+public class MainActivity extends Activity {
+
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // 下面这个LruCache中保存的数据，key是String类型的，value是Integer类型的。
+        // 构造方法里的数字3，表示当前LruCache的缓存容量是3。
+        LruCache<String, Integer> lruCache = new LruCache<String, Integer>(3) {
+            // 当需要计算某个数据所占据的大小时，此方法被调用。
+            protected int sizeOf(String key, Integer value) {
+                // 这里总是返回1，也就意味着当前LruCache中最多只能保存3个数字。
+                return 1;
+            }
+        };
+        // 向缓存中添加数据。
+        lruCache.put("1", 100);
+        lruCache.put("2", 200);
+        lruCache.put("3", 300);
+        // 调用get方法从lruCache中读取数据，由于没存储过4，所以会输出：null。
+        System.out.println(lruCache.get("4"));
+
+        // System.out.println(lruCache.get("1"));
+
+        // 由于咱们这个lruCache只能保存3个数据，所以当保存第四个数的时候，就会把数字1给踢出。
+        lruCache.put("4", 400);
+
+        // 由于数字1被踢出了，所以此处会输出：null。
+        System.out.println(lruCache.get("1"));
+
+    }
+}
+```
+    语句解释：
+    -  上面之所以会踢出1，是因为在1、2、3三个数字中，1最久没被使用过。
+    -  如果把上面第23行代码给解除注释，则当4被加入到缓存中时，被踢出的将是2。
+    -  LruCache类还有一些有用的方法：evictAll（清空数据）、size（当前容量）、remove（删除）等等。
+
+<br>　　`LruCache`虽然简单，但是我们不能满足于只会用它，还应该知道它的内部原理。
+　　`LruCache`内部是通过`LinkedHashMap`类来实现的，既然说到了`LinkedHashMap`，下面就来介绍一下`HashMap`类。
+
+<br>**HashMap**
+　　在`Map`接口的众多子类中，比较常用的是`HashMap`类，在它的内部是使用数组来存储每一个元素的，虽然是基于数组实现，但它却可以高速存取元素。
+
+	-  原因就是HashMap的内部在查找元素的时候，并不是从数组头部依次遍历匹配。
+	-  而是依据key的hashCode值来计算出一个下标，查找时会从这个下标开始依次查找。
+
+<br>　　范例1：`HashMap`的`get`方法。
+``` java
+    public V get(Object key) {
+        if (key == null) {
+            HashMapEntry<K, V> e = entryForNullKey;
+            return e == null ? null : e.value;
+        }
+        // Doug Lea's supplemental secondaryHash function (inlined)
+        int hash = key.hashCode();
+        hash ^= (hash >>> 20) ^ (hash >>> 12);
+        hash ^= (hash >>> 7) ^ (hash >>> 4);
+        HashMapEntry<K, V>[] tab = table;
+        for (HashMapEntry<K, V> e = tab[hash & (tab.length - 1)];
+                e != null; e = e.next) {
+            K eKey = e.key;
+            if (eKey == key || (e.hash == hash && key.equals(eKey))) {
+                return e.value;
+            }
+        }
+        return null;
+    }
+```
+    语句解释：
+    -  在此方法中若参数key不为null，则会先计算key的hashCode码，然后从对应的位置开始依次遍历余下的元素。
+    -  若最终找到了，则返回该key所对应的value。
+    -  若未找到，则返回null。
+
+<br>　　问：对象的`hashCode`码不是唯一的吗？ 为什么会存在“依次遍历余下的元素”这个操作呢？
+　　答：`hashCode`码并不是唯一的，比如下面的代码：
+``` java
+public class MainActivity extends Activity {
+
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        HashMap<A, Integer> hashMap = new HashMap<A, Integer>();
+        hashMap.put(new A(), 5);
+        hashMap.put(new A(), 6);
+        System.out.println(hashMap.size());   // 输出2。
+    }
+
+    class A {
+        public int hashCode() {
+            return 1;
+        }
+    }
+}
+
+```
+    语句解释：
+    -  也就是说，两个完全不同的对象，它们的hashCode码却可能相同。
+
+<br>**查找算法**
+　　笔者在此简单的普及一下数据结构中的`“查找”`算法的基本概念（没错，纯粹是为了装逼！）。
+
+　　有n条记录的集合`T`是实施查找的数据基础，`T`称为“查找表”（`Search Table`）。
+
+	-  比如在集合{1,2,3}中查找出数字2，则“集合{1,2,3}”被称为查找表。
+
+　　常见的查找算法有`顺序查找`、`折半查找`、`索引表查找`、`二叉查找树查找`等：
+
+	-  所谓的顺序查找，即从查找表的第一个元素开始，依次使用待查找的数字和查找表中的每一个元素进行比较，若匹配则视为查找成功。
+	-  但不论是顺序查找还是折半、索引表等查找算法，它们的查找效率都与查找表的长度紧密相关，查找表的长度越短，查找的速度也就越快。查找的理想做法是不去或很少进行匹配，因此就出现了另一种高速查找的算法，哈希（也称散列）查找。
+	-  哈希查找算法就是通过一个公式（被称为散列函数）来计算元素的位置，从而尽可能的减少匹配次数。
+	-  HashMap、HashSet等类都是基于哈希算法的，它们之所以可以高速的定位元素的位置，就是因为它们是通过即散列函数来计算出元素的位置的。
+　　散列函数通常是接受一个参数，然后依据这个参数进行计算，并产生一个输出值。如：
+``` java
+int fun(n){
+  return 4*n;
+}
+```
+　　但是在哈希查找中，不论散列函数设计的多么好，也难免会有冲突出现，也就是说会存在散列函数的输入参数不相同，但是散列函数依据该参数所计算出来的值却是相同的：
+ 
+	这就像 3*4=12 与 2*6=12 是一个道理。
+
+　　查找的时候会存在冲突，那么存储的时候必然也会存在冲突，解决冲突的方案有多种，笔者就不展开介绍了。
+
+<br>　　说这些是为了告诉大家两个事情：
+
+	-  第一，在HashMap中，可以同时存在两个Key不同，但hashCode相同的元素。
+	-  第二，当想把A存入HashMap时，会先使用A的hashCode来计算它将要存储到的位置，若该位置已经有B了，但A和B的key不相同，则A会被放到HashMap的其他位置。
+
+<br>**回到正题**
+　　既然知道了`HashMap`是通过哈希算法来计算元素的存储位置，那么这意味着元素在`HashMap`中的排列顺序和插入的顺序可能不同。而当咱们需要遍历`HashMap`的时候，输出的元素的顺序就不是咱们插入的顺序了。
+
+　　范例1：输出元素。
+``` java
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("apple", "1");
+        map.put("orange", "2");
+        map.put("pear", "3");
+        System.out.println(map.toString());   // 输出：{orange=2, apple=1, pear=3}
+    }
+}
+```
+    语句解释：
+    -  本范例依次将apple、orange和pear加入到HashMap中，但是程序输出的顺序却是orange、apple和pear。
+    -  正是由于Hash的这种特点会带来很多不便，于是LinkedHashMap便应运而生。
+
+<br>**LinkedHashMap**
+　　`LinkedHashMap`是`HashMap`的子类，它解决了遍历`HashMap`的无序的问题。
+
+<br>　　范例1：顺序一致。
+``` java
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        Map<String, String> map = new LinkedHashMap<String, String>();
+        map.put("apple", "1");
+        map.put("orange", "2");
+        map.put("pear", "3");
+        System.out.println(map.toString());  // 输出：{apple=1, orange=2, pear=3}
+    }
+}
+```
+
+<br>　　`LinkedHashMap`内部的链表提供了两种元素的排列方式：
+
+	-  按照元素插入的顺序（默认）。
+	-  按访元素访问的顺序。每当元素被访问（通过get、put等方法）的时候，就将元素移至链表尾部。 
+
+<br>　　范例2：删除元素。
+``` java
+public class MainActivity extends ActionBarActivity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // 三个参数依次为：HashMap的初始容量、加载因子、是否启用“按访元素访问的顺序”排序。
+        Map<String, String> map = new LinkedHashMap<String, String>(0, 0.75f, true) {
+            protected boolean removeEldestEntry(Entry<String, String> eldest) {
+                // 若当前已经有4个元素了，则删除eldest。
+                return size() > 3;
+            }
+        };
+        map.put("1", "100");
+        map.put("2", "200");
+        map.put("3", "300");
+        map.put("4", "400");
+        map.put("5", "500");
+        System.out.println(map.toString());  // 输出：{3=300, 4=400, 5=500}
+    }
+}
+```
+    语句解释：
+    -  加载因子采用小数表示，0.75表示当Map中的数据量达到总容量的75%时，其容量空间自动扩张。
+    -  每当往LinkedHashMap中添加数据时，都会导致它的removeEldestEntry方法被调用。该方法用来决定是否将参数eldest从removeEldestEntry中删除。
+
+<br>**LruCache**
+　　虽然`LinkedHashMap`已经实现`LRU`算法，但是它只能在对象的数量上做限制，而不可以在对象的大小上进行限制。
+
+	-  如现在需要做一个Bitmap对象的缓存，限制缓存区的大小是15MB。
+	-  只要所有Bitmap的容量加起来不超过15MB即可，至于Map中保存多少个Bitmap对象则不做限制。
+
+　　而`LruCache`类则可以在对象的大小上进行限制。
+
+<br>　　范例1：两级缓存同时使用。
+``` java
+public class MemoryCache {
+
+    // 一级缓存。
+    private LruCache<String, Bitmap> mL1Cache = new LruCache<String, Bitmap>(1024 * 300) {
+        protected int sizeOf(String key, Bitmap value) {
+            int size = 1;
+            if (value != null) {
+                size = value.getRowBytes() * value.getHeight();
+            }
+            return size;
+        }
+        // 每当LruCache类的put等方法被调用后，LruCache都会检查一下当前容量是否超过的最大容量。
+        // 若是则entryRemoved()方法将被调用。
+        protected void entryRemoved(boolean evicted, String key, Bitmap oldValue, Bitmap newValue) {
+            // 当Bitmap的强引用被删除的时候，将其放入二级缓存中。
+            mL2Cache.put(key, new SoftReference<Bitmap>(oldValue));
+        }
+    };
+
+    // 二级缓存。
+    Map<String, SoftReference<Bitmap>> 
+            mL2Cache = new LinkedHashMap<String, SoftReference<Bitmap>>(0, 0.75f, true) {
+        protected boolean removeEldestEntry(Map.Entry<String, SoftReference<Bitmap>> eldest) {
+            // 当软引用的个数超过了5则删除表头元素。
+            return size() > 5;
+        }
+    };
+
+    public void put(String key, Bitmap bitmap) {
+        mL1Cache.put(key, bitmap);
+    }
+
+    public Bitmap get(String key) {
+        // 从一级缓存中读取数据。
+        Bitmap bitmap = mL1Cache.get(key);
+        if (bitmap == null) {
+            // 从二级缓存中读取数据。
+            bitmap = mL2Cache.get(key).get();
+            if (bitmap != null) {
+                // 再次将数据放入到一级缓存中。
+                mL1Cache.put(key, bitmap);
+            }
+        }
+        return bitmap;
+    }
+}
+```
+    语句解释：
+    -  MemoryCache类使用两级缓存来缓存Bitmap对象。
+    -  其中mL1Cache使用强引用缓存，当mL1Cache空间不足时，会将数据移到mL2Cache中。
+    -  另外mL2Cache不会阻止系统回收Bitmap对象，只要Bitmap对象在外界有强引用被持有，mL2Cache中的值就不会被回收。
+
+
+<br>**本节参考阅读：**
+- [百度百科 - LRU](http://baike.baidu.com/view/70151.htm) 
+- [LRU算法的实现](http://blog.csdn.net/Ackarlix/article/details/1759793) 
+
+## DiskLruCache ##
+　　[DiskLruCache ](https://github.com/JakeWharton/DiskLruCache)用于实现存磁盘缓存，它通过将缓存对象写入文件系统从而实现缓存的效果。网上有很多关于`DiskLruCache`教程，笔者也不打算重复造轮子，本节只给出几个简单范例。
+
+　　推荐阅读：[《Android DiskLruCache缓存完全解析》](http://blog.csdn.net/guolin_blog/article/details/28863651)
+
+<br>　　范例1：创建`DiskLruCache`。
+``` java
+public class MainActivity extends Activity {
+
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        DiskLruCache mDiskLruCache = null;
+        try {
+            File cacheDir = getDiskCacheDir(this, "bitmap");
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs();
+            }
+            // 第一个参数：表示缓存文件存放的目录。
+            // 第二个参数：表示应用的版本号，一般设置为1，当版本号发生改变时，DiskLruCache会清空之前的所有缓存。
+            // 第三个参数：表示单个节点所对应的数据的个数，一般设置为1。
+            // 第四个参数：表示缓存的总大小，单位是字节，下面设置的是10M。
+            mDiskLruCache = DiskLruCache.open(cacheDir, 1, 1, 10 * 1024 * 1024);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 获取本地缓存目录。
+    public static File getDiskCacheDir(Context context, String uniqueName) {
+        String cachePath = null;
+        // 若SD卡已就绪，或者SD卡不可移除。
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
+                || !Environment.isExternalStorageRemovable()) {
+            // 缓存路径为：/Android/data/packageName/cache
+            cachePath = context.getExternalCacheDir().getPath();
+        } else {
+            // 缓存路径为：/data/data/packageName/cache
+            cachePath = context.getCacheDir().getPath();
+        }
+        return new File(cachePath, uniqueName);
+    }
+
+}
+```
+    语句解释：
+    -  SD卡上的/Android/data/packageName目录是Android推荐的App数据目录，当App被卸载时系统会自动删除该目录。
+    -  当本地缓存大于指定的大小时，DiskLruCache会清楚一些缓存文件，从而保证总大小不大于这个设定值。
+    -  在缓存目录下会有一个名为journal文件，它是DiskLruCache的日志文件，程序对每张图片的操作记录都存放在这个文件中。
+
+<br>　　范例2：写入缓存。
+``` java
+new Thread(new Runnable() {
+    public void run() {
+        try {
+            String imageUrl = "http://img.my.csdn.net/uploads/201309/01/1378037235_7476.jpg";
+            // 由于图片的url中可能存在特殊字符，所以先将url转成一个MD5字符串，作为唯一标识。
+            String key = hashKeyForDisk(imageUrl);
+            // DiskLruCache的缓存添加的操作需要通过Editor完成。
+            // Editor表示一个缓存对象的编辑对象，如果这个缓存正在被编辑，那么edit方法会返回null。
+            // 若如果当前本地不存在缓存对象，则edit方法就会返回一个新的Editor对象。
+            DiskLruCache.Editor editor = mDiskLruCache.edit(key);
+            if (editor != null) {
+                // 由于DiskLruCache.open的第三个参数我们设置为1，因此下面的newOutputStream方法传递0。
+                OutputStream outputStream = editor.newOutputStream(0);
+                // 执行图片的下载。
+                if (downloadUrlToStream(imageUrl, outputStream)) {
+                    // 下载成功则提交。
+                    editor.commit();
+                } else {
+                    // 下载失败则回退。
+                    editor.abort();
+                }
+            }
+            // 将数据写入到本地。
+            mDiskLruCache.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}).start();
+```
+    语句解释：
+    -  关于hashKeyForDisk和downloadUrlToStream的具体代码，请参阅上面给出的博文。
+
+
+<br>　　范例3：读取缓存。
+``` java
+try {
+    String imageUrl = "http://img.my.csdn.net/uploads/201309/01/1378037235_7476.jpg";
+    // 获取url的MD5串。
+    String key = hashKeyForDisk(imageUrl);
+    // Snapshot表示本地缓存文件的一个快照，通过它我们可以获取缓存文件的输入流。
+    DiskLruCache.Snapshot snapShot = mDiskLruCache.get(key);
+    if (snapShot != null) {
+        InputStream is = snapShot.getInputStream(0);
+        Bitmap bitmap = BitmapFactory.decodeStream(is);
+        mImage.setImageBitmap(bitmap);
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+    语句解释：
+    -  如果图片的尺寸很大，则上面第9行代码，直接将它加载到内存是很危险的。
+    -  此时就可以结合LruCache一节的知识，加载缩略图并将图片放到MemoryCache中，至此就实现了三级缓存的功能。
+
+# 第三节 EXIF #
 
 <br>**简介**
 　　`EXIF`( `Exchangeable image file format`，可交换图像文件) 是专门为数码相机的照片设定的，可以记录数码照片的属性信息和拍摄数据。
@@ -491,7 +761,7 @@ ExifInterface.TAG_IMAGE_WIDTH   // 图片宽度。
 <br>**本节参考阅读：**
 - [维基百科，EXIF](http://zh.wikipedia.org/wiki/EXIF) 
 
-# 第三节 图片处理 #
+# 第四节 图片处理 #
 　　本节将详细的讲解一些图片处理相关的知识。
 
 ## Bitmap ##
