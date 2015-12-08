@@ -27,7 +27,7 @@ categories: android
 ```
     语句解释：
     -  在程序运行时，系统会先使用R.drawable.myimage来创建出一个Bitmap对象。
-    -  然后再使用这个Bitmap对象来创建一个BitmapDrawable对象，而BitmapDrawable是在Bitmap外部又封装了一层，为其提供了若干新的功能。
+    -  然后再使用这个Bitmap对象来创建一个BitmapDrawable对象，BitmapDrawable为Bitmap提供了若干新的功能。
 
 <br>　　`Drawable`顾名思义就是可画的、可编辑的，因而`Bitmap`对象可以通过`BitmapDrawable`类进行编辑。
 
@@ -69,7 +69,6 @@ public class AndroidTestActivity extends Activity {
 
 <br>　　语法：
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <bitmap
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:src="@[package:]drawable/drawable_resource"

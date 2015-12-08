@@ -78,7 +78,7 @@ public class AndroidTestActivity extends Activity {
 
 
 # 第二节 Dialogs #
-　　对话框通常是一个显示在当前Activity之前的小窗口，当对话框显示出来时，它下面的Activity会失去焦点，并且对话框会接受所有的用户交互。
+　　对话框通常是一个显示在当前Activity之前的小窗口，当对话框显示出来时，它下面的Activity会失去输入焦点，并且对话框会接受所有的用户交互。
 
 　　应用场景：
 
@@ -184,8 +184,8 @@ public void onClick(View view) {
     语句解释：
     -  我们最多可以在对话框中设置三个动作按钮：
 	   -  Positive：对应最左边的按钮，通常使用这个按钮来表示“接受”或“继续”动作。
-	   -  Negative：对应最右边的按钮，通常使用这个按钮来表示“取消”动作。
 	   -  Neutral：对应中间的按钮，通常使用它表示“拒绝”动作。
+	   -  Negative：对应最右边的按钮，通常使用这个按钮来表示“取消”动作。
     -  这三种类型的按钮每个类型在AlertDialog只能设置一个，也就是说无法在对话框中设置两个Positive按钮。
     -  当对话框中的某个按钮被点击后，对话框会自动被关闭。
 
@@ -350,7 +350,6 @@ public class ViewTextActivity extends Activity {
 　　通常我们会使用XML文件来创建界面，但是在一些特殊的情况下，可能需要在程序运行的时动态的修改界面中的内容（比如增删控件）。
 <br>　　范例1：`main.xml`文件。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
@@ -542,7 +541,6 @@ public class AndroidTestActivity extends Activity {
 
 <br>　　范例1：自定义布局文件(`layout.xml`)。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
@@ -560,7 +558,7 @@ public class AndroidTestActivity extends Activity {
 ```
 
 <br>　　范例2：自定义对话框的内容。
-``` android
+``` java
 Dialog dialog = new Dialog(this);
 // 初始化对话框。
 dialog.setTitle("对话框的标题");
@@ -760,7 +758,7 @@ public class MainActivity extends Activity {
 　　在使用`NotificationManager.notify()`发送通知的时候，需要同时传递一个标识符，用于唯一标识这个通知。
 
 　　对于一个通知，当展示在状态栏之后，如何取消呢？Android为我们提供两种方式移除通知：
-　　第一种是`Notification`自己维护，使用`setAutoCancel()`方法设置是否维护，传递一个`boolean`类型的数据。
+　　第一种是`Notification`自己维护，使用`setAutoCancel()`方法设置是否维护。
 　　第二种是使用`NotificationManager`通知管理器对象来维护，它通过`notify()`发送通知的时候，指定的通知标识`id`来操作通知，可以使用`cancel(int)`来移除一个指定的通知，也可以使用`cancelAll()`移除所有的通知。
 
 ``` java
@@ -978,9 +976,8 @@ mBuilder.setDefaults(Notification.DEFAULT_LIGHTS);
 　　注意那两个TextView的`style`属性。在自定义通知界面时，为文本使用`style`文件进行定义是很重要的，因为通知界面的背景色会因为不同的硬件，不同的`os`版本而改变。从`Android2.3(API 9)`开始，系统为默认的通知界面定义了文本的`style`属性。
 　　因此，你应该使用`style`属性，以便于在`Android2.3`或更高的版本上可以清晰地显示你的文本，而不被背景色干扰。
 
-<br>　　例如，在低于`Android2.3`的版本中使用标准文本颜色，应该使用如下的文件`res/values/styles.xml`:
+<br>　　例如，在低于`Android2.3`的版本中使用标准文本颜色，`res/values/styles.xml`:
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="NotificationText">
       <item name="android:textColor">?android:attr/textColorPrimary</item>
@@ -993,7 +990,6 @@ mBuilder.setDefaults(Notification.DEFAULT_LIGHTS);
 ```
 　　然后，在高于`Android2.3`的系统中使用系统默认的颜色。如`res/values-v9/styles.xml`：
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
    <style name="NotificationText" parent="android:TextAppearance.StatusBar.EventContent" />
    <style name="NotificationTitle" parent="android:TextAppearance.StatusBar.EventContent.Title" />
@@ -1044,6 +1040,7 @@ contentViews.setTextViewText(R.id.percent, "已下载："+curProgress);
 mNotificationManager.notify(notifyId, mBuilder.build());
 ```
 
+<br>　　笔者建议您，在继续向下学习之前，请先阅读[ Binder机制 ](http://cutler.github.io/android-F01/)一文。
 ## 内部机制 ##
 　　RemoteViews的作用是在其他进程中显示并更新View界面，但是它目前并不能支持所有的View类型，它所支持的类型有：
 
@@ -1055,17 +1052,14 @@ mNotificationManager.notify(notifyId, mBuilder.build());
 <br>　　从文档上可以看出，RemoteViews的父类是Object，且它没有提供`findViewById`方法，因此如果想修改其内部的控件，则只能通过RemoteViews提供的一系列set方法来完成。
 　　下面列出了它提供的部分方法：
 ``` java
-// 设置TextView的文本
+// 设置TextView的文本、字体大小、字体颜色
 setTextViewText(int viewId, CharSequence text)      
-// 设置TextView的字体大小
 setTextViewTextSize(int viewId, int units, float size)    
-// 设置TextView的字体颜色
 setTextColor(int viewId, @ColorInt int color)  
 // 设置ImageView的图片
 setImageViewResource(int viewId, int srcId)
-// 反射调用View对象的参数类型为int的方法
+// 反射调用View对象的参数类型为int、boolean的方法
 setInt(int viewId, String methodName, int value)
-// 反射调用View对象的参数类型为boolean的方法
 setBoolean(int viewId, String methodName, boolean value)
 // 为View添加单击事件，事件类型只能为PendingIntent
 setOnClickPendingIntent(int viewId, PendingIntent pendingIntent)
@@ -1073,9 +1067,16 @@ setOnClickPendingIntent(int viewId, PendingIntent pendingIntent)
 　　事实上，在上述这些方法的内部是通过反射的方式调用目标View的对应的方法的。
 
 <br>**基于反射**
-　　我们知道RemoteViews主要用于通知和桌面小部件之中，它们分别涉及到`NotificationManager`和`AppWidgetManager`类。
-　　这两个类都是通过`Binder`机制分别和`SystemServer`进程中的`NotificationManagerService`以及`AppWidgetService`进行通信的。这意味着通知和小部件中的布局文件实际上是由运行在SystemServer中的服务被加载的，这就和我们的进程构成了跨进程通信的场景。
-　　从理论上来说，系统完全可以通过Binder去支持所有的View和View的操作，但是这样做的代价太大，因为View的方法太多（有各种情况需要特殊处理），而且大量的IPC操作会影响效率。
+　　我们知道RemoteViews主要用于通知和桌面小部件之中，它们分别涉及到：
+
+	-  NotificationManager和NotificationManagerService类。
+	-  AppWidgetManager和AppWidgetService类。
+
+　　其中这两个Manger类都是通过`Binder机制`分别和`SystemServer`进程中的两个Service类进行通信的。这意味着通知和小部件中的布局文件实际上是由运行在SystemServer中的服务加载的，这就和我们的进程构成了跨进程通信的场景。
+
+　　从理论上来说：
+
+	-  系统完全可以通过Binder去支持所有的View，但是这样做的代价太大，因为View的方法太多（有各种情况需要特殊处理），而且大量的IPC操作会影响效率。
 
 <br>**反射的过程**
 　　我们在应用中每调用一次set方法，`RemoteViews`中就会添加一个对应的`Action`对象，比如`setTextViewText`方法：
@@ -1102,10 +1103,46 @@ private void addAction(Action a) {
 }
 ```
     语句解释：
-    -  从上面三个方法的代码可以看出来，RemoteViews会将操作封装成一个Action对象，并保存起来等待交给系统进程。
+    -  从上面的代码可以看出来，RemoteViews会将操作封装成一个ReflectionAction对象，并保存起来等待交给系统进程。
 
-<br>　　我们调用`setTextViewText`等方法后，实际上并没有立刻更新界面，而是当`RemoteViews`被传递到系统进程中后，系统才会调用它的`apply`方法更新界面：
+<br>　　我们调用`setTextViewText`等方法后，实际上并没有立刻更新界面，只有把通知发送出去后才会更新：
 ``` java
+// NotificationManager.java
+public void notify(String tag, int id, Notification notification) {
+    int[] idOut = new int[1];
+    INotificationManager service = getService();
+    String pkg = mContext.getPackageName();
+    if (notification.sound != null) {
+        notification.sound = notification.sound.getCanonicalUri();
+        if (StrictMode.vmFileUriExposureEnabled()) {
+            notification.sound.checkFileUriExposed("Notification.sound");
+        }
+    }
+    if (localLOGV) Log.v(TAG, pkg + ": notify(" + id + ", " + notification + ")");
+    Notification stripped = notification.clone();
+    Builder.stripForDelivery(stripped);
+    try {
+        service.enqueueNotificationWithTag(pkg, mContext.getOpPackageName(), tag, id,
+                stripped, idOut, UserHandle.myUserId());
+        if (id != idOut[0]) {
+            Log.w(TAG, "notify: id corrupted: sent " + id + ", got back " + idOut[0]);
+        }
+    } catch (RemoteException e) {
+    }
+}
+```
+    语句解释：
+    -  第16行代码通过Binder来调用NotificationManagerService类的enqueueNotificationWithTag方法。
+
+<br>　　当程序执行到`NotificationManagerService`类时会经历一系列的操作，我们就不再一一介绍了。
+　　最终系统会调用`RemoteViews`的`apply`方法更新界面：
+``` java
+// RemoteViews.java
+
+public View apply(Context context, ViewGroup parent) {
+    return apply(context, parent, null);
+}
+
 /** @hide */
 public View apply(Context context, ViewGroup parent, OnClickHandler handler) {
     RemoteViews rvToApply = getRemoteViewsToApply(context);
@@ -1164,8 +1201,8 @@ public void apply(View root, ViewGroup rootParent, OnClickHandler handler) {
 <br>　　另外，`RemoteViews`还有一个`reapply`方法，它和`apply`方法的区别在于，它省略了布局加载的那一步。
 
 <br>**应用场景**
-　　比如现在有两个应用，`应用A`需要将自己的界面放到另一个`应用B`中，并在随后的某个时间上操作的`应用B`中的那个界面。
-　　这个时候我们当然可以选择前面章节中说的各种`IPC`方式来实现这个功能，但是不论是`AIDL`还是`Messenger`都需要通信的两个进程协商接口，如果界面更新的比较频繁的话就会有效率问题，而且接口的复杂度也会增加。 
+　　比如现在有两个应用，`应用A`需要将自己的界面放到另一个`应用B`中，并在随后的某个时间上操作那个界面。
+　　这个时候我们当然可以选择[ Binder机制 ](http://cutler.github.io/android-F01/)中说的各种`IPC`方式来实现这个功能，但是不论是`AIDL`还是`Messenger`都需要通信的两个进程协商接口，如果界面更新的比较频繁的话就会有效率问题，而且接口的复杂度也会增加。 
 　　此时我们就可以使用`RemoteViews`了，大体的流程是：
 
 	-  首先，在进程A中创建RemoteViews对象，并通过广播、Binder等渠道将它发送给进程B。

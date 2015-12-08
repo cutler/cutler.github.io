@@ -4,18 +4,14 @@ categories: android
 ---
 　　在`Android 3.0`中除了`Fragment`外，`ActionBar`也是一个重要的内容。`ActionBar`主要是用于代替传统的`标题栏`与`Menu按钮`：
 
-	-  标题栏
-	   -  对于Android平板这种大屏幕设备来说，标题如果使用ActionBar来设计，可以展示更多丰富的内容，且方便操控。
-	-  Menu按钮
-	   -  在很多类型的应用程序中，菜单是一个常用的用户界面组件。要提供友好的和前后一致的用户体验：
-	      -  在Android 3.0系统之前，所有的Android手机都有一个专门的Menu按钮用于显示一些设置选项。
-	      -  从Android 3.0系统开始，系统通过引进ActionBar移除了系统对于硬件Menu按钮的依赖，让用户在屏幕的标题栏上直接可以看到各种设置选项。当然，这不意味着OEM厂商们不会继续在手机上提供这个按钮，但从Google的角度来说，Menu按钮已经是过去时了。
-
-　　除了上面两个优点外，`ActionBar`还可以给用户提供一种全局统一的`UI`界面，使得用户在使用任何一款软件时都懂得该如何操作，并且`ActionBar`还可以自动适应各种不同大小的屏幕。
+	-  标题栏：使用ActionBar来做标题栏，可以展示更多丰富的内容，且方便操控。
+	-  Menu按钮：
+	   -  在Android 3.0系统之前，Android手机有一个专门的Menu按钮用于打开设置选项。
+	   -  从Android 3.0系统开始，系统通过引进ActionBar移除了系统对于硬件Menu按钮的依赖，让用户在屏幕的标题栏上直接可以看到各种设置选项。当然，这不意味着OEM厂商们不会继续在手机上提供这个按钮，但从Google的角度来说，Menu按钮已经是过去时了。
 
 # 第一节 V7 appcompat #
 
-　　我们可以从官方的[ Dashboards ](http://developer.android.com/about/dashboards/index.html)中看出来，目前市场上的Android设备的系统版本已经转移到`4.0`左右。虽然如此，我们仍应该保持对低版本的适配，因此本节将以添加`V7 appcompat`库的方式来讲解如何使用`ActionBar`。
+　　我们可以从官方的[ Dashboards ](http://developer.android.com/about/dashboards/index.html)中看出来，目前市场上的Android设备的系统版本已经转移到`4.x`上。虽然如此，我们仍应该保持对低版本的适配，因此本节将以添加`V7 appcompat`库的方式来讲解如何使用`ActionBar`。
 
 <br>　　`ActionBar`有多种形式，你既可以在上面同时放置多个图标、按钮，也可以什么都不放。但对于大多数应用来说，`ActionBar`可以分割为`3`个不同的功能区域，下面是一张使用`ActionBar`的界面截图：
 
@@ -46,7 +42,7 @@ categories: android
 <br>　　由于`ActionBar`在不同的Android版本中显示的效果是不一样的，因此为了提供统一的视觉效果，我们接下来要修改一下`ActionBar`的背景图片。
 　　范例1：修改背景图片。
 ``` android
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -58,7 +54,7 @@ public class MainActivity extends ActionBarActivity {
 }
 ```
     语句解释：
-    -  MainActivity继承自android.support.v7.app.ActionBarActivity，上面使用的getSupportActionBar()方法也是继承而来的。
+    -  getSupportActionBar()方法继承自android.support.v7.app.AppCompatActivity类。
     -  getSupportActionBar()方法返回一个ActionBar对象，我们可以通过这个对象来修改ActionBar的样式。
     -  ActionBar的setBackgroundDrawable()方法就是用来修改背景图片的。
 
@@ -88,37 +84,50 @@ public class MainActivity extends ActionBarActivity {
     -  调用getSupportActionBar().setDisplayShowHomeEnabled(true);显示一个图标。
     -  调用getSupportActionBar().setIcon(R.drawable.ic_launcher);设置一个图标。
 
-<br>　　仔细观察上面的`图1`可以发现，当程序运行在`三星S5`手机上时，标题的字体颜色为`白色`，而运行在`Android2.2模拟器`时，颜色则为`黒色`。这是不能允许的，需要给它们设置一个统一的颜色。为了方便管理与更新（`V7 appcompat`），我们不会去直接修改`V7 appcompat`库里的属性，而是在自己项目里创建一个`res\values\custom_actionbar.xml`文件，并在该文件中创建一些与`V7 appcompat`库中同名的属性，即用我们的值覆盖掉它们的值。
+<br>　　仔细观察上面的`图1`可以发现，当程序运行在`三星S5`手机上时，标题的字体颜色为`白色`，而运行在`Android2.2模拟器`时，颜色则为`黒色`。这个情况肯定是不能忍的，需要给它们设置一个统一的颜色。
+　　为了方便管理与更新，我们不会去直接修改`V7 appcompat`库里的属性，而是在自己项目里创建一个`res\values\custom_actionbar.xml`文件，并在该文件中创建一些与`V7 appcompat`库中同名的属性，即用我们的值覆盖掉它们的值。
 
 　　范例3：修改字体颜色。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 主标题的字体颜色 -->
-    <style name="Base.TextAppearance.AppCompat.Title">
-        <item name="android:textColor">@android:color/white</item>
+    <!-- 基本的主题 -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
     </style>
-    <!-- 主标题的字体大小 -->
-    <dimen name="abc_text_size_title_material_toolbar">16dp</dimen>
-    <!-- 子标题的字体颜色 -->
-    <style name="Base.TextAppearance.AppCompat.Subhead">
-        <item name="android:textColor">@android:color/darker_gray</item>
+
+    <!-- 定义主题，继承自@style/AppTheme。 -->
+    <style name="MyActionBarTheme" parent="@style/AppTheme">
+        <item name="actionBarStyle">@style/MyActionBar</item>
     </style>
-    <!-- 子标题的字体大小 -->
-    <dimen name="abc_text_size_subtitle_material_toolbar">12dp</dimen>
+
+    <!-- 定义ActionBar的样式 -->
+    <style name="MyActionBar" parent="@style/Widget.AppCompat.ActionBar">
+        <!-- 背景色 -->
+        <item name="background">@android:color/black</item>
+        <!-- 主标题的字体样式 -->
+        <item name="titleTextStyle">@style/MyActionBarTitleText</item>
+        <!-- 子标题的字体样式 -->
+        <item name="subtitleTextStyle">@style/MyActionBarSubtitleText</item>
+    </style>
+
+    <style name="MyActionBarTitleText" parent="@style/Base.TextAppearance.AppCompat.Title">
+        <item name="android:textColor">#5ec0e8</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+    <style name="MyActionBarSubtitleText" parent="@style/Base.TextAppearance.AppCompat.Subhead">
+        <item name="android:textColor">#cccfff</item>
+        <item name="android:textSize">8sp</item>
+    </style>
+
 </resources>
 ```
     语句解释：
-    -  你可能会问，我是怎么知道修改这些样式就能修改标题的字体大小和颜色的? 没有别的办法，就是去v7库里找，连蒙带猜，不堪回首，蛋碎一地。
-    -  V7库有很多values目录，如果你修改了“v7\res\values”下的文件，那么你可能还需要修改：“v7\res\values-land”下的文件。
-
-<br>　　这里有两个知识点要说一下：
-
-	-  第一，主项目定义的style可以与库项目定义的style同名。程序运行时，主项目的style的值将会覆盖掉库项目的style的值。
-	-  第二，如果库项目的style定义了textSize、textColor两个属性，但主项目的style中只定义了textSize属性，那么当需要使用textColor属性的值时，依然会使用库项目定义的style的textColor属性的值。
+    -  首先，定义一个名为MyActionBarTheme的主题，并为该主题指定了新的ActionBar样式。
+    -  然后，又为ActionBar指定了背景色、主标题、子标题的样式。
+    -  最后，就可以在清单文件中为某个Activity使用这个主题了。
 
 ## ActionButton ##
-　　前面已经说了，在`Android3.0`之后菜单被移到了标题栏上，以便用户直接可以看到各种设置选项。而`ActionButton`就相当于之前`Menu`菜单下的一个菜单项（`MenuItem`）。与菜单项一样，`ActionButton`包含一个`图标`和`文字`，它会直接显示在`ActionBar`上。当然，如果按钮过多导致`ActionBar`上显示不完，多出的一些按钮可以隐藏在`overflow`里面，点击一下`overflow`按钮就可以看到全部的`ActionButton`了。
+　　前面已经说了，在`Android3.0`之后菜单被移到了标题栏上，以便用户直接可以看到各种设置选项。
+　　`ActionButton`相当于之前`Menu`菜单下的一个菜单项（`MenuItem`），它也包含一个`图标`和`文字`，同时它会直接显示在`ActionBar`上。当然，如果按钮过多导致`ActionBar`上显示不完，多出的一些按钮可以隐藏在`overflow`里面，点击一下`overflow`按钮就可以看到全部的`ActionButton`了。
 
 　　现在我们要实现如下图所示的一个效果：
 
@@ -166,8 +175,9 @@ public class MainActivity extends ActionBarActivity {
 </menu>
 ```
     语句解释：
-    -  各个Activity的Actionbar里包含的选项可能是不同的，因而每个Activity会有一个对应的menu.xml文件。在menu.xml中，每一个<item>标签都表示一个ActionButton。
-    -  其中android:id、android:icon、android:title依次表示ActionButton的id、图标、文本标题。注意，它们都是在android命名空间里。
+    -  各个Activity的Actionbar里包含的选项可能是不同的，因而每个Activity会有一个对应的menu.xml文件。
+    -  在menu.xml中，每一个<item>标签都表示一个ActionButton。
+    -  其中android:id、android:icon、android:title依次表示ActionButton的id、图标、文本标题。
     -  其中app:showAsAction属性用来设置ActionButton显示的位置，注意这个属性是在app命名空间里的。常用取值为：
        -  always：表示永远显示在ActionBar中，如果屏幕空间不够则无法显示。
        -  ifRoom：表示屏幕空间够的情况下显示在ActionBar中，不够的话就显示在overflow中。
@@ -208,11 +218,11 @@ public boolean onOptionsItemSelected(MenuItem item) {
 }
 ```
     语句解释：
-    -  当用户选择了选项菜单中的一个菜单项（包括ActionBar中的ActionButton），系统会调用Activity的onOptionsItemSelected()方法。这个方法把用户选择的菜单项作为参数来传递。你能够通过调用getItemId()方法来识别菜单项，这个方法返回了对象菜单项的唯一ID（这个ID是在菜单资源的android:id属性中定义的，或者是传递给add方法的一个整数）。你能够把这个ID与已知的菜单项匹配，让它执行对应的动作。
+    -  当用户选择了选项菜单中的一个菜单项（也包括ActionBar中的ActionButton），系统会调用Activity的onOptionsItemSelected()方法。这个方法把用户选择的菜单项作为参数来传递。你能够通过调用getItemId()方法来识别菜单项，这个方法返回了对象菜单项的唯一ID（这个ID是在菜单资源的android:id属性中定义的，或者是传递给add方法的一个整数）。你能够把这个ID与已知的菜单项匹配，让它执行对应的动作。
     -  在MainActivity中重写此方法即可。
 
 <br>　　前面说了，即使当前设备的系统版本高于`Android3.0`，也不保证在`ActionBar`中一定会显示出`overflow`按钮。
-　　[CSDN 博主 郭霖](http://blog.csdn.net/guolin_blog/article/details/18234477) 找到了原因，即`overflow`按钮的显示情况和手机的硬件情况是有关系的，如果手机没有物理`Menu`键的话，`overflow`按钮就可以显示，如果有物理`Menu`键的话（比如Android模拟器都有物理`Menu`键），`overflow`按钮就不会显示出来。
+　　[《Android ActionBar完全解析，使用官方推荐的最佳导航栏(上)》](http://blog.csdn.net/guolin_blog/article/details/18234477) 中解释了，即`overflow`按钮的显示情况和手机的硬件情况是有关系的，如果手机没有物理`Menu`键的话，`overflow`按钮就可以显示，如果有物理`Menu`键的话（比如Android模拟器都有物理`Menu`键），`overflow`按钮就不会显示出来。
 
 <br>　　范例4：显示出`overflow`按钮。
 ``` android
@@ -364,10 +374,14 @@ public boolean onCreateOptionsMenu(Menu menu) {
 　　`SearchView`还提供了其他事件监听方法，此处就不再一一介绍了。
 
 ## ActionProvider ##
-　　`ActionProvider`与`ActionView`有点类似，它也可以将一个`ActionButton`替换成一个自定义的布局。但不同的是，`ActionProvider`能够完全控制事件的所有行为，并且还可以在点击的时候显示子菜单。
-　　为了添加一个`ActionProvider`，我们需要在`<item>`标签中指定一个`actionViewClass`属性，在里面填入`ActionProvider`的完整类名。我们可以通过继承`ActionProvider`类的方式来创建一个自己的`ActionProvider`，同时，Android也提供好了几个内置的`ActionProvider`，比如说`ShareActionProvider`。
+　　`ActionProvider`与`ActionView`有点类似，它也可以将一个`ActionButton`替换成一个自定义的布局。
+　　但不同的是，`ActionProvider`能够完全控制事件的所有行为，并且还可以在点击的时候显示子菜单。
+
 <br>
 ### ShareActionProvider ###
+
+　　Android提供好了几个内置的`ActionProvider`，常用的是`ShareActionProvider`。
+
 <br>　　范例1：添加`ShareActionProvider`。
 ``` xml
 <item
@@ -376,7 +390,10 @@ public boolean onCreateOptionsMenu(Menu menu) {
     app:actionProviderClass="android.support.v7.widget.ShareActionProvider"
     app:showAsAction="ifRoom"/>
 ```
-　　接着剩下的事情就是通过`Intent`来定义出你想分享哪些东西了，我们只需要在`onCreateOptionsMenu()`中得到`ShareActionProvider`对象，再通过`setShareIntent()`方法去选择构建出什么样的一个`Intent`就可以了。
+    语句解释：
+    -  注意，此处使用的是actionProviderClass属性。
+
+<br>　　接着通过`Intent`来定义出你想分享哪些东西：
 ``` android
 @Override
 public boolean onCreateOptionsMenu(Menu menu) {
@@ -402,7 +419,8 @@ public boolean onCreateOptionsMenu(Menu menu) {
 
 <br>
 ### 自定义ActionProvider ###
-　　除了使用`ShareActionProvider`之外，我们也可以自定义一个`ActionProvider`。我们可以自定义两种`ActionProvider`，第一种是有弹出菜单的，第二种是可以展开的（与`SearchView`的效果一样），具体效果如下图所示：
+　　除了使用`ShareActionProvider`之外，我们也可以自定义一个`ActionProvider`。
+　　我们可以自定义两种`ActionProvider`，第一种是有弹出菜单的，第二种是可以展开的（与`SearchView`的效果一样），具体效果如下图所示：
 
 <center>
 ![](/img/android/android_b07_09.gif)
@@ -482,7 +500,7 @@ public class SubMenuActionProvider extends ActionProvider {
 ```
 
 ## 自定义布局 ##
-　　`ActionBar`为用户提供一种熟悉可预测的方式来展示操作和导航，但是这并不意味着你的`app`要看起来和其他`app`一样，我们可以自定义自己的布局。  
+　　`ActionBar`为用户提供了统一方式来展示操作和导航，但是这并不意味着你的`app`要看起来和其他`app`一样，我们可以自定义自己的布局。  
 　　将`ActionBar`划分为如下所示的4个区域：
 
 <center>
@@ -497,7 +515,7 @@ public class SubMenuActionProvider extends ActionProvider {
 	-  4表示Overflow按钮。
 
 <br>　　我们可以通过调用如下代码来自定义`ActionBar`的布局：
-``` android
+``` java
 getSupportActionBar().setDisplayShowCustomEnabled(true);
 getSupportActionBar().setCustomView(R.layout.common_title);
 ```

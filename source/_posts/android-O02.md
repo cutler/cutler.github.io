@@ -2,11 +2,11 @@ title: 实战篇　第二章 Android Studio
 date: 2015-4-15 21:44:35
 categories: android
 ---
-　　`Android Studio`是谷歌推出的一个Android开发环境，基于`IntelliJ IDEA`，它提供了集成的Android开发工具用于开发和调试。
+　　`Android Studio`是谷歌推出的一个Android开发环境，基于`IntelliJ IDEA`。
 
 # 第一节 基础入门 #
 
-　　在`Google 2013`年`I/O`大会上，`Android Studio`这款开发工具被首次公布，这也是为了方便开发者基于Android开发。`Studio`首先解决的一个问题是多分辨率。Android设备拥有大量不同尺寸的屏幕和分辨率，使用`Studio`开发者可以在编写程序的同时看到自己的应用在不同尺寸屏幕中的样子。
+　　在`Google 2013`年`I/O`大会上，`Android Studio`这款开发工具被首次公布。
 
 <br>**架构组成**
 　　在`IntelliJ IDEA`的基础上，`Android Studio`提供：
@@ -30,28 +30,7 @@ categories: android
 
 	-  为了简化Android的开发力度，Google决定将重点建设Android Studio工具，并会在今年年底停止支持其他集成开发环境，比如Eclipse。
 
-<br>　　接下来我们从环境搭建开始，一步步的揭开`Android Studio`的面纱。
-
-## 环境搭建 ##
-<br>　　首先，从官方下载界面中下载 [AndroidStudio](https://developer.android.com/sdk/index.html) ，然后执行下面的步骤。本章是基于`Android Studio 1.2.2`版本进行介绍的。
-
-<br>**Mac平台**
-　　第一步，下载完毕后，双击打开，显示的是经典的`Mac`安装界面，直接将应用图表拖近`Applications`目录就可以了。
-　　第二步，开始安装时会询问你：`“You can import your settings from a previous version of Android Studio”`，由于我们是第一次安装，因此选择第二项 `“I do not ……”`即可。
-
-　　不出意外的话，此时你会遇到第一个问题，`Studio`会卡在`“fetching Android sdk compoment information”`上面，这其实是去获取`android sdk`组件信息，这个过程相当慢（视你的网速而定），甚至是加载失败，进而导致`Studio`启动不起来。之所以这么慢是因为`Google`被墙掉了。同时由于是第一次启动`Studio`，因而`Studio`在获取完毕组件信息后，还会去下载一些东西（可以帮我们省很多事，所以尽量让它去下载），所以这个问题必须解决。
-　　解决这个问题，只需要配置一个代理服务器即可，具体步骤请参阅：[《关于红杏的公益代理，Android Studio以及freso的编译》](http://www.liaohuqiu.net/cn/posts/about-red-apricot-and-compiling-fresco/) 。（这里帮红杏打个广告，笔者是个懒人，能花小钱搞定的事情，绝对不想去花费时间和精力，红杏让我可以用最简单的方式翻墙，所以我很干脆就掏钱了，:）。
-
-<br>**Windows平台**
-　　如果你是在`Windows`平台，可以这么做：
-
-	-  首先，到android studio安装目录，打开bin目录，编辑idea.properties, 在文件末尾添加：
-	   -  disable.android.first.run=true 这将禁用第一次运行。
-	-  然后，打开android studio，在File > Settings > HTTP Proxy settings设置代理相关参数，关闭android studio。
-	-  最后，再次打开idea.properties文件，删除刚刚添加的disable.android.first.run=true，并重新打开studio。
-
-<br>　　设置完代理后，剩下的步骤就没有什么难度了，不值一提。 
-
+<br>　　环境搭建的步骤很简单，网上很容易就可以搜到，笔者不再冗述。
 
 ## HelloWorld ##
 　　环境搭建完毕后，我们接下来就开始创建一个名为`HelloWorld`的项目，然后运行它。
@@ -67,38 +46,39 @@ categories: android
 　　左面的那一个红框里的按钮，用来切换项目的展示方式，常用的一共有三种：`Project`、`Packages`、`Android`，它们的区别请自行查看，开发的时候都是用`Android`。
 
 <br>**运行项目**
-　　项目创建完毕后，接下来我们就要运行它了。 首先要做的是打开`Android Device Monitor`窗口，创建一个模拟器，或者连接真机。
+　　首先要做的是打开`Android Device Monitor`窗口，创建一个模拟器，或者连接真机。
 
-　　假设我们的项目的包名为`com.cutler.helloworld`，然后点击上面说的`运行按钮`（绿色的三角）后，你可能会遇到这个错误：
+　　假设项目的包名为`com.cutler.helloworld`，然后点击上面说的`运行按钮`（绿色的三角）后，你可能会遇到这个错误：
 ``` c
 Installing com.cutler.helloworld
 DEVICE SHELL COMMAND: pm install -r "/data/local/tmp/com.cutler.helloworld"
 pkg: /data/local/tmp/com.cutler.helloworld
 Failure [INSTALL_FAILED_OLDER_SDK]
 ```
-　　这是因为项目的`minSdkVersion`属性设置的高于设备的`Api Level`版本号。按照以前的思路，我们应该去`AndroidManifest.xml`文件里修改这个值，但是现在我们在`AndroidManifest.xml`中却找不到`<uses-sdk>`标签了。
+　　这是因为项目的`minSdkVersion`属性设置的高于设备的`Api Level`版本号。
+　　按照以前的思路，应该去`AndroidManifest.xml`文件里修改这个值，但是现在在清单文件中却找不到`<uses-sdk>`标签了。
 
-　　事实上，使用	`Android Studio`创建的Android项目的`目录结构`已经和Eclipse创建的不一样了，现在我们需要进入到一个名为`build.gradle`的文件中修改，即下图中的`build.gradle(Module:app)`，把里面的`minSdkVersion 21`改为`minSdkVersion 8`即可。
+	-  事实上，使用Android Studio创建的Android项目的目录结构已经和Eclipse创建的不一样了。
+	-  现在我们需要进入到一个名为build.gradle的文件中修改。
+	-  即下图中的build.gradle(Module:app)，把里面的minSdkVersion 21改为minSdkVersion 8即可。
 
 <center>
 ![](/img/android/android_o04_02.png)
 </center>
 
 <br>**Poject 与 Module**
-　　在`Android Studio`中，不再存在工作空间的概念了（但创建项目时可以设置保存的位置），也不再像`Eclipse`那样可以同时将工作空间的中所有项目导入到程序中，而是一个`Project`对应一个`Studio`窗口，如果想打开多个`Project`，那么只能打开多个`Studio`窗口。
-　　我们都知道，在实际开发中可能会用到第三方提供的`Android library`项目，因而一个完整的项目是由一个主项目+若干`library`项目组成的。`Android Studio`提出了`Module`的概念，`Module`就是指的一个具体的项目，我们刚才说的`主项目`、`library项目`都被称为一个`Module`，即`一个Project由多个Module组成`。
+　　在 Android Studio 中，一个`Project`对应一个`Studio`窗口，如果想打开多个`Project`，那么就得打开多个`Studio`窗口。
 
-　　每一个`Module`需要有属于自己的`Gradle build file`（当你新建一个`Module`时会自动帮你生成的）。这些`Gradle`文件包含了一些很重要的内容，比如所支持的安卓版本和项目依赖的东西，以及安卓项目中其它重要的数据。
-　　此时各位应该就能明白，刚才为什么要修改上面的`build.gradle(Module:app)`文件了。
+　　通常，一个完整的`Project`是由一个主项目+若干`library`项目组成的：
+
+	-  AS提出了Module的概念，上面说的主项目、library项目都被称为一个Module，即一个Project由多个Module组成。
+	-  每一个Module需要有属于自己的build.gradle文件。
+	-  build.gradle文件包含了一些很重要的内容，比如所支持的安卓版本和项目依赖的东西等。
+　　此时应该就能明白，刚才为什么要修改上面的`build.gradle(Module:app)`文件了。
 
 <br>**删除项目**
 　　本文使用的是`Android Studio 1.2.2`版本，在该版本中没法很方便的删除一个项目，有位道友折腾了半天也没找到好的方法，他折腾的过程请参见[《Android studio删除工程项目》](http://www.cnblogs.com/smiler/p/3854816.html) 。 
-　　笔者找到一个相对省事的方法，以Mac为例：
-
-	-  首先，右键你的Module并点击“Reveal in Finder”，打开本地文件夹。
-	-  然后，通过快捷键“command + Q”来退出Android Studio。
-	-  接着，把Module所在的Project的目录，整个删除。
-	-  最后，启动Android Studio即可。
+　　笔者找到一个相对省事的方法：首先把 Android Studio 给关掉，然后去本地直接删掉项目的目录即可。
 
 <br>**本节参考阅读：**
 - [百度百科 - Android Studio](http://baike.baidu.com/view/10600831.htm)
@@ -136,19 +116,16 @@ Android4.2,4.2.2	17
 
 	-  如果你不声明minSdkVersion属性，系统会假设一个默认值“1”，这意味着您的应用程序兼容所有版本的Android。
 	-  如果您的应用程序不兼容所有版本(例如，它使用了API级别3中的接口)并且你没有设置minSdkVersion的值，那么当安装在一个API级别小于3的系统中时，应用程序在运行，并且执行到了调用Android1.5（API级别3级）的API的那句代码时，就会崩溃，即试图访问不可用API(但是程序的其他没有调用该API的地方可以正常运行)。出于这个原因，一定要申报相应的API级别在minSdkVersion属性。
-	-  例如，android.appwidget类包是在API级别3中开始引入的。如果一个应用程序使用了这个API，就必须通过指明minSdkVersion属性为3来声明运行的最低要求。于是，该应用程序就可以在Android 1.5、Android 1.6 (API级别4级)等平台上安装，但是在Android 1.1 (API级别2级)和 Android 1.0 平台(API级别1级)上却是无法安装的。
 
 <br>**targetSdkVersion**
 　　标明应用程序目标`API Level`的一个整数。如果不设置，默认值和`minSdkVersion`相同。
-　　这个属性通知系统，你已经针对这个指定的目标版本测试过你的程序，系统不必再使用兼容模式来让你的应用程序向前兼容这个目标版本。应用程序仍然能在低于`targetSdkVersion`的系统上运行（一直到`minSdkVersion`属性值所指定的版本）。
+　　这个属性通知系统，你已经针对这个指定的目标版本测试过你的程序，系统不必再使用兼容模式来让你的应用程序正常运行在这个目标版本。
 
-　　在Android演进的每个新版本中，都会有一些行为甚至外观的改变。但是，如果设备的`API Level`比应用程序声明的`targetSdkVersion`的值大，那么系统就可以启用兼容行为，以便确保应用程序能够继续执行期望的工作。因此，可以通过提高应用程序所运行的目标SDK版本（`targetSdkVersion`）来禁止启用这种兼容行为。
-　　例如，把这个属性值设置为`11`或更大，就会允许系统把新的默认主题应用给在`Android3.0`或更高版本平台之上的应用程序，并且在运行在较大屏幕的设备上时，也禁止使用屏幕兼容模式（因为针对`API Level 11`的支持，暗示着对较大屏幕的支持）。
-　　这个属性在`API Leve 4`中被引入。
+　　比如：
 
-　　个人经验：
-
-	-  比如从Android 3.0开始，在绘制View的时候支持硬件加速，充分利用GPU的特性，使得绘制更加平滑(会多消耗一些内存)。若是将targetSdkVersion设置为11或以上，则系统会默认使用硬件加速来绘制，但Android3.0之前版本提供的某些绘图API，在硬件加速下进行绘制时，会抛异常。
+	-  从Android 3.0开始，在绘制View的时候支持硬件加速，充分利用GPU的特性，使得绘制更加平滑（会多消耗一些内存）。
+	-  若是将targetSdkVersion设置为11或以上，则系统会默认使用硬件加速来绘制，但Android3.0之前版本提供的某些绘图API，在硬件加速下进行绘制时，会抛异常。
+	-  若是将targetSdkVersion设置为10或以下，则系统不会使用硬件加速。
 	-  因此，除非你充分测试了，否则不要把targetSdkVersion设置的过高。
 
 <br>**compileSdkVersion**
@@ -163,38 +140,40 @@ Android4.2,4.2.2	17
 <br>　　问：为什么要把项目的编译版本提高呢?
 　　答：它可以让我们的应用程序，既可以使用高版本Android系统中所提供的新功能，同时又能完美的运行在低版本的系统中。以`holo`主题为例，众所周知`holo`主题是`Android3.0`之后的系统中的一个非常大的亮点。如果可以实现“当应用程序运行在3.0之前的系统时使用一般的主题，而运行在3.0之后的系统时则使用holo主题”那可就太好了。
 
-<br>　　范例1：使用`Holo`主题（`styles.xml`）。
+<br>　　范例1：使用`Holo`主题（`res\values-v11\styles.xml`）。
 ``` xml
 <!-- For API level 11 or later, the Holo theme is available and we prefer that. -->
 <style name="ThemeHolo" parent="android:Theme.Holo">
 </style>
 ```
 　　如果项目的当前编译版本低于`3.0`则`Android Studio`就会报错。
-　　因为`Android Studio`在编译Android的`xml`文件时，会依据当前项目的编译版本，去SDK的安装目录下查找其所依赖的所有资源，若未找到则就报错。 本范例中查找`Theme.Holo`主题的目录为：
-　　`SDK\platforms\android-11\data\res\values`
-　　其中`“android-11”`与项目的编译版本相对应。我们进入到`values`目录后，打开`themes.xml`就可以找到`Theme.Holo`主题了。同样的，在项目中引用的其他系统资源(如颜色、尺寸等)在`platforms`目录下面都是可以找到的。
-
-　　然后我们就可以在项目中建立`res\values-v11`目录，并把上面的`styles.xml`放到里面去。当程序运行的时候，系统会检测当前设备的`API Level`，若大于等于`11`则使用`values-v11`目录下的`styles.xml`，否则则使用`values`目录下的。
-
-
+　　因为在编译`styles.xml`时，会依据项目的编译版本，去SDK的安装目录下查找其所依赖的资源，若未找到则就报错： 
+``` java
+SDK\platforms\android-8\data\res\values
+```
+　　其中`“android-8”`与项目的编译版本相对应。
 
 　　提示：
 
+	-  当程序运行的时候，系统会检测当前设备的API Level，若大于等于11则使用values-v11目录下的styles.xml，否则则使用values目录下的。
 	-  高版本Andrdoid平台的框架API与早期版本兼容，即新版本的Android平台大多数都是新增功能，和引进新的或替代的功能。
 	-  对于API的升级，会将老版本的标记为已过时，但不会从新版本中删除，因此现有的应用程序仍然可以使用它们。在极少数情况下，部分旧版本的API可能被修改或删除，通常这种变化是为了保障API的稳定性及应用程序或系统的安全。
 
 # 第二节 Gradle #
-　　新增的`Gradle`将会是你转到`Android Studio`上最大的障碍，和`Maven`一样，`Gradle`只是提供了构建项目的一个框架，真正起作用的是`Plugin`。如果你不知道什么是`构建工具`、`Maven`，那么请参看笔者的另一篇文章[《实战篇　第三章 Maven》](http://cutler.github.io/android-O03/)。
+　　新增的`Gradle`将会是你转到`Android Studio`上最大的障碍，和`Maven`一样，`Gradle`只是提供了构建项目的一个框架，真正起作用的是`Plugin`。
 
+　　如果你不知道什么是`构建工具`、`Maven`，那么请参看笔者的另一篇文章[《实战篇　第一章 Maven》](http://cutler.github.io/android-O01/)。
 　　笔者将本节的内容，定位为`“了解”`，也就是说你不需要记住下面所有的知识，只要能看懂范例、理解思路即可。
 
 ## 概述 ##
-<br>**是什么？**
-　　`Gradle`是以`Groovy`语言为基础，面向`Java`应用为主的`自动化构建工具`。
-　　`Gradle`同时继承了`Apache Ant`和`Apache Maven`二者的优点。当前`Gradle`仅可以用来构建使用`Java`、`Groovy`和`Scala`语言编写的项目，计划未来将支持更多的语言。
+　　`Gradle`是以`Groovy`语言为基础的，面向Java应用为主的`构建工具`，它同时继承了`Ant`和`Maven`二者的优点。
 
-<br>**Groovy**
-　　`Groovy`是`Java`平台上设计的面向对象编程语言。这门动态语言拥有类似`Python`、`Ruby`和`Smalltalk`中的一些特性，可以作为`Java`平台的`脚本语言`使用。它的语法与`Java`非常相似，以至于多数的`Java`代码也是正确的`Groovy`代码。`Groovy`代码动态的被编译器转换成`Java字节码`。由于其运行在`JVM`上的特性，`Groovy`可以使用其他`Java`语言编写的库。
+　　`Groovy`是Java平台上设计的面向对象编程语言，它的特点：
+
+	-  这门动态语言拥有类似Python、Ruby和Smalltalk中的一些特性，可以作为Java平台的脚本语言使用。
+	-  它的语法与Java非常相似，以至于多数的Java代码也是正确的Groovy代码。
+	-  Groovy代码动态的被编译器转换成Java字节码。
+	-  由于其运行在JVM上的特性，Groovy可以使用其他Java语言编写的库。
 
 　　下面是来自于 http://Groovy.CodeHaus.org 的一个例子程序：
 ``` gradle
@@ -221,13 +200,13 @@ class Foo {
 
 <br>**JVM生态圈三大构建工具**
 
-　　最初只有`Make`一种构建工具，后来其发展为`GNU Make`。由于需求的不断涌现，码农的世界里逐渐演化出了千奇百怪的构建工具。当前，JVM生态圈由三大构建工具所统治：
+　　最初只有`Make`一种构建工具，后来其发展为`GNU Make`，当今JVM生态圈由三大构建工具所统治：
 
 	-  Apache Ant带着Ivy
 	-  Maven
 	-  Gradel
 
-　　软件行业新旧交替的速度之快往往令人咂舌，不用多少时间，你就会发现曾经大红大紫的技术已经成为了昨日黄花，当然，`Maven`也不会例外。虽然目前它仍然是`Java`构建的事实标准，但我们也能看到新兴的工具在涌现，比如基于`Groovy`的`Gradle`。
+　　软件行业新旧交替的速度之快往往令人咂舌，不用多少时间，你就会发现曾经大红大紫的技术已经成为了昨日黄花，当然，`Maven`也不会例外。虽然目前它仍然是`Java`构建的事实标准，但我们也能看到新兴的工具在涌现，比如`Gradle`。
 
 <br>　　Ant
 
@@ -253,7 +232,8 @@ class Foo {
 
 　　推荐阅读：[《Java构建工具：Ant vs Maven vs Gradle》](http://blog.csdn.net/napolunyishi/article/details/39345995) 与 [《Gradle, 基于DSL的新一代Java构建工具》](http://www.blogjava.net/wldandan/archive/2012/06/26/381532.html)。
 
-<br>　　当我们成功运行完`HelloWorld`项目后，为了更好的使用`Android Studio`进行开发工作，会不可避免的对`build.gradle`文件的语法产生好奇。 接下来笔者将会介绍编写`Gradle`构建脚本的基础知识（虽然一般情况下几乎用不到它们）。
+<br>　　当我们成功运行完`HelloWorld`项目后，为了更好的使用`Android Studio`进行开发工作，会不可避免的对`build.gradle`文件的语法产生好奇。 
+　　接下来笔者将会介绍编写`Gradle`构建脚本的基础知识（虽然一般情况下几乎用不到它们）。
 　　为了理论结合实践，接下来我们要安装一下`Gradle`，这样就能一边写代码一边测试了。
 
 <br>**本节参考阅读：**
@@ -269,21 +249,25 @@ class Foo {
 
 　　官方安装教程：http://gradle.org/docs/current/userguide/installation.html 。
 
-<br>**前提条件**
-　　`Gradle`需要安装`1.6`及以上版本的`Java JDK`或`JRE`。它拥有自己的`Groovy`库，因此不需要另行安装`Groovy`。任何已安装的`Groovy`都会被`Gradle`给忽略。
+<br>　　前提条件：
 
-<br>**环境变量**
-　　下载完毕后，解压缩，然后添加`GRADLE_HOME/bin`到你的`PATH`环境变量。比如：`F:\apps\gradle-2.2.1\bin`。
-　　然后，你可以通过输入`gradle -v`检查`Gradle`是否安装正常。如果安装正确的话会输出`Gradle`版本和一些本地环境配置（`Groovy`，`Java`虚拟机版本，操作系统等等）。
+	-  Gradle需要安装1.6及以上版本的Java JDK或JRE。
+	-  Gradle拥有自己的Groovy库，因此不需要另行安装Groovy。
+
+<br>　　环境变量
+
+	-  第一，下载完毕后解压缩，然后添加GRADLE_HOME/bin到你的PATH环境变量。比如：F:\apps\gradle-2.2.1\bin。
+	-  第二，通过输入gradle -v检查Gradle是否安装正常。
+	   -  如果安装正确的话会输出Gradle版本和一些本地环境配置（Groovy，Java虚拟机版本，操作系统等等）。
 
 ## 构建脚本基础 ##
-<br>**Projects 和 tasks**
-　　`Gradle`里的任何东西都是基于这两个基础概念：`projects`（项目）、`tasks`（任务）。
+　　我们对项目进行编译、运行单元测试、生成文档、打包和部署等烦琐且不起眼的工作，都可以说是在对项目进行`构建`。
 
-　　我们每天对项目进行编译、运行单元测试、生成文档、打包和部署等烦琐且不起眼的工作，都可以说是在对项目进行`构建`。
-　　使用Gradle构建时，可以同时构建一个或多个`project`，`每一个project是由一个或多个tasks构成的`。一个`task`代表一些更加细化的构建。它可能是编译一些`classes`，创建一个`JAR`，生成`javadoc`，或者生成某个目录的压缩文件。
-<br>
-### HelloWorld ###
+　　`Gradle`里的构建是基于`task`的：
+
+	-  一个task代表一个具体的任务，它可能是编译一些classes，创建一个jar，生成javadoc等。
+
+<br>**HelloWorld**
 　　首先，我们先来创建一个名为`gradleTest`的空文件夹。
 　　然后，要知道Gradle与Maven、Ant一样，有一个核心的构建文件，名为`build.gradle`，整个构建的过程都是从它开始的。
 
@@ -309,7 +293,7 @@ gradle -q hello
     -  这里需要注意两点：
        -  由于我们是在Windows命令行中执行这个脚本，因此build.gradle必须是ANSI编码，别用UTF-8编码，否则编译会出错。
        -  gradle命令后面跟着的是task的名称，而不是文件的名称。
-    -  本节之后的绝大多数范例会在命令里加入-q，加上它之后就不会生成Gradle的日志信息，所以用户只能看到tasks的输出。当然也可以不加它。
+    -  本节之后的绝大多数范例会在命令里加入-q，加上它之后就不会生成Gradle的日志信息，所以用户只能看到task的输出。当然也可以不加它。
 
 <br>　　范例2：快捷的任务定义。
 ``` gradle
@@ -320,267 +304,8 @@ task hello << {
     语句解释：
     -  与前面的例子比较，doLast 被替换成了 <<，它们有一样的功能，但看上去更加简洁了。
     -  字符串既可以用单引号也可以用双引号。
-<br>
-### 构建脚本代码 ###
-　　Gradle 的构建脚本展示了 Groovy 的所有能力。作为开胃菜，来看看这个：
 
-<br>　　范例1：字符串连接与函数调用。
-``` gradle
-task upper << {
-    String someString = 'mY_nAmE'
-    println "Original: " + someString
-    println "Upper case: " + someString.toUpperCase()
-    println "Length: " + someString.length()
-}
-```
-　　程序输出：
-
-	E:\gradleTest>gradle -q upper
-	Original: mY_nAmE
-	Upper case: MY_NAME
-	Length: 7
-
-<br>　　范例2：循环语句与判断语句。
-``` gradle
-task count << {
-    4.times { 
-        if("$it" < 3){
-            print "$it " 
-        } else {
-            println "$it " 
-        }
-    }
-}
-```
-    语句解释：
-    -  本范例会循环4次，前三次只会打印出数字，最后一次打印完数字后，会接着打印一个换行符。
-    -  it是迭代变量的默认名称，后面我们会介绍如何修改迭代变量的名称。
-
-<br>
-### 任务 ###
-　　就像你所猜想的那样，你可以声明任务之间的依赖关系、定义动态任务等。
-
-<br>　　范例1：申明任务之间的依赖关系。
-``` gradle
-task hello << {
-    println 'Hello world!'
-}
-
-task intro(dependsOn: hello) << {
-    println "I'm Gradle"
-}
-```
-　　程序输出：
-
-	E:\gradleTest>gradle -q intro
-	Hello world!
-	I'm Gradle
-
-　　由于`intro`依赖于`hello`，所以执行`intro`的时候`hello`命令会被优先执行来作为启动`intro`任务的条件。
-
-<br>　　范例2：其他的任务还没有存在。
-``` gradle
-task taskX(dependsOn: 'taskY') << {
-    println 'taskX'
-}
-task taskY << {
-    println 'taskY'
-}
-```
-　　程序输出：
-
-	E:\gradleTest>gradle -q taskX
-	taskY
-	taskX
-
-　　在加入一个依赖之前，这个依赖的任务不需要提前定义，`taskX`到`taskY`的依赖在`taskY`被定义之前就已经声明了。这一点对于我们之后讲到的多任务构建是非常重要的。
-
-<br>　　范例3：动态的创建一个任务。
-``` gradle
-4.times { counter ->
-    task "task$counter" << {
-        println "I'm task number $counter"
-    }
-}
-```
-    语句解释：
-    -  本范例通过循环语句动态的创建了4个task。
-    -  我们可以自定义循环语句的迭代变量的名称，本范例中迭代变量的名字为counter，引用迭代变量是使用 "$变量名"，注意要有引号。
-       -  循环次数.times{迭代变量 -> 循环体}
-    -  事实上，我们在命令行中执行“gradle -q hello”命令时，Grale做了如下两步操作：
-       -  第一，从当前目录下查找build.gradle文件，然后从该文件第一行代码开始扫描执行。
-       -  第二，等一切都结束后，再开始执行hello任务。这意味着我们可以直接“gradle -q”命令，后面不需要跟随一个task。
-　　程序输出：
-
-	E:\gradleTest>gradle -q task2
-	I'm task number 2
-
-<br>　　范例4：通过API访问一个任务 - 加入一个依赖。
-``` gradle
-// 先动态创建4个task
-4.times { counter ->
-    task "task$counter" << {
-        println "I'm task number $counter"
-    }
-}
-// 由于Gradle从上到下执行,因此会在创建完毕任务后,让task0依赖task2、task3
-task0.dependsOn task2, task3
-```
-    语句解释：
-    -  当任务创建之后, 它可以通过API来访问。
-　　程序输出：
-
-	E:\gradleTest>gradle -q task0
-	I'm task number 2
-	I'm task number 3
-	I'm task number 0
-
-<br>　　范例5：通过API访问一个任务 - 加入行为。
-``` gradle
-// 创建一个task，并在队列尾部添加一个action
-task hello << {
-    println 'Hello Earth'
-}
-// 在队列首部添加一个action
-hello.doFirst {
-    println 'Hello Venus'
-}
-// 在队列尾部添加一个action
-hello.doLast {
-    println 'Hello Mars'
-}
-// 在队列尾部添加一个action
-hello << {
-    println 'Hello Jupiter'
-}
-```
-    语句解释：
-    -  doFirst 和 doLast 可以被执行许多次。他们分别可以在任务动作列表的开始和结束加入动作。当任务执行的时候，在动作列表里的动作将被按顺序执行。这里第四个行为中 << 操作符是 doLast 的简单别称。
-　　程序输出：
-
-	E:\gradleTest>gradle -q hello
-	Hello Venus
-	Hello Earth
-	Hello Mars
-	Hello Jupiter
-
-<br>　　正如同你已经在之前的示例里看到，有一个短标记`$`可以访问一个存在的任务。也就是说每个任务都可以作为构建脚本的属性：
-
-<br>　　范例6：当成构建脚本的属性来访问一个任务。
-``` gradle
-task hello << {
-    println 'Hello world!'
-}
-hello.doLast {
-    println "Greetings from the $hello.name task."
-}
-```
-    语句解释：
-    -  这里的name是任务的默认属性，代表当前任务的名称。
-    -  这使得代码易于读取，特别是当使用了由插件（如编译）提供的任务时尤其如此。
-　　程序输出：
-
-	E:\gradleTest>gradle -q hello
-	Hello world!
-	Greetings from the hello task.
-
-<br>　　范例7：给任务加入自定义属性。
-``` gradle
-task boy << {
-    ext.age = "17"
-}
-boy.doLast {
-    println boy.name + " age is " + boy.age
-}
-```
-    语句解释：
-    -  给任务加自定义属性是没有限制的。
-    -  如果不是在一个字符串中引用属性，则可以去掉$符号。
-　　程序输出：
-
-	E:\gradleTest>gradle -q boy
-	boy age is 17
-
-<br>　　范例8：创建一个方法。
-``` gradle
-task listFile << {
-    // 首先，调用_doFistFile()方法，并传递一个路径过去。
-    // 然后，在返回的File[]对象上，调用each()方法进行遍历，迭代变量的名称为file。
-    _doFistFile('E:/gradleTest').each {File file ->
-        println "I'm fond of $file.name"
-    }
-}
-// 此处定义了一个方法。
-File[] _doFistFile(String dir) {
-    // 调用API获取文件列表，注意不会列出文件夹。 看不懂也没关系，我们主要的目的是了解。
-    file(dir).listFiles({file -> file.isFile() } as FileFilter).sort()
-}
-```
-　　程序输出：
-
-	E:\gradleTest>gradle -q listFile
-	I'm fond of build.gradle
-	I'm fond of gradle
-
-<br>　　范例9：定义默认任务。
-``` gradle
-// 定义默认执行的任务，此行代码放在任何地方都可以，不一定要放在第一行。
-// 它等价于 gradle clean run ，即我们可以同时运行多个task，task之间使用空格间隔。
-defaultTasks 'clean', 'run'
-
-task clean << {
-    println 'Default Cleaning!'
-}
-
-task run << {
-    println 'Default Running!'
-}
-
-task other << {
-    println "I'm not a default task!"
-}
-
-```
-    语句解释：
-    -  在一个多项目构建中，每一个子项目都可以有它特别的默认任务。如果一个子项目没有特别的默认任务，父项目的默认任务将会被执行。
-　　程序输出：
-
-	E:\gradleTest>gradle -q
-	Default Cleaning!
-	Default Running!
-
-<br>
-### 通过DAG配置 ###
-　　`Gradle`有一个配置阶段和执行阶段，在配置阶段后，`Gradle`将会知道应执行的所有任务。`Gradle`为你提供一个`"钩子"`（即回调），以便利用这些信息。举个例子，判断发布的任务是否在要被执行的任务当中。根据这一点，你可以给一些变量指定不同的值。
-
-<br>　　范例1：根据选择的任务产生不同的输出。
-``` gradle
-task distribution << {
-    println "We build the zip with version=$version"
-}
-
-task release(dependsOn: 'distribution') << {
-    println 'We release now'
-}
-// 通过gradle.taskGraph.whenReady来设置回调，回调方法接收一个名为taskGraph的参数。
-gradle.taskGraph.whenReady {taskGraph ->
-    // 如果release任务将会被执行，则版本号设定为1.0 。
-    if (taskGraph.hasTask(release)) {
-        version = '1.0'
-    } else {
-        version = '1.0-SNAPSHOT'
-    }
-}
-```
-    语句解释：
-    -  回调函数将优先于任何task执行，因此在distribution被执行之前，version变量已经存在且有值了。
-　　程序输出：
-
-	E:\gradleTest>gradle -q distribution
-	We build the zip with version=1.0-SNAPSHOT
-	E:\gradleTest>gradle -q release
-	We build the zip with version=1.0
-	We release now
+<br>　　上面把HelloWorld范例介绍完了，下面就介绍如果构建Java项目。
 
 ## 构建Java项目 ##
 　　在正式讲解如何使用`Gradle`构建Java项目之前，先来介绍一下`“插件”`的概念。
@@ -748,35 +473,6 @@ dependencies {
     compile 'foo:foo:0.1'
 }
 ```
-　　我们也可以在同一个配置项中加入多个依赖，传统的方式如下：
-``` gradle
-dependencies {
-    compile (
-        [group: 'foo', name: 'foo', version: '0.1'],
-        [group: 'bar', name: 'bar', version: '0.1']
-    )
-}
-```
-　　如果采用快捷方式，那可以是这样：
-``` gradle
-dependencies {
-    compile 'foo:foo:0.1', 'bar:bar:0.1'
-}
-```
-　　自然地，声明属于不同配置项的依赖也是可以的。比如说，如果我们想要声明属于`compile`和`testCompile`配置项的依赖，可以这么做：
-``` gradle
-dependencies {
-    compile group: 'foo', name: 'foo', version: '0.1'
-    testCompile group: 'test', name: 'test', version: '0.1'
-}
-```
-　　同样的，给力的快捷方式又来了：
-``` gradle
-dependencies {
-    compile 'foo:foo:0.1'
-    testCompile 'test:test:0.1'
-}
-```
 
 <br>
 ### Pinyin4j ###
@@ -890,7 +586,6 @@ allprojects {
 　　除了`allprojects()`之外，根项目还提供了`subprojects()`方法用于配置所有的子项目（不包含根项目）。
 
 
-
 <br>**本节参考阅读：**
 - [从零开始学习Gradle之一---初识Gradle](http://www.blogjava.net/wldandan/archive/2012/06/27/381605.html)
 - [Gradle User Guide 中文版](http://dongchuan.gitbooks.io/gradle-user-guide-/content/index.html)
@@ -936,6 +631,7 @@ android {
 }
 
 dependencies {
+    // 设置module的libs目录为jar文件的查找目录。
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
 ```

@@ -153,110 +153,7 @@ public class MainActivity extends Activity {
 ## 在非UI线程处理图片 ##
 　　在上一节中我们讲解了`BitmapFactory.decode*`系列方法，这些方法主要用来加载本地的图片，但如果源数据来自网络，是不应该在主线程加载的。
 　　这是因为读取这样的数据所需的加载时间是不确定的，如果时间过长就会阻塞了主线程，系统会弹出`ANR`对话框。
-　　本节将使用`AsyncTask`类来加载并显示来自网络的图片，接下来先简单的介绍一下`AsyncTask`类。
-
-### AsyncTask基础 ###
-　　`AsyncTask`与`Thread`一样，都是用来执行一些耗时的操作的类，但与传统方式不同：
-
-	-  内部使用线程池管理线程，这样就减少了线程创建和销毁时的消耗。
-	-  内部使用Handler处理线程切换，这样省去了我们自己处理的过程，代码直观、方便。
-
-<br>　　范例1：最简单的`AsyncTask`。
-``` android
-public class MyAsyncTask extends AsyncTask {
-
-    // 此方法用于执行当前异步任务。 
-    // 此方法会在AsyncTask的线程池中取出的线程上运行。此方法和Thread类的run方法类似。
-    protected Object doInBackground(Object... params) {
-        int sum = 0;
-        for (int i = 1; i <= 100; i++) {
-            try {
-                sum = sum + i;
-                Thread.sleep(200);
-                System.out.println("sum + " + i + " = " + sum);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-}
-
-// 调用execute方法启动当前异步任务，此方法和Thread类的start方法类似。 
-AsyncTask task = new MyAsyncTask();
-task.execute();
-```
-    语句解释：
-    -  本范例是AsyncTask的最简单应用。
-    -  完全可以将本范例中的AsyncTask替换成Thread，把doInBackground方法替换成run方法。启动异步任务的execute方法和启动Thread的start方法是一样的。
-
-<br>　　假设现在有一个任务，要求在计算的时候显示一个进度条对话框，当计算完毕后关闭该对话框，并将计算的结果通过`Toast`输出。此时就需要使用`AsyncTask`类提供的其他方法了。
-
-<br>　　范例2：完成任务。
-``` android
-private final class MyAsyncTask extends AsyncTask {
-    private ProgressDialog dialog;
-
-    // 此方法用于在开始执行当前异步任务之前，做一些初始化操作。 
-    // 此方法在主线程中运行。
-    // 此方法由execute方法调用。此方法会在doInBackground方法之前被调用。
-    protected void onPreExecute() {
-        // 创建一个对话框。
-        dialog = new ProgressDialog(AsyncTaskActivity.this);
-        dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        dialog.setTitle("百数相加");
-        dialog.setMessage("计算出：1+2+3+...+100的和 !");
-        dialog.setMax(5050);
-        dialog.show();
-    }
-
-    // 在当前异步任务正在执行时，我们可以向AsyncTask里的Handler发送更新UI的消息。
-    // Handler接到消息后，会在主线程中，回调用此方法方法更新UI。 
-    protected void onProgressUpdate(Object... values) {// 更新进度条。
-        this.dialog.setProgress((Integer)values[0]);
-    }
-
-    protected Object doInBackground(Object... params) {// 计算结果。
-        int sum = 0;
-        for (int i = 1; i <= 100; i++) {
-            try {
-                sum = sum + i;
-                Thread.sleep(20);
-                // 此方法用于在当前异步任务正在执行时，向AsyncTask里的Handler发送更新UI的消息。
-                // Handler接到消息后，会调用onProgressUpdate方法更新UI。 此方法由用户根据需求手工调用。
-                this.publishProgress(sum); // 通知Handler更新UI。
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return sum;
-    }
-
-    // 此方法用于在当前异步任务执行完成之后，做一些收尾操作。 
-    // 此方法在主线程中运行。
-    // 此方法会在doInBackground方法之后被调用。doInBackground方法的返回值会被当作此方法的参数。
-    protected void onPostExecute(Object result) {
-        // 销毁进度条。
-        dialog.dismiss();
-        Toast.makeText(AsyncTaskActivity.this,"计算结果为："+result,0).show();
-    }
-}
-```
-    语句解释：
-    -  AsyncTask内的各个方法调用顺序：
-       -  第一，我们调用execute方法启动AsyncTask 。
-       -  第二，调用onPreExecute方法，执行初始化操作。
-       -  第三，从线程池中取出一个空闲的线程，并使用该线程调用doInBackground方法，执行耗时的操作。
-       -  第四，当doInBackground方法执行完毕后，onPostExecute方法将被调用（onPostExecute方法的参数就是doInBackground方法的返回值）。
-       -  第五，若想更新UI控件，则可以在doInBackground方法中调用publishProgress方法。
-          -  提示：调用publishProgress方法时设置的参数将被传递给onProgressUpdate方法。
-
-<br>　　在上面的范例中，各个方法的参数、返回值都是`Object`类型的，这对于严格控制程序有很大负面的影响。
-　　但是事实上，`AsyncTask`类是有泛型的。即`AsyncTask<Params, Progress, Result>`其中：
-
-	-  Params：用于设置execute和doInBackground方法的参数的数据类型。
-	-  Progress：用于设置onProgressUpdate和publishProgress方法的参数的数据类型。
-	-  Result：用于设置onPostExecute方法的参数的数据类型和doInBackground方法的返回值类型。
+　　本节将使用`AsyncTask`类来加载并显示来自网络的图片，如果你不会使用`AsyncTask`类，请先阅读[《进阶篇　第四章 Android的消息机制》](http://cutler.github.io/android-F04/)。
 
 <br>　　这里有一个使用`AsyncTask`和`decodeSampledBitmapFromResource()`加载大图片到`ImageView`中的例子：
 ``` java
@@ -302,20 +199,28 @@ public class MainActivity extends ActionBarActivity {
 <br>**本节参考阅读：**
 - [【Google官方教程】第一课：高效地加载大Bitmap(位图)](http://my.oschina.net/ryanhoo/blog/88242) 
 
-### AsyncTask原理 ###
-
 # 第二节 图片的缓存 #
 　　不论是Android还是iOS设备，流量对用户来说都是一种宝贵的资源，所以在开发中无能都尽可能的少消耗用户的流量，为此就需要对网络上的图片进行缓存。
 
 　　目前比较常见的图片缓存策略是三级缓存：
 
-	-  首先，将图片从服务器端下载到本地，然后保存起来，当下次再次需要显示该图片时，首先从本地查找，若找到了则不再去服务端下载了。这样就为用户节省了不少流量，也减少了图片加载的时间，这一步会使用DiskLruCache类来完成。
-	-  然后，由于将图片从磁盘读到内存也是需要时间的，所以我们会把一些频繁被使用到的图片缓存再内存中。这样能进一步减少图片加载的时间，这一步会使用LruCache类来完成。
-	-  最后，由于内存的大小是有限制的，所以能给给内存缓存的空间也不可能过多，当内存缓存满时，则将踢出的数据放入到软引用中。这一步会使用SoftReference类来完成。
+	-  首先，当需要显示一张图片时，我们会从服务其端下载它，完成后将它保存到本地，以后就不用重新下载了。
+	   -  此乃第三级缓存，使用DiskLruCache类实现。
+	-  然后，由于将图片从磁盘读到内存也是需要时间的，所以我们会把一些频繁被使用到的图片缓存再内存中，这样能进一步减少图片加载的时间。
+	   -  此乃第一级缓存，使用LruCache类实现。
+	-  最后，由于内存的大小是有限制的，所以不能在内存中缓存太多图片，当内存缓存达到一定值时，就需要将一些图片从内存中删除，此时就可以把踢出的图片放入到软引用中，这样既能缓存又不阻止内存回收。
+	   -  此乃第二级缓存，使用LinkedHashMap类实现。
 
+　　当需要加载图片时，会执行如下步骤：
 
-　　接下来就依次来介绍一下这三级缓存。
+	-  首先，从一级缓存中查看，若找到了则直接显示，若没找到则查看二级缓存。
+	-  然后，若在二级缓存中找到了，则直接显示，并将该图片从二级缓存移动到一级缓存中。
+	-  接着，若在二级缓存中也没找到，则去三级缓存中找（本地磁盘），若没找到则去服务器端下载，下载完后缓存到本地。
+	-  最后，若在三级缓存中找到了，则将图片读取内存显示，并放入到一级缓存中。
+
 ## LruCache ##
+　　我们来看一下，实现第一级缓存所需要使用的`LruCache`类。
+
 　　`LruCache`是Android3.1中所提供的一个工具类，通过support-v4兼容包也可以使用它。
 　　`LruCache`的特点有：
 
@@ -373,32 +278,37 @@ public class MainActivity extends Activity {
 
 <br>　　范例1：`HashMap`的`get`方法。
 ``` java
-    public V get(Object key) {
-        if (key == null) {
-            HashMapEntry<K, V> e = entryForNullKey;
-            return e == null ? null : e.value;
-        }
-        // Doug Lea's supplemental secondaryHash function (inlined)
-        int hash = key.hashCode();
-        hash ^= (hash >>> 20) ^ (hash >>> 12);
-        hash ^= (hash >>> 7) ^ (hash >>> 4);
-        HashMapEntry<K, V>[] tab = table;
-        for (HashMapEntry<K, V> e = tab[hash & (tab.length - 1)];
-                e != null; e = e.next) {
-            K eKey = e.key;
-            if (eKey == key || (e.hash == hash && key.equals(eKey))) {
-                return e.value;
-            }
-        }
-        return null;
+public V put(K key, V value) {
+    if (key == null) {
+        return putValueForNullKey(value);
     }
+
+    int hash = Collections.secondaryHash(key);
+    HashMapEntry<K, V>[] tab = table;
+    int index = hash & (tab.length - 1);
+    for (HashMapEntry<K, V> e = tab[index]; e != null; e = e.next) {
+        if (e.hash == hash && key.equals(e.key)) {
+            preModify(e);
+            V oldValue = e.value;
+            e.value = value;
+            return oldValue;
+        }
+    }
+
+    // No entry for (non-null) key is present; create one
+    modCount++;
+    if (size++ > threshold) {
+        tab = doubleCapacity();
+        index = hash & (tab.length - 1);
+    }
+    addNewEntry(key, value, hash, index);
+    return null;
+}
 ```
     语句解释：
     -  在此方法中若参数key不为null，则会先计算key的hashCode码，然后从对应的位置开始依次遍历余下的元素。
-    -  若最终找到了，则返回该key所对应的value。
-    -  若未找到，则返回null。
 
-<br>　　问：对象的`hashCode`码不是唯一的吗？ 为什么会存在“依次遍历余下的元素”这个操作呢？
+<br>　　问：对象的`hashCode`码不是唯一的吗？ 为什么在得到`hashCode`码还会存在`“依次遍历余下的元素”`这个操作呢？
 　　答：`hashCode`码并不是唯一的，比如下面的代码：
 ``` java
 public class MainActivity extends Activity {
@@ -451,8 +361,9 @@ int fun(n){
 
 <br>　　说这些是为了告诉大家两个事情：
 
-	-  第一，在HashMap中，可以同时存在两个Key不同，但hashCode相同的元素。
-	-  第二，当想把A存入HashMap时，会先使用A的hashCode来计算它将要存储到的位置，若该位置已经有B了，但A和B的key不相同，则A会被放到HashMap的其他位置。
+	-  第一，HashMap中的元素位置是通过计算得来的。
+	-  第二，在HashMap中，可以同时存在两个Key不同，但hashCode相同的元素。
+	-  第三，当想把A存入HashMap时，会先使用A的hashCode来计算它将要存储到的位置，若该位置已经有B了，但A和B的key不相同，则A会被放到HashMap的其他位置。
 
 <br>**回到正题**
 　　既然知道了`HashMap`是通过哈希算法来计算元素的存储位置，那么这意味着元素在`HashMap`中的排列顺序和插入的顺序可能不同。而当咱们需要遍历`HashMap`的时候，输出的元素的顺序就不是咱们插入的顺序了。
@@ -642,7 +553,7 @@ public class MainActivity extends Activity {
 ```
     语句解释：
     -  SD卡上的/Android/data/packageName目录是Android推荐的App数据目录，当App被卸载时系统会自动删除该目录。
-    -  当本地缓存大于指定的大小时，DiskLruCache会清楚一些缓存文件，从而保证总大小不大于这个设定值。
+    -  当本地缓存大于指定的大小时，DiskLruCache会清除一些缓存文件，从而保证总大小不大于这个设定值。
     -  在缓存目录下会有一个名为journal文件，它是DiskLruCache的日志文件，程序对每张图片的操作记录都存放在这个文件中。
 
 <br>　　范例2：写入缓存。
@@ -793,7 +704,7 @@ private boolean writeBitmap(Bitmap bitmap,String name){
           -  CompressFormat.JPEG
        -  quality：生成的图片的质量，最高质量为100 。若本方法生成的不会失真的PNG格式的图片，则此参数将不起作用。
     -  提示：使用此方法可以将一个Bitmap对象保存到手机中，也可以将一个JPEG格式的图片转换为PNG格式的图片，反之也可以。
-    -  在使用完毕Bitmap对象后，应该调用recycle()方法将其所占据的系统资源回收掉。
+    -  在使用完毕Bitmap对象后，应该调用recycle方法将其所占据的系统资源回收掉。
 
 <br>　　范例2：获取`View`的快照。
 ``` android
@@ -809,8 +720,8 @@ public void camera(){
 }
 ```
     语句解释：
-    -  本范例中调用的writeBitmap()方法是一个用来将Bitmap保存到磁盘上的工具方法。
-    -  getDrawingCache()方法不可以在Activity的onCreate()方法中调用。因为那时，View并没有被显示到屏幕中。
+    -  本范例中调用的writeBitmap方法是一个用来将Bitmap保存到磁盘上的工具方法。
+    -  getDrawingCache方法不可以在Activity的onCreate方法中调用。因为那时，View并没有被显示到屏幕中。
 
 ## 缩放、平移、旋转、倾斜 ##
 　　在Android中，我们使用`ImageView`来显示一张图片，但是在实际开发中，需求可能并不满足于仅仅是简单显示，可能会要求能让图片随着手指的滑动来进行`缩放`、`平移`、`旋转`、`倾斜`。 本节将介绍如何通过`Matrix`类来实现这四种基本操作。
@@ -836,7 +747,7 @@ public void camera(){
 　　矩阵相乘就是指两个矩阵进行乘法运算。矩阵相乘需要按照如下步骤：
 
 	-  首先，只有当矩阵A的列数与矩阵B的行数相等时A×B才有意义，否则就无法相乘。
-	-  然后，一个m×n的矩阵a(m,n)乘以一个n×p的矩阵b(n,p) ,会得到一个m×p的矩阵c（m,p) 。
+	-  然后，一个m×n的矩阵a(m,n)乘以一个n×p的矩阵b(n,p)，会得到一个m×p的矩阵c(m,p) 。
 
 　　假设有下面A、B两个矩阵要相乘：
 ```
@@ -881,7 +792,7 @@ A =   3  4         B =  8  9  10
 
 <br>
 **单位矩阵**
-　　在矩阵的乘法中，有一种矩阵起着特殊的作用，如同数的乘法中的1，我们称这种矩阵为`单位矩阵`。它是个方阵，除左上角到右下角的对角线(称为主对角线)上的元素均为`1`以外全都为`0`。 如下图所示：
+　　在矩阵的乘法中，有一种矩阵起着特殊的作用，如同数的乘法中的1，我们称这种矩阵为`单位矩阵`。它是个方阵，除左上角到右下角的对角线（称为主对角线）上的元素均为`1`以外全都为`0`。 如下图所示：
 
 <center>
 ![](/img/android/android_e02_5.png)
@@ -1113,8 +1024,8 @@ public class MainActivity extends Activity {
     -  简单的说，可以把用来绘制图像的区域，想象成一个无限大小的画布，当执行旋转时，默认情况下是旋转画布的左上角(0, 0)，而若我们指定了一个相对的点，比如(300, 300)，那么此时将以画布的(300, 300)为中心了。
 
 <br>**前乘与后乘** 
-　　我们已经知道了，只有当矩阵`A`的列数与矩阵`B`的行数相等时`A*B`才有意义。所以用矩阵`A`乘以矩阵`B`，需要考虑是左乘（`A*B`），还是右乘（`B*A`）。
-　　左乘：又称前乘，就是乘在左边(即乘号前)，比如说，矩阵`A(m,n)`左乘矩阵`B(n,p)`，会得到一个`m*p`的矩阵`C(m,p)`，写作`A*B=C`。
+　　我们已经知道了，只有当矩阵`A`的列数与矩阵`B`的行数相等时`A*B`才有意义，所以用矩阵`A`乘以矩阵`B`，需要考虑是左乘（`A*B`），还是右乘（`B*A`）。
+　　左乘：又称前乘，比如说，矩阵`A(m,n)`左乘矩阵`B(n,p)`，会得到一个`m*p`的矩阵`C(m,p)`，写作`A*B=C`。
 
 　　还有一点值得注意的是，假设`A`和`B`都是一个`3*3`的矩阵，那么`A*B`与`B*A`的结果也可能是不一样的。 如下图所示：
 
@@ -1140,7 +1051,7 @@ public class MainActivity extends Activity {
         return native_postTranslate(native_instance, dx, dy);
     }
 ```
-　　通过比较，我们可以看出，`pre`其实执行的就是让`参数矩阵右乘当前矩阵`，而`post`执行的就是`让参数矩阵左乘当前矩阵`。
+　　通过比较，我们可以看出，`pre`其实执行的就是让`当前矩阵左乘参数矩阵`，而`post`执行的就是让`当前矩阵右乘参数矩阵`。
 
 <br>**单次运算与单类型连乘** 
 
@@ -1153,7 +1064,7 @@ public class MainActivity extends Activity {
 		
         ImageView img = (ImageView) findViewById(R.id.img);
         Matrix m = new Matrix();
-        // 此处也可以调用postRotate()方法，并且效果相同。
+        // 此处也可以调用postRotate()方法，它们的效果相同。
         m.preRotate(45);
         img.setImageMatrix(m);
         img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
@@ -1194,7 +1105,8 @@ public class MainActivity extends Activity {
 }
 ```
     语句解释：
-    -  如果矩阵中只包含平移、选择、倾斜、缩放中的某一种类型的操作，那么我们也不需要考虑pre和post方法的区别。以平移操作为例，不论我们调用的pre还是post方法，最终产生的矩阵，除了m[0][2]和m[1][2]的值之外，其他位置的值都和单位矩阵的值一样。
+    -  如果矩阵中只包含平移、选择、倾斜、缩放中的某一种类型的操作，那么我们也不需要考虑pre和post方法的区别。
+    -  以平移操作为例，不论我们调用的pre还是post方法，最终产生的矩阵，除了m[0][2]和m[1][2]的值之外，其他位置的值都和单位矩阵的值一样。
     -  提示：两个单位矩阵相乘，结果仍是一个单位矩阵。
 
 <br>　　范例3：`setXxx`方法。
@@ -1274,7 +1186,9 @@ m.preTranslate(-a, -b);
 // 这当然和以(100, 100)为中心旋转30度是不同的。
 ```
 
-<br>　　本段分析过程，笔者查了好久，也看了不少博客，但没人说的明白（根本就没人去分析），最终笔者给自己在`Google`深造的技术总监发邮件请教后，得到了清晰的解释，特在此感谢。
+<br>　　本段分析过程，笔者查了好久，也看了不少博客，但没人说的明白（根本就没人去分析）！
+
+　　最终笔者给自己在`Google`深造的技术总监发邮件请教后，得到了清晰的解释，特在此感谢。
 
 <br>**拖动ImageView里的图片** 
 
