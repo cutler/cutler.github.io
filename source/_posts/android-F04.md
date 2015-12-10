@@ -1,20 +1,21 @@
-title: 进阶篇　第四章 Android的消息机制
+title: 进阶篇　第四章 消息机制与线程池
 date: 2015-4-29 11:41:12
 categories: android
 ---
 
-# 第一节 概述 #
-
-　　本章待整理，2015年12月20号之前一定搞完它。
-
-
+# 第一节 Handler #
+## 概述 ##
 　　Android的消息机制主要是指`Handler`的运行机制，因此本章会围绕着`Handler`的工作过程来分析消息机制。
 　　整个过程主要涉及到了如下5个类：
 
 	-  Handler、Message、MessageQueue、Looper、ThreadLocal
 
-<br>**主线程的任务**
-　　对于任何一个线程来说，同一时间只能做一件事，主线程也不例外，Android规定访问UI只能在主线程中进行，如果在其他线程中访问UI，那么程序就会抛出异常。
+<br>**Handler的作用**
+　　对于任何一个线程来说，同一时间只能做一件事，主线程也不例外。
+　　因此，若我们让主线程去执行上传/下载等耗时的任务时，在任务执行完毕之前，用户点击了界面中的按钮，主线程是无法响应用户的操作的。
+　　并且，如果主线程`5`秒后仍没响应用户，则`Android`系统会弹出`ANR`对话框，询问用户是否强行关闭该应用。
+
+　　这样说的话，我们就只能把耗时的操作放在子线程中执行了。不过，Android规定访问UI只能在主线程中进行，如果在其他线程中访问UI，那么程序就会抛出异常。
 　　这个验证线程的操作由`ViewRootImpl`类的`checkThread`方法完成：
 ``` java
 void checkThread() {
@@ -24,18 +25,11 @@ void checkThread() {
     }
 }
 ```
-　　也就是说，主线程的任务至少有两个：
-
-	-  第一，响应用户在UI上的操作。如：响应按钮被点击、手指滑动等操作。
-	-  第二，修改UI所显示的内容。
-　　因此，若我们让主线程去执行上传/下载等耗时的任务，那么在任务执行完毕之前，主线程是无法响应用户的操作的，如果这个过程超过了`5`秒，则`Android`系统会弹出`ANR`对话框，询问用户是否强行关闭该应用。
-
-<br>**Handler的作用**
-　　因此，耗时操作需要在子线程中执行，但是还存在一个问题：按照Android的规定，子线程是无法修改UI的。
 　　这意味着，当子线程执行完毕耗时操作后，`得想办法通知主线程一下`，然后借助主线程来修改UI。  
 　　而`Handler`就可以完成子线程向父线程发送通知的需求。
 
-<br>　　这里再延伸一点，系统为什么不允许在子线程中访问UI呢？ 
+<br>**知识扩展**
+　　这里再延伸一点，系统为什么不允许在子线程中访问UI呢？ 
 
 	-  这是因为Android的UI控件并不是线程安全的，如果允许在多线程中并发访问，可能会导致UI控件处于不可预知的状态。
 	-  也许你会说，加上同步不就行了？ 但是加同步有两个缺点：
@@ -48,9 +42,7 @@ void checkThread() {
 	-  比如在子线程中可以简单的修改ProgressBar、SeekBar、ProgressDialog等控件。
 	-  所谓的简单的修改，就是只能调用这些控件的某些方法（如setProgress()等），若调用其他方法，则仍然会抛异常。
 
-# 第二节 Handler #
-
-## 基本用法 ##
+## 基础应用 ##
 　　因为`Handler`的用法十分简单，所以笔者不打算过多介绍如何使用它，下面给出两个范例，如果不理解请自行搜索。
 
 <br>　　范例1：发送消息。
@@ -238,7 +230,7 @@ public T get() {
 }
 ```
     语句解释：
-	-  get方法也很简单，一看就明白，笔者就不多说了。
+	-  get方法也很简单，一看就明白，也是不多说。
 
 <br>　　最后，从`ThreadLocal`的`set`和`get`方法可以看出：
 
@@ -327,12 +319,12 @@ public static void main(String[] args) {
 }
 ```
     语句解释：
-	-  从上面的代码可以看出来，当主线程被创建时，会同时创建一个Looper对象，并调用它的loop方法。
+	-  从上面第6和22行代码可以看出来，当主线程被创建时，会同时创建一个Looper对象，并调用它的loop方法。
 
 <br>　　总之，当`Handler`被成功创建的时候，就意味着它里面已经存在一个`Looper`对象了。
 
 <br>**Looper对象**
-<br>　　接下来咱们再来谈谈`Looper`类，`Looper`在消息机制中扮演着循环器的角色，具体来说就是：
+<br>　　接下来咱们再来看看`Looper`类，`Looper`在消息机制中扮演着循环器的角色，具体来说就是：
 
 	-  Handler负责发送和处理消息，Handler发送的消息最终会被保存在Looper对象的MessageQueue属性中。
 	-  Looper对象就是一个循环器，它通过一个无限for循环，不断的从它的MessageQueue中读取消息。
@@ -438,9 +430,9 @@ public static void loop() {
 
 <br>　　为什么每个`Message`对象要存在一个`target`属性呢?  
 
-	-  父线程A中创建的Handler对象可以接收从多个子线程发送来的消息。
-	-  父线程A中可以创建多Handler对象，每个Handler对象中都必须要存在一个Looper对象。 默认的情况下，多个Handler对象都会从当前线程中获取Looper对象。
-	-  这意味着，在父线程A中的Looper对象的MessageQueue属性中保存的消息对象，会可能来自于多个Handler。
+	-  一个线程中只会有一个Looper对象，但是却可能存在多个Handler对象。
+	-  当Looper从消息队列中拿到一个消息时，需要把这个消息交给某个具体的Handler处理。
+	-  通常这个Handler就是发送该消息的Handler对象。
 
 <br>　　接着看一下`Handler`的`dispatchMessage`方法：
 ``` java
@@ -476,11 +468,61 @@ public final boolean postDelayed(Runnable r, long delayMillis);
 public final void removeMessages(int what);
 ```
 
+## HandlerThread ##
+　　我们已经知道了，如果想在子线程中使用Handler，那就得先在子线程中创建一个Looper对象。
 
-#待整理#
-　　本节将使用`AsyncTask`类来加载并显示来自网络的图片，接下来先简单的介绍一下`AsyncTask`类。
+　　此时你可能会问：为什么要在子线程中使用Handler呢？
 
-### AsyncTask基础 ###
+	-  通常我们使用Handler是为了在主线程更新UI，但是这并不是Handler的唯一作用。
+	-  在以前，当需要执行耗时任务时就会开启一个线程，如果耗时任务比较多的话，那就会不断的创建和销毁大量的线程，这样就消耗过多的资源。
+	-  我们有两种方法解决这个问题：
+	   -  使用线程池。
+	   -  使用HandlerThread。
+
+　　那`HandlerThread`是如何解决这个问题的呢？ 通过阅读它的源码，可以得知：
+
+	-  继承自Thread类，本质上是一个线程对象。
+	-  内部封装了一个Looper对象，这样就省的我们自己去创建和管理了。
+	-  重写了run方法，并在其内执行Looper的创建和启动操作。
+
+<br>　　接下来通过一个范例来说明`HandlerThread`是如何解决这个问题的。
+
+<br>　　范例1：在子线程中使用`Handler`。
+``` android
+public class MainActivity extends Activity {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // 创建一个线程对象，并为其指定名称。
+        HandlerThread handlerThread = new HandlerThread("HandlerThread");
+        // 启动这个线程，在其内部会初始化并启动Looper对象。
+        handlerThread.start();
+
+        // 使用子线程中的Looper对象来创建Handler。
+        Handler handler = new Handler(handlerThread.getLooper()){
+            // 虽然Handler对象是在主线程中创建的，但是Looper却是运行在子线程中的。
+            // 而handleMessage方法又是由Looper调用的，所以该方法也是运行在子线程中的。
+            public void handleMessage(Message msg) {
+                System.out.println(Thread.currentThread()+" 准备处理消息");
+            }
+        };
+        // 在主线程中发送消息给子线程。
+        handler.sendEmptyMessage(1);
+    }
+}
+```
+    语句解释：
+	-  如果想停止HandlerThread，则可以调用它的quit或quitSafely方法。
+	-  HandlerThread是一个很有用的类，它在Android中的一个具体的使用场景是IntentService类，该类笔者在《入门篇　第三章 服务与广播接收者》中已经介绍过了。
+
+<br>**本节参考阅读：**
+- [Android HandlerThread用法](http://blog.csdn.net/qq_695538007/article/details/43376985)
+
+# 第二节 AsyncTask #
+　　本节将介绍一个开发中常用的类：`AsyncTask`。
+
+## 基础应用 ##
 　　`AsyncTask`与`Thread`一样，都是用来执行一些耗时的操作的类，但与传统方式不同：
 
 	-  内部使用线程池管理线程，这样就减少了线程创建和销毁时的消耗。
@@ -583,46 +625,187 @@ private final class MyAsyncTask extends AsyncTask {
 	-  Progress：用于设置onProgressUpdate和publishProgress方法的参数的数据类型。
 	-  Result：用于设置onPostExecute方法的参数的数据类型和doInBackground方法的返回值类型。
 
-<br>　　这里有一个使用`AsyncTask`和`decodeSampledBitmapFromResource()`加载大图片到`ImageView`中的例子：
+<br>　　`AsyncTask`类经过几次修改，导致了不同的API版本中的`AsyncTask`具有不同的表现：
+
+	-  Android1.6之前，AsyncTask是串行执行任务的。
+	-  Android1.6时，开始采用线程池处理并行任务。
+	-  Android3.0开始，为了避免AsyncTask所带来的并发错误，AsyncTask又采用一个线程来串行执行任务。
+
+　　尽管如此，在Android3.0以及之后的版本中，我们仍然可以通过`AsyncTask`的`executeOnExecutor`方法来并行的执行任务。
+
+## 运行原理 ##
+<br>　　我们先从`AsyncTask`的`execute`方法开始分析：
 ``` java
-public class MainActivity extends ActionBarActivity {
+public final AsyncTask<Params, Progress, Result> execute(Params... params) {
+    // 转调用executeOnExecutor方法。
+    return executeOnExecutor(sDefaultExecutor, params);
+}
 
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        ImageView imageView = (ImageView) findViewById(R.id.img);
-        BitmapWorkerTask task = new BitmapWorkerTask(imageView);
-        task.execute(R.drawable.ic_launcher);
-    }
-
-    class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
-        private final WeakReference<ImageView> imageViewReference;
-        private int data = 0;
-
-        public BitmapWorkerTask(ImageView imageView) {
-            imageViewReference = new WeakReference<ImageView>(imageView);
-        }
-
-        protected Bitmap doInBackground(Integer... params) {
-            data = params[0];
-            return decodeSampledBitmapFromResource(getResources(), data, 100, 100);
-        }
-
-        protected void onPostExecute(Bitmap bitmap) {
-            if (imageViewReference != null && bitmap != null) {
-                final ImageView imageView = imageViewReference.get();
-                if (imageView != null) {
-                    imageView.setImageBitmap(bitmap);
-                }
-            }
+public final AsyncTask<Params, Progress, Result> executeOnExecutor(Executor exec,
+        Params... params) {
+    if (mStatus != Status.PENDING) {
+        switch (mStatus) {
+            case RUNNING:
+                throw new IllegalStateException("Cannot execute task:"
+                        + " the task is already running.");
+            case FINISHED:
+                throw new IllegalStateException("Cannot execute task:"
+                        + " the task has already been executed "
+                        + "(a task can be executed only once)");
         }
     }
-    // 此处省略了decodeSampledBitmapFromResource和calculateInSampleSize方法。
+
+    mStatus = Status.RUNNING;
+    // 在当前线程中调用AsyncTask的onPreExecute方法。
+    onPreExecute();
+
+    // 将params保存到当前AsyncTask对象的mWorker属性中。
+    mWorker.mParams = params;
+    // 调用sDefaultExecutor的execute方法来将当前AsyncTask对象的mWorker属性添加到队列中。
+    exec.execute(mFuture);
+
+    return this;
 }
 ```
     语句解释：
-    -  ImageView的WeakReference(弱引用)可以确保AsyncTask不会阻止ImageView和它的任何引用被垃圾回收器回收。
+    -  sDefaultExecutor是一个static属性，它实际上是一个串行的线程池，一个进程中的所有AsyncTask都在它里面排队，按照先进先出的顺序依次执行。
 
+<br>　　接着看一下`sDefaultExecutor`属性：
+``` java
+public static final Executor SERIAL_EXECUTOR = new SerialExecutor();
+private static volatile Executor sDefaultExecutor = SERIAL_EXECUTOR;
+
+private static class SerialExecutor implements Executor {
+    // 这是一个队列，用来保存等待执行的任务。
+    final ArrayDeque<Runnable> mTasks = new ArrayDeque<Runnable>();
+    Runnable mActive;
+
+    public synchronized void execute(final Runnable r) {
+        // 向队列中添加一个任务。
+        mTasks.offer(new Runnable() {
+            public void run() {
+                try {
+                    // 当任务被执行时，调用mFuture的run方法。
+                    r.run();
+                } finally {
+                    // 执行下一个任务。
+                    scheduleNext();
+                }
+            }
+        });
+        // 如果当前没有任务正在执行，则立刻开始执行队首任务。
+        if (mActive == null) {
+            scheduleNext();
+        }
+    }
+
+    protected synchronized void scheduleNext() {
+        // 尝试获取任务。
+        if ((mActive = mTasks.poll()) != null) {
+            // 使用THREAD_POOL_EXECUTOR线程池来执行队首任务。
+            THREAD_POOL_EXECUTOR.execute(mActive);
+        }
+    }
+}
+```
+    语句解释：
+    -  AsyncTask中有两个线程池：
+       -  sDefaultExecutor用来保存等待执行的任务。
+       -  THREAD_POOL_EXECUTOR用来执行任务。
+
+<br>　　接着看一下`mFuture`的定义：
+``` java
+public AsyncTask() {
+    mWorker = new WorkerRunnable<Params, Result>() {
+        // 在FutureTask的run方法中会调用mWorker的call方法。
+        // call方法是在子线程中被调用的。
+        public Result call() throws Exception {
+            mTaskInvoked.set(true);
+
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+            // 执行任务，并调用postResult方法处理结果。
+            return postResult(doInBackground(mParams));
+        }
+    };
+
+    mFuture = new FutureTask<Result>(mWorker) {
+        @Override
+        protected void done() {
+            try {
+                postResultIfNotInvoked(get());
+            } catch (InterruptedException e) {
+                android.util.Log.w(LOG_TAG, e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException("An error occured while executing doInBackground()",
+                        e.getCause());
+            } catch (CancellationException e) {
+                postResultIfNotInvoked(null);
+            }
+        }
+    };
+}
+```
+    语句解释：
+    -  从上面代码可以看出，mWorker和mFuture都是实例属性。
+    -  也就是说，当线程池执行任务的时候，程序的流程会从THREAD_POOL_EXECUTOR中回到某个具体的AsyncTask对象上。
+
+<br>　　接着看一下`postResult`方法：
+``` java
+private Result postResult(Result result) {
+    @SuppressWarnings("unchecked")
+    // 封装一个AsyncTaskResult对象，并将它发送到主线程中。
+    Message message = getHandler().obtainMessage(MESSAGE_POST_RESULT,
+            new AsyncTaskResult<Result>(this, result));
+    message.sendToTarget();
+    return result;
+}
+
+private static Handler getHandler() {
+    synchronized (AsyncTask.class) {
+        if (sHandler == null) {
+            sHandler = new InternalHandler();
+        }
+        return sHandler;
+    }
+}
+
+private static class InternalHandler extends Handler {
+    public InternalHandler() {
+        // 使用主线程的Looper对象。
+        super(Looper.getMainLooper());
+    }
+
+    @SuppressWarnings({"unchecked", "RawUseOfParameterizedType"})
+    @Override
+    public void handleMessage(Message msg) {
+        AsyncTaskResult<?> result = (AsyncTaskResult<?>) msg.obj;
+        switch (msg.what) {
+            case MESSAGE_POST_RESULT:
+                // 如果任务执行完毕，则调用AsyncTask类的finish方法。
+                result.mTask.finish(result.mData[0]);
+                break;
+            case MESSAGE_POST_PROGRESS:
+                // 这个你懂的。
+                result.mTask.onProgressUpdate(result.mData);
+                break;
+        }
+    }
+}
+
+private void finish(Result result) {
+    // 如你所见。
+    if (isCancelled()) {
+        onCancelled(result);
+    } else {
+        onPostExecute(result);
+    }
+    mStatus = Status.FINISHED;
+}
+```
+    语句解释：
+    -  InternalHandler类用来将程序的从子线程切换到主线程中。
+
+# 第三节 线程池 #
+　　由于网上已经有不少了资料了，因此笔者打算此节暂缓。
 
 <br><br>

@@ -14,7 +14,7 @@ categories: android
 <br>　　为了更好的理解自定义控件的各个步骤，在正式开始之前，我们先来了解一些相关的知识点：Activity的组成。
 
 # 第一节 Activity的组成 #
-　　本节来介绍一下`Window`和`WindowManagerService`两个类。
+　　本节来介绍一下`Window`、`WindowManagerService`、`WindowManager`三个类。
 ## Window ##
 　　我们都知道，在Android中，屏幕上所显示的控件是以Activity为单位进行组织的。
 　　但是再深入点看的话，就会发现Activity其实主要是处理一些逻辑问题（比如生命周期的管理等），显示在屏幕上的控件并不是由它来管理的，而是交给了`Window`类。
@@ -442,12 +442,189 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
 
 　　其实`DecorView`类的`measure`、`layout`、`draw`三个方法都是继承自View类，而且我们稍后也会遇到它，所以此处先将它们列出来，混脸熟。
 
-<br>　　最后，更多关于`Window`和`WindowManagerService`类的介绍，请阅读[《进阶篇　第七章 Window 和 WMS》](http://cutler.github.io/android-F07/)。
-
 <br>**本节参考阅读：**
 - [Android 窗口管理](http://1025250620.iteye.com/blog/1779670)
 - [Android Touch事件的分发过程](http://www.ithao123.cn/content-2273147.html)
 - [Android 事件分发机制详解](http://stackvoid.com/details-dispatch-onTouch-Event-in-Android/)
+
+## WindowManager ##
+　　`Activity`、`Dialog`、`Toast`里的控件，都是通过`WindowManager`来添加到屏幕上的，因此我们先来看一看该类的用法。
+
+### 基础用法 ###
+　　接下来，从最简单的范例开始，一步步的介绍`WindowManager`类。
+
+<br>　　范例1：添加一个`TextView`。
+``` android
+public class MainActivity extends Activity {
+
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        // 将Activity的引用传递过去。
+        addViewToScreen(this);
+    }
+
+    private void addViewToScreen(Context context){
+        // 首先，获取一个WindowManager对象。
+        WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        // 然后，创建布局参数。
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+        params.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        // 接着，创建一个按钮。
+        Button button = new Button(context);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "click", Toast.LENGTH_SHORT).show();
+            }
+        });
+        button.setText("请点击这个按钮");
+        // 最后，将载入的内容放到屏幕中。
+        manager.addView(button, params);
+    }
+}
+```
+    语句解释：
+    -  添加到屏幕上的View对象，既可以是使用LayoutInflater来载入一个布局文件，也可以是通过代码来new出来的View对象。
+    -  运行本范例时，我们就可以在屏幕的中央看到按钮了。
+
+<br>　　程序运行后就会发现一个问题：
+
+	-  除了按钮之外屏幕上的任何东西都没法点击了。
+	-  这是因为，默认情况下，通过WindowManager添加到屏幕中的控件会拦截所有事件。
+
+<br>　　我们可以通过给`WindowManager.LayoutParams`类的`flags`属性设置值来解决这个问题：
+``` java
+params.flags =
+    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+```
+    语句解释：
+    -  FLAG_NOT_FOCUSABLE表示View不需要获取焦点，也不需要接收各种输入事件，此标记会同时启用FLAG_NOT_TOUCH_MODAL。
+    -  FLAG_NOT_TOUCH_MODAL表示系统会将View区域以外的单击事件传递给底层控件，区域以内的单击事件则由View自己处理。
+    -  FLAG_SHOW_WHEN_LOCKED可以让Window对象显示在锁屏界面上，这个Flag需要作用到Window对象上，具体用法请自行搜索。
+    -  如果想为LayoutParams指定多个flag，则flag之间使用“|”间隔。
+
+<br>　　解决了这个问题之后，又发现如果我们点击`Home`键，那么屏幕上的按钮就会随着`Activity`一起被切到后台。
+　　如果想让按钮一直显示在屏幕上，而不随着`Activity`一起隐藏，那么可以这么写：
+``` android
+public class MainActivity extends Activity {
+
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        // 将Activity的引用传递过去。
+        addViewToScreen(getApplicationContext());
+    }
+
+    private void addViewToScreen(Context context) {
+        WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+        params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+        // 为type字段赋值。
+        params.type = WindowManager.LayoutParams.TYPE_PHONE;
+        params.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        Button button = new Button(context);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                System.out.println("click");
+                Toast.makeText(getApplicationContext(), "click", Toast.LENGTH_SHORT).show();
+            }
+        });
+        button.setText("请点击这个按钮");
+        manager.addView(button, params);
+    }
+}
+```
+    语句解释：
+    -  本范例中主要修改了两处代码，这两处缺一不可：
+       -  将传递给addTextViewToScreen()方法的Activity对象改为Application对象。
+       -  将params.type属性赋值为TYPE_PHONE。常用取值为：
+	      -  TYPE_PHONE ：手机级别，即表示在所有应用程序之上，但在状态栏之下。
+	      -  TYPE_SYSTEM_ALERT ：系统窗口级别。比如：显示电量低时弹出的Alert对话框。
+	      -  TYPE_SYSTEM_OVERLAY ：系统窗口之上的级别，此级别的控件无法响应点击事件。
+    -  创建浮动窗需要添加下面这个权限：
+       -  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    -  如果你是小米手机则默认是无法在屏幕上添加View的，去应用程序设置里，把权限给打开即可。
+
+<br>**优先级**
+　　事实上`WindowManager`中可以放置很多个`View`（控件），控件之间有优先级之分，`优先级高的将被放到优先级低的上面`。若最高优先级控件的宽高是`“MATCH_PARENT”`，则其下面的控件都将被完全遮住，`若优先级相同则后加入的会被放到上面显示`。
+<br>　　我们来看一下下面的代码：
+``` android
+public class MainActivity extends Activity {
+
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_PHONE, "Phone1");
+        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_PHONE, "Phone2");
+        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY, "Overlay");
+        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, " Alert ");
+        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_PHONE, "Phone3");
+    }
+    static int offsetY;
+    private void addTextViewToScreen(Context context, int type, String text){
+        WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+        params.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.height = 70;
+        params.type = type;
+        // 设置View在y轴上的坐标值，相应的也可以设置x值。
+        params.y = offsetY;
+        offsetY += 60;
+        TextView textView = new TextView(context);
+        textView.setText(text);
+        manager.addView(textView, params);
+    }
+}
+```
+
+<br>　　程序的运行效果为：
+
+<center>
+![](/img/android/android_b09_01.png)
+</center>
+
+<br>　　从上图可以看出：
+
+	-  Phone2与Phone1是同级别的，但是Phone2却在Phone1上面。
+	-  Overlay的级别最高，所以它压在了Phone2上面。
+	-  Alert的级别第二高，虽然是在Overlay之后添加的，但是它任然被放到了Overlay下面。
+	-  Phone3被压在了Alert下面。
+
+<br>**删除和更新**
+
+<br>　　范例1：从屏幕中移除一个已经存在的控件。
+``` java
+windowManager.removeView(destView);
+```
+
+<br>　　范例2：更新屏幕中一个已经存在的控件。
+``` java
+// 让y轴坐标偏移100个像素
+mParams.y += 100;
+// 依据最近的mParams中的信息（x、y、width、height等）来重新设置view的显示效果。
+mWindowManager.updateViewLayout(view, mParams);
+```
+    语句解释：
+    -  这里所说的更新控件，其实就是更新控件的LayoutParams对象。
+<br>
+### 百度安全卫士 ###
+　　如果你基础不错的话，通过上面学的知识，就可以模仿`360的小火箭特效`了（具体请参考郭霖的博客），笔者仿写了一个百度安全卫士内存清理动画的`Demo`，程序运行效果如下：
+
+<center>
+![](http://img.blog.csdn.net/20150602150418233?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvZ2l0aHViXzI4NTU0MTgz/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
+</center>
+
+　　从上图中可以看出，仿写的效果和正牌还是有一些差距的，但是通过这个`Demo`可以让大家更深刻的理解`WindowManager`类可以做哪些事情。
+
+　　[点击下载源码](http://download.csdn.net/detail/github_28554183/8764099)
+
+　　如果你没有`Android Studio`环境，那么可以去`AndroidTest\app\build\outputs\apk`目录找到`apk`直接安装运行。
+
+<br>**本节参考阅读：**
+- [Android桌面悬浮窗效果实现，仿360手机卫士悬浮窗效果](http://blog.csdn.net/guolin_blog/article/details/8689140)
+- [Android桌面悬浮窗进阶，QQ手机管家小火箭效果实现](http://blog.csdn.net/guolin_blog/article/details/16919859)
 
 # 第二节 Hello World #
 　　为了对自定义控件有个整体的认识，接下来我们先来写一个`HelloWorld`，其中涉及到的知识后面会详细介绍。
