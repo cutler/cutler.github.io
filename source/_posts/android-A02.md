@@ -225,7 +225,7 @@ Caused by: android.util.AndroidRuntimeException: Calling startActivity()
 
 <br>　　在讲解`singleTask`启动模式之前，先说明一下什么是`affinity`。
 <br>　　**affinity：**
-　　每个`Task`都有一个`affinity`属性，它相当于`Task`的唯一标识。
+　　每个`Task`都有一个`affinity`属性，它相当于`Task`的名字。
 　　每个`<activity>`标签也有一个`taskAffinity`的属性，用来指出当前`Activity`想从属的Task。
 
 	-  若Activity为它的taskAffinity属性设置了值，即告诉系统该Activity希望被放到affinity属性的值与其taskAffinity属性相同的Task中。
@@ -235,7 +235,7 @@ Caused by: android.util.AndroidRuntimeException: Calling startActivity()
 
 　　
 　　问：那么`affinity`在什么情况下会被用到呢?
-　　答：`taskAffinity`属性主要和`singleTask`启动模式或者`allowTaskReparenting`属性配对使用。
+　　答：`taskAffinity`属性主要和`singleTask`等启动模式或者`allowTaskReparenting`属性配对使用。
 
 <br>　　**singleTask模式**
 　　当启动了一个启动模式为`singleTask`的`Activity`时，系统会执行如下操作：
@@ -312,6 +312,18 @@ Running activities (most recent first):
 
 <br>　　**singleInstance模式**
 　　使用此启动模式的`Activity`总是单独占有一个`Task`，若在该`Activity`中又启动了另外一个`Activity`，则新启动的`Activity`将不会和该`Activity`处于同一个`Task`中。
+
+　　需要注意的是：`singleInstance`模式也会使用`taskAffinity`属性。
+
+	-  假设我们有A、B两个Activity，其中A是standard模式，B是singleInstance模式的，并且它俩都没有指定taskAffinity属性，同时我们的包名为com.cutler.androidtest。
+	-  由于B是singleInstance模式，所以它必须单独占据一个栈，那么当我们在A中启动B时会发生什么呢？ 如下图所示。
+
+<center>
+![](/img/android/android_2_13.png)
+</center>
+
+　　从上面可以看出`BActivity`仍然会被放到`com.cutler.androidtest`中，但是它和`AActivity`却分别处在不同的两个栈中。
+
 <br>
 ### 使用Intent ###
 　　启动`Activity`时，你能够通过在传递给`startActivity()`方法的`Intent`中包含标识来修改`Activity`的默认启动模式，常用的取值：

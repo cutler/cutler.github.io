@@ -806,6 +806,128 @@ private void finish(Result result) {
     -  InternalHandler类用来将程序的从子线程切换到主线程中。
 
 # 第三节 线程池 #
-　　由于网上已经有不少了资料了，因此笔者打算此节暂缓。
+　　提到线程池就必须先说一下线程池的好处：
+
+	-  线程池最大的好处就是，可以维持其内线程不死，让线程重复使用，避免因为线程的创建和销毁所带来的性能开销。
+
+　　比较常用的一个场景是`http`请求，如果程序需要频繁的、大量的执行请求，那么推荐使用线程池。
+
+<br>　　Android中的线程池都是直接或者间接通过配置`ThreadPoolExecutor`来实现的，因此我们来看一下它的构造方法：
+``` java
+public ThreadPoolExecutor(int corePoolSize,
+                              int maximumPoolSize,
+                              long keepAliveTime,
+                              TimeUnit unit,
+                              BlockingQueue<Runnable> workQueue,
+                              ThreadFactory threadFactory,
+                              RejectedExecutionHandler handler)
+```
+    语句解释：
+    -  corePoolSize表示线程池的核心线程数，默认情况下，核心线程会在线程池中一直存活，即使它们处于空闲状态。
+       -  线程池中有两类线程，一类是核心线程，另一类是非核心线程。
+       -  默认情况下，当任务的数量超过corePoolSize时，就会尝试开启非核心线程去执行任务，执行完毕后非核心线程将被销毁。
+    -  maximumPoolSize表示线程池所能容纳的最大线程数，即核心线程+非核心线程的和。
+       -  当线程池中的线程数达到这个数值后，新任务将交给handler处理。
+    -  keepAliveTime表示非核心线程闲置的时间，即非核心线程执行完任务会等待keepAliveTime时间后才会销毁。
+       -  当线程池的allowCoreThreadTimeOut属性设置为true时，keepAliveTime同样会作用于核心线程。
+    -  unit表示keepAliveTime的单位，常用取值为：TimeUnit.SECONDS（秒）、TimeUnit.MINUTES（分钟）等。
+    -  workQueue表示任务队列，通过线程池的execute方法提交的任务，会保存在此队列中。
+    -  threadFactory表示线程工厂，用来创建线程中的。
+    -  handler当线程池无法执行新任务时（比如任务队列已满或者无法成功执行任务），就会调用RejectedExecutionHandler的rejectedException方法来处理。
+       -  线程池的默认实现是抛出一个RejectedExecution异常。
+
+<br>　　若任务队列使用`LinkedBlockingQueue`类，则`ThreadPoolExecutor`类在执行任务时大致遵循如下规则：
+
+	-  若线程池中的核心线程的数量 < corePoolSize，那么会直接启动一个核心线程来执行任务。
+	-  若大于或等于corePoolSize，则检测任务队列是否有空位，若有，则将任务直接添加到任务队列中等待执行。
+	-  若任务队列已满，则会尝试开启一个非核心线程来执行队首的任务，并把新任务放入队尾。
+	   -  注意，若任务队列未满，则不会开启非核心线程，所有的任务都会交给核心线程来执行。
+	   -  也就是说，若我们不为任务队列指定长度的话，那么线程池永远都不会开启非核心线程。
+	-  若任务队列满了，且线程池中的线程总数大于maximumPoolSize，那么就拒绝执行此任务，并调用RejectedExecutionHandler来处理。
+
+<br>　　我们来看看`AsyncTask`类的线程池：
+``` java
+private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
+private static final int CORE_POOL_SIZE = CPU_COUNT + 1;
+private static final int MAXIMUM_POOL_SIZE = CPU_COUNT * 2 + 1;
+private static final int KEEP_ALIVE = 1;
+
+private static final ThreadFactory sThreadFactory = new ThreadFactory() {
+    private final AtomicInteger mCount = new AtomicInteger(1);
+
+    public Thread newThread(Runnable r) {
+        return new Thread(r, "AsyncTask #" + mCount.getAndIncrement());
+    }
+};
+
+private static final BlockingQueue<Runnable> sPoolWorkQueue =
+        new LinkedBlockingQueue<Runnable>(128);
+
+/**
+ * An {@link Executor} that can be used to execute tasks in parallel.
+ */
+public static final Executor THREAD_POOL_EXECUTOR
+        = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE,
+                TimeUnit.SECONDS, sPoolWorkQueue, sThreadFactory);
+```
+
+<br>　　上面只是简单的介绍了各个参数的含义，在`Executors`类为我们提供好了四种线程池，在大部分情况下我们是不需要自己创建线程池的，因为直接使用它们就可以满足需求了。
+
+<br>　　范例1：FixedThreadPool。
+``` java
+public static ExecutorService newFixedThreadPool(int nThreads) {
+    return new ThreadPoolExecutor(nThreads, nThreads,
+                                  0L, TimeUnit.MILLISECONDS,
+                                  new LinkedBlockingQueue<Runnable>());
+}
+```
+    语句解释：
+    -  FixedThreadPool线程池中只有核心线程，除非线程池关闭，否则核心线程会一直存在。
+    -  由于没有非核心线程，所以也就没设置超时时间。
+    -  任务队列也没有设置长度，因而理论上可以无限接收任务。
+
+<br>　　范例2：CachedThreadPool。
+``` java
+public static ExecutorService newCachedThreadPool() {
+    return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                                  60L, TimeUnit.SECONDS,
+                                  new SynchronousQueue<Runnable>());
+}
+```
+    语句解释：
+    -  CachedThreadPool线程池中没有核心线程，有多少任务就会执行多少任务，任务执行完毕后就销毁线程。
+    -  前面已经说过了线程池执行任务的流程，但那个过程是基于LinkedBlockingQueue做为任务队列的。
+    -  需要注意的是，CachedThreadPool线程池使用SynchronousQueue做为任务队列，该队列不会存储元素，任何任务都会被立刻执行，具体介绍请自行搜索。
+
+<br>　　范例3：ScheduledThreadPoolExecutor。
+``` java
+public static ScheduledExecutorService newScheduledThreadPool(int corePoolSize) {
+    return new ScheduledThreadPoolExecutor(corePoolSize);
+}
+
+public ScheduledThreadPoolExecutor(int corePoolSize) {
+    super(corePoolSize, Integer.MAX_VALUE,
+          DEFAULT_KEEPALIVE_MILLIS, MILLISECONDS,
+          new DelayedWorkQueue());
+}
+```
+    语句解释：
+    -  需要注意的是，ScheduledThreadPoolExecutor线程池使用DelayedWorkQueue做为任务队列，具体介绍请自行搜索。
+
+<br>　　范例4：SingleThreadExecutor。
+``` java
+public static ExecutorService newSingleThreadExecutor() {
+    return new FinalizableDelegatedExecutorService(new ThreadPoolExecutor(1, 1,
+                                0L, TimeUnit.MILLISECONDS,
+                                new LinkedBlockingQueue<Runnable>()));
+}
+```
+    语句解释：
+    -  此线程池只有1个核心线程，所有任务都由这个核心线程来执行。
+
+<br>　　最后，如果想让`AsyncTask`可以在`Android3.0`以及以上的系统上并行运行，可以使用如下代码：
+``` java
+task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params)
+```
 
 <br><br>
