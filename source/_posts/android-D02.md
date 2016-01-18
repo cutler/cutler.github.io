@@ -724,13 +724,16 @@ public void camera(){
     -  getDrawingCache方法不可以在Activity的onCreate方法中调用。因为那时，View并没有被显示到屏幕中。
 
 ## 缩放、平移、旋转、倾斜 ##
-　　在Android中，我们使用`ImageView`来显示一张图片，但是在实际开发中，需求可能并不满足于仅仅是简单显示，可能会要求能让图片随着手指的滑动来进行`缩放`、`平移`、`旋转`、`倾斜`。 本节将介绍如何通过`Matrix`类来实现这四种基本操作。
+　　在实际开发中，我们可能并不满足于仅仅使用`ImageView`显示一张图片，可能还会想对图片进行缩放、平移、旋转、倾斜，本节将介绍如何通过`android.graphics.Matrix`（矩阵）类来实现这四种基本操作。
 
-　　`Matrix`用来描述一个矩阵，矩阵就是一个`m*n`的二维数组。在图像处理方面，矩阵主要用于平面的`缩放`、`平移`、`旋转`、`倾斜`等操作。
-　　`android.graphics.Matrix`类描述的是一个`3*3`的矩阵，即表示一个`3行3列`的数组。
+<br>　　矩阵就是一个`m*n`（`m行n列`）的二维数组，而`Matrix`类用来描述一个`3*3`矩阵。
 
 <br>　　此时你可能会问，`Matrix`和图片的操作（缩放、旋转、移动、倾斜）有什么关系呢？
-　　事实上，开发中我们可能会频繁的缩放、旋转、移动、倾斜某张图片，甚至于要执行一组操作（比如先平移，然后在旋转，接着在放大），如果每次修改都立刻作用到图片上，那么效率就会很低。 为了提高效率，并且方便的在任何时候都可以追加修改，我们想到了`Matrix`。把每次的修改（缩放、旋转、移动、倾斜）都放到一个`Matrix`对象里，当全部修改完毕后，再统一将修改后的`Matrix`对象作用到`ImageView`、`Bitmap`等对象上，然后图像就会发生变化，因此我们本节重点来介绍一下`Matrix`类的使用方法。
+
+	-  开发中我们可能会频繁的缩放、旋转、移动、倾斜图片，甚至于要执行一组操作（比如先平移，再旋转，再放大）。
+	-  如果每次修改都立刻作用到图片上，那么效率就会很低。
+	-  为了提高效率，并且方便的在任何时候都可以追加修改图片，我们想到了Matrix。
+	-  把每次的修改（缩放、旋转、移动、倾斜）都放到一个Matrix对象里，当全部修改完毕后，再统一将修改后的Matrix对象作用到ImageView、Bitmap等对象上，以此来提高效率。
 
 <br>　　在正式介绍`Matrix`之前，我们要先介绍几个与`矩阵`和`ImageView`相关的几个知识点，以减少我们之间的知识断层。
 <br>
@@ -758,9 +761,9 @@ A =   3  4         B =  8  9  10
 　　具体过程：
 
 	-  首先，用A的第一行依次乘以B的每一列。
-	   -  C[0][0] = 1*5 + 2*8   此时就是用A[0][0]*B[0][0]+A[0][1]*B[1][0]。
-	   -  C[0][1] = 1*6 + 2*9   此时就是用A[0][0]*B[0][1]+A[0][1]*B[1][1]。
-	   -  C[0][2] = 1*7 + 2*10  此时就是用A[0][0]*B[0][2]+A[0][1]*B[1][2]。
+	   -  C[0][0] = 1*5 + 2*8   也就是用A[0][0]*B[0][0]+A[0][1]*B[1][0]。
+	   -  C[0][1] = 1*6 + 2*9   也就是用A[0][0]*B[0][1]+A[0][1]*B[1][1]。
+	   -  C[0][2] = 1*7 + 2*10  也就是用A[0][0]*B[0][2]+A[0][1]*B[1][2]。
     -  然后，用A的第二行依次乘以B的每一列。
        -  C[1][0] = 3*5 + 4*8
        -  C[1][1] = 3*6 + 4*9
@@ -837,7 +840,6 @@ matrix       将图片的左上角和ImageView的左上角对齐，且不缩放�
 ```
 
 　　若想通过`Matrix`来操作`ImageView`中的图片，则就需要将`ImageView`的`scaleType`属性设置为`matrix`。
-　　若想在整个屏幕范围内拖动图片，则可以在当前`Activity`中只放置一个`ImageView`控件，控件的宽高都`“match_parent”`即可。 
 
 　　在`ImageView`类中提供了两个方法，可以获取和设置当前图片的`Matrix`对象。
 ``` android
@@ -850,7 +852,10 @@ public void setImageMatrix(Matrix matrix);
 
 <br>
 ### Matrix ###
-　　前面已经说了，`Matrix`类支持`4`种操作：`平移(translate)`、`缩放(rotate)`、`旋转(scale)`、`倾斜(skew)`。同时它也是一个`3*3`的矩阵，由`9`个`float`值构成。事实上这`9`个值目前只使用了`前6个`，它们各自用来记录不同的数据，如下图：
+　　接下来我们开始介绍`Matrix`类的用法。
+
+　　前面已经说了，`Matrix`类支持`4`种操作：平移(translate)、缩放(rotate)、旋转(scale)、倾斜(skew)。
+　　同时它也是一个`3*3`的矩阵，由`9`个`float`值构成，事实上这`9`个值目前只使用了`前6个`，它们各自用来记录不同的数据，如下图：
 
 <center>
 ![](/img/android/android_e02_7.png)
@@ -858,7 +863,7 @@ public void setImageMatrix(Matrix matrix);
 
 　　图释：
 
-	-  平移位置： 由两个值来记录，即上图中的transX和transY，它表示矩阵当前所在的位置，距离原点所在的位置，在x和y轴上的偏移量。 
+	-  平移位置： 由两个值来记录，即上图中的transX和transY，它表示矩阵当前所在的位置，距离原点的偏移量。 
 	-  缩放大小： 由两个值来记录，即上图中的scaleX和scaleY，表示当前矩阵在水平方向(X轴)和垂直方向(Y轴)上放大的比例。
 	-  倾斜信息： 由两个值来记录，即上图中的skewX和skewY，表示当前矩阵在水平方向(X轴)和垂直方向(Y轴)上倾斜的大小。
 	-  旋转角度： 由四个值来记录，即上图中的scaleX和scaleY、skewX和skewY，即通过缩放+倾斜，我们可以实现旋转效果。
@@ -882,18 +887,7 @@ public boolean postTranslate(float dx, float dy);
 
 　　因为矩阵的`乘法不满足交换律`，因此先乘、后乘必须要严格区分。但是矩阵的`加法则是满足交换律`的。
 
-
-<br>　　为了后面讲解方便，我们在此先假设有如下代码：
-``` xml
-<ImageView
-    android:id="@+id/img"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"/>
-```
-
-<br>**平移**
-
-<br>　　范例1：平移操作。
+<br>　　范例2：平移操作。
 ```
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
@@ -901,23 +895,19 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 		
         ImageView img = (ImageView) findViewById(R.id.img);
-        // 创建一个新的矩阵对象。 其实就是创建一个单位矩阵。
+        // 创建一个新的矩阵对象，其实就是创建一个单位矩阵。
         Matrix m = new Matrix();
         // 将图片的左上角移动到ImageView内部的(100,100)点。
         m.setTranslate(100, 100);
         // 更新ImageView的矩阵。 必须保证ImageView的android:scaleType="matrix"，否则即使修改矩阵也没效果。
         img.setImageMatrix(m);
-        // 设置ImageView要显示的位图。
-        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
     }
 }
 ```
-<br>　　`Matrix`是个`3阶方阵`，其内的`9`个元素用来记录图片的不同信息，其中`m[0][2]`和`m[1][2]`的值，就是用来记录当前图片的`左上角`所在的位置相对于`(0,0)`点平移了多少位置。
-　　当我们调用`Matrix`对象`A`的`setTranslate`方法时，在该方法的内部，会先创建一个新的`Matrix`对象`B`，然后再让`A`与`B`进行矩阵相乘运算。
+    语句解释：
+    -  在控制台中输出m就会看到，m[0][2]和m[1][2]的值都变成100了。
 
-<br>**缩放**
-
-<br>　　范例1：缩放操作。
+<br>　　范例3：缩放操作。
 ```
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
@@ -931,10 +921,29 @@ public class MainActivity extends Activity {
         m.setScale(2, 0.5f);
         // 更新ImageView的矩阵。
         img.setImageMatrix(m);
-        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.icon));
     }
 }
 ```
+    语句解释：
+    -  在控制台中输出m就会看到，m[0][0]的值变成了2，m[1][1]的值变成了0.5。
+
+<br>　　范例4：旋转操作。
+```
+public class MainActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+		
+        ImageView img = (ImageView) findViewById(R.id.img);
+        Matrix m = img.getImageMatrix();
+        // 顺时针旋转45度。
+        m.setRotate(45);
+        img.setImageMatrix(m);
+    }
+}
+```
+    语句解释：
+    -  让图像顺时针旋转45度，如果想逆时针旋转，则可以设为负数。
 
 <br>**倾斜**
 　　我们这里所说的`倾斜`，其实更专业的说法是`错切变换(skew)`，在数学上又称为`Shear mapping`。它是一种比较特殊的`线性变换`，错切变换的效果就是`让所有点的x坐标(或者y坐标)保持不变，而对应的y坐标(或者x坐标)则按比例发生平移`。错切变换，属于`等面积变换`，即一个形状在错切变换的前后，其面积是相等的。
@@ -956,46 +965,19 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 		
         ImageView img = (ImageView) findViewById(R.id.img);
-        // 获取ImageView的矩阵。
         Matrix m = img.getImageMatrix();
         // 让图像的x轴保持不变，y轴倾斜0.4 。
         m.setSkew(0, 0.4f);
-        // 更新ImageView的矩阵。
         img.setImageMatrix(m);
-        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.icon));
     }
 }
 ```
-
 
 　　下图（左）是原图，（右）是图片在`y`轴上倾斜`0.4`之后的效果，倾斜的数值可以是`负数`，负数则往`逆方向`上倾斜。
 
 <center>
 ![](/img/android/android_e02_9.png)
 </center>
-
-<br>**旋转**
-
-<br>　　范例1：旋转操作。
-```
-public class MainActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-		
-        ImageView img = (ImageView) findViewById(R.id.img);
-        // 获取ImageView的矩阵。
-        Matrix m = img.getImageMatrix();
-        // 顺时针旋转45度。
-        m.setRotate(45);
-        // 更新ImageView的矩阵。
-        img.setImageMatrix(m);
-        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.icon));
-    }
-}
-```
-    语句解释：
-    -  让图像顺时针旋转45度，如果想逆时针旋转，则可以设为负数。
 
 <br>**围绕一个中心点**
 <br>　　除`平移`外，`旋转`、`缩放`和`倾斜`都可以`围绕一个中心点`来进行，如果不指定，在默认情况下是围绕`(0, 0)`来进行相应的变换的。 也就是说，`setRotate(45)`与`setRotate(45, 0, 0)`是等价的。
@@ -1007,15 +989,13 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 		
-        ImageView img = (ImageView) findViewById(R.id.img);
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.icon);
-        // 获取ImageView的矩阵。
-        Matrix m = img.getImageMatrix();
+        ImageView imageView = (ImageView) findViewById(R.id.img);
+        Bitmap bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+        Matrix m = imageView.getImageMatrix();
         // 以图片的中心点为原点，顺时针旋转180度。
         m.setRotate(180, bitmap.getWidth()/2, bitmap.getHeight()/2);
         // 更新ImageView的矩阵。
-        img.setImageMatrix(m);
-        img.setImageBitmap(bitmap);
+        imageView.setImageMatrix(m);
     }
 }
 ```
@@ -1051,9 +1031,9 @@ public class MainActivity extends Activity {
         return native_postTranslate(native_instance, dx, dy);
     }
 ```
-　　通过比较，我们可以看出，`pre`其实执行的就是让`当前矩阵左乘参数矩阵`，而`post`执行的就是让`当前矩阵右乘参数矩阵`。
+　　从注释中可以看出，`pre`其实执行的就是让`当前矩阵左乘参数矩阵`，而`post`执行的就是让`当前矩阵右乘参数矩阵`。
 
-<br>**单次运算与单类型连乘** 
+<br>**单次运算** 
 
 <br>　　范例1：单次运算——旋转45度。
 ```
@@ -1075,41 +1055,7 @@ public class MainActivity extends Activity {
     -  一个新创建的Matrix对象就是一个单位矩阵。对于平移、缩放、旋转、倾斜四个操作来说，当它们与一个单位矩阵进行运算时，不论调用的是pre还是post方法，最终的效果是一样的。
     -  一旦单位矩阵执行了某种操作，那么它就不再是单位矩阵了，此时就需要区分pre和post方法的调用。
 
-<br>　　范例2：单类型连乘——旋转45度。
-```
-public class MainActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-		
-        ImageView img = (ImageView) findViewById(R.id.img);
-        Matrix m = new Matrix();
-        m.preRotate(15);
-        m.postRotate(15);
-        m.preRotate(15);
-        img.setImageMatrix(m);
-        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
-
-        // 将图片移动到ImageView内部的(100,100)点。
-        // m.postTranslate(100, 100);
-        // 将图片移动到ImageView内部的(110,90)点。
-        // m.postTranslate(10, -10);
-        // 将图片移动到ImageView内部的(100,80)点。
-        // m.preTranslate(-10, -10);
-
-        // 先缩小10倍。
-        // m.postScale(0.1f, 0.1f);
-        // 再放大10倍。 此时显示出来的图片尺寸就是它本身的尺寸。
-        // m.preScale(10, 10);
-    }
-}
-```
-    语句解释：
-    -  如果矩阵中只包含平移、选择、倾斜、缩放中的某一种类型的操作，那么我们也不需要考虑pre和post方法的区别。
-    -  以平移操作为例，不论我们调用的pre还是post方法，最终产生的矩阵，除了m[0][2]和m[1][2]的值之外，其他位置的值都和单位矩阵的值一样。
-    -  提示：两个单位矩阵相乘，结果仍是一个单位矩阵。
-
-<br>　　范例3：`setXxx`方法。
+<br>　　范例2：`setXxx`方法。
 ```
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
@@ -1134,36 +1080,45 @@ public class MainActivity extends Activity {
 <br>**混合连乘** 
 　　接下来我们通过一个范例来讲解如何进行混合连乘。
 
-<br>　　范例1：证明一下下面两段代码是相同。
+<br>　　范例1：请证明下面两段代码是等价的。
 ``` android
+// 需求是：让图片沿着(a, b)点顺时针旋转30度。
 int a = 100, b = 100;
 
-// 第一种方式，顺时针旋转30度。
+// 第一种实现方式
 Matrix m = new Matrix();
 m.setRotate(30, a, b);
 
-// 第二种方式，顺时针旋转30度。
+// 第二种实现方式
 Matrix m = new Matrix();
 m.setTranslate(a, b);
 m.preRotate(30);
 m.preTranslate(-a, -b);
 ```
 
-<br>　　首先，我们得知道，矩阵先乘(`preXxx`)和后乘(`postXX`)的区别在于先执行这个变换还是后执行这个变换。
+<br>　　第一种实现方式很容易理解，也是不多说，直接说第二种方式。
 
-	-  m.preTranslate(a, b)  ：先执行平移(a, b)的变换，再执行matrix中已经定义的其它变换。
-	-  m.postTranslate(a, b) ：先执行matrix中已经定义的其它变换，再执行平移(a, b)的变换。
-	-  m.setTranslate(a, b)  ：完全无视matrix中已定义的其它操变换，调用这个函数后，matrix就会只包含平移(a, b)这一个变换。
+　　首先我们得知道，矩阵先乘(`preXxx`)和后乘(`postXX`)的区别在于：当前矩阵对象，是先执行参数矩阵的变换，还是后执行参数矩阵的变换。
+　　比如，我们可以根据第二种实现方式写出下面的公式：
+``` java
+// T  表示translate。
+// R  表示rotate。
+// M1 表示最终的结果矩阵。
+M1 = T(a, b) * R(30) * T(-a, -b)
 
-<br>　　接着，我们先看一下上面所说的`“第二种方式”`中的每个语句：
-``` android
-// 执行它后，会立刻重置矩阵m，然后再将一个平移变换放到矩阵m中，即此时矩阵中只包含一个操作：平移到(a, b)。
-m.setTranslate(a, b);  
-// 先旋转30度（由于没指定旋转中心，所以默认为(0,0) ），这样执行它后，m的语义变成了“先以(0,0)为中心旋转30度，再平移(a,b)”。
-m.preRotate(30);  
-// 先平移(a, b)。这样执行它后，矩阵m的语义变成了“先平移(-a, -b)，再以(0,0)为中心旋转30度，再平移(a,b)”。
-m.preTranslate(-a, -b); 
+// 推导过程为：
+// 第一步，由于先调用的是m.setTranslate(a, b)，所以会先把矩阵重置为单位矩阵，然后再把T放入，得到：
+M1 = T(a, b)
+// 第二步，由于m.preRotate(30)是前乘，所以直接把参数矩阵放到现有公式的末尾，得到：
+M1 = T(a, b) * R(30)
+// 第三步，同理，最终得到：
+M1 = T(a, b) * R(30) * T(-a, -b)
 ```
+　　需要注意的是，在计算的时候，图片会按照`从右向左`的顺序，依次被每个矩阵变换。
+　　也就是说，公式`M1 = T(a, b) * R(30) * T(-a, -b)`的语义为：
+	-  首先，把图片移动到(-a, -b)。
+	-  然后，让图片以(0, 0)为中心旋转30度。
+	-  最后，把图片移动到(a, b)。
 
 　　按照上面的步骤，我们可以直观想一下：
 
@@ -1173,24 +1128,18 @@ m.preTranslate(-a, -b);
 	-  最后，就相当于整个图做了一个以(100, 100)为中心的30度旋转，所以说第一种方式与第二种方式是等价的。
 
 
-<br>　　然后，我们再看如果把第二种方式中的`m.preRotate(30)`变成`m.postRotate(30)`后，为什么效果就完全不一样了：
-``` android
-// 这里没变，执行它后，矩阵m只包含唯一一个变换，即平移(a, b)。
-m.setTranslate(a, b);  
-// 变成了后旋转30度，这样执行它后，m的语义变成了“先平移(a,b)，再以(0,0)为中心旋转30度”。
-m.postRotate(30);
-// 先平移(a, b)，这样执行它后，矩阵m的语义变成了“先平移(-a, -b)，再平移(a,b)，再以(0,0)为中心旋转30度”。
-m.preTranslate(-a, -b);
-
-// 由于先了平移(-a, -b)，再了平移(a, b)，这两个变换的效果完全抵消了，所以整个m的语义其实就只是：以(0,0)为中心旋转30度。
-// 这当然和以(100, 100)为中心旋转30度是不同的。
+<br>　　最后，我们再看如果把第二种方式中的`m.preRotate(30)`变成`m.postRotate(30)`后，为什么效果就完全不一样了：
+``` java
+// 最终得到的公式为：
+M1 = R(30) * T(a, b) * T(-a, -b)
 ```
+　　在上面的公式中，两个平移变换相互抵消了，公式的语义是：以`(0,0)`为中心旋转`30`度，这显然和以`(100, 100)`为中心旋转`30`度是不同的。
 
-<br>　　本段分析过程，笔者查了好久，也看了不少博客，但没人说的明白（根本就没人去分析）！
+<br>　　因此，我们可以总结一下：
 
-　　最终笔者给自己在`Google`深造的技术总监发邮件请教后，得到了清晰的解释，特在此感谢。
-
-<br>**拖动ImageView里的图片** 
+	-  m.preTranslate(a, b)  ：先执行平移(a, b)的变换，再执行matrix中已经定义的其它变换。
+	-  m.postTranslate(a, b) ：先执行matrix中已经定义的其它变换，再执行平移(a, b)的变换。
+	-  m.setTranslate(a, b)  ：清空matrix中所有变换，调用这个函数后，matrix就会只包含平移(a, b)这一个变换。
 
 <br>　　范例1：移动图片。
 ``` android
@@ -1236,12 +1185,14 @@ private final class MyOnTouchListener implements OnTouchListener{
 
 ## 图像颜色处理 ##
 　　在实际应用中，我们除了会对图片进行`缩放`、`平移`、`旋转`、`倾斜`操作外，也会对图片的`显示效果`做出修改。
-　　比如，我们常见的对图像进行颜色方面的处理有：`黑白老照片`、`泛黄旧照片`、`高对比度`、`低饱和度`等效果，这些处理操作在Android中都可以通过使用颜色矩阵（`ColorMatrix`）来实现。
+　　比如，我们常见的对图像进行颜色方面的处理有：`黑白老照片`、`泛黄旧照片`、`低饱和度`等效果，这些效果都可以通过使用颜色矩阵（`ColorMatrix`）来实现。
 
 <br>**基本概念**
-　　位图是由像素（`Pixel`）组成的，`像素`是位图最小的信息单元。每个像素都具有特定的`位置`和`颜色值`，颜色值有`ARGB`四个通道，分别对应`透明度`、`红`、`绿`、`蓝`这四个通道分量。位图文件会按`从左到右`、`从上到下`的顺序来记录图像中每一个像素的信息，如：像素在屏幕上的`位置`、`颜色`等。
+　　位图是由像素（`Pixel`）组成的，`像素`是位图最小的信息单元。每个像素都具有特定的`位置`和`颜色值`，颜色值有`ARGB`四个通道，分别对应`透明度`、`红`、`绿`、`蓝`这四个通道分量。
+　　位图文件会按`从左到右`、`从上到下`的顺序来记录图像中每一个像素的信息。
 
-　　根据位深度（即每个像素点用几位二进制表示），可将位图分为`1`、`4`、`8`、`16`、`24`及`32`位图像等。每个像素使用的信息位数越多，可用的颜色就越多，颜色表现就越逼真，相应的数据量越大。例如，位深度为`1`的像素位图只有两个可能的值（黑色和白色），所以又称为二值位图。位深度为`8`的图像有`2^8`（即`256`）个可能的值。位深度为`8`的`灰度模式`图像有`256`个可能的`灰色值`。
+　　根据位深度（即每个像素点用几位二进制表示），可将位图分为`1`、`4`、`8`、`16`、`24`及`32`位图像等。每个像素使用的信息位数越多，可用的颜色就越多，颜色表现就越逼真，相应的数据量越大。例如，位深度为`1`的像素位图只有两个可能的值（黑色和白色），所以又称为二值位图。
+　　位深度为`8`的图像有`2^8`（即`256`）个可能的值，而位深度为`8`的`灰度模式`图像有`256`个可能的`灰色值`。
 
 <br>
 ### ColorMatrix ###
@@ -1291,7 +1242,6 @@ public class MainActivity extends Activity {
         });
         // 创建一个ColorMatrixColorFilter对象，用它来包装一下颜色矩阵，并将它设置到ImageView中。
         img.setColorFilter(new ColorMatrixColorFilter(cm));
-        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.icon));
     }
 }
 ```
@@ -1310,13 +1260,48 @@ public class MainActivity extends Activity {
         // 饱和度设置为0 。
         cm.setSaturation(0);
         img.setColorFilter(new ColorMatrixColorFilter(cm));
-        img.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.icon));
     }
 }
 ```
     语句解释：
+    -  饱和度是指色彩的鲜艳程度，也称色彩的纯度，0代表灰，100代表饱和。
     -  这样一来，对于被禁用的按钮所显示的图片，如果美工不给，我们也可以自己做出来了。
 
+<br>　　范例3：修改色调。
+``` java
+ImageView imageView = (ImageView) findViewById(R.id.img);
+ColorMatrix colorMatrix = new ColorMatrix();
+// 系统分别用0、1、2来代表Red、Green、Blue三种颜色，第二个参数表示色调值。
+colorMatrix.setRotate(0, 100);
+imageView.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+```
+    语句解释：
+    -  色调指的是一幅画中画面色彩的总体倾向，是大的色彩效果。
+    -  生活中经常见到这样一种现象：不同颜色的物体或被笼罩在一片金色的阳光之中，或被统一在冬季银白色的世界之中。
+    -  这种在不同颜色的物体上，笼罩着某一种色彩，使不同颜色的物体都带有同一色彩倾向，这样的色彩现象就是色调。
+
+<br>　　范例4：混合修改。
+``` java
+ImageView imageView = (ImageView) findViewById(R.id.img);
+// 色调
+ColorMatrix hueMatrix = new ColorMatrix();
+hueMatrix.setRotate(0, 30);
+hueMatrix.setRotate(1, 40);
+hueMatrix.setRotate(2, 50);
+// 饱和度
+ColorMatrix saturationMatrix = new ColorMatrix();
+saturationMatrix.setSaturation(5);
+// 亮度
+ColorMatrix lumMatrix = new ColorMatrix();
+lumMatrix.setScale(50, 150, 250, 10);
+
+// 将它们三个混在一起。
+ColorMatrix matrix = new ColorMatrix();
+matrix.postConcat(hueMatrix);
+matrix.postConcat(lumMatrix);
+matrix.postConcat(saturationMatrix);
+imageView.setColorFilter(new ColorMatrixColorFilter(matrix));
+```
 
 <br>**本节参考阅读：**
 - [Android学习笔记22：图像颜色处理（ColorMatrix）](http://www.cnblogs.com/menlsh/archive/2013/02/03/2890888.html)

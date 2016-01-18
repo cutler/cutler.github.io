@@ -1,10 +1,9 @@
-title: 进阶篇　第六章 自定义控件（二）之输入事件
+title: 自定义控件篇　第二章 输入事件
 date: 2015-1-27 14:53:50
-create: 2015-1-27 14:53:50
 categories: android
 ---
 　　本章将介绍一下`Android`中的各类输入事件。
-　　本章主要参考书籍：[《Android开发艺术探索》](http://item.jd.com/1710650057.html)，同时加上了笔者自己的体会。
+　　本章主要参考书籍：[《Android开发艺术探索》](http://item.jd.com/1710650057.html)和[《Android群英传》](http://item.jd.com/11758334.html)，同时加上了笔者自己的体会。
 
 # 第一节 基础知识 #
 　　我们先来介绍两个基础知识。
@@ -70,14 +69,13 @@ onTouchEvent(MotionEvent event)
 
 # 第二节 触摸事件 #
 　　触摸事件在开发中是最常见的，也是最容易让人搞混的，因此从本节开始将详细介绍触摸事件。
-
-## 基础用法 ##
-　　想要监听View的触摸事件，只需要调用它的`setOnTouchListener()`方法即可。
+## 滑动位置 ##
+　　在开发中，比较常见的一个需求：让View能随着用户的手指而拖动，要实现这个功能就需要监听View的触摸事件。
 
 　　示例代码：
 ``` android
-ImageView img = (ImageView) this.findViewById(R.id.img);
-img.setOnTouchListener(new View.OnTouchListener() {
+Button button = (Button) this.findViewById(R.id.img);
+button.setOnTouchListener(new View.OnTouchListener() {
     public boolean onTouch(View v, MotionEvent event) {
         return false;
     }
@@ -125,7 +123,7 @@ public final float getRawY();
 
 <br>　　最后，下面给出一个完整的范例，如果你感觉看不懂，那就请去阅读其它人的教程，学会了触摸事件后，再回来继续。
 
-　　范例2：图片拖动。
+<br>　　范例2：通过`getX()`和`getY()`移动按钮。
 ``` android
 public class MainActivity extends Activity {
 
@@ -133,30 +131,221 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 需要给ImageView加上android:scaleType="matrix"。
-        final ImageView img = (ImageView) this.findViewById(R.id.img);
-        img.setOnTouchListener(new View.OnTouchListener() {
-            float preX, preY;
-            Matrix matrix = new Matrix();
+        final Button button = (Button) findViewById(R.id.btn);
+        button.setOnTouchListener(new View.OnTouchListener() {
+            private int lastX, lastY;
+
             public boolean onTouch(View v, MotionEvent event) {
-                float x = event.getX();
-                float y = event.getY();
+                int x = (int) event.getX();  // 获取手指在Button上的位置。
+                int y = (int) event.getY();
                 switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        lastX = x;           // 保存手指按下时的位置。
+                        lastY = y;
+                        break;
                     case MotionEvent.ACTION_MOVE:
-                        matrix.postTranslate(x - preX, y - preY);
-                        img.setImageMatrix(matrix);
+                        int offsetX = x - lastX;
+                        int offsetY = y - lastY;
+                        // 调用layout方法更新View的位置。
+                        button.layout(button.getLeft() + offsetX, button.getTop() + offsetY,
+                                button.getRight() + offsetX, button.getBottom() + offsetY);
                         break;
                 }
-                preX = x;
-                preY = y;
-                return true;
+                return false;
             }
         });
     }
 }
 ```
     语句解释：
-    -  若您不明白Matrix的含义，请参阅《媒体篇　第二章 图片》。
+    -  通过本范例看出，我们可以手工调用View的layout方法来更新位置，在其内部会调用invalidate进行重绘。
+    -  需要注意的是本范例中，只有当手指按下的时候才会保存位置，手指移动时并不会。
+
+<br>　　范例3：通过`getRawX()`和`getRawY()`移动按钮。
+``` android
+public class MainActivity extends Activity {
+
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        final Button button = (Button) findViewById(R.id.btn);
+        button.setOnTouchListener(new View.OnTouchListener() {
+            private int lastX, lastY;
+
+            public boolean onTouch(View v, MotionEvent event) {
+                int x = (int) event.getRawX();  // 获取手指在屏幕上的位置。
+                int y = (int) event.getRawY();
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        lastX = x;
+                        lastY = y;
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        int offsetX = x - lastX;
+                        int offsetY = y - lastY;
+                        button.layout(button.getLeft() + offsetX, button.getTop() + offsetY,
+                                button.getRight() + offsetX, button.getBottom() + offsetY);
+                        // 此处需要保存x、y的值。
+                        lastX = x;
+                        lastY = y;
+                        break;
+                }
+                return false;
+            }
+        });
+    }
+}
+```
+    语句解释：
+    -  再次强调本范例与范例2的区别，本范例中在手指移动的时候需要保存位置，具体原因请自己思考。
+    -  提示：                要啥提示？动动脑子吧。
+
+<br>　　也可以通过修改View的`LayoutParams`来改变View的位置，只需要把`范例3`的第`22`行代码替换为：
+``` java
+LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) button.getLayoutParams();
+params.leftMargin += offsetX;
+params.topMargin += offsetY;
+button.setLayoutParams(params);
+```
+<br>
+## 滑动内容 ##
+　　在Android中，对于一个View来说它有两种类型滑动：
+
+	-  第一种，View本身的位置发生变化（即上面一节介绍的知识）。
+	-  第二种，View的内容发生变化。
+	   -  比如当LinearLayout的子元素的尺寸超过了LinearLayout的尺寸，那么超出的部分默认是无法显示的。
+	   -  不过Android中所有的View的内容都是可以滑动的，也就是说可以通过滑动LinearLayout的内容，来让被隐藏的部分显示出来。
+
+　　本节就是来介绍如何滑动View的内容。
+
+<br>**使用scrollTo和scrollBy方法**
+　　为了实现`View`内容的滑动，`View`类提供了专门的方法来实现这个功能，那就是`scrollTo`和`scrollBy`，它们的源码为：
+``` java
+   /**
+     * Set the scrolled position of your view. This will cause a call to
+     * {@link #onScrollChanged(int, int, int, int)} and the view will be
+     * invalidated.
+     * @param x the x position to scroll to
+     * @param y the y position to scroll to
+     */
+    public void scrollTo(int x, int y) {
+        if (mScrollX != x || mScrollY != y) {
+            int oldX = mScrollX;
+            int oldY = mScrollY;
+            mScrollX = x;
+            mScrollY = y;
+            invalidateParentCaches();
+            onScrollChanged(mScrollX, mScrollY, oldX, oldY);
+            if (!awakenScrollBars()) {
+                postInvalidateOnAnimation();
+            }
+        }
+    }
+
+    /**
+     * Move the scrolled position of your view. This will cause a call to
+     * {@link #onScrollChanged(int, int, int, int)} and the view will be
+     * invalidated.
+     * @param x the amount of pixels to scroll by horizontally
+     * @param y the amount of pixels to scroll by vertically
+     */
+    public void scrollBy(int x, int y) {
+        scrollTo(mScrollX + x, mScrollY + y);
+    }
+```　
+　　可以看出来，其中`scrollBy`转调用了`scrollTo`方法，它实现了基于当前位置的相对滑动，而`scrollTo`则实现了基于所传递参数的绝对滑动。
+
+<br>　　使用范例，如下所示：
+``` java
+public class MyView extends View {
+
+    public MyView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        // 每次点击时，都使当前View的内容，在x轴方向滑动30像素。
+        setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                scrollBy(30, 0);
+            }
+        });
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        Paint paint = new Paint();
+        paint.setColor(Color.WHITE);
+        StringBuilder sub = new StringBuilder();
+        sub.append("11111111111111111111111111111111");
+        sub.append("22222222222222222222222222222222");
+        sub.append("33333333333333333333333333333333");
+        sub.append("44444444444444444444444444444444");
+        sub.append("55555555555555555555555555555555");
+        canvas.drawText(sub.toString(), 0, 100, paint);
+    }
+}
+```
+    语句解释：
+    -  有两点需要注意：
+       -  第一，scrollBy和scrollTo滑动的是View的内容，而不是View本身的位置。
+       -  第二，scrollBy和scrollTo滑动是瞬间完成的，没有滚动时的滑翔效果。
+    -  调用View类的getScrollX()和getScrollY()方法可以获取View的滚动条的当前位置。
+
+<br>**Scroller**
+　　使用`scrollBy`和`scrollTo`的滑动是瞬间完成的，效果比较生硬，为了给用户流畅的体验，可以把一次大的滑动分成若干个小的滑动，并在若干时间内完成。
+　　我们通过`Scroller`类就可以实现动画滑动的任务。
+
+<br>　　修改后的范例，如下所示：
+``` java
+public class MyView extends View {
+
+    public MyView(Context context) {
+        super(context);
+        setBackgroundColor(Color.BLACK);
+        setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                // 第一步，先为Scroller对象设置滚动参数。
+                //        参数依次为：滚动条当前X轴位置、Y轴位置、X轴位移长度、Y轴位移长度、多少毫秒内完成滚动。
+                mScroller.startScroll(getScrollX(), getScrollY(), 30, 0, 1000);
+                // 第二步，设置完参数后，调用invalidate方法，触发View的重绘。
+                invalidate();
+            }
+        });
+    }
+
+    private Scroller mScroller = new Scroller(getContext());
+
+    // 当View被重绘时，系统会回调View类的此方法，计算滚动条的当前位置。
+    @Override
+    public void computeScroll() {
+        // 方法computeScrollOffset会依据时间的流逝，来计算Scroller当前所处的位置。
+        if (mScroller.computeScrollOffset()) {
+            // 让当前View的滚动条，滚动到Scroller对象当前的位置。
+            scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
+            // 再次出发重绘，直到Scroller对象滚动到终点（即computeScrollOffset返回false）才停止。
+            // 这样一来，就实现了动画滚动的效果了。
+            postInvalidate();
+        }
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        Paint paint = new Paint();
+        paint.setColor(Color.WHITE);
+        StringBuilder sub = new StringBuilder();
+        sub.append("11111111111111111111111111111111");
+        sub.append("22222222222222222222222222222222");
+        sub.append("33333333333333333333333333333333");
+        sub.append("44444444444444444444444444444444");
+        sub.append("55555555555555555555555555555555");
+        canvas.drawText(sub.toString(), 0, 100, paint);
+    }
+}
+```
+    语句解释：
+    -  Scroller的startScroll方法里面什么都没有做，只是记录了一下传递过来的参数。
+    -  Scroller对象只是用来协助计算滚动条的位置的，它本身无法使View的内容滚动，它需要和View类的computeScroll、scrollTo、scrollBy方法配合使用。
+
+<br>　　另外，`Android3.0`中提出的属性动画也可以完成`Scroller`的功能，具体请参阅[《媒体篇　第三章 动画》](http://cutler.github.io/android-D03/)。
 
 ## 高级用法 ##
 <br>**TouchSlop**
@@ -276,146 +465,6 @@ public class MyView extends View {
     语句解释：
     -  SimpleOnGestureListener和SimpleOnGestureListener类里还有其它方法，请自行查看。
     -  需要说明的是，若你需要监听双击事件的话就用GestureDetector吧，否则还是自己处理触摸事件比较好。
-
-## 内容的滑动 ##
-　　在Android中，对于一个View来说它有两种类型滑动：
-
-	-  第一种，View本身的位置发生变化。
-	   -  比如通过修改View的LayoutParams参数来实现。
-	-  第二种，View的内容发生变化。
-	   -  比如当LinearLayout的子元素的尺寸超过了LinearLayout的尺寸，那么超出的部分默认是无法显示的。
-	   -  不过Android中所有的View的内容都是可以滑动的，也就是说可以通过滑动LinearLayout的内容，来让被隐藏的部分显示出来。
-
-　　本节就是来介绍如何滑动View的内容。
-
-<br>**使用scrollTo和scrollBy方法**
-　　为了实现`View`内容的滑动，`View`类提供了专门的方法来实现这个功能，那就是`scrollTo`和`scrollBy`，它们的源码为：
-``` java
-   /**
-     * Set the scrolled position of your view. This will cause a call to
-     * {@link #onScrollChanged(int, int, int, int)} and the view will be
-     * invalidated.
-     * @param x the x position to scroll to
-     * @param y the y position to scroll to
-     */
-    public void scrollTo(int x, int y) {
-        if (mScrollX != x || mScrollY != y) {
-            int oldX = mScrollX;
-            int oldY = mScrollY;
-            mScrollX = x;
-            mScrollY = y;
-            invalidateParentCaches();
-            onScrollChanged(mScrollX, mScrollY, oldX, oldY);
-            if (!awakenScrollBars()) {
-                postInvalidateOnAnimation();
-            }
-        }
-    }
-
-    /**
-     * Move the scrolled position of your view. This will cause a call to
-     * {@link #onScrollChanged(int, int, int, int)} and the view will be
-     * invalidated.
-     * @param x the amount of pixels to scroll by horizontally
-     * @param y the amount of pixels to scroll by vertically
-     */
-    public void scrollBy(int x, int y) {
-        scrollTo(mScrollX + x, mScrollY + y);
-    }
-```　
-　　可以看出来，其中`scrollBy`转调用了`scrollTo`方法，它实现了基于当前位置的相对滑动，而`scrollTo`则实现了基于所传递参数的绝对滑动。
-
-<br>　　使用范例，如下所示：
-``` java
-public class MyView extends View {
-
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        // 每次点击时，都使当前View的内容，在x轴方向滑动30像素。
-        setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                scrollBy(30, 0);
-            }
-        });
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        Paint paint = new Paint();
-        paint.setColor(Color.WHITE);
-        StringBuilder sub = new StringBuilder();
-        sub.append("11111111111111111111111111111111");
-        sub.append("22222222222222222222222222222222");
-        sub.append("33333333333333333333333333333333");
-        sub.append("44444444444444444444444444444444");
-        sub.append("55555555555555555555555555555555");
-        canvas.drawText(sub.toString(), 0, 100, paint);
-    }
-}
-```
-    语句解释：
-    -  有两点需要注意：
-       -  第一，scrollBy和scrollTo滑动的是View的内容，而不是View本身的位置。
-       -  第二，scrollBy和scrollTo滑动是瞬间完成的，没有滚动时的滑翔效果。
-    -  调用View类的getScrollX()和getScrollY()方法可以获取它的滚动条的当前位置。
-
-<br>**Scroller**
-　　使用`scrollBy`和`scrollTo`的滑动是瞬间完成的，效果比较生硬，为了给用户流畅的体验，可以把一次大的滑动分成若干个小的滑动，并在若干时间内完成。
-　　我们通过`Scroller`类就可以实现动画滑动的任务。
-
-<br>　　修改后的范例，如下所示：
-``` java
-public class MyView extends View {
-
-    public MyView(Context context) {
-        super(context);
-        setBackgroundColor(Color.BLACK);
-        setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                // 第一步，先为Scroller对象设置滚动参数。
-                //        参数依次为：滚动条当前X轴位置、Y轴位置、X轴位移长度、Y轴位移长度、多少毫秒内完成滚动。
-                mScroller.startScroll(getScrollX(), getScrollY(), 30, 0, 1000);
-                // 第二步，设置完参数后，调用invalidate方法，触发View的重绘。
-                invalidate();
-            }
-        });
-    }
-
-    private Scroller mScroller = new Scroller(getContext());
-
-    // 当View被重绘时，系统会回调View类的此方法，计算滚动条的当前位置。
-    @Override
-    public void computeScroll() {
-        // 方法computeScrollOffset会依据时间的流逝，来计算Scroller当前所处的位置。
-        if (mScroller.computeScrollOffset()) {
-            // 让当前View的滚动条，滚动到Scroller对象当前的位置。
-            scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
-            // 再次出发重绘，直到Scroller对象滚动到终点（即computeScrollOffset返回false）才停止。
-            // 这样一来，就实现了动画滚动的效果了。
-            postInvalidate();
-        }
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        Paint paint = new Paint();
-        paint.setColor(Color.WHITE);
-        StringBuilder sub = new StringBuilder();
-        sub.append("11111111111111111111111111111111");
-        sub.append("22222222222222222222222222222222");
-        sub.append("33333333333333333333333333333333");
-        sub.append("44444444444444444444444444444444");
-        sub.append("55555555555555555555555555555555");
-        canvas.drawText(sub.toString(), 0, 100, paint);
-    }
-}
-```
-    语句解释：
-    -  Scroller的startScroll方法里面什么都没有做，只是记录了一下传递过来的参数。
-    -  Scroller对象只是用来协助计算滚动条的位置的，它本身无法使View的内容滚动，它需要和View类的computeScroll、scrollTo、scrollBy方法配合使用。
-
-<br>　　另外，`Android3.0`中提出的属性动画也可以完成`Scroller`的功能，具体请参阅[《媒体篇　第三章 动画》](http://cutler.github.io/android-D03/)。
-
 
 <br>**本节参考阅读：**
 - [Android UI 学习 自定义的布局 平滑移动 VelocityTracker（）](http://www.cnblogs.com/dyllove98/archive/2013/06/20/3146813.html)

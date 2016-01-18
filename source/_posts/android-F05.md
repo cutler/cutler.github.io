@@ -1,2123 +1,724 @@
-title: 进阶篇　第五章 自定义控件（一）之基础入门
-date: 2015-4-29 11:41:12
+title: 进阶篇　第五章 应用程序破解
+date: 2014-12-29 22:10:15
 categories: android
 ---
-　　`Android`系统内置了许多控件，如果这些控件不能满足需求，您可以自定义自己的控件，自定义的控件必须继承`View`类。
-
-<br>**三种自定义控件的方式**
-<br>　　按实现方式来划分的话，自定义View分为三种：自绘控件、组合控件、以及继承控件。
-
-	-  自绘控件：View上所展现的内容全部都是我们自己绘制出来的。此种方式也是最难的，一般会通过直接继承View类来实现自定义控件。
-	-  继承控件：如果对已有的控件进行小调整就能满足需求，那么可以通过继承它们并重写onDraw()方法来实现自定义控件。比如，继承EditText使之产生了带有下划线的记事本页面。
-	-  组合控件：通过将几个系统原生的控件组合到一起，来实现自定义控件。比如，使用PopupWindow和Button来组合出一个下拉列表框等。
-
-<br>　　为了更好的理解自定义控件的各个步骤，在正式开始之前，我们先来了解一些相关的知识点：Activity的组成。
-
-# 第一节 Activity的组成 #
-　　本节来介绍一下`Window`、`WindowManagerService`、`WindowManager`三个类。
-## Window ##
-　　我们都知道，在Android中，屏幕上所显示的控件是以Activity为单位进行组织的。
-　　但是再深入点看的话，就会发现Activity其实主要是处理一些逻辑问题（比如生命周期的管理等），显示在屏幕上的控件并不是由它来管理的，而是交给了`Window`类。
-
-　　不信的话，可以打开Activity类的源码，看一下它的setContentView方法：
-``` android
-private Window mWindow;
-private WindowManager mWindowManager;
-
-public void setContentView(@LayoutRes int layoutResID) {
-    getWindow().setContentView(layoutResID);
-    initWindowDecorActionBar();
-}
-
-public Window getWindow() {
-    return mWindow;
-}
-```
-    语句解释：
-    -  从上面可以发现，Activity会转调用Window类的setContentView方法。
-    -  再次声明，Android系统的源码每个版本之间都会有一些差别，所以笔者在本章以及以后章节中所贴出的源码，如果和你看到的源码不一致，那么请淡定！
-       -  笔者使用的源码版本是：Android-23 。
-
-<br>　　观察仔细点的话会发现Window是一个抽象类，为了能继续追踪源码，我们得先去查看`mWindow`是何时初始化的，进而找到实例化的是哪个类。
-　　查看的过程就不说了，直接说一下初始化的步骤吧：
-
-	-  首先，当我们请求启动某个Activity时，系统会调用它的无参构造方法实例化一个它的对象。
-	-  然后，会调用该对象的attach方法，执行初始化操作。
-	-  最后，mWindow的初始化操作，就是在attach方法中进行的。
-
-<br>　　那么就来看一下Activity的`attach`方法的代码：
-``` java
-final void attach(/*此处省略若干参数*/) {
-
-    mWindow = new PhoneWindow(this);
-    
-    // 省略若干代码...
-
-    // 依据一些参数，来初始化WindowManager对象。
-    mWindow.setWindowManager(
-            (WindowManager)context.getSystemService(Context.WINDOW_SERVICE),
-            mToken, mComponent.flattenToString(),
-            (info.flags & ActivityInfo.FLAG_HARDWARE_ACCELERATED) != 0);
-
-    // 省略若干代码...
-
-    // 为mWindowManager属性赋值。
-    mWindowManager = mWindow.getWindowManager();
-
-    // 省略若干代码...
-}
-```
-    语句解释：
-    -  其实Window类官方文档已经告诉我们了，该类只有一个唯一的子类android.view.PhoneWindow。
-    -  如果继续追踪上面第8行代码的话，就可以知道mWindowManager所指向的对象将是WindowManagerImpl类型的。
-    -  用一句话概括：“当Activity被实例化之后，会接着初始化它的mWindow、mWindowManager属性”。
-
-<br>　　继续追踪就会发现，我们调用`setContentView`方法设置给Activity的布局，最终会由`PhoneWindow`类的`DecorView`管理。
-
-　　这里先给出一个完整的示意图，后面会详细分析：
-
-<center>
-![Activity内部结构](/img/android/android_f05_01.png)
-</center>
-
-　　`DecorView`是`PhoneWindow`的内部类，继承自`FrameLayout`。还有一点需要知道的是：
-
-	-  我们之所以说Activity的控件是由DecorView管理的，而不说是由PhoneWindow管理的，是因为：
-	   -  DecorView是一个真正的View对象，我们设置给Activity的布局，最终会被放到DecorView里面。
-	   -  而PhoneWindow并不是一个View。
-
-<br>　　回到刚才说的地方，我们来看一下`PhoneWindow`类的`setContentView`方法：
-``` java
-public void setContentView(int layoutResID) {
-    // 省略若干代码...
-
-    // mContentParent就是上图的R.id.content所对应的布局。
-    if (mContentParent == null) {
-        // mContentParent没有值就意味着DecorView没被初始化，下面就去初始化。
-        installDecor();
-    } else if (!hasFeature(FEATURE_CONTENT_TRANSITIONS)) {
-        // 如果已经初始化了，则删除现有的所有子View。
-        mContentParent.removeAllViews();
-    }
-
-    if (hasFeature(FEATURE_CONTENT_TRANSITIONS)) {
-        final Scene newScene = Scene.getSceneForLayout(mContentParent, layoutResID,
-                getContext());
-        transitionTo(newScene);
-    } else {
-        // 将用户传递过来的布局，放入到mContentParent中。
-        mLayoutInflater.inflate(layoutResID, mContentParent);
-    }
-
-    // 省略若干代码...
-}
-```
-    语句解释：
-    -  这段代码用来检测DecorView是否初始化完毕，然后在将layoutResID所对应的布局放到DecorView中。
-
-<br>　　接着看一下`installDecor`、`generateDecor`、`generateLayout`方法：
-``` java
-private void installDecor() {
-    if (mDecor == null) {
-        // 创建DecorView。
-        mDecor = generateDecor();
-        // 省略若干代码...
-    }
-    if (mContentParent == null) {
-        // 获取R.id.content所对应的布局，并把它赋值给mContentParent。
-        mContentParent = generateLayout(mDecor);
-        // 省略若干代码...
-    }
-}
-
-protected DecorView generateDecor() {
-    return new DecorView(getContext(), -1);
-}
-
-protected ViewGroup generateLayout(DecorView decor) {
-    // 省略若干代码...
-
-    // 依据当前设备的情况来决定使用哪个布局。
-    int layoutResource;
-    int features = getLocalFeatures();
-    if ((features & (1 << FEATURE_SWIPE_TO_DISMISS)) != 0) {
-        layoutResource = R.layout.screen_swipe_dismiss;
-    } else if ((features & ((1 << FEATURE_LEFT_ICON) | (1 << FEATURE_RIGHT_ICON))) != 0) {
-        // 省略若干代码...
-    } else if ((features & ((1 << FEATURE_PROGRESS) | (1 << FEATURE_INDETERMINATE_PROGRESS))) != 0
-            && (features & (1 << FEATURE_ACTION_BAR)) == 0) {
-        // 省略若干代码...
-    } else if ((features & (1 << FEATURE_CUSTOM_TITLE)) != 0) {
-        // 省略若干代码...
-    } else if ((features & (1 << FEATURE_NO_TITLE)) == 0) {
-        // 省略若干代码...
-    } else if ((features & (1 << FEATURE_ACTION_MODE_OVERLAY)) != 0) {
-        // 省略若干代码...
-    } else {
-        layoutResource = R.layout.screen_simple;
-    }
-
-    // 装载布局，并将它放入到DecorView中。
-    View in = mLayoutInflater.inflate(layoutResource, null);
-    decor.addView(in, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
-    // 这个mContentRoot在上面的图中有标注。
-    mContentRoot = (ViewGroup) in;
-
-    // 从DecorView中查找出id为R.id.content的布局。
-    ViewGroup contentParent = (ViewGroup)findViewById(ID_ANDROID_CONTENT);
-    
-    // 省略若干代码...
-
-    return contentParent;
-}
-
-public View findViewById(@IdRes int id) {
-    return getDecorView().findViewById(id);
-}
-
-```
-    语句解释：
-    -  至此也就看明白了，传递给setContentView方法的布局，最终会被放入到DecorView中。
-    -  第23行代码用来获取当前窗口配置，后面会依据该方法的返回值来决定使用哪个布局。
-       -  例如，窗口配置类型包括FullScreen(全屏)、NoTitleBar(不含标题栏)等。
-
-<br>　　另外，我们可以使用Activity的`requestFeature()`方法来修改窗口配置，不过该方法必须在`setContentView`之前调用。
-　　从`PhoneWindow`类的`requestFeature`方法可以看出，若在`setContentView`之后修改窗口配置，会抛异常：
-``` java
-@Override
-public boolean requestFeature(int featureId) {
-    if (mContentParent != null) {
-        throw new AndroidRuntimeException("requestFeature() must be called before adding content");
-    }
-
-    // 省略若干代码...
-
-    return super.requestFeature(featureId);
-}
-```
-
-<br>　　默认情况下，`DecorView`内部只有一个子元素，也就是上面说的`mContentRoot`，而且`mContentRoot`一般是`LinearLayout`的子类，里面包含`标题栏`和`内容区域`两部分：
-``` xml
-
-<!--   android-sdk\platforms\android-8\data\res\layout\screen.xml   -->
-
-<!-- Title bar and content -->
-<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
-    android:fitsSystemWindows="true"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <!-- Title bar -->
-    <RelativeLayout android:id="@android:id/title_container"
-        style="?android:attr/windowTitleBackgroundStyle"
-        android:layout_width="match_parent"
-        android:layout_height="?android:attr/windowTitleSize" >
-
-        <!-- 此处省略若干行代码 -->
-
-    </RelativeLayout>
-
-    <!-- Content -->
-    <FrameLayout android:id="@android:id/content"
-        android:layout_width="match_parent"
-        android:layout_height="0dip"
-        android:layout_weight="1"
-        android:foregroundGravity="fill_horizontal|top"
-        android:foreground="?android:attr/windowContentOverlay"
-    />
-</LinearLayout>
-```
-    语句解释：
-    -  我们调用Activity的setContentView()方法设置的布局，最终会以子结点的形式加入到这个FrameLayout中。
-
-<br>　　比如，我们可以在`Activity`中通过代码来控制`内容区域`的显示与隐藏。
-　　范例1：隐藏`contentView`。
-``` android
-public class MainActivity extends Activity {
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        // FrameLayout的id为android.R.id.content。
-        findViewById(android.R.id.content).setVisibility(View.GONE);
-    }
-}
-```
-    语句解释：
-    -  您可以直接输出findViewById(android.R.id.content)的值来验证是否是一个帧布局。
-    -  你也可以在onCreate方法中隐藏掉标题栏、状态栏，具体的代码请自行搜索。
-
-## WindowManagerService ##
-　　通过上面的分析，我们知道DecorView是何时创建的了，但它是如何被添加到屏幕上的呢？
-
-	答案是：通过WindowManagerService类来完成的。
-
-<br>　　下面给出一张示意图：
-
-<center>
-![Activity深层结构图](/img/android/android_f05_02.png)
-</center>
-
-　　我们从下往上看这张图，整个图分为三部分：
-
-	-  SdkClient部分表示Activity的内部结构，由PhoneWindow和DecorView组成。
-	-  FrameworkServer端用来完成整个Android系统的窗口、事件捕获和分发、输入法等的控制。
-	-  FrameworkClient用来连接SdkClient端和FrameworkServer端，它通过Binder机制让两者进行（跨进程）通信。
-	   -  也就是说，WindowManagerService（简称WMS）只会和ViewRoot类通信，DecorView也只会和ViewRoot通信。
-
-<br>**添加Activity到屏幕**
-　　比如我们现在新建一个Activity，那么此时系统会这么执行：
-	-  第一，先实例化Activity对象，然后调用attach方法初始化，然后在setContentView被调用时初始化DecorView。
-	-  第二，当需要显示Activity时，系统会使用WindowManager类来将DecorView添加到屏幕上。
-	-  第三，但WindowManager并不会执行添加操作，它会为DecorView创建一个ViewRoot对象，然后再请ViewRoot去添加。
-	-  第四，但ViewRoot实际上也不会执行添加操作，它会使用Binder机制（跨进程）访问远程的WMS类，也就是说添加操作会由WMS来完成。
-
-　　上面只是说了一下大体执行步骤，下面就来跟随源码一起，观察一个新Activity被添加到屏幕中的过程。
-
-<br>　　第一步，当系统准备resume一个Activity时，会调用`ActivityThread`的`handleResumeActivity`方法：
-``` java
-final void handleResumeActivity(IBinder token,
-    boolean clearHide, boolean isForward, boolean reallyResume) {
-
-    // 省略若干代码...
-
-    if (r.window == null && !a.mFinished && willBeVisible) {
-        r.window = r.activity.getWindow();
-        View decor = r.window.getDecorView();
-        decor.setVisibility(View.INVISIBLE);
-        ViewManager wm = a.getWindowManager();
-        WindowManager.LayoutParams l = r.window.getAttributes();
-        a.mDecor = decor;
-        l.type = WindowManager.LayoutParams.TYPE_BASE_APPLICATION;
-        l.softInputMode |= forwardBit;
-        if (a.mVisibleFromClient) {
-            a.mWindowAdded = true;
-            wm.addView(decor, l);
-        }
-
-    // If the window has already been added, but during resume
-    // we started another activity, then don't yet make the
-    // window visible.
-    } else if (!willBeVisible) {
-        if (localLOGV) Slog.v(
-            TAG, "Launch " + r + " mStartedActivity set");
-        r.hideForNow = true;
-    }
-
-    // 省略若干代码...
-}
-```
-    语句解释：
-    -  从第17行代码可以看出来，系统会调用WindowManager的addView方法来将DecorView添加到屏幕上。
-    -  通过前面的分析可以知道，实际上调用的是WindowManagerImpl类的addView方法。
-    -  继续跟进的话，就会看到最终会调用WindowManagerGlobal的addView方法。
-
-<br>　　第二步，查看`WindowManagerGlobal`类的`addView`方法：
-``` java
-public void addView(View view, ViewGroup.LayoutParams params,
-        Display display, Window parentWindow) {
-
-    // 省略若干代码...
-
-    ViewRootImpl root;
-    View panelParentView = null;
-
-    // 省略若干代码...
-
-    root = new ViewRootImpl(view.getContext(), display);
-
-    // 省略若干代码...
-
-    root.setView(view, wparams, panelParentView);
-
-    // 省略若干代码...
-}
-```
-    语句解释：
-    -  此方法里创建一个ViewRootImpl对象，这个对象很重要：
-       -  当WMS需要分发事件、绘制控件时都会通知ViewRootImpl，然后再由ViewRootImpl来通知DecorView。
-       -  相应的，当想往屏幕上添加控件时，也得通过ViewRootImpl类来将控件传递给WMS。
-    -  第15行代码调用了ViewRootImpl的setView方法，同时将DecorView传递过去。
-
-<br>　　第三步，查看`ViewRootImpl`类的`setView`方法：
-``` java
-public void setView(View view, WindowManager.LayoutParams attrs, View panelParentView) {
-
-    //  持有DecorView的引用。
-    mView = view;
-
-    // 省略若干代码...
-
-    // 调用WindowManagerService来执行添加操作。
-    res = mWindowSession.addToDisplay(mWindow, mSeq, mWindowAttributes,
-            getHostVisibility(), mDisplay.getDisplayId(),
-            mAttachInfo.mContentInsets, mAttachInfo.mStableInsets,
-            mAttachInfo.mOutsets, mInputChannel);
-
-    // 省略若干代码...
-}
-
-```
-    语句解释：
-    -  此方法第4行代码，首先保存了DecorView的引用，因为以后会用到它。
-    -  然后调用addToDisplay方法来请求WMS执行一些初始化操作。
-    -  当然此时屏幕上还没有绘制任何内容，不过我们就不继续向下深入了，只需要知道控件的绘制等操作是在WMS那端完成的即可。
-
-<br>**分发输入事件**
-　　除了负责往屏幕上添加和删除控件外，WMS还会用来分发输入事件。
-
-　　以触摸事件为例：
-
-	触摸事件是由Linux内核的一个Input子系统来管理的(InputManager)，Linux子系统会在/dev/input/这个路径下创建硬件输入设备节点(这里的硬件设备就是我们的触摸屏了)。当手指触动触摸屏时，硬件设备通过设备节点像内核(其实是InputManager管理)报告事件，InputManager经过处理将此事件传给Android系统的一个系统Service —— WindowManagerService 。
-
-<br>　　当WMS接收到一个输入事件时，会按照下面的路线传递：
-
-	-  首先，把事件传递给当前前台Activity的ViewRootImpl类。
-	-  然后，ViewRootImpl又会将事件传递给它的内部类ViewPostImeInputStage，该类依据事件的类型来调用不同的方法：
-	   -  processPointerEvent方法：处理触屏事件。
-	   -  processTrackballEvent方法：处理轨迹球事件。
-	   -  processKeyEvent方法：处理键盘事件。
-
-　　接着，同样以触屏事件为例，`processPointerEvent`方法在接到事件后，源代码如下所示：
-``` java
-private int processPointerEvent(QueuedInputEvent q) {
-    final MotionEvent event = (MotionEvent)q.mEvent;
-
-    mAttachInfo.mUnbufferedDispatchRequested = false;
-    // 将事件传递给DecorView的dispatchPointerEvent方法。
-    boolean handled = mView.dispatchPointerEvent(event);
-    if (mAttachInfo.mUnbufferedDispatchRequested && !mUnbufferedInputDispatch) {
-        mUnbufferedInputDispatch = true;
-        if (mConsumeBatchedInputScheduled) {
-            scheduleConsumeBatchedInputImmediately();
-        }
-    }
-    return handled ? FINISH_HANDLED : FORWARD;
-}
-```
-    语句解释：
-    -  从第6行代码可以看到调用了DecorView的dispatchPointerEvent方法，该方法继承自View类。
-
-　　接着来看一下View类的`dispatchPointerEvent`方法：
-``` java
-public final boolean dispatchPointerEvent(MotionEvent event) {
-    // 如果当前处于触摸模式，则调用View类的dispatchTouchEvent方法。
-    if (event.isTouchEvent()) {
-        return dispatchTouchEvent(event);
-    } else {
-        return dispatchGenericMotionEvent(event);
-    }
-}
-```
-    语句解释：
-    -  就像我们看到的那样，一般情况下，会接着转调用View类的dispatchTouchEvent方法。
-
-　　接着，看一下`DecorView`的`dispatchTouchEvent`方法：
-``` java
-public boolean dispatchTouchEvent(MotionEvent ev) {
-    final Callback cb = getCallback();
-    return cb != null && !isDestroyed() && mFeatureId < 0 ? cb.dispatchTouchEvent(ev)
-            : super.dispatchTouchEvent(ev);
-}
-```
-    语句解释：
-    -  这里的Callback是一个关键点，实际上它就是DecorView所属的Activity。
-    -  在Activity的attach方法中可以找到初始化的代码：
-       -  mWindow.setCallback(this);
-
-<br>　　分析到此也就明白了，输入事件的传递顺序为：
-
-	WMS -> ViewRootImpl -> DecorView -> Activity 
-
-<br>**执行绘制操作**
-　　与分发输入事件的过程类似，当系统需要绘制Activity的界面时，也会执行下面的步骤：
-
-	-  首先，调用ViewRootImpl的performTraversals方法。
-	-  然后，该方法依据具体的情况来调用不同的子方法：
-	   -  performMeasure方法：执行测量操作。其内部会转调用DecorView的measure方法。
-	   -  performLayout方法：执行布局操作。其内部会转调用DecorView的layout方法。
-	   -  performDraw方法：执行绘制操作。其内部会转调用DecorView的draw方法。
-
-　　其实`DecorView`类的`measure`、`layout`、`draw`三个方法都是继承自View类，而且我们稍后也会遇到它，所以此处先将它们列出来，混脸熟。
-
-<br>**本节参考阅读：**
-- [Android 窗口管理](http://1025250620.iteye.com/blog/1779670)
-- [Android Touch事件的分发过程](http://www.ithao123.cn/content-2273147.html)
-- [Android 事件分发机制详解](http://stackvoid.com/details-dispatch-onTouch-Event-in-Android/)
-
-## WindowManager ##
-　　`Activity`、`Dialog`、`Toast`里的控件，都是通过`WindowManager`来添加到屏幕上的，因此我们先来看一看该类的用法。
-
-### 基础用法 ###
-　　接下来，从最简单的范例开始，一步步的介绍`WindowManager`类。
-
-<br>　　范例1：添加一个`TextView`。
-``` android
-public class MainActivity extends Activity {
-
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        // 将Activity的引用传递过去。
-        addViewToScreen(this);
-    }
-
-    private void addViewToScreen(Context context){
-        // 首先，获取一个WindowManager对象。
-        WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        // 然后，创建布局参数。
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
-        params.width = WindowManager.LayoutParams.WRAP_CONTENT;
-        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        // 接着，创建一个按钮。
-        Button button = new Button(context);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "click", Toast.LENGTH_SHORT).show();
-            }
-        });
-        button.setText("请点击这个按钮");
-        // 最后，将载入的内容放到屏幕中。
-        manager.addView(button, params);
-    }
-}
-```
-    语句解释：
-    -  添加到屏幕上的View对象，既可以是使用LayoutInflater来载入一个布局文件，也可以是通过代码来new出来的View对象。
-    -  运行本范例时，我们就可以在屏幕的中央看到按钮了。
-
-<br>　　程序运行后就会发现一个问题：
-
-	-  除了按钮之外屏幕上的任何东西都没法点击了。
-	-  这是因为，默认情况下，通过WindowManager添加到屏幕中的控件会拦截所有事件。
-
-<br>　　我们可以通过给`WindowManager.LayoutParams`类的`flags`属性设置值来解决这个问题：
-``` java
-params.flags =
-    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-```
-    语句解释：
-    -  FLAG_NOT_FOCUSABLE表示View不需要获取焦点，也不需要接收各种输入事件，此标记会同时启用FLAG_NOT_TOUCH_MODAL。
-    -  FLAG_NOT_TOUCH_MODAL表示系统会将View区域以外的单击事件传递给底层控件，区域以内的单击事件则由View自己处理。
-    -  FLAG_SHOW_WHEN_LOCKED可以让Window对象显示在锁屏界面上，这个Flag需要作用到Window对象上，具体用法请自行搜索。
-    -  如果想为LayoutParams指定多个flag，则flag之间使用“|”间隔。
-
-<br>　　解决了这个问题之后，又发现如果我们点击`Home`键，那么屏幕上的按钮就会随着`Activity`一起被切到后台。
-　　如果想让按钮一直显示在屏幕上，而不随着`Activity`一起隐藏，那么可以这么写：
-``` android
-public class MainActivity extends Activity {
-
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        // 将Activity的引用传递过去。
-        addViewToScreen(getApplicationContext());
-    }
-
-    private void addViewToScreen(Context context) {
-        WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
-        params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
-        // 为type字段赋值。
-        params.type = WindowManager.LayoutParams.TYPE_PHONE;
-        params.width = WindowManager.LayoutParams.WRAP_CONTENT;
-        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        Button button = new Button(context);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                System.out.println("click");
-                Toast.makeText(getApplicationContext(), "click", Toast.LENGTH_SHORT).show();
-            }
-        });
-        button.setText("请点击这个按钮");
-        manager.addView(button, params);
-    }
-}
-```
-    语句解释：
-    -  本范例中主要修改了两处代码，这两处缺一不可：
-       -  将传递给addTextViewToScreen()方法的Activity对象改为Application对象。
-       -  将params.type属性赋值为TYPE_PHONE。常用取值为：
-	      -  TYPE_PHONE ：手机级别，即表示在所有应用程序之上，但在状态栏之下。
-	      -  TYPE_SYSTEM_ALERT ：系统窗口级别。比如：显示电量低时弹出的Alert对话框。
-	      -  TYPE_SYSTEM_OVERLAY ：系统窗口之上的级别，此级别的控件无法响应点击事件。
-    -  创建浮动窗需要添加下面这个权限：
-       -  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    -  如果你是小米手机则默认是无法在屏幕上添加View的，去应用程序设置里，把权限给打开即可。
-
-<br>**优先级**
-　　事实上`WindowManager`中可以放置很多个`View`（控件），控件之间有优先级之分，`优先级高的将被放到优先级低的上面`。若最高优先级控件的宽高是`“MATCH_PARENT”`，则其下面的控件都将被完全遮住，`若优先级相同则后加入的会被放到上面显示`。
-<br>　　我们来看一下下面的代码：
-``` android
-public class MainActivity extends Activity {
-
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_PHONE, "Phone1");
-        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_PHONE, "Phone2");
-        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY, "Overlay");
-        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, " Alert ");
-        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_PHONE, "Phone3");
-    }
-    static int offsetY;
-    private void addTextViewToScreen(Context context, int type, String text){
-        WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
-        params.width = WindowManager.LayoutParams.WRAP_CONTENT;
-        params.height = 70;
-        params.type = type;
-        // 设置View在y轴上的坐标值，相应的也可以设置x值。
-        params.y = offsetY;
-        offsetY += 60;
-        TextView textView = new TextView(context);
-        textView.setText(text);
-        manager.addView(textView, params);
-    }
-}
-```
-
-<br>　　程序的运行效果为：
-
-<center>
-![](/img/android/android_b09_01.png)
-</center>
-
-<br>　　从上图可以看出：
-
-	-  Phone2与Phone1是同级别的，但是Phone2却在Phone1上面。
-	-  Overlay的级别最高，所以它压在了Phone2上面。
-	-  Alert的级别第二高，虽然是在Overlay之后添加的，但是它任然被放到了Overlay下面。
-	-  Phone3被压在了Alert下面。
-
-<br>**删除和更新**
-
-<br>　　范例1：从屏幕中移除一个已经存在的控件。
-``` java
-windowManager.removeView(destView);
-```
-
-<br>　　范例2：更新屏幕中一个已经存在的控件。
-``` java
-// 让y轴坐标偏移100个像素
-mParams.y += 100;
-// 依据最近的mParams中的信息（x、y、width、height等）来重新设置view的显示效果。
-mWindowManager.updateViewLayout(view, mParams);
-```
-    语句解释：
-    -  这里所说的更新控件，其实就是更新控件的LayoutParams对象。
+　　本章主要介绍如何使用`ApkTool`工具对`Android`应用程序（包含游戏）进行破解。
+　　软件破解本就是违法行为，如果市场上充斥着破解软件，那么开发正版游戏、正版软件的公司将难以生存，为了中国软件事业的健康发展，请支持正版。
+　　本章提到的破解技术仅供学习交流，尽可能多的了解软件破解的原理也能让我们写出更安全、优秀的软件。
+
+　　这里特别感谢好哥们`张扬（大饼）`为本文指出不足之处，并为笔者指明了反编译思路。
 <br>
-### 百度安全卫士 ###
-　　如果你基础不错的话，通过上面学的知识，就可以模仿`360的小火箭特效`了（具体请参考郭霖的博客），笔者仿写了一个百度安全卫士内存清理动画的`Demo`，程序运行效果如下：
 
-<center>
-![](http://img.blog.csdn.net/20150602150418233?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvZ2l0aHViXzI4NTU0MTgz/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
-</center>
+# 第一节 破解工具 #
+　　软件破解，本质上就是先把软件给拆开了，然后修改一下软件的内容（比如去掉收费相关的软件代码），接着在把软件给组装起来的过程。 
+　　因此，在进行软件破解时，第一步要做的就是把软件给拆开，而ApkTool就是用来将软件拆开的一个工具。
+　　工欲善其事必先利其器，在开始破解之前我们要先介绍一下ApkTool，以便后面顺利的开展破解工作。
 
-　　从上图中可以看出，仿写的效果和正牌还是有一些差距的，但是通过这个`Demo`可以让大家更深刻的理解`WindowManager`类可以做哪些事情。
+<br>**ApkTool**
+　　ApkTool是Google提供的apk编译工具，它不仅可以用来反编译apk，还可以用来将反编译的apk重新编译回apk。反编译时我们需要使用`decode`命令，重新编译时则需要使用`build`命令，这两个命令的具体用法后面会有详细介绍。
 
-　　[点击下载源码](http://download.csdn.net/detail/github_28554183/8764099)
+　　下载地址：http://ibotpeaches.github.io/Apktool/ ，本文档使用的是`2.0.0rc3`版本。
 
-　　如果你没有`Android Studio`环境，那么可以去`AndroidTest\app\build\outputs\apk`目录找到`apk`直接安装运行。
+<br>**Apk文件**
+　　在进行破解之前，为了减少我们之间的知识断层，这里先介绍一些apk相关的常识：
+
+	-  Apk文件本质上是一个压缩文件，可以使用压缩软件打开它。
+	-  Apk文件必须被签名之后才能被安装到设备（手机、平板等）上，否则无法安装。
+	-  所谓的对Apk文件进行签名，就是使用JDK里自带的jarsigner.exe工具将一个签名文件和一个未签名的Apk文件绑定到一起。
+	-  使用Eclipse开发时，Eclipse每次生成Apk时都会使用一个默认的签名文件（debug.keystore）对APK进行签名。
+	-  debug.keystore被保存在当前操作系统用户目录下的.android目录下：
+	   -  在Vista和Windows7系统中，路径为：C:\Users\用户\.android\debug.keystore
+	   -  在更早版本的Windows（如XP）系统中，路径为：C:\Document and Settings\用户\.android\debug.keystore
+	-  Apk文件里的xml是二进制格式的，如果直接使用压缩软件解压Apk，那么解压出来的xml文件是无法直接查看、编辑的，但是里面的图片是可以直接查看的。
+	-  只有包名和签名完全一样的两个Apk之间才可以相互覆盖安装，否则无法覆盖安装。
+	-  Dalvik与JVM的最大的区别之一就是Dalvik是基于寄存器的。
+
+# 第二节 HelloWorld #
+　　针对不同的需求破解Apk有不同方式，最简单的破解就是不修改程序的代码，而只是替换一下程序中所用到的图片、文本等数据。
+
+　　接下来将介绍这种破解方式的具体实施步骤。
+
+　　1、创建一个名为`Decode`的`Android`项目，项目的包名为`com.cutler.decode`，然后在`Eclipse`中进行编译、运行。
+　　2、将下载来的`apltool`工具和刚生成的`apk`文件都复制到`D:\decode`目录下。
+　　3、打开`cmd`窗口，进入到`D:\decode`目录，执行如下命令：
+``` android
+apktool.bat d -f Decode.apk
+```
+    语句解释：
+    -  apktool.bat会在D:\decode目录下创建一个Decode目录，并将Decode.apk的内容解压到其中。
+    -  通过apktool.bat解压apk时，解压出来的xml是可以查看和修改的。
+
+<br>**decode命令**
+　　既然上面用到apktool工具的`decode`命令，那么在继续向下进行之前，有必要先学习一下该命令的用法。
+　　它的语法格式为：
+``` lua
+apktool d[ecode] [options] <file_apk>
+```
+	语句解释：
+	-  在上面的语法遵守了“扩展巴科斯范式”的约定，中括号括起来的代表是可选的，尖括号括起来的是必选的。
+	-  刚才我们执行的命令是“apktool.bat d -f Decode.apk”，其中d是decode的简写，它等价于：apktool decode。
+	-  [options]是decode命令的附加选项，常用的取值有：
+	   -  -s：反编译时不反编译apk中的源代码。即不会把apk里的classes.dex文件反编译。
+	   -  -r：反编译时不反编译apk中的资源文件。即res目录下的xml文件等仍然保持二进制形式的，并且res/values将不会被反编译。
+	   -  -f：强制覆盖已经存在的文件。即执行反编译命令时，如果输出路径所已经存在了，则是无法进行反编译的，除非加上-f参数。
+	   -  -o：反编译的输出路径。如果不写则默认为当前目录，并且以apk的文件名作为输出目录名。
+	-  <file.apk>：要反编译的文件的名称。
+
+　　4、接着修改`Decode\res\values\strings.xml`文件中的“`Hello world!`”为“`世界，你好!`”。
+　　5、接着删除`Decode\res\drawable-ldp`、`Decode\res\drawable-mdpi`、`Decode\res\drawable-xhdpi`三个目录。
+　　6、然后找一个`72*72`尺寸的`png`图来替换调`Decode\res\drawable-hdpi`目录中的“`ic_launcher.png`”。
+　　7、在`cmd`窗口中执行如下命令：
+``` lua
+apktool.bat b Decode -o newDecode.apk
+```
+　　另外，在打开、修改、保存`Decode\res\values\strings.xml`文件时，要始终保证文件编码是`UTF-8`，因为在“记事本”等文本编译软件中会自动使用系统的默认编码来操作文本文件，而中文操作系统的默认编码是`GBK`，这会导致打包失败。
+
+<br>**build命令**
+　　同样的，我们也来学习一下apktool工具的`build`命令的语法格式为：
+``` lua
+apktool b[uild] [options] <app_path>
+```
+	语句解释：
+	-  [options]是build命令的附加选项，常用的取值有：
+	   -  -o：打包成功后生出的文件。如果不写则默认将apk放到<app_path>/dist目录下。
+	-  <app_path>：要打包的目录。
+
+　　值得注意的是，使用`apktool`的`build`命令生成的`apk`是一个未签名的文件，而未签名的文件是无法被安装的，因此接下来我们要对`apk`进行签名，并且为了能覆盖安装，我们将不再创建新的签名文件，而是使用`debug.keystore`进行签名。
+
+　　说到这里，我们就可以发现一件事：如果我们能得到软件作者的签名文件，那么我们破解后的包将完全可以覆盖安装掉原作者的包！！！
+
+　　我们需要使用下面的命令来对apk进行签名：
+``` lua
+jarsigner -verbose -keystore debug.keystore -signedjar signed.apk newDecode.apk androiddebugkey -storepass android -digestalg SHA1 -sigalg MD5withRSA
+```
+	语句解释：
+	-  首先要保证JDK\bin目录已经被放到了PATH环境变量中，否则无法使用上面的命令进行打包。
+	-  下面依次介绍一下jarsigner.exe的各个参数的取值：
+	   -  [-verbose[:suboptions]]：签名/验证时输出详细的过程信息。子选项可以是all, grouped或summary。
+	   -  [-keystore <url>]：签名文件的保存位置。
+	   -  [-signedjar <文件>]，这个参数分为三个部分：
+	      -  第一部分是即将生成的已签名的JAR文件所要使用的名称。
+	      -  第二部分是待签名的apk文件。
+	      -  第三部分是签名文件里设置的别名(alias)。
+	   -  [-storepass <口令>]：签名文件里设置的密码。
+	   -  [-digestalg <算法>]：摘要算法的名称。
+	   -  [-sigalg <算法>]：签名算法的名称。
+
+　　然后就可以将生成的`signed.apk`安装到手机上查看运行效果了。
+
+　　至此我们通过修改`apk`里的文字、图片资源，完成了一个最简单的破解。 但是真正的游戏、软件破解可不是这么简单的，万里长征，第一步吧。
+
+# 第三节 破解App #
+　　本节将介绍如何破解一个纯Android开发的应用软件，至于游戏的破解将在下一节中介绍。
+
+　　老规矩为了更好的理解破解过程，我们在此之前先介绍一下`JVM`、`Dalvik`、`Dex`三者的概念。
+
+　　JVM、Dalvik与Dex：
+
+	-  JVM是Java Virtual Machine（Java虚拟机）的缩写，简单的说它就是用来运行Java程序的。
+	   -  目前Android程序使用Java语言来开发，因而不可避免的会使用JVM来运行程序。但实际上JVM对移动设备的支持并没有想象中的那么完美，因而Google公司自己设计了一个用于Android平台的虚拟机，即Dalvik。
+	-  Dalvik和JVM是一样的，用来解释执行Java字节码文件，但Dalvik解析的字节码文件的后缀名为.dex，而不是JVM的.class。
+	   -  这也就是说，Android系统中的应用程序是运行在Android自身的Dalvik虚拟机上的，而不是运行在Java VM之上。
+	-  对于Android来说，通常情况下一个Apk文件内部只有一个classes.dex文件，而这个.dex文件内部其实保存着多个.class文件。
+
+<br>　　然后再介绍一下`Smali`语言的概念：
+
+	-  在使用Apktool工具反编译apk时，它会在输出目录里创建一个smali子目录，并将apk里面的classes.dex里的一个个类，按照它们的包结构反编译成一个个的smali文件，Smali文件里的代码都是用Smali语言写的。
+	-  Smali代码是Android的Dalvik虚拟机的可执行文件DEX文件反汇编后的代码，Smali语言是Dalvik的反汇编语言。  
+
+<br>　　到这里一切都明白了，由于我们手上不可能拥有`apk`的源代码， 所以为了达到破解的目的，我们只能通过修改反编译生成的`smali`文件的内容来完成修改游戏逻辑的需求了。既然我们目标已经明确了（需要去修改`smali`文件），那么下一步就应该动手去做了。但在动手之前，还得先学习一下`Smali`语言的基础语法，不然是无从下手的（看都看不懂，又怎能知道如何修改）。
+
+## Smali语言入门 ##
+　　为了由浅入深的介绍`Smali`语言，我们先在原来的`Decode`项目基础上创建一个普通的类：`HelloWorld`。
+
+<br>　　范例1：com.cutler.decode.HelloWorld.java。
+``` java
+package com.cutler.decode;
+
+public class HelloWorld {
+    // 定义基本类型变量
+    static short varShort;
+    protected static int varInt;
+    // 定义对象类型变量
+    String objString = "ABC";
+    Long objLong;
+	
+    public HelloWorld(int param1, boolean param2){
+        int param3 = 2;
+        long param4 = 3;
+    }
+}
+```
+	语句解释：
+	-  在HelloWorld中定义了各种类型的变量和方法，稍后我们将看到这些代码的在Smali语言中是如何表示的。
+	-  由于篇幅有限，笔者不会把所有Java支持的语法都列举出来，并将它们对应于Smali代码，因此本章中未讲到的语法知识，读者可以自行去测试。
+
+<br>　　然后对项目执行编译、运行操作，并将生成的apk文件反编译，接着打开`smali/com/cutler/decode/HelloWorld.smali`文件。
+
+<br>　　范例2：HelloWorld.smali代码解读（1）。
+``` smali
+# .class指明当前文件是一个类文件，后面跟随着该类的访问（和存在）修饰符、包名、类名
+.class public Lcom/cutler/decode/HelloWorld;
+# .super指明当前类的父类
+.super Ljava/lang/Object;
+# .source指明当前类所在的文件名
+.source "HelloWorld.java"
+
+
+# static fields
+# .field 指明接下来定义的是一个字段。 格式为：[.field 修饰符 字段名:字段数据类型简写形式]
+.field protected static varInt:I
+.field static varShort:S
+
+
+# instance fields
+.field objLong:Ljava/lang/Long;
+.field objString:Ljava/lang/String;
+
+
+# direct methods
+# .method 指明接下来定义的是一个方法。 constructor表名该方法是一个构造方法。
+# 方法内部代码的含义，会在下面的几个范例中逐一讲解。
+.method public constructor <init>(IZ)V
+    .locals 4
+    .param p1, "param1"    # I
+    .param p2, "param2"    # Z
+
+    .prologue
+    .line 11
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    .line 8
+    const-string v3, "ABC"
+
+    iput-object v3, p0, Lcom/cutler/decode/HelloWorld;->objString:Ljava/lang/String;
+
+    .line 12
+    const/4 v0, 0x2
+
+    .line 13
+    .local v0, param3:I
+    const-wide/16 v1, 0x3
+
+    .line 14
+    .local v1, param4:J
+    return-void
+#.end method是方法结束的标志。
+.end method
+```
+	语句解释：
+	-  上面提到的字段的数据类型简写形式，可以通过JDK提供的javap工具获取，在NDK开发的时候也会用到javap工具。
+	-  javap的命令为：javap -s 包名.类名
+	-  数据类型的简写形式有：
+	   -  byte -> B    char -> C      short -> S      double -> D      long -> J
+	   -  int -> I     float -> F     boolean -> Z    int[]-> [I       Object -> L
+
+<br>　　范例3：HelloWorld.smali代码解读（2）。
+　　方法有直接方法和虚方法两种，直接方法的声明格式如下：
+``` smali
+.method <访问权限> [修饰关键字] <方法签名>  
+    <.locals> 
+    [.parameter] 
+    [.prologue] 
+    [.line] 
+    <代码体>
+.end method 
+```
+	语句解释：
+	-  <访问权限>的取值有public、private等。
+	-  [修饰关键字]的取值有static、constructor等。
+	-  <方法签名>的格式为：（参数1的类型参数2的类型...）方法返回值的类型。也可以通过javap工具获取某个类的方法签名。
+	-  <.locals>指定了方法中局部变量所占据的寄存器的总数（注意不包括方法的参数）。这里有三点需要注意的：
+	   -  1、如果局部变量没有被赋值，则是不会被计算到.locals里的。比如int a;不会被计算，而int a = 3;则就会被计算。
+	   -  2、特别说明一下：Long和Double类型是64位的，需要2个寄存器。
+	   -  3、在apktool的其他版本中，反编译出来的smali文件里可能使用的是.registers而不是.locals。
+	-  [.parameter]指定了方法的参数。 每一个参数对应一个[.parameter]，格式为：.parameter 参数名。
+	-  [.prologue]指明当前位置是代码的开始处。即在它之前出现的都是些方法的元数据，在它之后出现的才是真正的代码。
+	-  [.line]指定了该处指令在源代码中的位置。
+	-  <代码体>指明了代码的内容。一般情况下它总是跟随着[.line]一起出现。
+
+<br>　　在继续学习之前，有些东西需要先说明一下。
+　　前面说过，`Dalvik`与`JVM`的最大的区别之一就是`Dalvik`是基于寄存器的。这意味着在`Smali`里的所有操作都必须经过寄存器来进行，比如函数调用、变量赋值等等。
+<br>　　寄存器分为两种：本地寄存器和参数寄存器。
+
+	-  本地寄存器是用来保存方法内的局部变量的值所使用的寄存器。用v开头数字结尾的符号来表示，如v0、v1、v2、...。本地寄存器没有限制，理论上是可以任意使用的。
+	-  参数寄存器是用来保存方法参数的值所使用的寄存器。以p开头以数字结尾的符号来表示，如p0、p1、p2、...。特别注意的是p0不一定是方法的第一个参数：
+	   -  在非static函数中，p0代指“this”，p1表示函数的第一个参数，依此类推...。
+	   -  在static函数中p0才对应第一个参数（因为Java的static方法中没有this）。   
+
+　　之所以范例2的代码中`.locals`的值是4，是因为`smali`代码中包含了`v0-v3`共4个寄存器。
+
+<br>　　范例4：HelloWorld.smali代码解读（3）。
+``` smali
+.line 11
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+```
+	语句解释：
+	-  invoke-direct指令用来调用一个实例方法，格式为：invoke-direct {参数列表}, 方法所在的类以及方法签名。
+	-  本范例的含义为：在对象p0上调用其继承自父类Object类的无参构造方法。
+
+<br>　　范例5：HelloWorld.smali代码解读（4）。
+``` smali
+const-string v3, "ABC"
+const/4 v0, 0x2
+const-wide/16 v1, 0x3
+```
+	语句解释：
+	-  以const开头的指令都是在定义常量。
+	-  const-string指令用来定义一个字符串常量。第一行代码的含义为：将字符串ABC的地址赋值给v3。
+	-  const/4和const-wide/16分别对应int和long型的长量。
+	
+<br>　　范例6：HelloWorld.smali代码解读（5）。
+``` smali
+iput-object v3, p0, Lcom/cutler/decode/HelloWorld;->objString:Ljava/lang/String;
+```
+	语句解释：
+	-  以iput开头的指令都是为一个成员变量赋值，以iget开头的指令都是用来获取成员变量的值。如：iget-boolean。
+	-  以sput开头的指令都是为一个静态变量赋值，以sget开头的指令都是用来获取静态变量的值。如：sput-short。
+	-  没有“-object”后缀的表示操作的成员变量对象是基本数据类型，带“-object”表示操作的成员变量是对象类型。
+	-  本范例代码的含义是：将寄存器v3中保存的值，赋值到对象p0的objString属性上去。
+	   -  Lcom/cutler/decode/HelloWorld; 表示属性所隶属的类。
+	   -  ->表示从属关系。即箭头右端的字段隶属于箭头左端的类。
+	   -  objString表示属性的名称。
+	   -  Ljava/lang/String;表数属性的数据类型。
+
+　　最后的那一条`return-void`指令，就是表示方法没有返回值。如果方法有返回值的话代码类似于：`return v0`。
 
 <br>**本节参考阅读：**
-- [Android桌面悬浮窗效果实现，仿360手机卫士悬浮窗效果](http://blog.csdn.net/guolin_blog/article/details/8689140)
-- [Android桌面悬浮窗进阶，QQ手机管家小火箭效果实现](http://blog.csdn.net/guolin_blog/article/details/16919859)
+- [Smali语法学习与DEX文件详解](http://wenku.baidu.com/link?url=B4NykyUlMMkK_zTAZSUT92mNVpCpX0NscXAGlDJGUGPVwZcTrlzJCDONz0x-KiKVNT1-hkACWSc-hbApUbVpWYTmKkXBYfqoJsJg1lv89Wq) 
+- [APK反编译之一：基础知识](http://blog.csdn.net/lpohvbe/article/details/7981386)  
 
-# 第二节 Hello World #
-　　为了对自定义控件有个整体的认识，接下来我们先来写一个`HelloWorld`，其中涉及到的知识后面会详细介绍。
+## MainActivity.smali ##
+　　通过上一节我们了解了`Smali`语言的基础语法，但是仅仅了解那几个语法还是远远不够的，本节则通过分析`MainActivity.smali`文件来介绍`Smali`语言的其它语法。
 
-<br>　　范例1：`MyView`。
+<br>　　范例1：onCreate()方法分析。
+``` smali
+# virtual methods
+.method public onCreate(Landroid/os/Bundle;)V
+    .locals 1
+    .param p1, "savedInstanceState"    # Landroid/os/Bundle;
+
+    .prologue
+    .line 11
+    invoke-super {p0, p1}, Landroid/app/Activity;->onCreate(Landroid/os/Bundle;)V
+
+    .line 12
+    const/high16 v0, 0x7f030000
+
+    invoke-virtual {p0, v0}, Lcom/cutler/decode/MainActivity;->setContentView(I)V
+
+    .line 13
+    return-void
+.end method
+```
+	语句解释：
+	-  以invoke开头的指令都是在进行方法调用。常用的几个指令有：
+	   -  invoke-static 调用静态方法。
+	   -  invoke-super 调用父类的方法。
+	   -  invoke-interface 调用接口的方法。
+	   -  invoke-direct
+
+<br>　　现在我们想在`MainActivity.smali`的`onCreate()`方法里加个`Toast`，Android中对应的代码应该是这样的：
 ``` android
-// 所有自定义控件都必须继承View或View的子类。
-public class MyView extends View {
-    // 当通过代码来创建View对象时（通过new关键字），调用此方法初始化View。
-    public MyView(Context context) {
-        super(context);
-    }
-    // 当通过XML标签来创建View对象时，调用此方法。
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-}
+Toast.makeText(this, "世界，你好！", Toast.LENGTH_SHORT).show();
 ```
-    语句解释：
-    -  我们有两种方式来创建View对象：
-       -  第一种，在代码中通过new关键字，直接实例化View对象。
-       -  第二种，在XML中使用标签来创建View对象。
-    -  这两种方式分别会导致上面两个构造方法的调用。
+<br>　　那么问题来了，虽然我们之前讲解的东西都很容易懂，但是现在让我们真刀真枪的上去干，还是不会写啊，怎么办？ 
+　　简单，那就自己建立一个Android项目，在Android中把这行代码给写出来，然后再反编译它，就得到了我们想要的代码了，这种方法对于那些比较复杂的情况也照样适用，最多在代码使用之前我们稍微改改而已。
+　　`写代码不会写，尼玛改代码还不会么？？？？`
 
-<br>　　然后，我们来重写`onDraw`方法，该方法继承自`View`类，当系统需要绘制某个`View`时，就会调用该`View`对象的`onDraw`方法执行绘制操作。
+<br>　　范例2：添加Toast输出。
+``` smali
+# virtual methods
+.method public onCreate(Landroid/os/Bundle;)V
+    .locals 2
+    .param p1, "savedInstanceState"    # Landroid/os/Bundle;
 
-<br>　　范例2：`MyView`。
+    .prologue
+    .line 11
+    invoke-super {p0, p1}, Landroid/app/Activity;->onCreate(Landroid/os/Bundle;)V
+
+    .line 12
+    const/high16 v0, 0x7f030000
+
+    invoke-virtual {p0, v0}, Lcom/cutler/decode/MainActivity;->setContentView(I)V
+
+    .line 13
+    const-string v0, "\u4e16\u754c\uff0c\u4f60\u597d\uff01"
+
+    const/4 v1, 0x0
+
+    invoke-static {p0, v0, v1}, Landroid/widget/Toast;->makeText(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;
+
+    move-result-object v0
+
+    invoke-virtual {v0}, Landroid/widget/Toast;->show()V
+
+    .line 14
+    return-void
+.end method
+```
+	语句解释：
+	-  将Demo项目为Toast而生成的smali代码放到待破解项目中时，有以下几点要注意：
+	   -  确保函数第一行上的那个“.locals 寄存器数量”的数值是正确的。 比如默认情况下onCreate的.locals值为1，但是由于我们添加了的Toast操作需要两个寄存器变量，所以需要把.locals修改为2。
+	   -  onCreate()函数里的代码的“.line 行号”就得相应后移了。如本范例把Toast的smali代码插入到onCreate()函数的13行上，相应的return-void就应该被定义为“.line 14了”。
+	-  move-result-object指令用来将它上一条“方法调用”指令的返回值放到一个寄存器中。
+
+　　关于Smali的其他语法在此就不一一介绍了，当遇到不认识的指令时Google搜索或自己推测一下，问题都不大。
+
+# 第四节 破解游戏 #
+　　在破解之前，先来说一下游戏破解最常见的两个目的：
+
+	-  修改游戏里的数值。 比如金钱、血量。
+	-  修改游戏里的支付、分享等逻辑。 比如让玩家点击充值、分享时直接可以获取到奖励，而不用真正的去充值、分享。
+
+　　市场中的游戏都是基于各种各样的游戏引擎开发的，而大多数游戏的源代码最终都被打入一个`so`库中，然后在程序中动态加载这个库文件。如果想修改游戏的数值必须得修改`so`库。
+　　由于修改`so`库的技术含量比较高，因此本节只会讲解如何破解使用`Cocos2d-x`、`Unity3D`游戏引擎开发的单机游戏的支付、分享等逻辑。
+
+<br>**思路是这样的**
+　　以国内游戏为例，通常游戏会接入支付宝、银联等支付SDK，接入微信、新浪微博等分享SDK，而这些SDK的厂家都是通过`jar`包的形式对外提供SDK的，这就好办多了，我们通过前三节学习的知识完全可以完成破解工作（也许你还需要再学习一些指令，比如`if`指令）。
+　　我们以分享为例，通常游戏需要进行分享时，开发人员的做法会是：
+
+	-  当玩家在游戏中点击分享按钮时，游戏会调用Android中的某个类（假设它叫ShareUtil）的某个方法（假设它叫share）中执行分享操作。
+	-  在ShareUtil.share()方法中会执行两个操作：
+	   -  首先，设置一些与分享相关的信息（比如要分享的文字、图片等）。
+	   -  然后，调用分享SDK进行分享。
+	-  当分享SDK分享成功后会通过回调通知ShareUtil。
+	-  最后，ShareUtil接到通知后会转过来去告诉游戏端发放奖励。
+
+　　支付的流程与分享的流程是类似的，既然已经知道了它们的套路，那么接下来我们就开始吧。
+
+## 《愚公移山》 ##
+　　《愚公移山》是由厦门青瓷开发，上海黑桃互动代理发行的手机休闲游戏，运用Unity3D技术实现游戏的多平台均可运行的游戏。
+
+　　[点击查看：《愚公移山1.1》](http://zhushou.360.cn/detail/index/soft_id/2037801)
+
+　　将apk下载到本地后，为了避免中文文件名导致的各种问题，我们先把apk文件的名称为`“ygys.apk”`。
+
+<br>　　范例1：先把它反编译。
+```
+apktool.bat d ygys.apk
+```
+	语句解释：
+	-  你懂得！！！！
+
+<br>　　破解游戏的第一步要干什么？ 当然是先确定目标啊，我们的破解任务有两个：
+
+	-  进入游戏后，点击“商店”，找到“微信分享”，让玩家可以在点击“一键分享朋友圈”时，直接获得“5000儿孙”!!!
+	-  在“商店”里，找到充值金币的按钮，让玩家可以在不花费人民币的情况下就获得金币。
+
+　　确立了目标后，然后就该各个击破它们了。
+
+### 破解分享功能 ###
+　　知己知彼百战不殆，破解之前先打开游戏玩一下，看看它们用的是哪家的分享SDK，这样我们就可以也下载那个SDK，然后参考SDK的接入流程来进行破解了。  
+
+　　通过观察，从表面上只能看出愚公移山使用的是微信分享，但是没法确定具体是哪一家的（有些第三方分享SDK将各大平台的分享SDK封装到一起了），没办法只能进入到smali目录下，随便瞎看，结果没点几下就看到了`smali\cn\sharesdk`目录，看到这里我们就知道了，它使用的是[ ShareSDK ](http://sharesdk.mob.com/Download)。
+　　然后，我们就可以去ShareSDK官网把Android端的分享SDK的接入Demo给下载下来，稍后会用到。
+
+　　现在我们来看看ShareSDK的demo项目中是如何进行微信分享的，找到`cn.sharesdk.demo.WechatPage`类，发现有如下代码：
 ``` android
-public class MyView extends View {
-
-    // 当通过代码来创建View对象时（通过new关键字），调用此方法初始化View。
-    public MyView(Context context) {
-        super(context);
-    }
-    // 当通过XML标签来创建View对象时，调用此方法。
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        // 在当前控件上写一行文字。
-        Paint p = new Paint();
-        p.setTextSize(72);
-        canvas.drawText("Hello World!!!", 0, 100, p);
-    }
-}
+ShareSDK.setPlatformDevInfo("WechatMoments", map);
 ```
-    语句解释：
-    -  对于onDraw方法里的代码，暂且知道它们的作用即可，每行代码的具体含义后面会有详细的介绍。
+　　这行代码的作用看起来像是为SDK指定分享的方式的，那么就用它作为我们的入口，因为不论是`.java`文件还是`.smali`文件，虽然它们的语法差别很大，但是方法的名称是不会被改变的。
 
-<br>　　接着，在布局文件中使用我们自定义的控件：
-``` xml
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <com.cutler.demo.common.view.MyView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-</LinearLayout>
-```
-    语句解释：
-    -  使用自定义控件时，控件的名称要包含包名。
-    -  由于笔者将MyView放到了com.cutler.demo.common.view包中，所以才这么写。
-
-<br>　　最后，程序的运行效果如下图所示：
+　　为了方便代码定位，我们将反编译出来的`ygys`文件夹放入到Eclipe中，因为Eclipse有全文搜索的功能，快捷键是“`ctrl+H`”，打开搜索窗口后，找到“`File Search`”选项卡，搜索`setPlatformDevInfo`关键字，如下图所示：
 
 <center>
-![](/img/android/android_b08_05.png)
+![Eclipse全文搜索](/img/android/android_26_1.png)
 </center>
 
-<br>　　提示：
+　　最终搜索出两个结果，通过观察发现，第一个结果是`setPlatformDevInfo`的定义，而第二个则是对`setPlatformDevInfo`的调用。
+　　我们打开`smali\com\qcplay\www\wechat\wxapi\WXShare.smali`，找到`318`行，发现它是属于“`.method private _init()V`”函数的，以我们以往接入SDK的经验来看，一般SDK都会存在一个“初始化”的步骤，只有初始化完毕后，SDK才能正常工作，所以`_init`方法应该不是用户点击按钮的时候调用的，因为初始化通常是个耗时操作，放在点击按钮的时候调用明显不合适（用户等待的时间就变长了）。
+　　当然最重要的一点是，仔细看了一下这个方法里的代码，并没有任何与分享有关的代码，所以综合这些信息，可以判定我们要找的不是这个方法。
 
-	-  在Android中，View类占据了屏幕上一个“矩形区域”，并负责绘制和处理事件。
-	-  从整体上来看，Activity内的所有View按照从上到下的顺序，排列成了一个“树型结构”，我们把这个树形结构称为“View树”、“视图树”。
+　　那么既然已经找到了`setPlatformDevInfo`方法的调用位置了，那么真正执行分享的代码应该也在附近（除非那个狗日的程序员是个傻屌乱写代码），现在只有上下看看`WXShare.smali`里还有其他什么方法没有，结果看到了下面这八个方法：
 
-# 第三节 生命周期方法 #
-　　在继承了`View`类且重写完构造方法后，接着你就可以根据自己的需要来重写`View`所提供的一些回调方法了。你不需要重写所有的方法，实际上你可以从仅重写`onDraw(android.graphics.Canvas)`方法开始，但是本节将会详细讲解`View`类的各个回调方法的调用时机。
+	-  ShareImgBit、ShareImgPath、ShareText、ShareWebPage、_shareImgBit、_shareImgPath、_shareText、_shareWebPage
 
-　　首先，要知道的是，任何一个视图都不可能凭空突然出现在屏幕上，它们都是要经过非常科学的绘制流程后才能显示出来的。
-　　然后，当`Activity`获取焦点的时候，它就需要绘制它的`View树`了。
-　　接着，整个`View树`会从根节点开始，依次执行绘制。
-　　最后，每个`View`对象从创建到结束的整个生命周期中，会经历多个阶段：创建、布局、绘制、事件处理、焦点等，每个阶段中都提供了一个或多个回调方法。
+　　其中后四个是`private`修饰的，外界没法直接调用它们，因此先将它们排除。
+　　现在只剩下四个方法了，但是当玩家在游戏中点击“`一键分享朋友圈`”按钮时，真正调用的是哪一个方法呢？ 没办法只有在这四个方法里都加入我们的代码，进行测试了，比如我们把`ShareText`方法的代码修改如下：
+``` smali
+.method public static ShareText(ZLjava/lang/String;)V
+    .locals 2
+    .param p0, "isTimelineCb"    # Z
+    .param p1, "text"    # Ljava/lang/String;
 
-## 创建阶段 ##
-　　在`View`的创建阶段中，框架会首先调用该`View`的构造方法进行对象的初始化，通常在你自定义的`View`类中会定义两个不同的构造器，并在其内部来调用父类的构造器。
+    .prologue
+    .line 96
+    sget-object v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
 
-　　在构造方法返回之后，系统会进行如下判断： 
+    const-string v1, "*********************************** Hi ShareText"
 
-	-  若当前控件继承自View类，则构造方法执行完毕后会接着调用它的onFinishInflate方法。
-	-  若当前控件继承自ViewGroup或其子类，则将在当前控件的所有子View的onFinishInflate方法都调用完成后，才会调用它的onFinishInflate方法。
+    invoke-virtual {v0, v1}, Ljava/io/PrintStream;->println(Ljava/lang/String;)V
 
-<br>　　`onFinishInflate`方法的一个比较常见的应用场景是：
-
-	-  你自定义了一个ViewGroup，它支持在XML文件中使用，这就不可避免的在它的标签里包含其它子标签。
-	-  如果你想在代码中获取到它的子标签的引用，那么就应该在这个方法里写，而不是在构造方法里。这是因为，当ViewGroup的此方法被调用时，意味着它所包含的所有子控件也都加载完了（但只是加载完毕，宽高什么的都没测量）。
-
-<br>　　假设我们有如下的布局文件：
-``` xml
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <com.cutler.demo.common.view.MyViewGroup
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <com.cutler.demo.common.view.MyView
-            android:id="@+id/myView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-    </com.cutler.demo.common.view.MyViewGroup>
-
-</LinearLayout>
+    .line 97
+    return-void
+.end method
 ```
+	语句解释：
+	-  实际上就是加了一个System.out.println("*********************************** Hi ShareText");
+	-  注意还要修改一下 .locals 2，因为System.out语句使用到了2个寄存器。
 
-<br>　　然后，`MyViewGroup`类的代码为：
+　　相应的我们也在另外三个方法里加上不同的输出内容，然后重新打包、签名、安装、运行，当点击“一键分享朋友圈”时，发现输出的内容是我们在`ShareWebPage`方法里写的内容，至此我们就确定了，当用户点击分享按钮时Android端第一个被调用的方法了。
+
+　　查看`ShareWebPage`方法的内部，发现它又调用了`_shareWebPage`方法，我们接着跟进去，第一眼看到的就是我们熟悉的`Handler`的定义：
+``` smali
+.prologue
+.line 127
+new-instance v6, Landroid/os/Handler;
+```
+　　通过连猜带蒙的方式，得知它调用了`Handler.post(Runnable)`方法执行一个任务，这个`Runnable`对象就是`WXShare$3.smali`。由于那一行代码看起来像是在调用分享SDK，所以我们只能硬着头皮继续看`WXShare$3.smali`了。
+　　提示：在Java中，一个内部类的类名的格式为`外部类名$内部类名`，对于匿名内部类来说，内部类名用数字编号。
+
+　　既然知道`WXShare$3`是`Runnable`的子类，那我们直接去找`run`方法，看看里面有什么。又是一阵连蒙带猜结束后，看到了如下代码：
+``` smali
+.line 141
+.local v2, "wechat":Lcn/sharesdk/framework/Platform;
+invoke-virtual {v2, v1}, Lcn/sharesdk/framework/Platform;->share(Lcn/sharesdk/framework/Platform$ShareParams;)V
+```
+　　终于找到了我们想要看到的“`share`”函数的调用了，虽然不确定是不是分享，但是从名字上看，`90%`是没错了。假设我们没找错，那也只是能证明“`点击一键分享朋友圈按钮时，程序会调用ShareWebPage函数，并由ShareWebPage函数执行分享操作`”，接下来我们该干什么?
+
+　　我们没必要继续向下追踪了，那里面都是分享SDK相关的代码了，对我们没用。现在就需要回到ShareSDK官方提供的Demo项目中看看当分享成功后它是怎么接到通知的。
+　　从`WechatPage.java`中找到了如下代码：
 ``` android
-public class MyViewGroup extends LinearLayout {
-
-    private MyView myView;
-
-    public MyViewGroup(Context context) {
-        super(context);
-    }
-
-    public MyViewGroup(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
-        myView = (MyView) findViewById(R.id.myView);
-    }
-
+Platform plat = null;
+ShareParams sp = getShareParams(v);
+if (ctvPlats[0].isChecked()) {
+    plat = ShareSDK.getPlatform("Wechat");
+} else if (ctvPlats[1].isChecked()) {
+    plat = ShareSDK.getPlatform("WechatMoments");
+} else {
+    plat = ShareSDK.getPlatform("WechatFavorite");
 }
+plat.setPlatformActionListener(this);
+plat.share(sp);
 ```
-    语句解释：
-    -  程序运行是，会按照下面的顺序调用：
-       -  首先，调用MyViewGroup的构造方法。
-       -  然后，调用MyView的构造方法。
-       -  接着，调用MyView的onFinishInflate方法。
-       -  最后，再调用MyViewGroup的onFinishInflate方法。
-
-<br>　　注意：如果你的控件不是从`XML`中创建的（而是通过代码`new`出来的），那么不会导致`onFinishInflate`方法调用。
-
-<br>　　创建阶段完成后，还有三个比较重要的阶段：`测量`、`布局`、`绘制`。
-
-## 测量阶段 ##
-　　测量（`measure`）指的是对View的尺寸进行测量，因为父控件只有知道了每个子View的尺寸之后，它才能正确的摆放子View（比如防止子View重叠等）。
-　　因此在创建完View之后，系统首先要做的就是测量View的尺寸。
-
-<br>　　前面已经分析过，当系统需要测量View时，会调用`DecorView`的`measure`方法，它内部的代码如下：
-``` java
-public final void measure(int widthMeasureSpec, int heightMeasureSpec) {
-
-    // 省略若干代码...
-
-    if (cacheIndex < 0 || sIgnoreMeasureCache) {
-        // measure ourselves, this should set the measured dimension flag back
-        onMeasure(widthMeasureSpec, heightMeasureSpec);
-        mPrivateFlags3 &= ~PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT;
-    }
-
-    // 省略若干代码...
-}
-```
-    语句解释：
-    -  measure方法定义在View中，并且是final的，子类没法去重写它。
-    -  简单的说在measure方法内，就做了三件事：
-       -  首先，在测量之前执行一些预处理操作。
-       -  然后，在上面第7行代码中调用了onMeasure方法，开始正式的测量工作。
-       -  最后，对测量的结果进行收尾处理。
-    -  由于一个View到底需要多少宽高只有它自己才知道，因此系统在View类中提供了onMeasure()方法供子类重写，你只需要在该方法内部执行测量操作即可，当然可以不重写它，因为View提供了默认的实现。
-
-<br>　　在讲解如何重写`onMeasure()`方法进行测量之前，需要先介绍一下`MeasureSpec`类。
-
-### MeasureSpec ###
-　　首先让`MyView`类重写`onMeasure`方法，但是在其内部会直接调用父类的实现：
-``` java
-public class MyView extends View {
-    public MyView(Context context) {
-        super(context);
-    }
-
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-        // 我们不做任何操作，只是输出参数的值。
-        System.out.println(widthMeasureSpec + "," + heightMeasureSpec);
-    }
-}
-```
-    语句解释：
-    -  从onMeasure方法的两个参数的名字来看，它们应该是表示宽度和高度，但是在程序运行时输出的值却是类似于：
-       -  -2147482568,-2147481937
-       -  1073742904,-2147481937
-    -  这他妈根本看不懂啊，逗爹呢？ 
-
-<br>　　其实`onMeasure`方法的两个参数虽然是`int`类型的，但是我们称它们为`MeasureSpec`：
-
-	-  MeasureSpec是一个32位的int值，高2位代表SpecMode（测量模式），低30位代表SpecSize（测量尺寸）。
-	-  MeasureSpec通过将SpecMode和SpecSize打包成一个int值来避免过多的对象内存分配。而且为了方便操作，MeasureSpec类提供了打包和解包的方法。
-	-  SpecMode和SpecSize也使用int值表示。
-　　总之一句话，“系统之所以使用int值，就是为了节省内存分配，这样只需要使用1个int值就能表示两个数据”。
-
-<br>　　既然这两参数是混合值，那么在使用它们之前，首先得使用`MeasureSpec`类来拆分出`SpecMode`和`SpecSize`。
-
-　　范例1：获取`mode`与`size`。
+　　发现它是在调用`share`方法进行分享之前，调用`setPlatformActionListener`方法设置了一个回调接口，`WechatPage`类实现了该接口。
+　　那么我们再在`WechatPage`类找找`PlatformActionListener`接口定义了哪些方法，最终找到了它：
 ``` android
-protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-    // 获取widthMeasureSpec中的mode值。
-    int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-    // 获取widthMeasureSpec中的size值。
-    int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-    int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-    int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-}
+public void onComplete(Platform plat, int action, HashMap<String, Object> res)
 ```
 
-<br>　　其中`size`指的是尺寸，`mode`指的是模式，常见的模式有： 
+　　终于又找到新的线索了，当分享成功后ShareSDK会调用`PlatformActionListener`接口的`onComplete`函数。那么还是按照刚才的结论(同一模块内部的一些相关的类所在的位置相距不会太远），在`smali\com\qcplay\www\wechat\wxapi`目录下找找，看看有没有实现`PlatformActionListener`接口的`smali`文件。
+　　最终，我们定位到了`WXShare$2.smali`，在它的`onComplete`函数里找到了如下代码：
+``` smali
+.line 71
+const-string v0, "3rd_sdk"
 
-	-  MeasureSpec.EXACTLY：精确尺寸。
-	   -  当控件的layout_width或layout_height指定为具体数值(如50dip)或FILL_PARENT时，mode的值会为EXACTLY。
-	   -  当mode是EXACTLY时，表示父视图希望子视图的大小应该是由size的值来决定的。
-	-  MeasureSpec.AT_MOST：最大尺寸。
-	   -  当控件的layout_width或layout_height指定为WRAP_CONTENT时，mode的值会为AT_MOST。
-	   -  当mode是AT_MOST时，size给出了父控件允许的最大尺寸，此时控件尺寸只要不超过父控件允许的最大尺寸即可。
-	-  MeasureSpec.UNSPECIFIED：未指定尺寸。
-	   -  这种情况比较少见，不太会用到，笔者也没搞清楚。
+const-string v1, "OnWeChatResp"
 
-<br>　　从上面的描述可以看出来，`MeasureSpec`的值与`LayoutParams`有关系，下面就具体介绍。
+const-string v2, "errcode=0"
 
-### LayoutParams ###
-　　当系统需要测量控件尺寸时，会从DecorView开始，从上到下依次测量View树中的每一个控件。在测量时，每一个子View的`onMeasure`方法的参数，都是由其父View传递过来的。
-
-	父View会综合自身的情况以及子控件的LayoutParams来计算出需要传递给子控件的MeasureSpec值。
-
-<br>　　而且，DecorView和普通View的`MeasureSpec`的计算过程略有不同，我们分开来看。
-
-<br>**DecorView**
-　　对于DecorView来说，它的`MeasureSpec`值是在`ViewRootImpl`中的`measureHierarchy`方法中计算的，代码：
-``` java
-// desiredWindowWidth和desiredWindowHeight是屏幕的尺寸
-childWidthMeasureSpec = getRootMeasureSpec(desiredWindowWidth, lp.width);
-childHeightMeasureSpec = getRootMeasureSpec(desiredWindowHeight, lp.height);
-performMeasure(childWidthMeasureSpec, childHeightMeasureSpec);
+invoke-static {v0, v1, v2}, Lcom/unity3d/player/UnityPlayer;->UnitySendMessage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 ```
-　　接着再看一下`getRootMeasureSpec`方法的代码：
-``` java
-private static int getRootMeasureSpec(int windowSize, int rootDimension) {
-    int measureSpec;
-    switch (rootDimension) {
+　　这就是当分享成功后，程序要执行的代码，`onComplete`函数里的其他代码就是用来打印`Log`的，不重要，我们不用管。
+　　现在我们需要做的就是，把这段代码copy出来，然后放到`WXShare.smali`的`ShareWebPage`函数里。即当用户点击分享的时候，我们不调用分享，而是直接调用上面的代码，让用户可以立刻领取奖励，最终的代码如下：
+``` smali
+.method public static ShareWebPage(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;[B)V
+    .locals 6
+    .param p0, "isTimelineCb"    # Z
+    .param p1, "url"    # Ljava/lang/String;
+    .param p2, "title"    # Ljava/lang/String;
+    .param p3, "description"    # Ljava/lang/String;
+    .param p4, "img"    # [B
 
-    case ViewGroup.LayoutParams.MATCH_PARENT:
-        // Window can't resize. Force root view to be windowSize.
-        measureSpec = MeasureSpec.makeMeasureSpec(windowSize, MeasureSpec.EXACTLY);
-        break;
-    case ViewGroup.LayoutParams.WRAP_CONTENT:
-        // Window can resize. Set max size for root view.
-        measureSpec = MeasureSpec.makeMeasureSpec(windowSize, MeasureSpec.AT_MOST);
-        break;
-    default:
-        // Window wants to be an exact size. Force root view to be that size.
-        measureSpec = MeasureSpec.makeMeasureSpec(rootDimension, MeasureSpec.EXACTLY);
-        break;
-    }
-    return measureSpec;
-}
+    .prologue
+    .line 122
+    const-string v0, "3rd_sdk"
+    const-string v1, "OnWeChatResp"
+    const-string v2, "errcode=0"
+    invoke-static {v0, v1, v2}, Lcom/unity3d/player/UnityPlayer;->UnitySendMessage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+
+    .line 123
+    return-void
+.end method
 ```
-    语句解释：
-    -  静态方法MeasureSpec.makeMeasureSpec用来将两个普通的int值合成一个MeasureSpec值。
-    -  上面的代码已经表示的很清楚了，ViewRootImpl会依据DecorView的LayoutParams的值以及窗口的尺寸来计算出DecorView的MeasureSpec。
+　　然后保存、打包、签名、运行。
 
-<br>**普通View**
-　　对于普通View来说，它的`measure`方法是由ViewGroup调用的，先来看一下ViewGroup的`measureChildWithMargins`方法：
-``` java
-protected void measureChildWithMargins(View child, int parentWidthMeasureSpec, int widthUsed,
-        int parentHeightMeasureSpec, int heightUsed) {
-    final MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
+　　至此我们就完成了分享SDK的破解，看了这么多你可能会感觉，如果是自己搞的话思路不会有这么清晰，还是会感觉无从下手。 没关系，万事开头难，我搞这个SDK破解也是没头绪的晕了2天，然后才慢慢走出来的。
 
-    final int childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,
-            mPaddingLeft + mPaddingRight + lp.leftMargin + lp.rightMargin + widthUsed, lp.width);
-    final int childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,
-            mPaddingTop + mPaddingBottom + lp.topMargin + lp.bottomMargin + heightUsed, lp.height);
 
-    child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
-}
+### 破解短信支付功能 ###
+　　还是老套路，先观察游戏使用的是什么支付方式再决定怎么破解。 但经过观察后，我们从游戏界面上只能看出来《愚公移山》使用的是短信支付，其他的却什么都看不出来，那么只能再去看看`smali`文件夹下面有什么线索没有了。
 
-public static int getChildMeasureSpec(int spec, int padding, int childDimension) {
-    int specMode = MeasureSpec.getMode(spec);
-    int specSize = MeasureSpec.getSize(spec);
+　　虽然现在没什么头绪，只能是胡乱翻找，但是按照“`相关代码不会离太远`”的原则，我们先去`sharesdk`所在的目录看看，结果发现了一个名为“`egame`”的支付SDK，然后果断去百度一下，看看`egame`是怎么个用法，结果搜索到了 http://180.96.63.69/Documents/SDK_Pay.html 。
 
-    int size = Math.max(0, specSize - padding);
+　　接着将`egame`的SDK下载下来，打开`cn.play.egamesmsonline69.MainActivity`文件，发现有个名为`EgamePay`的类比较核心，我们也许可以从它入手。 
+　　然后在Eclipse中全文搜索`EgamePay`类，查询出了2个目录：
 
-    int resultSize = 0;
-    int resultMode = 0;
+	-  cn\egame\terminal\paysdk
+	-  com\heitao\mp\channel
+　　其中第一个目录不出意外的话应该是`egame`提供给游戏开发者的SDK中的`jar`包，所以对我们没什么用。
+　　而第二个目录，看起来就像是游戏开发者自己写的充值代码了，所以我们打算先打开`HTMP_CHA.smali`文件看看，查看之后，结果里面就是支付相关的代码。
 
-    switch (specMode) {
-    // Parent has imposed an exact size on us
-    case MeasureSpec.EXACTLY:
-        if (childDimension >= 0) {
-            resultSize = childDimension;
-            resultMode = MeasureSpec.EXACTLY;
-        } else if (childDimension == LayoutParams.MATCH_PARENT) {
-            // Child wants to be our size. So be it.
-            resultSize = size;
-            resultMode = MeasureSpec.EXACTLY;
-        } else if (childDimension == LayoutParams.WRAP_CONTENT) {
-            // Child wants to determine its own size. It can't be
-            // bigger than us.
-            resultSize = size;
-            resultMode = MeasureSpec.AT_MOST;
-        }
-        break;
+　　但是此时还有个问题，`com\heitao\mp\channel`目录下有`7`个类，其中`HTMPBaseChannel.smali`是一个父类，另外`6`个类中有三个是内部类，而剩下的三个类从名字来看的话，应该是代表三个充值渠道，那么可以肯定的是，这三个渠道不会同时被使用，所以需要知道我们从`360`市场下载过来的apk会走哪个充值渠道。
+　　这个好判断，只要在这三个类中都加上我们万能的HelloWorld代码，然后重新打包，看看运行时输出的内容就可以了。
 
-    // Parent has imposed a maximum size on us
-    case MeasureSpec.AT_MOST:
-        if (childDimension >= 0) {
-            // Child wants a specific size... so be it
-            resultSize = childDimension;
-            resultMode = MeasureSpec.EXACTLY;
-        } else if (childDimension == LayoutParams.MATCH_PARENT) {
-            // Child wants to be our size, but our size is not fixed.
-            // Constrain child to not be bigger than us.
-            resultSize = size;
-            resultMode = MeasureSpec.AT_MOST;
-        } else if (childDimension == LayoutParams.WRAP_CONTENT) {
-            // Child wants to determine its own size. It can't be
-            // bigger than us.
-            resultSize = size;
-            resultMode = MeasureSpec.AT_MOST;
-        }
-        break;
+``` smali
+.method public doPay(Lcom/heitao/mp/model/HTMPPayInfo;Lcom/heitao/mp/listener/HTMPPayListener;)V
 
-    // Parent asked to see how big we want to be
-    case MeasureSpec.UNSPECIFIED:
-        if (childDimension >= 0) {
-            // Child wants a specific size... let him have it
-            resultSize = childDimension;
-            resultMode = MeasureSpec.EXACTLY;
-        } else if (childDimension == LayoutParams.MATCH_PARENT) {
-            // Child wants to be our size... find out how big it should
-            // be
-            resultSize = View.sUseZeroUnspecifiedMeasureSpec ? 0 : size;
-            resultMode = MeasureSpec.UNSPECIFIED;
-        } else if (childDimension == LayoutParams.WRAP_CONTENT) {
-            // Child wants to determine its own size.... find out how
-            // big it should be
-            resultSize = View.sUseZeroUnspecifiedMeasureSpec ? 0 : size;
-            resultMode = MeasureSpec.UNSPECIFIED;
-        }
-        break;
-    }
-    return MeasureSpec.makeMeasureSpec(resultSize, resultMode);
-}
+#以上省略若干代码
+
+    .line 150
+    sget-object v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
+    const-string v1, "*********************************** Hello World22"
+    invoke-virtual {v0, v1}, Ljava/io/PrintStream;->println(Ljava/lang/String;)V
+    :goto_0
+    return-void
+
+#以下省略若干代码
+
+.end method
 ```
-    语句解释：
-    -  从代码中也可以容易看出来，子View的MeasureSpec值，是由其父容器的MeasureSpec和子View的LayoutParams来确定的。
+<br>　　从运行结果看出来，我们从360上下载的apk所使用的渠道为`HTMP_CHL.smali`，那么接下来要做的就是：
 
-<br>
-### 开始测量 ###
-　　稍微总结一下，我们现在知道的知识有：
-
-	-  第一，当需要测量View的时，系统会从DecorView开始自上向下的测量每一个View。
-	-  第二，不论是DecorView还是普通的View，它们的MeasureSpec都是由它的上级传递过来的。
-	   -  对于DecorView来说，它的MeasureSpec是由屏幕的尺寸和它自身的LayoutParams决定的。
-	   -  对于普通View来说，它的MeasureSpec是由父View剩余空间和它自身的LayoutParams决定的。
-	      -  比如，若父ViewGroup的layout_height值为100，子View的值为200，则最终传入到子View的高度就是200。
-	-  第三，当系统需要测量某个View时，会调用View类的onMeasure方法。
-	-  第四，MeasureSpec是一个复合的int值，在使用之前需要将它们拆解。
-
-<br>　　需要说的是，普通View和ViewGroup的重写onMeasure方法时是有区别的：
-
-	-  普通View只需要在onMeasure中测量自己的尺寸即可。
-	-  ViewGroup除了完成自己的测量过程外，还会遍历去调用其所有子View的measure方法，各个子View再递归去执行这个流程。
-
-<br>**普通View的重写**
-<br>　　范例1：重写`onMeasure`方法。
-``` android
-public class MyView extends View {
-
-    public MyView(Context context) {
-        super(context);
-    }
-
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // 什么都不干，直接设置MyView的宽高为300*300像素，注意此处的单位是px，而不是dp。
-        setMeasuredDimension(300, 300);
-    }
-}
+	-  先把调用充值SDK的代码（假设为A）给删掉。
+	-  然后找到充值成功后程序要执行的代码（假设为B）。
+	-  将B放到原来A所在的地方。
+　　
+　　那么先来删除调用充值SDK的代码（`HTMP_CHL.smali`的第`74`行），即下面的这段：
+``` smali
+invoke-virtual/range {v0 .. v6}, Lmm/purchasesdk/Purchase;->order(Landroid/content/Context;Ljava/lang/String;ILjava/lang/String;ZLmm/purchasesdk/OnPurchaseListener;)Ljava/lang/String;
 ```
-    语句解释：
-    -  当系统调用onMeasure方法时，就是在要求View执行测量了。
-    -  当View测量完毕时需要将测量结果给保存起来，但是由于Java方法只能返回一个值，没法同时将宽度和高度一起返回，所以系统给我们提供一个setMeasuredDimension方法，我们把测量的结果传递过去即可。
-    -  在实际开发中，很少会像上面那样把MyView的尺寸写死在代码上，而是会依据widthMeasureSpec和heightMeasureSpec的值来动态的计算出MyView的尺寸。
+　　为什么知道是这个方法呢? 还是老样子，一半是猜的，一半是根据支付SDK分析的。 
+　　事实上《愚公移山》的apk中包含了多个支付SDK（至少我就看到了2个），一个是`egame`，一个是中国移动的`purchasesdk`。
+　　从360平台上下载的《愚公移山》实际上使用的是中国移动的`purchasesdk`，我们上面的分析过程的意义就是：通过搜索`egmae`中的`EgamePay`类来定位出《愚公移山》的支付模块所在的位置，进而确定了它使用的支付SDK实际为`purchasesdk`。
 
-<br>　　当然我们也可以不重写onMeasure方法，而是使用父类的实现：
-``` java
-protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
-            getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
-}
-public static int getDefaultSize(int size, int measureSpec) {
-    int result = size;
-    int specMode = MeasureSpec.getMode(measureSpec);
-    int specSize = MeasureSpec.getSize(measureSpec);
+　　接下来我们需要找到充值后要执行的代码，目前唯一的线索就是`HTMP_CHL$1.smali`这个内部类，进入看看后，发下了如下可疑代码：
+``` smali
+.line 57
+iget-object v1, p0, Lcom/heitao/mp/channel/HTMP_CHL$1;->this$0:Lcom/heitao/mp/channel/HTMP_CHL;
 
-    switch (specMode) {
-    case MeasureSpec.UNSPECIFIED:
-        result = size;
-        break;
-    case MeasureSpec.AT_MOST:
-    case MeasureSpec.EXACTLY:
-        result = specSize;
-        break;
-    }
-    return result;
-}
+iget-object v1, v1, Lcom/heitao/mp/channel/HTMP_CHL;->mPayListener:Lcom/heitao/mp/listener/HTMPPayListener;
+
+invoke-virtual {v1}, Lcom/heitao/mp/listener/HTMPPayListener;->onHTPayCompleted()V
 ```
-<br>　　总结一下`onMeasure`方法：
+　　然后把这三行代码中的后两行copy出来，放到`HTMP_CHL.smali`的`doPay`方法里即可，最终结果如下：
+``` smali
 
-	-  若没有重写onMeasure方法，则会按照View类的默认方式处理：
-	   -  通常情况下View对象的测量尺寸就是layout_width和layout_height所设置的值。
-	   -  在少数情况下，View对象的测量尺寸是getSuggestedMinimumWidth和getSuggestedMinimumHeight方法返回的。
-	-  若重写了onMeasure方法，则View对象的测量尺寸就是你在onMeasure方法里测量的结果。
-	   -  但是onMeasure方法测出的宽度和高度不一定就是View最终的宽高。
-	   -  测量宽高会受到View对象父View的约束，若父控件最大允许的宽度为100px，但子View测量的宽度为200px，最终子控件只会显示前100px的宽度，超出的部分不会被显示，除非加上滚动条。
+#以上省略若干代码
 
-<br>　　注意，视图实际拥有两对宽度和高度的值：
+    move v5, v3
 
-	-  第一对被称作测量宽度和测量高度。
-	   - 这两个尺寸表示View在其父View中需要的大小，也就是我们在onMeasure方法里计算出来的宽高。
-	   - 当View对象的measure()返回时，就可以通过getMeasuredWidth()和getMeasuredHeight()方法来获得测量宽高。
-	-  第二对被简单的称作宽度和高度，或绘制宽度和绘制高度。
-	   -  这两个尺寸表示View最终在屏幕上的实际大小，不过在少数情况下，绘制宽高可能与测量宽高不同。
-	   -  当View对象的onLayout()被调用时，就可以通过getWidth()方法和getHeight()方法来获取视图的宽高了。
+    iget-object v1, p0, Lcom/heitao/mp/channel/HTMP_CHL;->mPayListener:Lcom/heitao/mp/listener/HTMPPayListener;
 
-<br>　　说了这么多，也许你还是不知道怎么重写onMeasure方法，没关系，后面会有实战范例，不要慌！
+    invoke-virtual {v1}, Lcom/heitao/mp/listener/HTMPPayListener;->onHTPayCompleted()V
 
-<br>**ViewGroup的重写**
-　　事实上，`ViewGroup`类并没有重写`onMeasure`方法，而是交给它的子类来重写了。
+    .line 150
+    :goto_0
+    return-void
 
-　　下面是`LinearLayout`类的`onMeasure`方法：
-``` java
-protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    if (mOrientation == VERTICAL) {
-        measureVertical(widthMeasureSpec, heightMeasureSpec);
-    } else {
-        measureHorizontal(widthMeasureSpec, heightMeasureSpec);
-    }
-}
+#以下省略若干代码
 
-void measureVertical(int widthMeasureSpec, int heightMeasureSpec) {
-
-    // 此处省略若干行代码
-
-    // 遍历测量每一个子View。
-    for (int i = 0; i < count; ++i) {
-        // 此处省略若干行代码
-        measureChildBeforeLayout(
-               child, i, widthMeasureSpec, 0, heightMeasureSpec,
-               totalWeight == 0 ? mTotalLength : 0);
-        // 此处省略若干行代码
-    }
-
-    // 此处省略若干行代码
-
-    // 当所有子View都测量完毕后，再测量自己的尺寸。
-    mTotalLength += mPaddingTop + mPaddingBottom;
-    int heightSize = mTotalLength;
-    heightSize = Math.max(heightSize, getSuggestedMinimumHeight());
-    int heightSizeAndState = resolveSizeAndState(heightSize, heightMeasureSpec, 0);
-    heightSize = heightSizeAndState & MEASURED_SIZE_MASK;
-    
-    // 此处省略若干行代码
-    
-    setMeasuredDimension(resolveSizeAndState(maxWidth, widthMeasureSpec, childState),
-            heightSizeAndState);
-
-    // 此处省略若干行代码
-}
-
-void measureChildBeforeLayout(View child, int childIndex,
-        int widthMeasureSpec, int totalWidth, int heightMeasureSpec, int totalHeight) {
-    measureChildWithMargins(child, widthMeasureSpec, totalWidth, heightMeasureSpec, totalHeight);
-}
-
-protected void measureChildWithMargins(View child,
-        int parentWidthMeasureSpec, int widthUsed, int parentHeightMeasureSpec, int heightUsed) {
-    final MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
-
-    // 调用getChildMeasureSpec方法，综合自身和当前子View的尺寸信息，计算出子View最终的测量尺寸。
-    final int childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,
-            mPaddingLeft + mPaddingRight + lp.leftMargin + lp.rightMargin + widthUsed, lp.width);
-    final int childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec,
-            mPaddingTop + mPaddingBottom + lp.topMargin + lp.bottomMargin + heightUsed, lp.height);
-
-    child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
-}
 ```
+	语句解释：
+	-  HTMP_CHL类的mPayListener字段继承自父类HTMPBaseChannel。
+	-  注意：copy过来代码后，还要把“iget-object v1, v1”改成“iget-object v1, p0”。
 
-<br>　　提示：父视图可能在它的子视图上调用一次以上的`measure(int,int)`方法。
+<br>　　从上面的破解过程可以看出来，软件破解的成功与否，除了需要大量的代码分析外，还与运气有那么一点关系。
 
-## 布局阶段 ##
-　　当所有`View`都测量完毕后，就需要设置它们的位置了，这个过程同样是从`DecorView`开始，调用的方法为`layout()`。
+## 《消灭星星》 ##
+　　《消灭星星》是一款经典的消除类益智休闲手游，由掌游天下从韩国引入后深受中国玩家们的喜爱。简单的游戏规则，轻松的趣味关卡，1分钟即可上手,，一旦开始根本停不下来！
 
-<br>　　首先，我们来看下`View.java`中的`layout()`方法的源码：
-``` android
-public void layout(int l, int t, int r, int b) {
-    if ((mPrivateFlags3 & PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT) != 0) {
-        onMeasure(mOldWidthMeasureSpec, mOldHeightMeasureSpec);
-        mPrivateFlags3 &= ~PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT;
-    }
+　　[点击查看：《消灭星星4.0.1》](http://shouji.baidu.com/game/item?docid=7371485&from=web_alad_6)
 
-    int oldL = mLeft;
-    int oldT = mTop;
-    int oldB = mBottom;
-    int oldR = mRight;
+**此次破解任务：**
+　　将《消灭星星》里的支付SDK替换成我们自己的支付SDK，具体可以将任务分为两步来执行：
 
-    // 调用setFrame或setOpticalFrame方法来修改当前View的位置。
-    // 注意：这个位置是当前控件在父View内的相对位置，原点是父View的左上角。
-    boolean changed = isLayoutModeOptical(mParent) ?
-            setOpticalFrame(l, t, r, b) : setFrame(l, t, r, b);
+	-  首先，定位出游戏调用支付和处理支付结果的代码。
+	-  然后，将我们的SDK插入到游戏中。
 
-    if (changed || (mPrivateFlags & PFLAG_LAYOUT_REQUIRED) == PFLAG_LAYOUT_REQUIRED) {
-        // 如果上面修改成功了，或者用户强制要求更新，则回调onLayout()方法。
-        onLayout(changed, l, t, r, b);
-        mPrivateFlags &= ~PFLAG_LAYOUT_REQUIRED;
+### 定位支付代码 ###
+　　游戏下载完毕后我们不着急破解，而是先将它安装到手机上观察一下整个游戏，比如看看它使用的是什么样的支付方式（手机话费、支付宝等）。
 
-        ListenerInfo li = mListenerInfo;
-        // 回调所有注册过的（如果有的话）listener的onLayoutChange()方法。
-        if (li != null && li.mOnLayoutChangeListeners != null) {
-            ArrayList<OnLayoutChangeListener> listenersCopy =
-                    (ArrayList<OnLayoutChangeListener>)li.mOnLayoutChangeListeners.clone();
-            int numListeners = listenersCopy.size();
-            for (int i = 0; i < numListeners; ++i) {
-                listenersCopy.get(i).onLayoutChange(this, l, t, r, b, oldL, oldT, oldR, oldB);
-            }
-        }
-    }
+<br>**移动MM支付SDK？**
+　　首次打开游戏，发现了`“MM伴我，移动生活”`的闪屏页，因而可以初步判断游戏应该是接入了中国移动的支付SDK，然后进入游戏，在商城中选择某个充值项后，游戏确实也打开了手机话费的充值界面，这样一来就有`90%`的把握确定游戏是接入的移动支付。
+　　然后，在百度中搜索`“移动mm支付sdk”`可以搜索到[ 中国移动应用内计费SDK ](http://dev.10086.cn/cmdn/bbs/thread-80671-1-1.html)，从帖子中的截图来看，这和《消灭星星》中弹出的支付界面十分相似，那么现在我们有`98%`的把握确定游戏是接入的移动支付。
+　　接着，我们下载这个移动支付的SDK，打开`Demo\src\com\aspire\demo\Demo.java`文件，找一下支付相关的代码，发现了支付时所执行的代码为`purchase.order(context, mPaycode, listener);`，我们从这行代码中提取出两个关键词`Purchase`和`order`。
+　　接着，把《消灭星星》的`apk`给反编译了，并把`smali`文件夹放入到`Eclipse`中，全文搜索这两个关键字，虽然搜索出来的内容不少，但是能和`order(context, mPaycode, listener)`对上号的却没有。
+　　但是，从已到的信息来看，游戏很大可能是使用了移动MM支付，但是我们却搜不到支付相关的代码，现在好像是没头绪了，然后笔者无意识的退出游戏，再次重新进入时发现闪屏页变化成了`百度移动游戏`。
 
-    mPrivateFlags &= ~PFLAG_FORCE_LAYOUT;
-    mPrivateFlags3 |= PFLAG3_IS_LAID_OUT;
-}
+<br>**百度移动游戏SDK！**
+　　既然获取到了新线索，那现在就去搜索`百度移动游戏SDK`，然后就找到了[ Android单机SDK ](http://dev.mgame.baidu.com/yyjr/djsdk)。
+　　下载完毕后打开`doc\百度移动游戏SDK（单机版）接入API参考手册_支付模块.doc`，我们找到了一个名为`invokePayCenterActivity`支付接口，然后全文搜索它，结果找到了我们想要的代码。
+　　从搜索结果中我们可以确定，《消灭星星》接入了百度移动游戏SDK，而在百度SDK中又接入了移动支付的SDK，我们的任务就是搞掉百度的支付SDK就可以了。
+
+　　经过一番比较，我们猜测`PopStarxiaomiexingxingguan_401\smali\com\brianbaek\popstar\popStarA$1.smali`第`245`行（由于`ApkTool`的版本不同，你反编译出来的代码行数可能和笔者不同，请以下面的代码为准）是支付代码。
+``` smali
+    invoke-virtual/range {v0 .. v6}, Lcom/duoku/platform/single/DKPlatform;->invokePayCenterActivity(Landroid/content/Context;Lcom/duoku/platform/single/item/GamePropsInfo;Lcom/duoku/platform/single/item/DKCMMdoData;Lcom/duoku/platform/single/item/DKCMMMData;Lcom/duoku/platform/single/item/DKCMGBData;Lcom/duoku/platform/single/callback/IDKSDKCallBack;)V
 ```
-    语句解释：
-    -  从第3行代码可以看出来，在View的layout阶段也有可能调用onMeasure方法。
-
-<br>　　关于`onLayout()`方法：
-
-	-  当需要确定当前View的所有子View的位置时，才会调用onLayout方法。
-	-  对于普通的View类来说，由于它是没有子View的，因此View类的onLayout()只是一个空实现。
-	-  对于ViewGroup类来说，在它内部onLayout方法被改为抽象方法了，即要求所有ViewGroup的子类都必须重写它。
-
-<br>　　接着我们来看下`ViewGroup.java`中的`layout()`和`onLayout()`方法的源码：
-``` android
-public final void layout(int l, int t, int r, int b) {
-    if (!mSuppressLayout && (mTransition == null || !mTransition.isChangingLayout())) {
-        if (mTransition != null) {
-            mTransition.layoutChange(this);
-        }
-        super.layout(l, t, r, b);
-    } else {
-        // record the fact that we noop'd it; request layout when transition finishes
-        mLayoutCalledWhileSuppressed = true;
-    }
-}
-
-protected abstract void onLayout(boolean changed, int l, int t, int r, int b);
+　　为了验证猜测，将那行代码替换为我们万能的`HelloWorld`：
+``` smali
+    sget-object v0, Ljava/lang/System;->out:Ljava/io/PrintStream;
+    const-string v1, "*********************************** Hello World22"
+    invoke-virtual {v0, v1}, Ljava/io/PrintStream;->println(Ljava/lang/String;)V
 ```
-    语句解释：
-    -  相比之下ViewGroup增加了LayoutTransition的处理：
-       -  若当前ViewGroup未添加LayoutTransition动画，或者动画此刻并未运行，那么调用super.layout(l, t, r, b)。
-       -  否则将mLayoutCalledWhileSuppressed设置为true，等待动画完成时再调用requestLayout()。
-    -  除此之外，还有两个地方需要注意：
-       -  layout()方法增加了final关键字，这意味着它的所有子类无法重写layout()方法。
-       -  onLayout()方法使用abstract关键字修饰了，这意味着它的所有子类必须重写此方法。
+　　然后打包、签名、运行，从运行的结果可以看到，我们的猜测是正确的。
 
+<br>**支付成功后的代码**
+　　继续查看`百度移动游戏SDK`的文档，发现在调用支付接口时，第6个参数是一个名为`IDKSDKCallBack`回调接口，用来接收支付的结果。
+　　然后，我们通过`popStarA$1.smali`第`239`行代码得知，支付函数的第六个参数（即`v6`）是`com/brianbaek/popstar/popStarA$1$4;`类型的，因此我们现在就去该文件中找一找线索。
 
-<br>　　我们来看下`LinearLayout`的`onLayout`方法：
-``` android
-//  参数 changed 表示当前ViewGroup的尺寸或者位置是否发生了改变。
-//  也就是说ViewGroup的尺寸和位置没有发生变化时，此方法也有可能被调用。
-protected void onLayout(boolean changed, int l, int t, int r, int b) {
-    // 依据方向来调用不同的方法进行layout。
-    if (mOrientation == VERTICAL) {
-        layoutVertical(l, t, r, b);
-    } else {
-        layoutHorizontal(l, t, r, b);
-    }
-}
+　　整体查看一遍`popStarA$1$4;`后，猜测对我们有用的代码应该在`onResponse`方法中，然后再经历一些连蒙带猜，定位出第`66`和`107`行是支付完成后，通知游戏进行后续操作的代码，它们分别表示`支付失败`（值为0）和`支付成功`（值为1）。
 
-void layoutVertical(int left, int top, int right, int bottom) {    
-    // 此处省略若干行代码
-    int childTop;
-    int childLeft;
-    // 此处省略若干行代码
-    for (int i = 0; i < count; i++) {
-        final View child = getVirtualChildAt(i);
-        if (child == null) {
-            childTop += measureNullChild(i);
-        } else if (child.getVisibility() != GONE) {
-            // 获取到我们之前测量出来的尺寸。
-            final int childWidth = child.getMeasuredWidth();
-            final int childHeight = child.getMeasuredHeight();
-            // 此处省略若干行代码
-            // 调用setChildFrame()方法来设置子控件的位置
-            setChildFrame(child, childLeft, childTop + getLocationOffset(child), childWidth, childHeight);
-            // 由于是垂直排列元素，因此这里需要更新childTop变量的值，以便下一个子View进行布局。
-            childTop += childHeight + lp.bottomMargin + getNextLocationOffset(child);
-            i += getChildrenSkipCount(child, i);
-        }
-    }
-}
+　　为了验证猜测，我们把下面的代码替换到`popStarA$1.smali`第`245`行上：
+``` smali
+    const/4 v3, 0x1
 
-private void setChildFrame(View child, int left, int top, int width, int height) {        
-    child.layout(left, top, left + width, top + height);
-}
+    invoke-static {v3}, Lcom/zplay/iap/ZplayJNI;->sendMessage(I)V
 ```
-    语句解释：
-    -  从第23行代码可以看出，LinearLayout的子View最终的显示的宽和高，是由该子View的measure过程的结果来决定的。
-    -  因此measure过程的意义就是为layout过程提供视图显示范围的参考值。
+　　然后打包、签名、运行，从运行的结果可以看到，每当我们点击支付时，会立刻增加幸运星的个数。
 
-## 绘画阶段 ##
-　　布局阶段执行完毕后，框架就会调用DecorView的`draw()`方法开始绘制`View树`。但是每次绘图时，并不会重新绘制整个`View树`中的所有`View`，而只会重新绘制那些`“需要重绘”`的`View`，`View`类内部变量包含了一个标志位`DRAWN`，当该视图需要重绘时，就会为该`View`添加该标志位。
+### 替换支付SDK ###
+　　在上一节中已经找到了游戏的支付相关的代码，那么破解后的游戏的支付流程应为：
 
-<br>　　通过查看源码可以知道，View类的绘制流程由六步构成：
+	-  首先，用户点击支付按钮。
+	-  然后，游戏调用我们的支付SDK进行支付。
+	-  接着，依据我们的SDK的支付结果来控制游戏是否发放游戏币。
 
-	-  第一，绘制当前View的背景。
-	-  第二，如果有必要，则为稍后绘制渐变效果做一些准备操作(大多数情况下，不需要)。
-	-  第三，调用onDraw()方法绘制视图本身。
-	   -  View类的onDraw()方法是空实现，ViewGroup类没有重写此方法。
-	-  第四，调用dispatchDraw()方法绘制子视图。
-	   -  View类的dispatchDraw()方法是空实现，因为对于不包含子View的控件来说不需要重写此方法。
-	   -  ViewGroup类已经为我们重写了dispatchDraw()的功能实现，因此ViewGroup的子类一般不需要重写该方法。
-	-  第五，如果第二步被执行了，那么第五步也会被执行。第五步用来绘制渐变效果以及绘制渐变效果之后的一些收尾工作。
-	-  第六，绘制滚动条。
-	   -  在Android中不管是Button还是TextView，任何一个视图都是有滚动条的，只是一般情况下我们都没有让它显示出来而已。
+<br>　　通常，各平台（支付宝、微信等）的支付SDK会以一个`lib`项目的形式提供给开发者，且`lib`项目中会包含一些`drawable`、`style`、`layout`等资源，因此如果我们想把它们的SDK插入到某个`apk`中，则必须得把SDK中的`drawable`等也同时插入进去。
 
-<br>　　总而言之，每一个具体的`View`都应该重写`onDraw()`方法，并且不论是`View`还是`ViewGroup`的子类，一般不需要重写`dispatchDraw()`方法。
+　　这此时就有一个问题，任何存在于`res`目录里的资源都是有`资源id`的，因此在破解时，我们除了要把支付SDK`res`目录下的资源文件复制到待破解的apk里外，还需要为它们创建资源id，否则在程序中是无法引用的。
 
-　　绘制的时候主要是借助`Canvas`这个类，它会作为参数传入到`onDraw()`方法中，供给每个视图使用。
-　　`Canvas`这个类的用法非常丰富，基本可以把它当成一块画布，在上面绘制任意的东西，那么我们就来尝试一下吧。
+　　问：那既然要添加资源id，我们总不能手工修改项目的`R`文件，挨个的为每个资源添加资源id吧？
+　　答：我们可以创建一个辅助项目，把游戏和我们SDK的资源都放到它里面去，让Eclipse帮我们生成资源id，然后再把这个辅助项目的apk给反编译出来，获取到其中的`R`文件即可。
 
-<br>　　范例1：初步使用画笔和画布。
-``` android
-public class MyView extends View {
-    private Paint mPaint;
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
+　　接下来以《消灭星星》为例，来介绍如何向apk中添加自己的SDK。
 
-    @Override
-    protected void onFinishInflate() {
-        mPaint = new Paint();
-    }
+<br>**创建辅助项目**
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        // 设置画笔颜色为黄色
-        mPaint.setColor(Color.YELLOW);
-        // 使用画笔绘制一个黄色的矩形
-        canvas.drawRect(0, 0, getWidth(), getHeight(), mPaint);
-        // 设置画笔颜色为蓝色
-        mPaint.setColor(Color.BLUE);
-        // 设置画笔的字体大小
-        mPaint.setTextSize(20);
-        String text = "Hello View";
-        // 将一行文本绘制到画布中去，字体的颜色是蓝色，字体的大小是20px。
-        canvas.drawText(text, 0, getHeight() / 2, mPaint);
-    }
-}
-```
-　　布局文件的内容为：
-``` xml
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent" >
-    <com.cutler.demo.common.view.MyView
-        android:layout_width="200dp"
-        android:layout_height="100dp" />
-</LinearLayout>
-```
-    语句解释：
-    -  Paint表示一个画笔，Canvas表示一个画布。 
-    -  另外，由于MyView类没有重写onMeasure方法，则系统使用默认的策略来计算它的测量尺寸，即使用XML中设置的尺寸。
+　　第一步，创建一个新的Android项目，名为`XmxxDecode`，项目的包名要与游戏的包名相同，此处我们设置为`com.wpd.game.popstar`。
+　　第二步，删除`XmxxDecode`项目中的以下内容：
 
-　　运行效果如下图所示：
+	-  MainActivity.java
+	-  res下的所有文件
+	-  libs下的所有文件(如android-support-v4.jar)
 
-<center>
-![](http://img.blog.csdn.net/20131223234856718?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvZ3VvbGluX2Jsb2c=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
-</center>
+　　第三步，将反编译出来的《消灭星星》的`res`目录的所有文件复制到`XmxxDecode`的`res`目录下。
+　　第四步，删除`XmxxDecode\res\values\public.xml`文件，该文件是反编译时生成的，具体用法请自行搜索。
+　　第五步，假设我们要插入到游戏中的SDK项目叫做`PaySDK`，则让`XmxxDecode`去引用`PaySDK`项目。
+　　第六步，如果`PaySDK`除了提供了`lib`项目外，还提供了`jar`包让开发者接入，那么就把`jar`包复制到`XmxxDecode\libs`目录下。
 
-<br>**View重绘**
-　　虽然View会在`Activity`加载完成之后绘制到屏幕上，但是在程序的运行时View的状态是会改变的。当改变发生时，之前绘制出的内容其实就已经过期了，此时应该对视图进行重绘。
+<br>**将辅助项目合并到游戏中**
+　　第一步，运行`XmxxDecode`项目。虽然不会成功，但是会生成一个apk，接着将`bin\XmxxDecode.apk`复制出来，反编译。
+　　第二步，把在`XmxxDecode\smali`下的所有文件覆盖到`PopStarxiaomiexingxingguan_401\smali`目录下。
+　　第三步，把在`XmxxDecode\res`下的所有文件覆盖到`PopStarxiaomiexingxingguan_401\res`目录下。
+　　第四步，把接入`PaySDK`时所需要的权限、组件等都复制到`PopStarxiaomiexingxingguan_401\AndroidManifest.xml`中。
+　　第五步，将`PopStarxiaomiexingxingguan_401`文件夹打包、签名。
 
-　　调用视图的`setVisibility()`、`setEnabled()`、`setSelected()`等方法时都会导致视图重绘，而如果我们想要手动地强制让视图进行重绘，可以调用`invalidate()`方法来实现。
+　　不出意外的话，程序运行将一切正常，但事实上我们已经把`PaySDK`的资源和代码都给插入到apk中了，剩下的就是调用它们了。
 
-	-  setVisibility、setEnabled、setSelected等方法的内部其实也是通过调用invalidate方法来实现的。
-	-  这里的重绘是指谁请求invalidate方法，就重绘该视图(View的话只绘制该View，ViewGroup则绘制整个ViewGroup)。
-　　`invalidate()`只可以在主线程中调用，如果你需要在子线程中重绘`View`，那么可以调用`postInvalidate()`方法。
+<br>**调用我们的支付SDK**
+　　第一步，找到`popStarA$1.smali`第`245`行，把它删掉，然后改成调用我们的支付接口。如果不会写调用语句，可以按照前面那样先在Android中写一遍然后反编译。
+　　第二步，当支付有结果时，调用游戏的代码，通知游戏是否增加游戏币。
 
-<br>　　如果你需要`定时重绘`，那么你可以使用`postInvalidateDelayed(long delayMilliseconds)`方法，当倒计时结束后，该方法会有如下判断：
-
-	-  若调用该方法的View依然显示在屏幕中，则该方法会在主线程中调用invalidate()方法执行重绘。
-	-  若调用该方法的View已经不显示了，则这个重绘任务会被挂起，等到该View再次显示时，才会触发重绘。
-
-　　比如，对于一个计时器`View`来说，每秒钟都需要重绘一次，如果通过开启`Thread`来定时调用`postInvalidate()`方法来实现计时的话，有两个缺点：
-
-	-  第一，开启Thread类需要消耗一定资源。
-	-  第二，若计时器View当前不再屏幕中（比如用户把App切换到后台了），那么线程仍然在跑，View仍然是每秒钟都重绘一次，浪费大量资源。
-
-<br>　　如果你不需要`定时重绘`，那么最好也去使用`postInvalidate()`方法，当`View`不再显示时，它同样不会立刻执行重绘操作，它的源码为：
-``` android
-public void postInvalidate() {
-    postInvalidateDelayed(0);
-}
-```
-
-## 其它常用方法 ##
-
-<br>**定位**
-　　`View`的几何形状是`矩形`的，视图的`位置`使用`左上坐标系`表示，`尺寸`由`宽和高`表示，位置和尺寸以`像素`为单位。我们可以通过`getLeft()`和`getTop()`函数取得视图的位置：
-
-	-  前者返回视图的左侧位置（横坐标X）。
-	-  后者返回视图的顶部位置（纵坐标Y）。
-　　这两个方法返回视图相对于其父视图的位置，例如`getLeft()`返回`20`，代表视图在其直接父视图左侧边的右侧`20`像素的位置。
-
-　　另外，为了避免不必要的计算，提供了一些便利的方法，它们是`getRight()`和`getBottom()`。这些方法返回代表视图的矩形的右侧和底边的坐标。例如，调用`getRight()`比调用`getLeft() + getWidth()`要简单。
-
-<br>**跳过绘制**
-　　`View`类有一个特殊的方法setWillNotDraw，先来看一下的它的源码：
-``` java
-/**
- * If this view doesn't do any drawing on its own, set this flag to
- * allow further optimizations. By default, this flag is not set on
- * View, but could be set on some View subclasses such as ViewGroup.
- *
- * Typically, if you override {@link #onDraw(android.graphics.Canvas)}
- * you should clear this flag.
- *
- * @param willNotDraw whether or not this View draw on its own
- */
-public void setWillNotDraw(boolean willNotDraw) {
-    setFlags(willNotDraw ? WILL_NOT_DRAW : 0, DRAW_MASK);
-}
-```
-    语句解释：
-    -  从注释可以看出来，如果一个View不需要绘制任何内容，那么设置这个标记位为true后，系统就会进行相应的优化。
-    -  默认情况下，View没有启用这个优化标记位，但是ViewGroup会默认启用这个标记位。
-
-<br>**从窗口中添加和移除**
-　　当View和其所在的Activity建立和断开连接时，系统会调用如下两个方法：
-
-	-  Activity关闭或者View从Activity中移除时，View的onDetachedFromWindow方法会被调用。
-	   -  通常在此方法中关闭线程和停止动画，从而避免内存泄漏。
-	-  View被添加到Activity中时，它的onAttachedToWindow方法会被调用。
-
-# 第四节 开始自定义 #
-　　在绘制`View`时会涉及到两个类：`Paint`和`Canvas`，这两个类分别代表`画笔`和`画布`。
-　　我们需要调用`Canvas`对象所提供的方法进行绘制，其中`Canvas`对象由框架创建，在View的`onDraw()`方法被调用时，系统会同时将`Canvas`对象以形参的形式传递给该方法。
-
-　　`Canvas`对象提供的绘制图形的方法都是以`draw`开头的，我们可以查看`API`：
-
-<center>
-![](/img/android/android_b08_03.jpg)
-</center>
-
-　　从上面方法的名字看来我们可以知道`Canvas`可以绘制的对象有：弧线(`arcs`)、填充颜色(`argb`和`color`)、 `Bitmap`、圆(`circle`和`oval`)、点(`point`)、线(`line`)、矩形(`Rect`)、图片(`Picture`)、圆角矩形 (`RoundRect`)、文本(`text`)、顶点(`Vertices`)、路径(`path`)。
-
-　　通过组合这些对象我们可以画出一些简单有趣的界面出来，但是光有这些功能还是不够的，如果我们要画一个钟表呢？
-　　幸好Android还提供了一些对`Canvas`位置转换的方法：`rorate`、`scale`、`translate`、`skew`等，而且它允许你通过获得它的转换矩阵对象(`getMatrix`方法，不知道什么是转换矩阵？在[《媒体篇　第二章 图片》](http://cutler.github.io/android-D02/)中有介绍) 直接操作它。
-
-　　为了方便执行转换操作，`Canvas`还提供了保存和回滚属性的方法(`save`和`restore`)，比如你可以先调用`save`方法保存目前画布的位置，然后旋转`90`度，向下移动`100`像素后画一些图形，画完后调用`restore`方法返回到刚才保存的位置。
-
-## 画布和画笔 ##
-　　简单的说，我们需要使用`Canvas`所提供的方法进行绘制，但绘制的同时还要传递给那些方法一个`Paint`对象，`Paint`对象用来设置画笔的颜色等参数。
-
-<br>　　范例1：绘制文字。
-``` android
-public class MyView extends View {
-    private Paint mPaint;
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        // 初始化画笔对象。
-        mPaint = new Paint();
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        // 修改画笔的颜色，下面使用的是android.graphics.Color类。
-        mPaint.setColor(Color.RED);
-        // 字体大小
-        mPaint.setTextSize(70);
-        // 字体下面加下划线
-        mPaint.setUnderlineText(true);
-        // 从(10,10)的位置开始，绘制一行文本。
-        canvas.drawText("Hello Wrold!", 10, 100, mPaint);
-        // 加粗字体。 如果字体的型号比较小，那么加粗的效果可能就不是很明显。
-        mPaint.setFakeBoldText(true);
-        // 给字体加上删除线。
-        mPaint.setStrikeThruText(true);
-        canvas.drawText("Hello Wrold2!", 10, 300, mPaint);
-        // 设置文本在水平方向上的倾斜比例，负数向右倾斜，正数向左倾斜。
-        mPaint.setTextSkewX(-0.3f);
-        // 设置文本水平方向上的对齐方法，以坐标(10,500)为例：
-        //   Paint.Align.LEFT : 将文本的左边放到(10,500)的位置，默认设置。
-        //   Paint.Align.CENTER : 将文本的中心点放到(10,500)的位置。
-        //   Paint.Align.RIGHT : 将文本的右边放到(10,500)的位置。
-        mPaint.setTextAlign(Paint.Align.LEFT);
-        canvas.drawText("Hello Wrold3!", 10, 500, mPaint);
-        //按照既定点 绘制文本内容
-        canvas.drawPosText("Android", new float[]{
-                10,610, //第一个字母在坐标10,610
-                120,640, //第二个字母在坐标120,640
-                230,670, //....
-                340,700,
-                450,730,
-                560,760,
-                670,790,
-        }, mPaint);
-    }
-}
-```
-
-<br>　　范例2：绘制图形。
-``` android
-@Override
-protected void onDraw(Canvas canvas) {
-    // 定义一个画笔对象。
-    Paint p = new Paint();
-    p.setColor(Color.RED);
-    p.setStyle(Paint.Style.FILL_AND_STROKE);
-
-    // 将整个canvas染成蓝色。也可以调用canvas.drawARGB(100, 255, 0, 0);来设置具体的颜色值。  
-    canvas.drawColor(Color.BLUE);
-    // 使用画笔p在canvas上绘画出一条直线，直线的起点为(10,10)，结束点为(10,40)。
-    canvas.drawLine(10, 10, 10, 40, p);
-    // 使用画笔p在canvas上绘画出一个矩形，矩形的左上角坐标为(20,20)，右下角坐标为(40,50)。 
-    canvas.drawRect(new Rect(20,20,40,50), p);
-    // 使用画笔p在canvas上绘画出一个圆形，圆心坐标为(150,150)，半径为60。
-    canvas.drawCircle(150, 150, 60, p);
-    // 使用画笔p在canvas上绘画出一个圆角矩形，矩形左上角坐标为(80,220)，右下角坐标为(210,280)，x和y方向上的圆角半径为(10,10)。
-    canvas.drawRoundRect(new RectF(80,220,210,280), 10, 10, p);
-}
-```
-    语句解释：
-    -  Rect类用来描述一个矩形的四个顶点，RectF类也是一样的，与Rect不同的是，它使用4个float类型的变量。
-    -  Paint类的setStyle()方法设置当前画笔在绘图(圆形、矩形等)时要使用的样式，常用取值： 
-       -  Paint.Style.STROKE： 只画出图形的边框线。
-       -  Paint.Style.FILL：使用当前画笔的颜色填充图形的内部。
-       -  Paint.Style.FILL_AND_STROKE：既画出边框线又填充图形内部。
-    -  绘制椭圆形可以使用drawOval(RectF oval, Paint paint)方法。
-
-<br>　　范例3：绘制弧形。
-
-<center>
-![本范例运行效果示意图](/img/android/android_b08_01.png)
-</center>
-
-``` android
-@Override
-protected void onDraw(Canvas canvas) {
-    Paint p = new Paint();
-    // 在画图的时候，进行图片旋转或缩放等操作之后，在图片的四条边上总是会出现锯齿。我们可以通过下面这行代码消除锯齿。
-    p.setAntiAlias(true);
-    p.setColor(Color.BLUE);
-
-    // 绘制一个弧形，并使用画笔当前的颜色填充它。
-    p.setStyle(Paint.Style.FILL);
-    // 我们提供一个RectF对象作为弧形的外切矩形，系统就知道弧形的位置和尺寸了。
-    // 下面的代码是从-90度开始画，画一个300度的弧形。
-    // 我们常规认为12点方向是0度，但在这里默认3点方向是0度，因而要从-90度开始画弧线。
-    // 这个弧形运行时的效果，请看上面示意图中的第一个，后面三个以此类推。
-    canvas.drawArc(new RectF(100,100,250,250), -90, 300, true, p);
-
-    // 绘制一个弧形，只绘制弧线，不填充内容。
-    p.setStyle(Paint.Style.STROKE);
-    // 设置线的粗（宽度）为5，线宽对Paint.Style.FILL无效、对文本字体无效。
-    p.setStrokeWidth(5);
-    canvas.drawArc(new RectF(300,100,450,250), -90, 300, true, p);
-
-    // 绘制一个弧形，但useCenter字段为false。具体效果请看上面示意图中的第三个。
-    canvas.drawArc(new RectF(500,100,650,250), -90, 300, false, p);
-
-    // 绘制一个弧形，但useCenter字段为false。
-    p.setStyle(Paint.Style.FILL);
-    canvas.drawArc(new RectF(700,100,850,250), -90, 300, false, p);
-}
-```
-    语句解释：
-    -  通过第一幅和第四幅图对比我们可以发现，useCenter为false时，弧线区域是用弧线开始角度和结束角度直接连接起来的，当useCenter为true时，是弧线开始角度和结束角度都与中心点连接，形成一个扇形。
-
-<br>　　范例4：绘制`GIF`。
-``` android
-public class MyView extends TextView {
-    // 我们将使用android.graphics.Movie类来绘制GIF。
-    private Movie mMovie;
-    // 记录当前播放的位置。
-    private long mMovieStart;
-
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        // 获取res/drawable目录下的GIF文件的输入流。
-        InputStream input = context.getResources().openRawResource(R.drawable.animated_gif);
-        // 从输入流中读入数据，并创建一个Movie对象。
-        mMovie = Movie.decodeStream(input);
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        // 获取当前时间。
-        long now = android.os.SystemClock.uptimeMillis();
-        if (mMovieStart == 0) {   // first time
-            mMovieStart = now;
-        }
-        if (mMovie != null) {
-            // 获取GIF文件的总时长。
-            int dur = mMovie.duration();
-            if (dur == 0) {
-                dur = 1000;
-            }
-            // 计算当前需要播放的位置。
-            int relTime = (int)((now - mMovieStart) % dur);
-            // 将GIF调整到relTime所对应的帧上。
-            mMovie.setTime(relTime);
-            // 将当前帧绘制到canvas的(0,0)坐标上。
-            mMovie.draw(canvas, 0, 0);
-            // 绘制完后，调用下面的方法，触发下一次绘制。
-            invalidate();
-        }
-    }
-}
-```
-    语句解释：
-    -  如果你执行本范例出错了，可能是默认开启了硬件加速导致的，你可以在清单文件的Application标签中添加如下属性来禁用硬件加速：
-       -  android:hardwareAccelerated="false"
-    -  如果你想通过代码来放大、缩小GIF，那么可以调用Canvas提供的scale()方法实现。
-
-<br>　　范例5：画布的相关操作。
-``` java
-@Override
-protected void onDraw(Canvas canvas) {
-    Paint p = new Paint();
-    p.setColor(Color.RED);
-    canvas.drawText("AAAAAAAAAAAAAA", 100, 100, mPaint);
-    p.setColor(Color.GREEN);
-
-    // 保存当前画布的参数。
-    canvas.save();
-    // 让“绘点”从当前位置（也就是(0,0)上）开始，在水平和垂直方向上，都平移100像素。
-    // “绘点”表示当前的绘制位置，它和文本框中的输入光标是一个概念。
-    canvas.translate(100,100);
-    // 让绘点旋转90度。
-    // 由于旋转的是绘点而不是画布，因此在绘点旋转之前就存在于画布中的内容是不会被旋转的。
-    // 但接下来所绘制的内容，会相对于新的绘点进行绘制。
-    canvas.rotate(90);
-    canvas.drawText("1BBBBBBBBBBBBBB2", 0, 0, mPaint);
-    // 还原画布。
-    canvas.restore();
-
-    p.setColor(Color.BLUE);
-    canvas.save();
-    // 让绘点在水平和垂直方向上，都放大3倍。
-    canvas.scale(3,3);
-    // 让绘点旋转30度。 
-    canvas.rotate(30);
-    // 绘制一个矩形。
-    canvas.drawRect(new Rect(100,100,130,130), p);
-    // 还原画布。
-    canvas.restore();
-
-    p.setColor(Color.BLACK);
-    // 绘制一个矩形。
-    canvas.drawRect(new Rect(140,140,170,170), p);
-}
-```
-    语句解释：
-    -  Canvas对象与Matrix对象类似，也支持平移、缩放、旋转、倾斜四种基本操作。
-    -  上面用到的save()方法用来将当前Canvas对象的各项参数保存起来，restore()方法用来将Canvas对象还原到上一次保存的后的状态。
-    -  你可以连续调用多次save()方法，相应的如果你想还原画布到最初的状态，就必须得连续调用多次restore()方法。
-
-<br>　　范例6：绘制`Bitmap`。
-``` android
-public class MyView extends TextView {
-
-    // 此处省略构造方法和onMeasure()方法。
-
-    private Bitmap mBitmap;
-    private Paint mPaint;
-
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        // 加载位图。
-        mBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
-        mPaint = new Paint();
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        // 将位图绘制到(100,100)的点上。
-        canvas.drawBitmap(mBitmap, 100, 100, mPaint);
-
-        // 先通过Matrix来记录位图的缩放、位置、旋转、倾斜的信息，然后统一交给Canvas对象进行绘制。
-        Matrix matrix = new Matrix();
-        matrix.setTranslate(100,400);
-        matrix.postScale(1, 2);
-        canvas.drawBitmap(mBitmap, matrix, mPaint);
-    }
-}
-```
-    语句解释：
-    -  更多关于Btimap与Matrix类的介绍，请参看笔者的另一篇博文《媒体篇　第二章 图片》。
-
-## 钟表控件 ##
-　　接下来我们综合上面所学的知识，自定义一个钟表控件，程序运行的效果如下：
-
-<center>
-![钟表控件运行效果示意图](/img/android/android_b08_03.png)
-</center>
-
-　　左图是我希望达到的效果，右图是实际达到的效果。 
-　　不要日！！！由于笔者本人也是边学边用，因此暂时没有好的方法让表盘上的数字显示的正确，所以现在先让它存留一些缺陷，来日方长，日后再说。
-
-<br>　　完整代码如下：
-``` android
-public class MyView extends View {
-
-    private Paint mPaint;
-    // 表盘的半径
-    private int radius;
-    // 时分秒三个指针的长度
-    private int hourPointLen;
-    private int minutePointLen;
-    private int secondPointLen;
-    // 表盘上的大、小刻度线的长度
-    private int smallMarkLen;
-    private int bigMarkLen;
-
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        mPaint = new Paint();
-        mPaint.setTextSize(30);
-        mPaint.setStrokeWidth(1);
-        mPaint.setAntiAlias(true);
-        mPaint.setColor(Color.BLACK);
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setTextAlign(Paint.Align.CENTER);
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        // 如果当前尺寸或者位置发生了变化，则重新初始化各个变量。
-        if (changed) {
-            // 在onLayout方法被调用的时候，我们就可以通过getWidth()和getHeight()来获取实际宽高了。
-            int min = Math.min(getWidth(), getHeight());
-            radius = min / 2 - 20;
-            hourPointLen = (int) (radius * 0.45);
-            minutePointLen = (int) (radius * 0.7);
-            secondPointLen = (int) (radius * 0.85);
-            bigMarkLen = (int)(radius * 0.045);
-            smallMarkLen = (int)(radius * 0.025);
-        }
-    }
-
-    protected void onDraw(Canvas canvas) {
-        canvas.save();
-        // 将绘点移动到View的中心。
-        canvas.translate(getWidth() / 2, getHeight() / 2);
-        // 绘制表盘，其实就是一个圆形。
-        canvas.drawCircle(0, 0, radius, mPaint);
-        // 绘制表的刻度
-        int count = 60, degree, lineLen;
-        for(int i=0 ; i <count ; i++){
-            degree = 360 / count * i;
-            lineLen =  (i % 5 == 0 ? bigMarkLen : smallMarkLen);
-            canvas.save();
-            canvas.rotate(degree);
-            canvas.translate(0, -radius);
-            canvas.drawLine(0, 0, 0, lineLen, mPaint);
-            // 绘制表盘上的数字。
-            if (i % 5 == 0) {
-                canvas.rotate(-degree);
-                canvas.drawText(String.valueOf(i / 5 == 0 ? 12 : i / 5), 0, 0, mPaint);
-            }
-            canvas.restore();
-        }
-        // 绘制指针尾部的圆点。
-        canvas.drawCircle(0, 0, 7, mPaint);
-        // 绘制时针、分针、秒针。
-        drawLine(0, 10, 0, -hourPointLen, mPaint, canvas, Calendar.HOUR);
-        drawLine(0, 10, 0, -minutePointLen, mPaint, canvas, Calendar.MINUTE);
-        drawLine(0, 10, 0, -secondPointLen, mPaint, canvas, Calendar.SECOND);
-        // 1秒后进行重绘。
-        postInvalidateDelayed(1000);
-        canvas.restore();
-    }
-
-    private void drawLine(float startX, float startY, float stopX, float stopY, Paint paint, Canvas canvas, int type) {
-        Calendar curTime = Calendar.getInstance();
-        canvas.save();
-        float rotate = 0, num = curTime.get(type);
-        switch (type) {
-            case Calendar.HOUR:
-                float offsetDegree = (curTime.get(Calendar.MINUTE) / 10.0f - 1) * 6;
-                rotate = (num == 12 ? 0 : num * 30 + offsetDegree);
-                break;
-            case Calendar.MINUTE:
-            case Calendar.SECOND:
-                rotate = (num == 0 ? 0 : num * 6);
-                break;
-        }
-        canvas.rotate(rotate);
-        canvas.drawLine(startX, startY, stopX, stopY, paint);
-        canvas.restore();
-    }
-
-}
-```
-　　XML代码如下：
-``` xml
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/aa"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" >
-
-    <com.cutler.demo.common.view.MyView
-        android:layout_centerInParent="true"
-        android:id="@+id/myView"
-        android:layout_width="200dp"
-        android:layout_height="200dp"  />
-
-</RelativeLayout>
-```
-    语句解释：
-    -  如果你想深刻理解自定控件，那么就必须得亲自去写，我希望你看完本范例（或者根本不看）后直接仿写一遍它，你现在需要做的不是创新，而是模仿。 
-
-
-## Path ##
-　　当我们想在画布上绘制任意多边形时，就可以通过指定`Path`对象来实现。可以把`Path`对象看作是一个点集，在该点击中规划了多边形的路径信息。当然也可以使用`drawLines`方法来实现多边形，但是`drawPath`方法更为灵活、方便。
-
-<br>　　范例1：平行四边形与棒棒糖。
-``` android
-protected void onDraw(Canvas canvas) {
-    Paint paint = new Paint();
-    paint.setColor(Color.RED);
-    paint.setStyle(Paint.Style.STROKE);
-    Path path1 = new Path();
-    // 移到(50, 50)点处作为起点
-    path1.moveTo(50, 50);
-    // 绘制一条线，起点是(50,50)，终点是(100,50)
-    path1.lineTo(100, 50);
-    path1.lineTo(150, 100);
-    path1.lineTo(50, 100);
-    // 调用此方法自动闭合这个多边形，即补足最后一条边（绘制一条从当前位置开始到Path起点之间的连线）。
-    path1.close();
-    canvas.drawPath(path1, paint);
-    Path path2 = new Path();
-    path2.moveTo(300, 50);
-    path2.lineTo(300, 250);
-    path2.addCircle(300, 50, 40, Path.Direction.CCW);
-    canvas.drawPath(path2, paint);
-}
-```
-    语句解释：
-    -  Path.Direction.CCW 表示逆时针，Path.Direction.CW 表示顺时针。
-
-<br>　　范例2：`Path`与文字。
-``` android
-protected void onDraw(Canvas canvas) {
-    Paint paint = new Paint();
-    paint.setTextSize(30);
-    Path path = new Path(); //定义一条路径
-    path.moveTo(10, 50);    //移动到 坐标10,10
-    path.lineTo(150, 160);
-    path.lineTo(300,350);
-    // 使用此方法绘制一行文本，文本会沿着path的路线绘制。
-    canvas.drawTextOnPath("Android drawTextOnPath 世界，你好！", path, 10, 10, paint);
-}
-```
-    语句解释：
-    -  如果文本的长度超出了Path的长度，那么多出的文本将不会被显示。
-
-## Xfermodes ##
-　　假设现在`Canvas`中有`A`，`B`两张图片，`A`在下面`B`在上面，且它们有重叠的部分，默认情况下此时显示出来的效果将是，`B`图会盖住`A`图的某一部分。不过这个默认的行为是可以修改的，也就是说我们可以让重叠的位置上，显示`A`的部分，或者显示`B`的部分，或者都不显示。
-
-　　这一切都是通过修改`Paint`对象的`Xfermode`属性来完成。
-
-<br>　　范例1：16种显示模式。
-
-<center>
-![本范例运行效果示意图，最左边的为原始图像](/img/android/android_b08_02.png)
-</center>
-
-``` android
-public class MyView extends View {
-
-    public MyView(Context context) {
-        super(context);
-    }
-
-    private static final Xfermode[] sModes = {
-            new PorterDuffXfermode(PorterDuff.Mode.CLEAR),
-            new PorterDuffXfermode(PorterDuff.Mode.SRC),
-            new PorterDuffXfermode(PorterDuff.Mode.DST),
-            new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER),
-            new PorterDuffXfermode(PorterDuff.Mode.DST_OVER),
-            new PorterDuffXfermode(PorterDuff.Mode.SRC_IN),
-            new PorterDuffXfermode(PorterDuff.Mode.DST_IN),
-            new PorterDuffXfermode(PorterDuff.Mode.SRC_OUT),
-            new PorterDuffXfermode(PorterDuff.Mode.DST_OUT),
-            new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP),
-            new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP),
-            new PorterDuffXfermode(PorterDuff.Mode.XOR),
-            new PorterDuffXfermode(PorterDuff.Mode.DARKEN),
-            new PorterDuffXfermode(PorterDuff.Mode.LIGHTEN),
-            new PorterDuffXfermode(PorterDuff.Mode.MULTIPLY),
-            new PorterDuffXfermode(PorterDuff.Mode.SCREEN)
-    };
-
-    private static final String[] sLabels = {
-            "Clear", "Src", "Dst", "SrcOver",
-            "DstOver", "SrcIn", "DstIn", "SrcOut",
-            "DstOut", "SrcATop", "DstATop", "Xor",
-            "Darken", "Lighten", "Multiply", "Screen"
-    };
-
-    // create a bitmap with a rect, used for the "src" image
-    static Bitmap makeSrc(int w, int h) {
-        Bitmap bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(bm);
-        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        p.setColor(0xFF66AAFF);
-        c.drawRect(w/3, h/3, w*19/20, h*19/20, p);
-        return bm;
-    }
-
-    // create a bitmap with a circle, used for the "dst" image
-    static Bitmap makeDst(int w, int h) {
-        Bitmap bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(bm);
-        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        p.setColor(0xFFFFCC44);
-        c.drawOval(new RectF(0, 0, w*3/4, h*3/4), p);
-        return bm;
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        int W = 128, H = 128, ROW_MAX = 4;
-        // 创建一些初始化参数
-        Bitmap mSrcB = makeSrc(W, H);
-        Bitmap mDstB = makeDst(W, H);
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        Paint labelP = new Paint(Paint.ANTI_ALIAS_FLAG);
-        labelP.setTextSize(30);
-        Bitmap bm = Bitmap.createBitmap(new int[] { 0xFFFFFFFF, 0xFFCCCCCC, 0xFFCCCCCC, 0xFFFFFFFF }, 2, 2,
-            Bitmap.Config.RGB_565);
-        BitmapShader mBG = new BitmapShader(bm, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
-        Matrix m = new Matrix();
-        m.setScale(6, 6);
-        mBG.setLocalMatrix(m);
-
-        // 绘制原始效果图
-        canvas.drawBitmap(mDstB, 200, 200, paint);
-        canvas.drawBitmap(mSrcB, 200, 200, paint);
-
-        // 移动画布，然后在新位置上绘制各类型的效果图
-        canvas.translate(400, 200);
-
-        int x = 0;
-        int y = 0;
-        for (int i = 0; i < sModes.length; i++) {
-            // draw the border
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setShader(null);
-            canvas.drawRect(x - 0.5f, y - 0.5f,
-                    x + W + 0.5f, y + H + 0.5f, paint);
-            // draw the checker-board pattern
-            paint.setStyle(Paint.Style.FILL);
-            paint.setShader(mBG);
-            canvas.drawRect(x, y, x + W, y + H, paint);
-            // draw the src/dst example into our offscreen bitmap
-            int sc = canvas.saveLayer(x, y, x + W, y + H, null,
-                    Canvas.MATRIX_SAVE_FLAG |
-                            Canvas.CLIP_SAVE_FLAG |
-                            Canvas.HAS_ALPHA_LAYER_SAVE_FLAG |
-                            Canvas.FULL_COLOR_LAYER_SAVE_FLAG |
-                            Canvas.CLIP_TO_LAYER_SAVE_FLAG);
-            canvas.translate(x, y);
-            canvas.drawBitmap(mDstB, 0, 0, paint);
-            paint.setXfermode(sModes[i]);
-            canvas.drawBitmap(mSrcB, 0, 0, paint);
-            paint.setXfermode(null);
-            canvas.restoreToCount(sc);
-            // draw the label
-            canvas.drawText(sLabels[i], x, y - labelP.getTextSize()/2, labelP);
-            x += W + 10;
-            // wrap around when we've drawn enough for one row
-            if ((i % ROW_MAX) == ROW_MAX - 1) {
-                x = 0;
-                y += H + 60;
-            }
-        }
-    }
-}
-```
-    语句解释：
-    -  上面这一大段代码可能会让你头大，不过没关系，里面有不少代码是为了显示效果更好而加上的(如BitmapShader类)，最重要的代码是96-99行。
-
-<br>　　我们使用`Xfermode`的步骤通常为：
-
-	-  第一步，往画布中绘制一个Bitmap对象，这个对象就是上图中的Dst，同时也是上面范例中的mDstB变量。
-	-  第二步，调用画笔的setXfermode()方法修改Xfermode。
-	-  第三步，往画布中绘制第二个Bitmap对象，这个对象就是上图中的Src，同时也是上面范例中的mSrcB变量。
-	-  第四步，调用paint.setXfermode(null);来还原，以免对后续的绘图产生影响。
-
-<br>　　范例2：圆形头像。
-
-<center>
-![运行效果](/img/android/android_b08_04.png)
-</center>
-
-``` android
-public class MyView extends ImageView {
-
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
-        // 获取用户设置的图片
-        Bitmap mSrcB = ((BitmapDrawable)getDrawable()).getBitmap();
-        // 创建一个与原图具有相同尺寸的位图对象
-        int width = mSrcB.getWidth();
-        Bitmap mDstB = Bitmap.createBitmap(width, width, Bitmap.Config.ARGB_8888);
-        // 创建一个临时的画布，任何向tmpCanvas上绘制的内容，都将被绘制到mDstB上
-        Canvas tmpCanvas = new Canvas(mDstB);
-        tmpCanvas.drawCircle(width / 2, width / 2, width / 2, paint);
-        // 使用SRC_IN
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        // 绘制图片
-        tmpCanvas.drawBitmap(mSrcB, 0, 0, paint);
-        // 让画笔去掉Xfermode设置
-        paint.setXfermode(null);
-        // 将生成的新图片绘制到画布中
-        canvas.drawBitmap(mDstB, 0, 0, paint);
-    }
-}
-```
-　　XML代码如下：
-``` xml
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/aa"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" >
-
-    <com.cutler.demo.common.view.MyView
-        android:layout_centerInParent="true"
-        android:id="@+id/myView"
-        android:src="@drawable/a"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"  />
-
-</RelativeLayout>
-```
-    语句解释：
-    -  上面的代码中：
-       -  首先创建了一个与图片具有相同尺寸的Bitmap对象mDstB，并让一个临时的画布指向该对象。
-       -  然后在mDstB上画了一个实心的圆形，圆形之外的区域为透明区域。
-       -  接着修改了一下画笔的xfermode属性，并在mDstB之上画了一个Bitmap对象mSrcB。 
-       -  最后mDstB和mSrcB之间的重叠部位(一个圆形)将被显示出来（透明像素不算在重合范围内）。
-
-## 控件的属性 ##
-　　除了使用系统内置的属性外(如`android:layout_width`等)，我们也可以为自己的控件，自定义属性。具体的步骤为：
-
-	-  首先，在res/values文件夹下创建一个名为attr.xml的文件，并使用<resources>标签作为根节点。
-	-  然后，在<resources>标签内部使用标签<declare-styleable>来定义一个属性集合。
-	-  接着，属性使用<attr>标签来定义，每个属性都有两个属性：名称和数据类型，<attr>标签具有两个属性：name和format。 
-
-<br>　　范例1：自定义属性。
-``` xml
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <declare-styleable name="CustomAttribute">
-        <attr name="textSize"    format="integer" />
-        <attr name="textWidth"   format="dimension" />
-        <attr name="textColor"   format="color" />
-        <attr name="textContent" format="reference" />
-        <attr name="type">
-            <flag name="top" value="0x1" />
-            <flag name="bottom" value="0x2" />
-        </attr>
-    </declare-styleable>
-</resources>
-```
-    语句解释：
-    -  <declare-styleable>标签的name属性用来指出当前属性集合的名称，此标签内部定义的属性都将被放到这个属性集合中去。
-    -  属性常见的数据类型有如下几种：
-	   -  integer：整型，可以为当前属性赋值一个整数。
-	   -  dimension：尺寸类型，可以为当前属性赋值一个尺寸数据。如：30dp 。
-	   -  color：颜色类型，可以为当前属性赋值一个颜色数据。如：#FF00FF 。
-	   -  reference：引用类型，可以为当前属性赋值一个资源ID。如：@drawable/icon 。
-	   -  string、boolean、float：数值类型。
-	-  若某个属性支持多种数据类型，则数据类型之间可以使用“|”进行间隔，如：reference|string。属性也可以是枚举类型的，使用<flag>标签即可。
-
-<br>　　范例2：让它们发生关系。
-``` xml
-<RelativeLayout 
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:cutler="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <com.example.cutler.androidtest.MyView
-        android:id="@+id/myView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        cutler:textSize="30"
-        cutler:textWidth="30dp"
-        cutler:textColor="#FF0000"
-        cutler:textContent="ContentMessage" />
-</RelativeLayout>
-```
-    语句解释：
-    -  以xmlns:为开头的代码就是在定义命名空间，本范例中定义了android和cutler两个命名空间。
-    -  当Android程序运行的时候，系统为某个Activity初始化界面时，会解析其指定的布局文件。在解析其内某个控件的某个属性时，会去该属性所对应的命名空间中查看该属性的数据类型和用户赋的值的数据类型是否匹配。
-       -  在android命名空间中存放的是系统内置的属性，咱们自定义的属性并不会被放到android命名空间中。
-    -  问：Android系统最终会去什么地方验证呢?
-       -  答：去R文件中。
-    -  问：哪个R文件?
-       -  答：命名空间后面跟随的那串字符串，最后一个“/”后面的字符，用来指明R文件的所在包。如在本范例中：
-          -  android命名空间的属性，都会去andriod.R文件中验证。
-          -  cutler命名空间中的属性，都会去com.example.cutler.androidtest.R文件中如验证，注意此处的res-auto表示由系统自动识别。
-	-  事实上，使用<attr>标签定义的每一个属性，在R.attr内部类中都有一个与之对应的常量。验证属性时，首先根据属性的名称去R文件中获取该属性的资源ID，然后再通过资源ID来找到<attr>标签，然后再进行验证。 
-
-<br>　　在程序中有多种方法可以获取到`xml`文件中的属性的值，最为简便、易懂的方法是通过`TypedArray`类来完成。
-
-<br>　　范例3：获取属性值。
-``` android
-public class MyView extends View {
-
-    public MyView(Context context) {
-        super(context);
-    }
-
-    public MyView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        TypedArray list = context.obtainStyledAttributes(attrs, R.styleable.CustomAttribute);
-        // 获取属性值。
-        System.out.println("textSize "+list.getInt(R.styleable.CustomAttribute_textSize, 0));
-        System.out.println("textWidth "+list.getDimension(R.styleable.CustomAttribute_textWidth, 0));
-        System.out.println("textColor "+list.getColor(R.styleable.CustomAttribute_textColor, 0));
-        System.out.println("textContent "+list.getString(list.getIndex(R.styleable.CustomAttribute_textContent)));
-        System.out.println("count="+attrs.getAttributeCount());
-    }
-}
-```
-    语句解释：
-    -  常量“R.styleable.CustomAttribute_textSize”是“R.attr.textSize”在数组“R.styleable.CustomAttribute”内的下标。
-
-
-<br>**本节参考阅读：**
-- [Android LayoutInflater原理分析，带你一步步深入了解View(一)](http://blog.csdn.net/guolin_blog/article/details/12921889)
-- [Android视图绘制流程完全解析，带你一步步深入了解View(二)](http://blog.csdn.net/guolin_blog/article/details/16330267)
-- [Android视图状态及重绘流程分析，带你一步步深入了解View(三)](http://blog.csdn.net/guolin_blog/article/details/17045157)
-- [Android自定义View的实现方法，带你一步步深入了解View(四)](http://blog.csdn.net/guolin_blog/article/details/17357967)
-- [Android如何绘制视图，解释了为何onMeasure有时要调用多次](http://blog.csdn.net/jewleo/article/details/39547631)
-- [How Android Draws Views](http://developer.android.com/guide/topics/ui/how-android-draws.html)
-- [Android中layout过程详解](http://www.cnblogs.com/xilinch/archive/2012/10/24/2737248.html)
-- [Android Canvas绘图详解（图文）](http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2012/1212/703.html)
-- [android.graphics包中的一些类的使用](http://yuanzhifei89.iteye.com/blog/1136651)
-- [Android 完美实现图片圆角和圆形（对实现进行分析）](http://blog.csdn.net/lmj623565791/article/details/24555655)
-- [Android Canvas绘制图片层叠处理方式porterduff xfermode](http://blog.csdn.net/shichaosong/article/details/21239221)
+　　这里有个小的技术难点：如果Android通知游戏发放游戏币的接口是静态的，那么在我们的支付SDK中可以直接调用它，但是如果是实例的，则在支付SDK中就得想办法获取该接口的一个对象了。不过这都问题不大，稍微想想就可以解决。
 
 <br><br>
+　　
+
+
+
+
+
+
+
