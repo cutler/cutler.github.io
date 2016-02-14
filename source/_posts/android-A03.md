@@ -244,7 +244,7 @@ public class MainActivity extends Activity {
     -  客户端（MainActivity）获得到Service的引用后，就可以调用其所提供的public方法了。 
 
 <br>**管理绑定类型服务的生命周期：**
-　　当服务从所有的客户端解除绑定时，`Android`系统会销毁它（除非它还用`onStartCommand()`方法被启动了）。因此如果是纯粹的绑定类型的服务，你不需要管理服务的生命周期（`Android`系统会基于是否有客户端绑定了这个服务来管理它）。
+　　当服务从所有的客户端解除绑定时，`Android`系统会销毁它（除非它还被`startService()`方法启动了）。因此如果是纯粹的绑定类型的服务，你不需要管理服务的生命周期（`Android`系统会基于是否有客户端绑定了这个服务来管理它）。
 　　但是，若你使用了`startService()`方法启动这个服务，那么你就必须明确的终止这个服务，因为它会被系统认为是启动类型的。这样服务就会一直运行到服务用`stopSelf()`方法或其他组件调用`stopService()`方法来终止服务。
 　　另外，如果你的服务是启动类型的并且也接收绑定，那么当系统调用`onUnbind()`方法时，如果你想要在下次客户端绑定这个服务时调用`onRebind()`方法，你可以选择返回`true`。
 <center>
@@ -820,7 +820,7 @@ public class MainActivity extends Activity {
 　　有序广播和无序广播最明显的区别在于发送它们时所调用的方法不同：
 
 	-  无序广播：sendBroadcast(intent)
-	-  有序广播：sendOrderedBroadcast (intent, receiverPermission)
+	-  有序广播：sendOrderedBroadcast(intent, receiverPermission)
 　　除此之外，无序广播相对有序广播消息传递的效率比较高，但各个接收者无法终止和修改广播。而有序广播的某个接收者在中途可以终止、修改广播。
 
 <br>　　范例1：广播接收者的优先级。

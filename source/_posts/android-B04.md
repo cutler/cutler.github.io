@@ -81,7 +81,7 @@ public class AndroidTestActivity extends Activity {
     android:tileMode=["disabled" | "clamp" | "repeat" | "mirror"] />
 ```
     属性解释
-    -  antialia：是否允许抗锯齿。开启后会让图片的边线变得平滑。
+    -  antialias：是否允许抗锯齿。开启后会让图片的边线变得平滑。
     -  dither：如果位图与屏幕的像素配置不同时是否允许抖动。比如位图的像素配置是ARGB_8888，但手机的屏幕配置是RGB555，这时候开启抖动选项可以让位图显示不会过于失真。
     -  filter：是否允许对位图进行滤波。当对位图进行缩放或者压缩时，开启过滤效果可以获得较好的显示效果。
     -  gravity：位图的gravity。当位图小于其容器的尺寸时，使用gravity属性指明在容器的何处绘制该位图。

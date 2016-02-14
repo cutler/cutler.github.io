@@ -590,7 +590,7 @@ animSet.setDuration(5000);
 animSet.start();
 ```
     语句解释：
-    -  除了上面说的4个方法外，AnimatorSet类来提供了不少方法，比如playTogether、playSequentially等。
+    -  除了上面说的4个方法外，AnimatorSet类也提供了不少方法，比如playTogether、playSequentially等。
 
 ### Animator监听器 ###
 　　在`Animator`类当中提供了一个`addListener()`方法，这个方法接收一个`AnimatorListener`用于监听动画的各种事件了。

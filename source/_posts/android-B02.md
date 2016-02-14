@@ -1205,7 +1205,8 @@ public void apply(View root, ViewGroup rootParent, OnClickHandler handler) {
 　　这个时候我们当然可以选择[ Binder机制 ](http://cutler.github.io/android-F01/)中说的各种`IPC`方式来实现这个功能，但是不论是`AIDL`还是`Messenger`都需要通信的两个进程协商接口，如果界面更新的比较频繁的话就会有效率问题，而且接口的复杂度也会增加。 
 　　此时我们就可以使用`RemoteViews`了，大体的流程是：
 
-	-  首先，在进程A中创建RemoteViews对象，并通过广播、Binder等渠道将它发送给进程B。
+	-  首先，在进程A中创建RemoteViews对象，并通过Intent对象将它发送给进程B。
+	   -  即RemoteViews实现类Parcelable接口，而Intent对象又可以传递Parcelable接口。
 	-  然后，进程B接到RemoteViews时，调用它的apply方法来初始化布局，并将该方法的返回值放入到界面中。
 	-  接着，进程A就可以尽情的调用RemoteViews的各种方法来更新被放到进程B中的View了。 
 
