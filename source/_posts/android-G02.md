@@ -655,8 +655,10 @@ for (int i = childrenCount - 1; i >= 0; i--) {
 　　接着查看`dispatchTransformedTouchEvent`的源码，发现该方法中出现多次类似的`if`判断：
 ``` java
 if (child == null) {
+    // 此时ViewGroup会调用继承自View类的方法，来自己处理事件。
     handled = super.dispatchTouchEvent(event);
 } else {
+    // 由子View去处理事件。
     handled = child.dispatchTouchEvent(event);
 }
 ```
@@ -938,6 +940,7 @@ public class MainActivity extends Activity {
 	   -  若ViewGroup在ACTION_MOVE时返回true，则子View会接到ACTION_CANCEL事件，后续事件将交给ViewGroup处理。
 	   -  若ViewGroup在ACTION_UP时返回true，则子View只会接到ACTION_CANCEL事件，不会接到ACTION_UP事件。
 	   -  也就是说，只要事件被ViewGroup拦截，那么本事件序列结束之前，都不会在将事件传递给子View。
+	   -  同时，即便子View处理了事件，只要它没有禁用ViewGroup的拦截事件功能，那么ViewGroup的onInterceptTouchEvent仍会被调用。
 	-  子View可以通过调用它父View的requestDisallowInterceptTouchEvent方法来禁止其父View拦截事件。
 	   -  子View无法阻止父View的onInterceptTouchEvent方法接收ACTION_DOWN事件。
 	   -  子View通常会在接到ACTION_DOWN事件时，禁止其父View拦截事件。

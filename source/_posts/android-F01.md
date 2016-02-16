@@ -197,7 +197,7 @@ out.writeObject(
 
 　　创建一个支持`Parcelable`协议的类，需要如下几个步骤：
 
-	-  首先，让你的类实现Parcelabel接口。
+	-  首先，让你的类实现Parcelable接口。
 	-  然后，再让该类实现public void writeToParcel(Parcel out)方法，以便将对象的当前属性写入包装对象中（Parcel）。
 	-  最后，再在该类中增加一个Parcelable.Creator接口的静态对象CREATOR，用来执行反序列化。
 
@@ -275,7 +275,7 @@ public class Person implements Parcelable {
 　　虽然我们一般都不会使用此方法来进行进程间通信，但是还是得注意一下，避免并发访问`SharedPreferences`文件。
 ## Messenger ##
 　　`Messenger`可以翻译为信使，通过它可以在不同进程中传递`Message`对象，在`Message`中放入我们需要传递的数据，就可以轻松的实现数据在进程间的传递了。
-　　学习`Messenger`需要了解`Handler`的用法，如果你还不知道`Handler`，请先阅读[《进阶篇　第四章 Android的消息机制》](http://cutler.github.io/android-F04/)。
+　　学习`Messenger`需要了解`Handler`的用法，如果你还不知道`Handler`，请先阅读[《进阶篇　第四章 消息机制与线程池》](http://cutler.github.io/android-F04/)。
 
 　　以下是信使(`Messenger`)对象的使用概要：
 
@@ -398,11 +398,10 @@ public class MyService extends Service {
 <br>**创建AIDL文件**
 <br>　　在创建AIDL文件之前，先来看一下它的一些特点：
 
-	-  AIDL的语法和Java的interface高度相似，不过我们不能直接使用AIDL编写出来的代码，而是需要将它转为.java文件才行。
-	   -  这个工作由IDE来调用AndroidSDK里的工具来完成，最终会在gen目录下产生一个.java文件，以供我们使用。
 	-  AIDL文件的后缀名为.aidl。
 	-  AIDL文件也保存在src目录下。
-
+	-  AIDL的语法和Java的interface高度相似，不过我们不能直接使用AIDL编写出来的代码，而是需要将它转为.java文件才行。
+	   -  这个工作由IDE来调用AndroidSDK里的工具来完成，最终会在gen目录下产生一个.java文件，以供我们使用。
 
 <br>　　首先创建`org.cutler.aidl`包，并在其内创建一个`IDAO.aidl`，内容如下：
 ``` android

@@ -547,7 +547,6 @@ public class MainActivity extends Activity {
 
 <br>　　第一步，创建`inflate_student_item.xml`。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"

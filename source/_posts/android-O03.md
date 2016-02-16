@@ -107,10 +107,10 @@ public class MainActivity extends Activity {
 　　通过查看`com.nostra13.universalimageloader.utils.StorageUtils`类我们发现：
 
 	-  当手机已经装载SD卡，并且程序可以向SD卡中写数据（在清单文件中申请了权限）时，缓存目录为SD卡上的：
-	   -  /Android/data/packageName/cache
-	      -  /Android/data/packageName/目录是Android推荐的App数据缓存目录，当App被卸载时系统会自动删除该目录下的所有文件。
-	      -  缓存目录下可以有一个名为“.nomedia”的、大小为0b的文件，它用来告诉系统图库等App，此目录下的文件不需要展示给用户看。
-	-  当手机SD卡不可用，或者可用但是创建缓存目录失败（如空间不足等）时，缓存目录为手机内部存储上的：context.getCacheDir()。
+	   -  /Android/data/packageName
+	   -  该目录是Android推荐的App数据缓存目录，当App被卸载时系统会自动删除该目录。
+	   -  缓存目录下可以有个名为“.nomedia”的、大小为0b的文件，用来告诉系统图库等App，此目录下的文件不需要展示给用户。
+	-  当SD卡不可用，或者创建缓存目录失败（如空间不足等）时，缓存目录为手机内部存储上的：context.getCacheDir()。
 	-  当context.getCacheDir()返回null时，则缓存目录为：/data/data/packageName/cache/。
 
 <br>　　范例4：设置加载图片的回调。

@@ -832,7 +832,7 @@ public ThreadPoolExecutor(int corePoolSize,
        -  当线程池的allowCoreThreadTimeOut属性设置为true时，keepAliveTime同样会作用于核心线程。
     -  unit表示keepAliveTime的单位，常用取值为：TimeUnit.SECONDS（秒）、TimeUnit.MINUTES（分钟）等。
     -  workQueue表示任务队列，通过线程池的execute方法提交的任务，会保存在此队列中。
-    -  threadFactory表示线程工厂，用来创建线程中的。
+    -  threadFactory表示线程工厂，用来创建线程的。
     -  handler当线程池无法执行新任务时（比如任务队列已满或者无法成功执行任务），就会调用RejectedExecutionHandler的rejectedException方法来处理。
        -  线程池的默认实现是抛出一个RejectedExecution异常。
 

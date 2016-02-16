@@ -113,7 +113,7 @@ public void setContentView(int layoutResID) {
 }
 ```
     语句解释：
-    -  这段代码用来检测DecorView是否初始化完毕，然后在将layoutResID所对应的布局放到DecorView中。
+    -  这段代码用来检测DecorView是否初始化完毕，然后再将layoutResID所对应的布局放到DecorView中。
 
 <br>　　接着看一下`installDecor`、`generateDecor`、`generateLayout`方法：
 ``` java
@@ -1014,7 +1014,7 @@ public static int getChildMeasureSpec(int spec, int padding, int childDimension)
 <br>　　需要说的是，普通View和ViewGroup的重写onMeasure方法时是有区别的：
 
 	-  普通View只需要在onMeasure中测量自己的尺寸即可。
-	-  ViewGroup除了完成自己的测量过程外，还会遍历去调用其所有子View的measure方法，各个子View再递归去执行这个流程。
+	-  ViewGroup除了完成自己的测量过程外，还需要遍历去调用其所有子View的measure方法，各个子View再递归去执行这个流程。
 
 <br>**普通View的重写**
 <br>　　范例1：重写`onMeasure`方法。
@@ -1040,7 +1040,7 @@ public class MyView extends View {
     -  当View测量完毕时需要将测量结果给保存起来，但是由于Java方法只能返回一个值，没法同时将宽度和高度一起返回，所以系统给我们提供一个setMeasuredDimension方法，我们把测量的结果传递过去即可。
     -  在实际开发中，很少会像上面那样把MyView的尺寸写死在代码上，而是会依据widthMeasureSpec和heightMeasureSpec的值来动态的计算出MyView的尺寸。
 
-<br>　　当然我们也可以不重写onMeasure方法，而是使用父类的实现：
+<br>　　当然我们也可以不重写onMeasure方法，而是使用父类（View类）的实现：
 ``` java
 protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),

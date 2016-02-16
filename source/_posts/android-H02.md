@@ -32,13 +32,10 @@ categories: android
 <br>　　我们可以使用`“观察者模式”`来解决数据刷新的问题，同时不会存在上面这三种方案带来的弊端。
 
 # 第二节 观察者模式 #
-　　假设我们的项目有一个登录功能，当登录成功后会依据服务端返回的数据来创建一个`User`对象。这里有个要求，在项目的任何界面都可以访问和修改该`User`对象，为了实现这个需求，我们可以这么做：
+　　假设我们的项目有一个登录功能，当登录成功后会依据服务端返回的数据来创建一个`User`对象。
+　　需求是：登陆成功后，在项目的任何界面都可以访问和修改该`User`对象。
 
-	-  1、使用一个名为LoginUserEntityManager的类来管理这个User对象，该类是单例模式的，以后各个界面通过LoginUserEntityManager类来操作User对象了。
-	-  2、由于User对象可能被同时显示在多个界面中，当某一个界面修改User的值后，我们得通知其它界面刷新数据。
-	-  3、因此我们得在LoginUserEntityManager类里维护一个列表，用来保存这些界面的引用，以便及时通知它们更新数据。
-
-<br>　　先来创建一个最简单的`User`类。
+<br>　　为了实现这个需求，我们先创建一个`User`类。
 <br>　　范例1：`com.cutler.demo.model.user.User`类。
 ``` java
 public class User {
@@ -65,7 +62,7 @@ public class User {
     语句解释：
     -  也是不多说。
 
-<br>　　然后定义一个接口，让每个界面都实现它，当`User`对象的值被修改时，`LoginUserEntityManager`类会通过这个接口的方法来通知界面。
+<br>　　然后定义一个观察者接口。
 <br>　　范例2：`com.cutler.demo.common.entity.Observer`类。
 ``` java
 public interface Observer<T> {
@@ -81,7 +78,7 @@ public interface Observer<T> {
     语句解释：
     -  T是泛型，不懂请自己查去。
 
-<br>　　事实上项目中不可能只有`User`对象会在多个界面中被显示，因此我们再创建一个名为的`EntityManager`类，放一些公共的代码。
+<br>　　接着，再创建一个名为的`EntityManager`类，用来管理观察者。
 
 <br>　　范例3：`com.cutler.demo.common.entity.EntityManager`类。
 ``` java
@@ -122,11 +119,8 @@ public class EntityManager<T> {
     protected void notifyObservers() {
         mHandler.post(new Runnable() {
             public void run() {
-                // 此处不用担心会阻塞主线程，从以往的经验来看，通常观察者的数量不会导致主线程明显阻塞。
-                synchronized(observers) {
-                    for (Observer<T> observer : observers) {
-                        observer.onDataLoaded(data);
-                    }
+                for (Observer<T> observer : observers) {
+                    observer.onDataLoaded(data);
                 }
             }
         });
@@ -155,7 +149,7 @@ public class EntityManager<T> {
 }
 ```
 
-<br>　　接着是`LoginUserEntityManager`类，它继承自`EntityManager`类。
+<br>　　`EntityManager`类用来保存共用代码，还需要创建一个单例的类来管理`User`对象，该类继承自`EntityManager`类。
 <br>　　范例4：`com.cutler.demo.model.user.LoginUserEntityManager`类。
 ``` java
 public class LoginUserEntityManager extends EntityManager<User> {
