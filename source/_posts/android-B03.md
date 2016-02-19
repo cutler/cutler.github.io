@@ -1,4 +1,4 @@
-title: UI篇　第三章 ActionBar
+title: UI篇　第三章 ActionBar 和 Toolbar
 date: 2015-4-14 14:09:02
 categories: android
 ---
@@ -23,7 +23,6 @@ categories: android
 <br>　　提示：
 
 	-  如果你使用的是Eclipse，并且搭建了最新的开发环境，那么在创建新项目的时候，会自动引入v7 appcompat库，如果没有自动引用，可以从<sdk>/extras/android/support/v7/appcompat/中复制一份。
-	-  本文使用的v7 appcompat库的版本号为：Android Support Library, revision 22 (March 2015)，由于此版本支持Android 5.0的Material Design风格，所以该库的编译版本应该设置为5.0以上。
 
 ## 图标和标题 ##
 <br>　　下图展示的是一个新项目的`MainActivity`在`三星S5`手机（左）以及`Android2.2模拟器`（右）中的运行效果。
@@ -32,7 +31,7 @@ categories: android
 ![图1](/img/android/android_b07_02.png)
 </center>
 
-<br>　　从上图中我们可以看到，当`ActionBar`运行在`Android3.0`以下的版本中时，标题栏的右上角不会出现`overflow`按钮，但是我们可以通过点击设备的`Menu`按钮来弹出`overflow`菜单。也就是说`Android3.0`中的`overflow`按钮就等价于`Android3.0`之前的`Menu`按钮。（即便系统版本高于`Android3.0`也不一定保证会显示`overflow`按钮，具体后述）。
+<br>　　从上图中我们可以看到，当`ActionBar`运行在`Android3.0`以下的版本中时，标题栏的右上角不会出现`overflow`按钮，但是我们可以通过点击设备的`Menu`按钮来弹出`overflow`菜单。也就是说`Android3.0`中的`overflow`按钮就等价于`Android3.0`之前的`Menu`按钮。（不过，即便系统版本高于`Android3.0`也不一定保证会显示`overflow`按钮，具体后述）。
 　　现在我们要实现如下图所示的一个效果：
 
 <center>
@@ -78,11 +77,10 @@ public class MainActivity extends ActionBarActivity {
 ```
     语句解释：
     -  调用setTitle()方法来设置标题文本。
-    -  调用setSubtitle()方法来设置子标题文本。
-    -  如果不设置子标题，则默认只显示主标题，且是垂直居中。
+    -  调用setSubtitle()方法来设置子标题文本。如果不设置子标题，则默认只显示主标题，且是垂直居中。
     -  调用getSupportActionBar().setDisplayShowTitleEnabled(false);可以同时隐藏两个标题。
-    -  调用getSupportActionBar().setDisplayShowHomeEnabled(true);显示一个图标。
-    -  调用getSupportActionBar().setIcon(R.drawable.ic_launcher);设置一个图标。
+    -  调用getSupportActionBar().setDisplayShowHomeEnabled(true);显示图标。
+    -  调用getSupportActionBar().setIcon(R.drawable.ic_launcher);设置图标。
 
 <br>　　仔细观察上面的`图1`可以发现，当程序运行在`三星S5`手机上时，标题的字体颜色为`白色`，而运行在`Android2.2模拟器`时，颜色则为`黒色`。这个情况肯定是不能忍的，需要给它们设置一个统一的颜色。
 　　为了方便管理与更新，我们不会去直接修改`V7 appcompat`库里的属性，而是在自己项目里创建一个`res\values\custom_actionbar.xml`文件，并在该文件中创建一些与`V7 appcompat`库中同名的属性，即用我们的值覆盖掉它们的值。
@@ -316,195 +314,12 @@ public boolean onMenuOpened(int featureId, Menu menu) {
 </style>
 ```
 
-<br>　　范例8：修改`ActionButton`的背景范围。
-
-<center>
-![](/img/android/android_b07_06.png)
-</center>
-
-　　在`V7 appcompat revision 22`中，默认情况下`ActionButton`的按下效果如上图（左），我们可以通过下面的代码，把效果修改为上图（右）：
-``` xml
-<dimen name="abc_action_button_min_height_material">@dimen/abc_action_bar_default_height_material</dimen>
-<dimen name="abc_action_button_min_width_material">@dimen/abc_action_bar_default_height_material</dimen>
-```
-
-## ActionView ##
-　　`ActionView`是一种可以在`ActionBar`中替换`ActionButton`的控件，它可以允许用户在不切换界面的情况下通过`ActionBar`完成一些较为丰富的操作。比如说，你需要完成一个搜索功能，就可以将`SeachView`这个控件添加到`ActionBar`中。
-
-　　为了声明一个`ActionView`，我们可以在`menu`资源中通过`actionViewClass`属性来指定一个控件，例如可以使用如下方式添加`SearchView`：
-``` xml
-<item
-    android:id="@+id/action_search"
-    android:icon="@drawable/actionbar_search_icon"
-    android:title="@string/action_search"
-    app:actionViewClass="android.support.v7.widget.SearchView"
-    app:showAsAction="ifRoom|collapseActionView"/>
-```
-    语句解释：
-    -  collapseActionView表明了这个操作视窗应该被折叠到一个按钮中，当用户选择这个按钮时，这个操作视窗展开。
-
-<center>
-![](/img/android/android_b07_07.png)
-</center>
-
-　　这里所说的`SearchView`是`V7 appcompat`库内置的一个控件，我们把它添加到`ActionBar`中时，默认会显示上图中的（上）所示的界面，当我们点击那个放大镜时，会显示为上图中的（下）所示的界面。
-　　此时可以看到，当`SearchView`被展开时会占满整个`ActionBar`，而其它的`ActionButton`由于将`showAsAction`属性设置成了`ifRoom`，此时都会隐藏到`overflow`当中。
-
-　　如果你还希望在代码中对`SearchView`的属性进行配置（比如添加监听事件等），完全没有问题，只需要在`onCreateOptionsMenu()`方法中获取该`ActionView`的实例就可以了，代码如下所示：
-``` android
-@Override
-public boolean onCreateOptionsMenu(Menu menu) {
-    MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.main, menu);
-    MenuItem searchItem = menu.findItem(R.id.action_search);
-
-    // 注意此处的SearchView的全名为：android.support.v7.widget.SearchView。
-    SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
-
-    searchView.setOnQueryTextFocusChangeListener(new OnFocusChangeListener() {
-        // 当searchView处于可输入状态时，hasFocus等于true。
-        public void onFocusChange(View v, boolean hasFocus) {
-            System.out.println("hasFocus = "+hasFocus);;
-        }
-    });
-    return true;
-}
-```
-
-　　`SearchView`还提供了其他事件监听方法，此处就不再一一介绍了。
-
-## ActionProvider ##
-　　`ActionProvider`与`ActionView`有点类似，它也可以将一个`ActionButton`替换成一个自定义的布局。
-　　但不同的是，`ActionProvider`能够完全控制事件的所有行为，并且还可以在点击的时候显示子菜单。
-
-<br>
-### ShareActionProvider ###
-
-　　Android提供好了几个内置的`ActionProvider`，常用的是`ShareActionProvider`。
-
-<br>　　范例1：添加`ShareActionProvider`。
-``` xml
-<item
-    android:id="@+id/action_share"
-    android:title="分享"
-    app:actionProviderClass="android.support.v7.widget.ShareActionProvider"
-    app:showAsAction="ifRoom"/>
-```
-    语句解释：
-    -  注意，此处使用的是actionProviderClass属性。
-
-<br>　　接着通过`Intent`来定义出你想分享哪些东西：
-``` android
-@Override
-public boolean onCreateOptionsMenu(Menu menu) {
-    MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.main, menu);
-
-    MenuItem shareItem = menu.findItem(R.id.action_share);  
-    ShareActionProvider provider = (ShareActionProvider)MenuItemCompat.getActionProvider(shareItem);
-    Intent intent = new Intent(Intent.ACTION_SEND);  
-    intent.setType("text/plain");  
-    intent.putExtra(Intent.EXTRA_SUBJECT, "知乎分享-ActionBar测试");
-    intent.putExtra(Intent.EXTRA_TEXT, "此消息来自虎哥ActionBar测试Demo，没错，虎哥就是这么风骚！");
-    provider.setShareIntent(intent);  
-    return true;
-}
-```
-
-<br>　　从上面的代码可以看到，我们构建了一个`Intent`，该`Intent`表示会将所有可以共享文本的程序都列出来。重新运行一下程序，效果如下图所示：
-
-<center>
-![](/img/android/android_b07_08.png)
-</center>
-
-<br>
-### 自定义ActionProvider ###
-　　除了使用`ShareActionProvider`之外，我们也可以自定义一个`ActionProvider`。
-　　我们可以自定义两种`ActionProvider`，第一种是有弹出菜单的，第二种是可以展开的（与`SearchView`的效果一样），具体效果如下图所示：
-
-<center>
-![](/img/android/android_b07_09.gif)
-</center>
-
-　　下面我们来创建两个自定义的`ActionProvider`类。
-
-<br>　　范例1：`TextViewActionProvider`类。
-``` android
-public class TextViewActionProvider extends ActionProvider {
-    public TextViewActionProvider(Context context) {
-        super(context);
-    }
-
-    @Override
-    public View onCreateActionView() {
-        // 在此方法中返回你想要自定义的布局即可。
-        TextView text = new TextView(getContext());
-        text.setText("TextViewActionProvider");
-        return text;
-    }
-}
-```
-
-<br>　　范例2：`SubMenuActionProvider`类。
-``` android
-public class SubMenuActionProvider extends ActionProvider {
-    public SubMenuActionProvider(Context context) {
-        super(context);
-    }
-    public View onCreateActionView() {
-        return null;
-    }
-
-    @Override
-    public boolean hasSubMenu() {
-        // 返回true表名当前SubMenuActionProvider是子菜单类型的。
-        return true;
-    }
-
-    // 当需要初始化菜单项的时候，回调此方法。
-    public void onPrepareSubMenu(SubMenu subMenu) {
-        subMenu.clear();
-        subMenu.add("sub item 1").setIcon(R.drawable.ic_launcher)
-            .setOnMenuItemClickListener(new OnMenuItemClickListener() {
-                @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    Toast.makeText(getContext(), "sub item 1", Toast.LENGTH_SHORT).show();
-                    return true;
-                }
-            });
-        subMenu.add("sub item 2").setIcon(R.drawable.ic_launcher)
-            .setOnMenuItemClickListener(new OnMenuItemClickListener() {
-                public boolean onMenuItemClick(MenuItem item) {
-                    Toast.makeText(getContext(), "sub item 2", Toast.LENGTH_SHORT).show();
-                    return false;
-                }
-            });
-    }
-}
-```
-
-　　接着修改`menu`资源，在里面加入`TextViewActionProvider`和`SubMenuActionProvider`的声明：
-``` xml
-<item
-    android:id="@+id/action_search"
-    android:icon="@drawable/icon1"
-    android:title="@string/action_search"
-    app:actionProviderClass="com.example.actionbardemo.SubMenuActionProvider"
-    app:showAsAction="ifRoom|collapseActionView"/>
-<item
-    android:id="@+id/action_share"
-    android:icon="@drawable/icon2"
-    android:title="@string/action_search2"
-    app:actionProviderClass="com.example.actionbardemo.TextViewActionProvider"
-    app:showAsAction="ifRoom|collapseActionView"/>
-```
-
 ## 自定义布局 ##
 　　`ActionBar`为用户提供了统一方式来展示操作和导航，但是这并不意味着你的`app`要看起来和其他`app`一样，我们可以自定义自己的布局。  
 　　将`ActionBar`划分为如下所示的4个区域：
 
 <center>
-![](/img/android/android_b07_10.png)
+![](/img/android/android_b07_06.png)
 </center>
 
 　　其中：
@@ -522,25 +337,254 @@ getSupportActionBar().setCustomView(R.layout.common_title);
     语句解释：
     -  自定义的布局将显示在上图中“2”的位置，如果你把其他三个位置都给隐藏掉，那么我们自定义的布局将占据整个ActionBar的空间。
 
-## 添加导航Tabs ##
-　　`Tabs`的应用可以算是非常广泛了，它可以使得用户非常轻松地在你的应用程序中切换不同的视图。而Android官方更加推荐使用ActionBar中提供的`Tabs`功能，因为它更加的智能，可以自动适配各种屏幕的大小。比如说，在平板上屏幕的空间非常充足，`Tabs`会和`ActionButton`在同一行显示，而如果是在手机上，屏幕的空间不够大的话，`Tabs`和`ActionButton`则会分为两行显示，即`Tabs`会放到第二行显示。
+<br>　　`ActionBar`的高级用法（`ActionView`、`ActionProvider`），笔者不打算继续介绍了，下面的参考阅读中都有。
 
-　　虽然如此，但是它的灵活性不够强，很难做出高要求的`Tab`效果，笔者并不打算继续介绍它。而且`ActionBar Tab`的替代品也很多，我们可以自己写，也可以使用网上现有的开源框架，比如：[PagerSlidingTabStrip](https://github.com/astuetz/PagerSlidingTabStrip) 。
-　　开源框架往往由多个人合力完成，因此不论是在`UI特效`、`执行效率`、`bug搜集与解决`上都比我们自己编写要强很多。不过话还得说回来，虽然 `我们可以不去自己写这些特效，但是必须得会改`。
-
-
-
-# 第二节 直接使用ActionBar #
-　　仔细想了一下，其实我们没必要使用系统的`ActionBar`，因为`V7 appcompat`库就是Google提供的，`ActionBar`有什么最新的特性也会及时更新到里面去，所以就目前来说`V7 appcompat`库足以够用了。<br><br><br><br>
-
-
-
-<br>**本章参考阅读：**
+<br>**本节参考阅读：**
 - [Android ActionBar使用介绍](http://blog.csdn.net/wangjinyu501/article/details/9360801)
 - [Android ActionBar完全解析，使用官方推荐的最佳导航栏(上)](http://blog.csdn.net/guolin_blog/article/details/18234477)
 - [Android ActionBar完全解析，使用官方推荐的最佳导航栏(下)](http://blog.csdn.net/guolin_blog/article/details/25466665)
 - [How to center align the ActionBar title in Android?](http://stackoverflow.com/questions/12387345/how-to-center-align-the-actionbar-title-in-android)
 - [Android-Action Bar使用方法-活动栏(一)](http://www.oschina.net/question/54100_34400)
+
+# 第二节 Toolbar #
+　　`Toolbar`是`Android 5.0`中新引入的一个控件，其出现的目的就是为了取代`ActionBar`。
+
+<br>　　**为什么要替换ActionBar呢？**
+
+　　因为ActionBar是属于应用UI的一部分，但是我们却又不能对其完全控制：
+
+	-  ActionBar是由系统创建并对其进行相关参数的初始化。
+	-  ActionBar限制多、定制困难（比如标题居中、修改字体样式等）。
+
+　　基于这两点（但不限于），Google在`Android 5.0`后推出了`Toolbar`。
+
+<br>　　这里先说一下，Toolbar所带来的自由性与其本身的定位密不可分，因为它是一个`ViewGroup`：
+``` java
+public class Toolbar extends ViewGroup {
+    // 此处省略了Toolbar内的代码
+}
+```
+
+<br>　　既然Toolbar是用来替代ActionBar的，那么就意味着之前ActionBar能实现的功能，Toolbar也能实现，下面就来介绍它。
+
+<br>　　范例1：添加Gradle依赖。
+``` gradle
+dependencies {
+    compile 'com.android.support:appcompat-v7:23.1.1'
+}
+```
+    语句解释：
+    -  由于Toolbar被放到了appcompat-v7库中，所以我们需要先引用该库。
+
+<br>　　回想一下，我们以前使用ActionBar时，都会让项目的`AppTheme`去继承ActionBar的主题，比如：
+``` xml
+<!-- Base application theme. -->
+<style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    
+</style>
+```
+　　接着，会再让Application去使用这个主题，这样项目里的所有Activity里就会显示出ActionBar了：
+``` xml
+<application
+    android:icon="@mipmap/ic_launcher"
+    android:label="@string/app_name"
+    android:theme="@style/AppTheme" >
+</application>
+```
+
+<br>　　不过，如果想用Toolbar来替代ActionBar，则就需要修改`AppTheme`主题了：
+``` xml
+<style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+
+</style>
+```
+    语句解释：
+    -  这么做是为了不让Toolbar和ActionBar的样式起冲突。
+    -  当然也可以不修改AppThem，而是直接在清单文件的activity标签上修改。
+
+<br>　　范例2：在布局文件中创建Toolbar。
+``` xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/mToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</RelativeLayout>
+```
+    语句解释：
+    -  因为Toolbar是一个ViewGroup，所以可以直接在布局文件中使用它。
+
+<br>　　范例3：Activity的代码。
+``` java
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.mToolbar);
+        // 将toolbar做为ActionBar设置到Activity中。
+        setSupportActionBar(toolbar);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+}
+```
+    语句解释：
+    -  注意，这里继承的是AppCompatActivity类，第10行调用的setSupportActionBar方法也是继承自该类。
+    -  另外，onCreateOptionsMenu方法返回的菜单同样会被放到Toolbar中。
+
+<br>　　范例4：修改标题栏。
+
+<center>
+![Android2.2模拟器上的运行效果图](/img/android/android_b03_01.png)
+</center>
+
+``` java
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+
+    Toolbar toolbar = (Toolbar) findViewById(R.id.mToolbar);
+    setSupportActionBar(toolbar);
+    
+    toolbar.setTitle("店小二");
+    toolbar.setSubtitle("陌陌号：18204884");
+    // 设置一个不可点击图标。
+    toolbar.setLogo(R.mipmap.ic_launcher);
+    // 设置一个可以点击的图片，即上图最左侧的那个“三条横线”的图。
+    toolbar.setNavigationIcon(R.drawable.ic_menu);
+    toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+        public void onClick(View v) {
+            Toast.makeText(MainActivity.this, "AAA", Toast.LENGTH_SHORT).show();
+        }
+    });
+}
+```
+    语句解释：
+    -  需要注意的是，要先调用setSupportActionBar，然后再调用setNavigationOnClickListener才会有效果。
+
+<br>　　范例5：修改字体颜色。
+
+<center>
+![属性对应图](/img/android/android_b03_02.png)
+</center>
+
+``` html
+<style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+    <!--导航栏背景色-->
+    <item name="colorPrimary">#2196F3</item>
+    <!--状态栏背景色-->
+    <item name="colorPrimaryDark">#1976D2</item>
+    <!--导航栏上的主标题颜色-->
+    <item name="android:textColorPrimary">@android:color/white</item>
+    <!--导航栏上的子标题颜色-->
+    <item name="android:textColorSecondary">@android:color/white</item>
+    <!--Activity的背景色-->
+    <item name="android:windowBackground">@android:color/white</item>
+</style>
+```
+　　上面设置的色值会作用于整个项目，但是由于Toolbar自带的设置会覆盖上面的`colorPrimary`，所以还需要修改一下它：
+``` xml
+<android.support.v7.widget.Toolbar
+    android:id="@+id/mToolbar"
+    android:background="?colorPrimary"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" />
+```
+　　其中`?colorPrimary`表示引用当前主题下的`colorPrimary`属性的值，也可以写成`?attr/colorPrimary`。
+
+<br>　　范例6：修改overflow菜单样式。
+``` xml
+<style name="PopupMenu" parent="ThemeOverlay.AppCompat.Light" >
+    <!--菜单背景色-->
+    <item name="android:colorBackground">#0000ff</item>
+    <!--文字颜色-->
+    <item name="android:textColor">#ffffff</item>
+    <!--文字大小-->
+    <item name="android:textSize">10sp</item>
+</style>
+```
+　　然后在布局文件中设置：
+``` xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/mToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        app:popupTheme="@style/PopupMenu" />
+
+</RelativeLayout>
+```
+    语句解释：
+    -  使用popupTheme属性设置菜单的样式。
+
+<br>　　范例7：自定义Toolbar。
+``` xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/mToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        app:popupTheme="@style/PopupMenu">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Title"
+            android:textColor="@android:color/white"
+            android:textSize="22sp" />
+    </android.support.v7.widget.Toolbar>
+</RelativeLayout>
+```
+    语句解释：
+    -  由于Toolbar是一个ViewGroup，因此直接在Toolbar标签里添加控件即可。
+    -  本范例用于创建一个标题居中的Toolbar，在执行之前还需要在Activity里把原有的标题给隐藏了：
+       -  getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+<br><br>　　上面只是列举了Toolbar的基本用法，更高级的应用请阅读：[《实战篇　第三章 开源库》](http://cutler.github.io/android-O03/)。
+
+
+<br>**本节参考阅读：**
+- [Toolbar：上位的小三](http://blog.csdn.net/aigestudio/article/details/47090167)
+- [【Android】Toolbar](http://my.oschina.net/xesam/blog/356855)
+- [Android Self study course (manterial design)—Toolbar(2)](http://www.codes9.com/mobile-development/android/android-self-study-course-manterial-design-toolbar2-3/)
 
 
 <br><br>
