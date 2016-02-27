@@ -394,7 +394,7 @@ dependencies {
 
 <br>　　不过，如果想用Toolbar来替代ActionBar，则就需要修改`AppTheme`主题了：
 ``` xml
-<style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+<style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
 
 </style>
 ```
@@ -417,6 +417,7 @@ dependencies {
 ```
     语句解释：
     -  因为Toolbar是一个ViewGroup，所以可以直接在布局文件中使用它。
+    -  此时的Toolbar可能没有背景色，后面会介绍如何给它设置。
 
 <br>　　范例3：Activity的代码。
 ``` java
@@ -487,7 +488,12 @@ protected void onCreate(Bundle savedInstanceState) {
 }
 ```
     语句解释：
-    -  需要注意的是，要先调用setSupportActionBar，然后再调用setNavigationOnClickListener才会有效果。
+    -  有两点需要注意：
+       -  第一，要先调用setSupportActionBar，然后再调用setNavigationOnClickListener才会有效果。
+       -  第二，如果执行本代码时，发现标题并没有变成“店小二”，则有两个方法可以解决：
+          -  1、将第8行代码放到第6行之前。
+          -  2、将第8行代码改成getSupportActionBar().setTitle()。
+          -  这是因为当我们把toolbar设置到Activity上之后，调用toolbar的某些方法进行修改，是无法反映到Activity中的。
 
 <br>　　范例5：修改字体颜色。
 
@@ -509,7 +515,16 @@ protected void onCreate(Bundle savedInstanceState) {
     <item name="android:windowBackground">@android:color/white</item>
 </style>
 ```
-　　上面设置的色值会作用于整个项目，但是由于Toolbar自带的设置会覆盖上面的`colorPrimary`，所以还需要修改一下它：
+    语句解释：
+    -  上面设置的色值会作用于整个项目，以textColorPrimary和textColorSecondary为例：
+       -  为它们设置颜色之后，不止会影响Toolbar的标题的颜色，还会影响到其他多个地方的字体颜色。
+       -  因此笔者不推荐通过修改它们二者来达到修改标题栏字体的目的。
+       -  而应该使用Toolbar提供的setTitleTextColor和setSubtitleTextColor方法去修改。
+    -  windowBackground会影响使用此主题的所有Activity（但不限于Activity）的背景色，使用时也要注意。
+
+
+
+<br>　　由于Toolbar自带的设置会覆盖上面的`colorPrimary`，所以还需要修改一下它：
 ``` xml
 <android.support.v7.widget.Toolbar
     android:id="@+id/mToolbar"
@@ -524,9 +539,7 @@ protected void onCreate(Bundle savedInstanceState) {
 <style name="PopupMenu" parent="ThemeOverlay.AppCompat.Light" >
     <!--菜单背景色-->
     <item name="android:colorBackground">#0000ff</item>
-    <!--文字颜色-->
     <item name="android:textColor">#ffffff</item>
-    <!--文字大小-->
     <item name="android:textSize">10sp</item>
 </style>
 ```
