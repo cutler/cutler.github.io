@@ -26,7 +26,7 @@ categories: android
 <br>**安全沙箱**
 　　安装在设备上的每个`Android`应用程序都生存在它们自己的安全沙箱中：
 	-  Android操作系统是一个多用户的Linux系统，在这个系统中每个应用程序都是一个不同的用户。
-	-  默认情况下，系统给每个应用程序分配一个唯一的Linux用户ID（这个ID只能被系统使用，并且对于应用程序是未知的）。系统给应用程序中的所有文件设置权限，以便只有跟用户ID匹配的应用程序能够访问他们。
+	-  默认情况下，系统给每个应用程序分配一个唯一的Linux用户ID（这个ID只能被系统使用，并且对于应用程序是未知的）。系统给应用程序中的所有文件设置权限，以便只有跟用户ID匹配的应用程序能够访问它们。
 	-  默认情况下，每个应用程序运行在它们自己的Linux进程中，当任何应用程序的组件需要被执行时，Android会启动该组件所对应的进程，在不再需要的时候或系统必须为其他应用程序恢复内存时这个进程将被关闭。
 	-  每个进程都有它们自己的虚拟机，因此应用程序的运行是彼此隔离，某一个进程崩溃不会影响到其他进程。
 
@@ -59,7 +59,7 @@ categories: android
 ![Android系统架构](/img/android/android_1_2.jpg)
 </center>
 
-<br>**Linux Kernel层**
+<br>**Linux 内核层**
 　　在`Linux`内核层中提供的各种驱动和管理程序都是由`C/C++`语言编写的，这些程序为`Libraries`和`Android Runtime`层的程序提供服务。
 
 <br>**Libraries**
@@ -192,8 +192,7 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 
 <br>　　范例3：`<application>`标签。
 　　此标签代表一个`Android`应用程序，程序中开发的四大组件都需要在此标签内部书写。
-``` android
-<?xml version="1.0" encoding="utf-8"?>
+``` xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.cxy.tomcat" android:versionCode="1" android:versionName="1.0">
     <application 
@@ -226,8 +225,8 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 	- <receiver>元素用于声明Broadcast Receivers。
 	- <provider>元素用于声明Content Providers
 
-<br>　　范例5：<activity>标签。
-　　此标签代表一个`Activity`组件。任何一个派生自`Activity`类的类都是一个`Activity`组件 。
+<br>　　范例5：`<activity>`标签。
+　　此标签代表一个`Activity`组件，任何一个派生自`Activity`类的类都是一个`Activity`组件 。
 ``` android
 <application android:icon="@drawable/ic_launcher" android:label="@string/app_name">
     <activity
@@ -243,7 +242,8 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 <br>　　属性`android:name`的值是`“包.类”`，也可以简写成相对位置，如：`android:name=".MainActivity"`，系统会默认去核心包中查找此类。若`Activity`处于`“com.example.androidtest.activity”`包中，则也可以将`android:name`属性的值简写为，`“.activity.MainActivity”`。
 
 <br>　　安装应用程序时，系统会读取清单文件，来初始化应用程序。
-　　若在源代码中包含的`Activities`、`Services`、和`Content Providers`没有在清单文件中声明，则对系统就是不可见的，所以就不能运行。但是`Broadcast Receivers`既可以在清单文件中声明也可以在代码中动态的创建，然后通过调用`registerReceiver()`方法在系统中注册(具体后述)。
+　　若在源代码中包含的`Activities`、`Services`、和`Content Providers`没有在清单文件中声明，则对系统就是不可见的，所以就不能运行。
+　　但是`Broadcast Receivers`既可以在清单文件中声明也可以在代码中动态的创建。
 
 <br>　　范例6：`<intent-filter>`标签。
 

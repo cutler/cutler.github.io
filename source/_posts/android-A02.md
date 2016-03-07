@@ -38,7 +38,7 @@ categories: android
 	-  当Activity可见但不能和用户交互时，此方法会被调用。它强调Activity即将不可见，而onStart强调Activity即将可交互。
 	-  通常，此方法中会进行数据持久化，终止动画等操作。
 
-　　当在同一个进程中的两`Activity`之间切换时，它们两个的生命周期都会发生变化，以下是`ActivityA`启动`ActivityB`是发生的操作：
+　　当在同一个进程中的两`Activity`之间切换时，它们两个的生命周期都会发生变化，以下是`ActivityA`启动`ActivityB`时发生的操作：
 
 	-  ActivityA的onPause方法被执行。
 	-  ActivityB的onCreate、onStart、和onResume被顺序执行（现在ActivityB有用户焦点）。
@@ -61,7 +61,7 @@ categories: android
 
 
 ## 异常生命周期 ##
-　　上一节我们介绍了`Activity`常见的`7`个生命周期方法，这些方法主要是依靠用户的操作来触发的，比如用户打开一个新的`Activity`，会导致当前界面的`onCreate`等方法调用。
+　　上一节我们介绍了`Activity`常见的`7`个生命周期方法，这些方法主要是依靠用户的操作来触发的，比如用户打开一个新的`Activity`，会导致当前界面的`onPause`等方法调用。
 　　但是实际开发时，情况会稍微复杂一些，我们还会涉及到其它几个生命周期方法，本节就来介绍一下它们。
 <br>
 ### 设备配置改变 ###
@@ -155,7 +155,7 @@ public class MainActivity extends Activity {
 # 第二节 Task #
 
 ## 基础知识 ##
-　　`Android`使用`Task`来组织应用程序的所有`Activity`，`Task`是一个栈(`Stack`)结构，各个`Activity`按照栈的特点`“后来居上、后进先出”`依次被被安排在栈中。
+　　`Android`使用`Task`来组织应用程序的所有`Activity`，`Task`是一个栈(`Stack`)结构，各个`Activity`按照栈的特点`“后来居上、后进先出”`依次被安排在栈中。
 　　默认情况下，一个应用程序中的所有`Activity`处于同一个`Task`中，在操作系统中同一时间上会存在多个`Task`。
 　　默认情况下，当一个`Activity`被创建时，就会被压入到`Task`的栈顶，当其销毁时（用户点击`“Back”`键或调用`finish()`方法等），就会从栈顶移除。
 
@@ -363,7 +363,7 @@ this.startActivity(intent);
 <br>　　**显式意图**
 　　若在`Intent`对象被发送给操作系统之前，程序为它的`mComponent`属性赋值了，则此`Intent`对象被称为显式意图。显示意图明确的指定了其要启动的组件的所在包名、类名，`Android`系统接到`Intent`对象时，直接去对应的包中反射实例化并初始化目标组件。
 <br>　　**隐式意图**
-　　在程序中没有为`Intent`对象明确指出想要其启动组件（即没有为`mComponent`属性赋值），而是提供一些筛选条件，操作系统会从当前已在系统中注册的所有组件中，筛选出满足要求的组件(可能是一个也可能是多个)，然后予以启动。 
+　　在程序中没有为`Intent`对象明确指出想要其启动的组件（即没有为`mComponent`属性赋值），而是提供一些筛选条件，操作系统会从当前已在系统中注册的所有组件中，筛选出满足要求的组件(可能是一个也可能是多个)，然后予以启动。 
 
 ## 显式意图 ##
 　　当操作系统接到`Intent`对象后，会检查`Intent`对象的`mComponent`是否有值：
@@ -437,7 +437,7 @@ public class SecondActivity extends Activity{
 	2、数据（mData和mType）
 	3、分类（mCategories）
 
-　　也就是说，我们通过为Intent的上面四个属性赋值，来执行“设置筛选条件”，然后操作系统也会读取这四个属性，并用它们进行匹配。
+　　也就是说，我们通过为Intent的上面四个属性赋值，来设置“筛选条件”，然后操作系统也会读取这四个属性，并用它们进行匹配。
 
 <br>**动作**
 　　`mAction`：是`String`类型的，用来告诉系统本次请求要执行什么样的动作。如：张三看书、李四唱歌中的`“看”`、`“唱”`就是指动作。在Android中内置的动作有很多，常见的有：
@@ -668,7 +668,7 @@ startActivity(intent);
 
 <br>**扩展：**
 　　`PackageManager`类中有一组`query…()`以及`resolve…()`方法。
-　　前者返回能够接受一个特殊`Intent`对象的所有组件，后者返回最佳匹配结果（即只返回1个结果），例如：
+　　前者返回能够接受指定`Intent`对象的所有组件，后者返回最佳匹配结果（即只返回1个结果），例如：
 
 	-  queryIntentActivities()方法返回能够执行这个Intent对象的所有Activity。
 	-  queryIntentServices()方法类似地返回Service列表。
@@ -686,7 +686,7 @@ startActivity(intent);
 
 <br>**是什么？**
 　　解决代码冗余最好的方法就是把各功能相似的`Activity`中那块相似的部分抽取出来，然后封装成一个类，以后就可以在需要使用的时候实例化一个对象放入`Activity`即可。
-　　在`Android3.0`中`Google`已经帮我们封装好了这个类，即`Fragment`。也就是说`Fragment`的作用就是用来封装各`Activity`中公用的组件，以便代码重用。
+　　在`Android3.0`中`Google`已经帮我们封装好了这个类，即`Fragment`。也就是说`Fragment`的作用就是用来封装各`Activity`中公用的组件，以便代码重用和管理。
 
 　　既然已经知道了`Fragment`的作用，那么接下来说说它的特点：
 
@@ -722,7 +722,7 @@ startActivity(intent);
 <br>**创建Fragment**
 　　我们已经知道`Fragment`用来作为`Activity`的用户界面的一部分，其内封装的`view`会被放入`Activity`中。
 　　那么应该如何给`Fragment`提供一个`view`呢?
-　　答：实现`Fragment`类的`onCreateView()`回调方法即可，该方法是`Fragment`的生命周期方法之一，当`Activity`需要`Fragment`绘制它自己的`view`时，就会调用它。
+　　答：实现`Fragment`类的`onCreateView()`回调方法即可，该方法是`Fragment`的生命周期方法之一，当`Activity`需要`Fragment`创建它自己的`view`时，就会调用它。
 
 <br>　　范例1：MyFragment。
 ``` android
@@ -961,7 +961,7 @@ public class FragmentA extends ListFragment {
 　　和`Activity`一样，你可以使用`Bundle`保持`Fragment`的状态，万一`Activity`的进程被干掉，并且当`Activity`被重新创建的时候，你需要恢复`Fragment`的状态时就可以用到。
 　　在`Fragment`的`onSaveInstanceState()`期间保存状态，并可以在`onCreate()`，`onCreateView()`或`onActivityCreated()`期间恢复它。
 
-<br>**各声明周期方法的调用**
+<br>**各生命周期方法的调用**
 
 	-  onAttach：当Fragment通过事务对象被绑定到Activity时被调用(宿主Activity的引用会被传入)。在onAttach方法被调用后，其宿主Activity的onAttachFragment方法将被调用。
 	-  onCreate：通常情况下，在宿主Activity的onAttachFragment方法将被调用后，会调用Fragment的onCreate方法。

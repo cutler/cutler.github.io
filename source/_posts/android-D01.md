@@ -214,7 +214,7 @@ MediaRecorder.AudioEncoder.HE_ACC                API Level 16
 ```
 
 ## AudioRecord ##
-　　刚刚介绍了如何使用`MediaRecorder`类来进行录音，这个类十分容易使用并且可以简单快速的进行录音，同时也可以将音频压缩存储为`mpeg4`或者`3gpp`格式的。但是如果你需要原始数据，做一些音频处理，则就无法使用`MediaRecorder`类来完成了。`AudioRecord`类则可以输出未压缩的原始音频流，你可以将音频流写入到一个文件，保存为`wav`格式等。
+　　刚刚介绍了如何使用`MediaRecorder`类来进行录音，该类十分容易使用并且可以简单快速的进行录音，同时也可以将音频压缩存储为`mpeg4`或者`3gpp`格式的。但是如果你需要原始数据，做一些音频处理，则就无法使用`MediaRecorder`类来完成了。`AudioRecord`类则可以输出未压缩的原始音频流，你可以将音频流写入到一个文件，保存为`wav`格式等。
 
 <br>　　使用`AudioRecord`类记录音频的步骤如下： 
 

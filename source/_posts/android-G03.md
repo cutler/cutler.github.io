@@ -971,7 +971,7 @@ public class MyView extends View {
         }
         // 注意这里一定要把画笔设置为完全透明。
         // 当系统通过Xfermode决定了要绘制的内容后，就会使用Paint进行绘制。
-        // 因此，如果Paint的透明度为0，则就会实现擦除效果。
+        // 而如果Paint的透明度为0，则就会实现擦除效果。
         mPaint.setAlpha(0);
         // 由于设置了画笔的透明度为0，所以此行代码也可以使用PorterDuff.Mode.SRC_IN模式。
         mPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));

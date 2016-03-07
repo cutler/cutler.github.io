@@ -11,7 +11,7 @@ categories: android
 	   -  当系统内存不足时，系统会从众多后台进程中选择优先级最低的进程，予以杀掉。
 	   -  同时Android也规定了，内部没有Service的进程比有Service的进程要更优先被杀掉。
 	-  然后，Service和Thread并不冲突。
-	   -  Service的各个生命周期方法都是在主线程中调用的，如果它执行耗时操作，同样需要开启Thread。
+	   -  Service的各个生命周期方法都是在主线程中调用的，如果它内部需要执行耗时操作，那么同样要开启Thread。
 
 <br>　　简单的说：
 
@@ -121,7 +121,7 @@ public class MyIntentService extends IntentService {
 ```
 
     语句解释：
-    -  由于服务是Android四大组件之一，因此需要在<application>标签内配置，服务和Activity一样，可以为其指定一个意图过滤器。
+    -  由于服务是Android四大组件之一，因此需要在<application>标签内配置，服务和Activity一样，可以指定意图过滤器。
     -  当需要启动某个服务时，Android系统同样会依次和已在系统中注册的服务进行匹配，匹配成功的服务将会被启动。
 
 <br>　　范例4：有两种方法可以启动服务，分别是调用`startService()`和`bindService()`两个方法。
