@@ -1,6 +1,6 @@
 title: 架构篇　第二章 Model数据管理
 date: 2015-6-29 17:15:30
-categories: android
+categories: Android开发 - 青铜
 ---
 　　本章将介绍如何通过观察者模式来管理`Model`数据。
 

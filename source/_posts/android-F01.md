@@ -1,6 +1,6 @@
 title: 进阶篇　第一章 IPC机制
 date: 2015-9-24 17:39:58
-categories: android
+categories: Android开发 - 青铜
 ---
 　　本章来介绍一下`Android`的`IPC`（进程间通信）机制，主要参考书籍：[《Android开发艺术探索》](http://item.jd.com/1710650057.html)，并加上了笔者自己的体会。
 

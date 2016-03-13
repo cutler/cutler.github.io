@@ -1,6 +1,6 @@
 title: UI篇　第四章 应用程序资源
 date: 2015-4-14 14:09:02
-categories: android
+categories: Android开发 - 青铜
 ---
 　　本章来介绍一下Android开发中常用的几种资源。
 

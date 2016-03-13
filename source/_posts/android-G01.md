@@ -1,6 +1,6 @@
 title: 自定义控件篇　第一章 基础入门
 date: 2015-4-29 11:41:12
-categories: android
+categories: Android开发 - 青铜
 ---
 　　`Android`系统内置了许多控件，如果这些控件不能满足需求，您可以自定义自己的控件，自定义的控件必须继承`View`类。
 

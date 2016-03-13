@@ -1,6 +1,6 @@
 title: 自定义控件篇　第二章 输入事件
 date: 2015-1-27 14:53:50
-categories: android
+categories: Android开发 - 青铜
 ---
 　　本章将介绍一下`Android`中的各类输入事件。
 　　本章主要参考书籍：[《Android开发艺术探索》](http://item.jd.com/1710650057.html)和[《Android群英传》](http://item.jd.com/11758334.html)，同时加上了笔者自己的体会。

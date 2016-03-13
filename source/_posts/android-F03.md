@@ -1,708 +1,933 @@
-title: 进阶篇　第三章 内存分析
-date: 2015-3-10 10:40:53
-categories: android
+title: 进阶篇　第三章 消息机制与线程池
+date: 2015-4-29 11:41:12
+categories: Android开发 - 青铜
 ---
-　　本章来讲解一下Android开发中内存管理相关的知识。
 
-# 第一节 概述 #
+# 第一节 Handler #
+## 概述 ##
+　　Android的消息机制主要是指`Handler`的运行机制，因此本章会围绕着`Handler`的工作过程来分析消息机制。
+　　整个过程主要涉及到了如下5个类：
 
-## 引言 ##
-　　尽管随着科技的进步，现今移动设备上的内存大小已经达到了低端桌面设备的水平，但是现今开发的应用程序对内存的需求也在同步增长。
-　　主要问题出在设备的屏幕尺寸上——`分辨率越高需要的内存越多`。
-　　熟悉Android平台的开发人员一般都知道垃圾回收器并不能彻底杜绝`内存泄露`问题，对于大型应用而言，内存泄露对性能产生的影响是难以估量的，因此开发人员必须要有内存分析的能力。
+	-  Handler、Message、MessageQueue、Looper、ThreadLocal
 
-　　从早期`G1`的`192MB RAM`开始，到现在动辄`1G -2G RAM`的设备，为单个App分配的内存从`16MB`到`48MB`甚至更多，但`OOM`从不曾离我们远去。这是因为大部分App中图片内容占据了`50%`甚至`75%`以上，而App内容的极大丰富，所需的图片越来越多，屏幕尺寸也越来越大分辨率也越来越高，所需的图片的大小也跟着往上涨，这在大屏手机和平板上尤其明显，而且还经常要兼容低版本的设备，所以Android的内存管理显得极为重要。
-<br>　　在本节我们主要讲两件事情：
+<br>**Handler的作用**
+　　对于任何一个线程来说，同一时间只能做一件事，主线程也不例外。
+　　因此，若我们让主线程去执行上传/下载等耗时的任务时，在任务执行完毕之前，用户点击了界面中的按钮，主线程是无法响应用户的操作的。
+　　并且，如果主线程`5`秒后仍没响应用户，则`Android`系统会弹出`ANR`对话框，询问用户是否强行关闭该应用。
 
-	-  Gingerbread和Honeycomb中的一些影响你使用内存的变化（heap size、GC、bitmaps）。
-	-  理解heap的用途分配（logs、merory leaks、Eclispe Memory Analyzer）。
-
-<br>**名词解释**
-　　内存泄漏（`Memory Leak`）
-
-	-  有个引用指向一个不再被使用的对象，导致该对象不会被垃圾回收器回收。如果这个对象内部有个引用指向一个包括很多其他对象的集合，就会导致这些对象都不会被垃圾回收。
-　　内存溢出（`Out of memory`）：
-
-	-  当程序需要为新对象分配空间，但是虚拟机能使用的内存不足以分配时，将会抛出内存溢出异常，当内存泄漏严重时会导致内存溢出。
-
-## Gingerbread和Honeycomb ##
-　　我们都知道Android是个多任务操作系统，同时运行着很多程序，都需要分配内存，不可能为一个程序分配越来越多的内存以至于让整个系统都崩溃。因此`heap`的大小有个硬性的限制，跟设备相关，从发展来说也是越来越大，`G1：16MB`，`Droid：24MB`，`Nexus One：32MB`，`Xoom：48MB`，但是一旦超出了这个使用的范围，`OOM`便产生了。
-　　如果你正在开发一个应用，想知道设备的`heap`大小的限制是多少，比方说根据这个值来估算自己应用的缓存大小应该限制在什么样一个水平，你可以使用`ActivityManager#getMemoryClass()`来获得一个单位为`MB`的整数值，一般来说最低不少于`16MB`，对于现在的设备而言这个值会越来越大，`24MB`，`32MB`，`48MB`甚至更大。
-
-<br>　　但是对于一些内存非常吃紧的比如图片浏览器等应用，在平板上所需的内存更大了。因此在`Honeycomb(Android3.0)`之后`AndroidManifest.xml`增加了`largeHeap`的选项：
-``` xml
-<application
-    android:largeHeap="true"
-    ...>
-</application>
+　　这样说的话，我们就只能把耗时的操作放在子线程中执行了。不过，Android规定访问UI只能在主线程中进行，如果在其他线程中访问UI，那么程序就会抛出异常。
+　　这个验证线程的操作由`ViewRootImpl`类的`checkThread`方法完成：
+``` java
+void checkThread() {
+    if (mThread != Thread.currentThread()) {
+        throw new CalledFromWrongThreadException(
+                "Only the original thread that created a view hierarchy can touch its views.");
+    }
+}
 ```
-　　这允许你的应用使用更多的`heap`，可以用`ActivityManager#getLargeMemoryClass()`返回一个更大的可用`heap size`。
-　　但是这里要警告的是，千万不要因为你的应用报`OOM`了而使用这个选项，因为更大的`heap size`意味着更多的`GC`时间，意味着应用的性能越来越差，而且用户也会发现其他应用很有可能会内存不足。只有你需要使用很多的内存而且非常了解每一部分内存的用途，这些所需的内存都是不可或缺的，这个时候你才应该使用这个选项。
+　　这意味着，当子线程执行完毕耗时操作后，`得想办法通知主线程一下`，然后借助主线程来修改UI。  
+　　而`Handler`就可以完成子线程向父线程发送通知的需求。
 
-<br>　　既然我们提到更大的`heap size`意味着更多的`GC`时间，下面我们来谈谈`Garbage Collection`。
+<br>**知识扩展**
+　　这里再延伸一点，系统为什么不允许在子线程中访问UI呢？ 
 
-<br>**垃圾回收**
-　　首先我们简单回顾下`JAVA`的内存回收机制，内存空间中垃圾回收的工作由垃圾回收器 (`Garbage Collector，GC`) 完成的，它的核心思想是：对虚拟机可用内存空间，即堆空间中的对象进行识别，如果对象正在被引用，那么称其为存活对象，反之，如果对象不再被引用，则为垃圾对象，可以回收其占据的空间，用于再分配。
-　　在垃圾回收机制中有一组元素被称为`根元素集合`，它们是一组被虚拟机直接引用的对象，比如，正在运行的线程对象，系统调用栈里面的对象以及被`system class loader`所加载的那些对象。堆空间中的每个对象都是由一个根元素为起点被层层调用的。因此，一个对象还被某一个存活的根元素所引用，就会被认为是`存活对象`，不能被回收和进行内存释放。因此，我们可以`通过分析一个对象到根元素的引用路径来分析为什么该对象不能被顺利回收`。如果说一个对象已经不被任何程序逻辑所需要但是还存在被根元素引用的情况，我们可以说这里存在内存泄露。
+	-  这是因为Android的UI控件并不是线程安全的，如果允许在多线程中并发访问，可能会导致UI控件处于不可预知的状态。
+	-  也许你会说，加上同步不就行了？ 但是加同步有两个缺点：
+	   -  第一，Android控件众多，加上同步会让UI的逻辑变得复杂。
+	   -  第二，过多的同步操作会降低UI的访问效率，因为锁机制会阻塞某些线程的执行。
+	-  基于这两个缺点，最简单和高效的方法就是采用单线程来处理UI操作，而且对于开发者来说也不是很麻烦，只需要使用Handler切换一下线程即可。
 
-<center>
-![](/img/android/android_8_1.png)
-</center>
+<br>　　这里再延伸一点，并不是所有的更新UI的操作都只能在主线程中完成的。
 
-　　如上图所示，`GC`会选择一些它了解还存活的对象作为内存遍历的根节点，比方说`thread stack`中的变量，`JNI`中的全局变量，`zygote`中的对象等，然后开始对`heap`进行遍历。到最后，那些没有直接或者间接引用到`GC Roots`的就是需要回收的垃圾，会被`GC`回收掉。如下图蓝色部分：
+	-  比如在子线程中可以简单的修改ProgressBar、SeekBar、ProgressDialog等控件。
+	-  所谓的简单的修改，就是只能调用这些控件的某些方法（如setProgress()等），若调用其他方法，则仍然会抛异常。
 
-<center>
-![](/img/android/android_8_2.png)
-</center>
+## 基础应用 ##
+　　因为`Handler`的用法十分简单，所以笔者不打算过多介绍如何使用它，下面给出两个范例，如果不理解请自行搜索。
 
-　　因此也可以看出，更大的`heap size`需要遍历的对象更多，回收垃圾的时间更长，所以说使用`largeHeap`选项会导致更多的`GC`时间。
-
-　　提示：
-
-	Activity有View的引用，View也有Activity的引用，当Activity被finish掉之后，Activity和View的循环引用已成孤岛，不再引用到GC Roots，无需断开也会被回收掉。
-
-<br>　　在`Gingerbread(Andrid2.3)`之前，`GC`执行的时候整个应用会暂停下来执行全面的垃圾回收，因此有时候会看到应用卡顿的时间比较长，一般来说`>100ms`，对用户而言已经足以察觉出来。`Gingerbread`及以上的版本，`GC`做了很大的改进，基本上可以说是并发的执行，并且也不是执行完全的回收。只有在`GC`开始以及结束的时候会有非常短暂的停顿时间，一般来说`<5ms`，用户也不会察觉到。
-
-
-<br>**常见GC Root**
-　　GC会收集那些不是GC roots且没有被GC roots引用的对象。一个对象可以属于多个root，常见的GC root有几下种：
-
-	-  Class：由系统类加载器加载的对象，这些类是不能够被回收的，他们可以以静态字段的方式保存持有其它对象。
-	-  Thread：已经启动且正在执行的线程。
-	-  JNI Local：JNI方法的local变量或参数。
-	-  JNI Global：全局JNI引用。
-	-  Monitor Used：用于同步的监控对象。
-
-　　参考阅读：[GC Root](http://blog.csdn.net/fenglibing/article/details/8928927) 
-
-<br>**内存结构**
-　　在`Honeycomb(Android3.0)`之前，`Bitmap`的内存分配如下图：
-
-<center>
-![](/img/android/android_8_3.png)
-</center>
-
-　　蓝色部分是`Dalvik heap`，黄色部分是`Bitmap`引用对象的堆内存，而`Bitmap`实际的`Pixel Data`是分配在`Native Memory`中(VM中的另一块地方，与`heap`是平级的)。这样做有几个问题，首先需要调用`reclyce()`来表明`Bitmap`的`Pixel Data`占用的内存可回收，不调用这个方法的话就要靠`finalizer`来让`GC`回收这部分内存，但了解`finalizer`的应该都知道这相当的不可靠；其次是很难进行`Debug`，因为一些内存分析工具是查看不到`Native Memory`的。
-
-<br>　　`Honeycomb`之后，`Bitmap`的内存分配做出了改变，如下图：
-
-<center>
-![](/img/android/android_8_4.png)
-</center>
-
-　　蓝色黄色部分没有变化，但`Bitmap`实际的`Pixel Data`的内存也同样分配在了`Dalvik heap`中。这样做有几个好处。首先能同步的被`GC`回收掉；其次`Debug`变得容易了，因为内存分析工具能够查看到这部分的内存；再次就是`GC`变成并发了，可做部分的回收，也就是极大缩短了`GC`执行时暂停的时间。
-
-## Heap的分配 ##
-　　一般来说我们希望了解我们应用内存分配，最基本的就是查看`Log`信息。比方说看这样一个`Log`信息(这是`Gingerbread`版本的，`Honeycomb`以后`log`信息有改动)：
-```
-D/dalvikvm( 9050): 
-GC_CONCURRENT freed 2049K, 
-65% free 3571K/9991K, external 4703K/5261K, paused 2ms+2ms
-```
-
-　　第二行代码的`“GC_xxx”`说明是哪类`GC`以及触发`GC`的原因，常见有五种类型：
-
-	-  GC_CONCURRENT：这是因为你的heap内存占用开始往上涨了，为了避免heap内存满了而触发执行的。
-	-  GC_FOR_MALLOC：这是由于concurrent gc没有及时执行完而你的应用又需要分配更多的内存，内存要满了，这时不得不停下来进行malloc gc。
-	-  GC_EXTERNAL_ALLOC：这是为external分配的内存执行的GC，也就是上文提到的Bitmap Pixel Data之类的。
-	-  GC_HPROF_DUMP_HEAP：这是当你做HPROF这样一个操作去创建一个HPROF profile的时候执行的。
-	-  GC_EXPLICIT：这是由于你显式的调用了System.gc()，这是不提倡的，一般来说我们可以信任系统的GC。
-
-
-　　第二行代码的`“freed 2049K”`表明在这次`GC`中回收了多少内存。
-　　第三行代码的`“65% free 3571K/9991K”`是`heap`的一些统计数据，表明这次回收后仍有`65%`的`heap`可用，存活的对象大小`3571K`，`heap`大小是`9991K`。
-　　`“external 4703K/5261K”`是`Native Memory`的数据，存放`Bitmap Pixel Data`或者是`NIO Direct Buffer`之类的。
-
-	-  第一个数字表明Native Memory中已分配了多少内存。
-	-  第二个值有点类似一个浮动的阀值，表明分配内存达到这个值系统就会触发一次GC进行内存回收。
-　　`“paused 2ms+2ms”`表明`GC`暂停的时间。从这里你可以看到越大的`heap size`你需要暂停的时间越长。如果是`concurrent gc`你会看到`2`个时间一个开始一个结束，这时间是很短的，但如果是其他类型的`GC`，你很可能只会看到一个时间，而这个时间是相对比较长的。
-
-<br>**内存分析的工具**
-　　有很多工具可以用来帮助检测内存泄露问题，我们主要使用如下两个工具：
-
-	-  DDMS (Dalvik调试监视服务器) ：
-	   -  和SDK一起推出的调试工具（被放在SDK的tools目录下），提供端口转发服务、截屏、线程监控、堆dump、logcat、进程和无线状态监控以及一些其他功能。
-	-  MAT (内存分析工具)：
-	   -  快速的Java堆分析器，该工具可以检测到内存泄露，降低内存消耗，它有着非常强大的解析堆内存空间dump能力。
-
-　　接下来我们就分别介绍一下它们的用法。
-
-# 第二节 DDMS #
-　　Android SDK附带一个调试工具称为`Dalvik Debug Monitor Server`(`DDMS`)，它提供了端口转发服务、屏幕捕获、线程和堆信息、进程、`logcat`、网络的状态信息、来电、发送模拟短信等。
-　　本节仅对`DDMS`功能的进行一个简要的讨论，后面内存分析主要使用的工具是`MAT`。
-
-<br>　　`DDMS`既可以连接模拟器也可以连接一个真实的设备。你有三种方式可以启动`DDMS`：
-
-	-  从Eclipse：ADT插件把DDMS集成到了Eclipse中，点击“Window > Open Perspective > Other.. > DDMS” 。
-	-  从命令行：通过cmd进入到SDK的tools目录下，然后执行“ddms”命令启动该工具。
-	-  从AndroidStudio：自己去差，满地都是教程。
-
-<br>　　接下来介绍一下如何使用`DDMS`以及该视图下面的各种标签和窗格的作用。
-
-<br>**查看进程堆使用情况**
-　　`DDMS`允许您查看一个进程正在使用有多少堆内存，这些信息很重要我们稍后会用到。
-
-<center>
-![查看进程堆使用情况](/img/android/android_8_6.png)
-</center>
-
-<br>　　具体查看步骤：
-
-	1、首先在Devices选项卡中，选中你想查看堆信息的进程。
-	2、然后，点击Devices选项卡中的Update Heap按钮，启用监听这个进程的堆信息。
-	3、在右侧窗口中的Heap选项卡中，点击Cause GC按钮去调用垃圾回收器开始收集堆信息，随后你将看到一组对象类型以及这些类型被分配的内存大小。
-	4、点击列表中的一个对象类型来看到一个条形图显示对象的数量分配给一个特定的内存字节大小。
-
-　　一旦点击了`Cause GC`按钮后，后续的堆信息的收集就会每隔一段时间自动进行了，但你仍可以再次点击`Cause GC`按钮可以手动触发信息收集。
-
-<br>**跟踪内存分配的对象**
-　　`DDMS`提供一个很有用的功能，它跟踪正在分配内存的对象和查看那些类和线程正分配对象。这样，在应用中执行特定操作时你就可以实时跟踪哪些对象正在被分配资源。分析影响到应用性能的内存使用是很有价值的信息。
-
-<center>
-![](/img/android/android_8_7.png)
-</center>
-
-<br>　　跟踪内存的对象分配：
-
-	1、首先在Devices选项卡，选择需要跟踪内存分配的进程。
-	2、然后在allocation选项卡，点击Start Tracking按钮开始分配跟踪。这时，任何在应用中的操作都会被跟踪。
-	3、点击Get Allocations来查看从点击Start Tracking按钮以来已经分配的对象列表。再点击Get Allocations就会将已分配的新对象添加到列表中。
-	4、如果要停止跟踪或清除数据后重新开始，点击Stop Tracking按钮。
-	5、点击列表中的特定行就可以看到更详细的信息，比如已分配的对象的方法和代码行。
-
-<br>**使用模拟器或设备的文件系统**
-　　`DDMS`提供了文件系统选项（上图中的`“File Explorer”`），它允许查看、复制和删除设备上的文件。这个功能对于检查应用创建的文件或向设备中导入文件和从设备导出文件来说，非常有用。
-　　使用模拟器或设备文件系统：
-
-	1、在设备选项，选择要查看文件系统的模拟器。
-	2、要从设备中复制文件，先在文件浏览中定位文件，然后点击Pull file按钮。
-	3、要把文件复制到设备中，点击文件浏览选项中的Push file按钮
-
-# 第三节 MAT #
-　　对于大型`JAVA`应用程序来说，再精细的测试也难以堵住所有的漏洞，即便我们在测试阶段进行了大量卓有成效的工作，很多问题还是会在生产环境下暴露出来，并且很难在测试环境中进行重现。`JVM`能够记录下问题发生时系统的部分运行状态，并将其存储在堆转储(`Heap Dump`)文件中，从而为我们分析和诊断问题提供了重要的依据。
-
-　　`Memory Analyzer（MAT）`是一个功能丰富的`JAVA`堆转储文件分析工具，可以帮助你发现内存漏洞和减少内存消耗。 
-
-　　通常内存泄露分析被认为是一件很有难度的工作，一般由团队中的资深人士进行。不过，今天我们要介绍的`MAT`被认为是一个`“傻瓜式”`的堆转储文件分析工具，你只需要轻轻点击一下鼠标就可以生成一个专业的分析报告。和其他内存泄露分析工具相比，`MAT`的使用非常容易，基本可以实现一键到位，即使是新手也能够很快上手使用。
-　　
-
-## 安装步骤 ##
-　　`MAT`的使用是如此容易，你是不是也很有兴趣来亲自感受下呢，那么第一步我们先来安装`MAT`。
-
-<br>**安装 MAT**
-　　和其他插件的安装非常类似，`MAT`支持两种安装方式，一种是`“单机版”`的，也就是说用户不必安装`Eclipse IDE`环境，`MAT`作为一个独立的`Eclipse RCP`应用运行；另一种是`“集成版”`的，也就是说`MAT`也可以作为`Eclipse IDE`的一部分，和现有的开发平台集成。
-　　集成版的安装需要借助`Eclipse`的`Update Manager`。如下图所示，首先通过`Help -> Install NewSoftware... `启动软件更新管理向导。
-
-<center>
-![](/img/android/android_8_8.png)
-</center>
-
-　　点击`add`按钮，然后按下图所示的方式输入`MAT`的更新地址（最新是 http://download.eclipse.org/mat/1.5/update-site/ ） 。
-
-<center>
-![](/img/android/android_8_9.png)
-</center>
-
-　　如果你已经配置过了，则Eclipse就会像上面那样提示`“Duplicate location”`。 
-　　如下图所示，接下来选择你想要安装的`MAT`的功能点，需要注意的是展开项目后有一个`Memory Analyzer (Chart)`，这个功能是一个可选的安装项目（但是推荐安装），它主要用来生成相关的报表，不过如果需要用到这个功能，你还需要额外的安装`BIRT Chart Engine`。
-
-<center>
-![](/img/android/android_8_10.png)
-</center>
-
-<br>　　如果你打算安装`Memory Analyzer (Chart)`功能，那么上图第二个红框应该勾选，它可以自动搜索并安装MAT所必须依赖的其他插件，在这里就是`BIRT Chart Engine`。
-　　插件安装完毕，你还需要重新启动`Eclipse`的工作平台。
-
-　　比较而言，单机版的安装方式非常简单，用户只需要下载相应的安装包，然后解压缩即可运行，这也是被普遍采用的一种安装方式。在下面的例子里，我们使用的也是单机版的`MAT`。
-　　笔者使用的是`Memory Analyzer V1.5.0.20150527`单机版，[下载地址](http://www.eclipse.org/mat/downloads.php)。
-
-<br>　　接下来我们有两个任务要做：
-
-	-  第一，写一个内存泄漏的代码。
-	-  第二，导出一个堆转储文件，然后分析这个文件。所谓的堆转储文件，就是一个保存了内存中的各种信息的文件，我们通过分析它就可以定位出内存泄漏。
-
-## 常见泄漏 ##
-　　本节先来介绍几个常见的内存年泄漏的范例，以便在以后写代码的时候可以避免掉。
-
-### Handler与Thread ###
-　　`Handler`是造成内存泄露的一个重要的源头。
-<br>　　看一下如下代码：
+<br>　　范例1：发送消息。
 ``` android
-public class HandlerActivity extends Activity {
-    private final Handler mHandler = new Handler() {
+public class TestActivity extends Activity {
+    public Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
-            // ...
+            // 获取Message对象中的数据。
+            System.out.println(msg.arg1);
         }
     };
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        // 发送一个消息，60秒后处理。
-        mHandler.sendMessageDelayed(Message.obtain(), 60000);
-        // 关闭Activity。
-        finish();
-    }
-}
-```
-<br>　　猛地一看并没有什么问题，但是`Eclipse`或`Android Studio`却会有如下警告：
-
-	This Handler class should be static or leaks might occur (com.example.ta.HandlerActivity.1)
-
-　　大体的意思是：`Handler`应该使用静态声明，不然可能导致`HandlerActivity`被泄露。
-
-<br>　　为啥出现这样的问题呢？这是因为：
-
-	-  首先，当在主线程中初始化Handler时，该Handler会和主线程中的Looper的消息队列关联。
-	-  然后，通过Handler发送的消息，会被发送到Looper的消息队列里，直到消息被处理。
-	-  接着，但是通过Handler对象发送的消息会反向持有Handler的引用，这样系统可以调用Handler#handleMessage(Message)来分发处理该消息。
-	-  最后，由于消息会延迟60秒处理，因此Message对象的引用会被一直持有，同时导致Handler无法回收，又因为Handler是实例内部类，所以最终会导致Activity被泄漏。
-
-<br>　　也许你会说`“我不去执行这种延期的Message不就行了”`，但是：
-
-	-  首先，你不会执行但你不能保证你同事也不会执行。
-	-  然后，由于程序中可以存在多个Handler，并且一般情况下都是在主线程中处理消息，因此你也不能保证在其他地方的Handler对象不会阻塞主线程，进而导致你的Message被迫延迟处理等。
-	-  因此，为了避免这些未知的情况，我们尽量不要这么写代码。
-
-<br>**如何避免呢？**
-　　最简单的方法就是把`Handler`写成一个外部类，不过这样一来就会多出很多文件，也难以查找和管理。
-
-　　另一个方法就是使用`静态内部类+软引用`：
-``` android
-public class HandlerActivity2 extends Activity {
-
-    private static final int MESSAGE_1 = 1;
-    private static final int MESSAGE_2 = 2;
-    private static final int MESSAGE_3 = 3;
-
-    private final Handler mHandler = new MyHandler(this);
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        mHandler.sendMessageDelayed(Message.obtain(), 60000);
-        finish();
-    }
-
-    private static class MyHandler extends Handler {
-        private final SoftReference<HandlerActivity2> mActivity;
-
-        public MyHandler(HandlerActivity2 activity) {
-            mActivity = new SoftReference<HandlerActivity2>(activity);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            // 如果当前Activity被GC回收了，则就不处理这个消息了，直接返回。
-            if (mActivity.get() == null) {
-                return;
+        setContentView(R.layout.main);
+        new Thread(){// 创建一个线程对象。
+            public void run(){
+                // 创建一个Message对象。
+                Message msg = new Message();
+                // 为Message对象设置数据。
+                msg.arg1= 100;
+                mHandler.sendMessage(msg); // 将消息对象发送到Handler对象中。
             }
-        }
-    }
-}
-```
-    语句解释：
-    -  本范例中创建了一个名为MyHandler的静态内部类，与实例内部类不同的是，静态内部类不会默认持有其外部类的引用。
-    -  在构造MyHandler类的对象时，虽然仍需要传递一个HandlerActivity2的引用过去，但MyHandler类不会持有它的强引用，因而不会阻止HandlerActivity2回收。
-
-<br>**上面这样就可以了吗？**
-　　当`Activity`被`finish`后`Handler`对象还是在`Message`中排队，还是会处理消息，但这些处理已经没有必要了。
-　　我们可以在`Activity`的`onStop`或者`onDestroy`的时候，取消掉该`Handler`对象的`Message`和`Runnable`，代码如下：
-``` java
-public void onDestroy() {
-    mHandler.removeMessages(MESSAGE_1);
-    mHandler.removeMessages(MESSAGE_2);
-    mHandler.removeMessages(MESSAGE_3);
-    mHandler.removeCallbacks(mRunnable);
-}   
-```
-
-<br>**Thread对象也一样**
-　　比如我们有如下代码：
-``` android
-public class ThreadActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        new MyThread().start();
-    }
-
-    private class MyThread extends Thread {
-        public void run() {
-
-        }
-    }
-}
-```
-　　它的问题和`Handler`的问题是一样的，解决的方法同样也是`静态内部累+软引用`。
-
-　　此时你可能会有疑问，在刚才说的`Handler`问题中，`Activity`被泄漏是因为`Handler`对象被持有，但是这里的`Thread`对象是一个匿名对象，没有任何人持有它，为什么也会导致`Activity`泄漏呢？
-　　答：`Thread`对象是`GCRoot`对象，虽然没有被引用，但是一旦它被启动了，那直到它执行完毕，都不会被回收。除非程序被切到后台且因为系统内存不足，该进程被杀掉进而终止线程。
-
-<br>**本节参考阅读：**
-- [Android App 内存泄露之Handler](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8BHandler.md) 
-- [Android App 内存泄露之Thread](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8BThread.md) 
-
-## 堆转储文件 ##
-　　在进行分析内存之前，还需要获得一个堆转储文件(`dump heap`)，该文件中保存了内存中的各种信息，堆转储文件以`.hprof`为后缀。
-
-<br>**Heap Dump**
-　　如果你不知道`Java`里面的`Heap`是什么意思，这篇文章可能就不太适合你阅读了。
-　　一个`Heap Dump`是指在某个时刻对一个Java进程所使用的堆内存情况的一次`快照`，也就是在某个时刻把`Java`进程的内存以某种格式持久化到了磁盘上。`Heap Dump`的格式有很多种，而且不同的格式包含的信息也可能不一样。
-　　但总的来说，`Heap Dump`一般都包含了一个堆中的`Java Objects`，`Class`等基本信息。同时，当你在执行一个转储操作时，往往会触发一次`GC`，所以你转储得到的文件里包含的信息通常是有效的内容（包含比较少，或没有垃圾对象了）。
-
-<br>　　我们往往可以在`Heap Dump`看到以下基本信息（一项或者多项，与`Dump`文件的格式有关）：
-
-	-  所有的对象信息：对象的类信息、字段信息、原生值(int, long等)及引用值。
-	-  所有的类信息：类加载器、类名、超类及静态字段。
-	-  垃圾回收的根对象：根对象是指那些可以直接被虚拟机触及的对象。
-	-  线程栈及局部变量：包含了转储时刻的线程调用栈信息和栈帧中的局部变量信息。
-　　一个`Heap Dump`是不包含内存分配信息的，也就是说你无法从中得知是谁创建了这些对象，以及这些对象被创建的地方是哪里。但是通过分析对象之间的引用关系，往往也能推断出相关的信息了。
-
-<br>**获取堆转储文件**
-　　首先，您需要了解到，不同厂家的`JVM `所生成的堆转储文件在数据存储格式以及数据存储内容上有很多区别，`MAT`不是一个万能工具，它并不能处理所有类型的堆存储文件。但是比较主流的厂家和格式，例如`Oracle`，`HP`，`SAP`所采用的`HPROF`二进制堆存储文件，以及`IBM`的`PHD`堆存储文件等都能被很好的解析。
-　　获得堆转储文件很容易，打开`DDMS`，启动想要监控的进程，点击左边`Devices`窗口上方工具栏的`“Dump HPROF File”`按钮。
-
-　　如果你直接使用`MAT`打开刚生成的堆转储文件的话，那么`MAT`通常会报如下错误：
-``` c
-Error opening heap dump 'a.hprof'. Check the error log for further details.
-Error opening heap dump 'a.hprof'. Check the error log for further details.
-Unknown HPROF Version (JAVA PROFILE 1.0.3) (java.io.IOException)
-Unknown HPROF Version (JAVA PROFILE 1.0.3)
-```
-　　原因是: Android的虚拟机导出的`hprof`文件格式与标准的`java hprof`文件格式标准不一样，根本原因两者的虚拟机不一致导致的。
-　　解决方法：使用`sdk\platform-tools\hprof-conv.exe`工具转换就可以了：
-``` c
-hprof-conv 源文件 目标文件
-```
-
-<br>**MAT插件界面概览**
-　　文件加载完成后，你可以看到类似如下图所示的界面：
-
-<center>
-![](/img/android/android_8_11.png)
-</center>
-
-　　红框括起来了是一些快捷键和功能按钮，如果不小心把某个窗口给关掉后，可以通过这些按钮重新打开对应的界面。
-
-## 基础应用 ##
-### 问题代码 ###
-　　前面说过`Thread`一旦被启动，那么直到它运行结束都不会被回收（当然若进程被操作系统杀掉了那么线程会中止），你可能会不信，那么咱们现在就创建一个范例，完成后面知识的讲解。
-
-<br>　　范例1：内存泄漏代码。
-``` android
-public class MainActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        new Thread() {
-            public void run() {
-                for (int i = 1; i <= 600; i++) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    System.out.println(Thread.currentThread().getName() + " = " + i+", " + MainActivity.this);
-                }
-            };
         }.start();
     }
 }
 ```
-	语句解释：
-	-  每当新建立一个Activity的时候就开启一个线程，并让这个线程运行600秒。
+    语句解释：
+	-  本范例中，使用Handler对象的sendMessage方法，给它自己发送消息。
+	-  Message类用来封装一个消息，在Message对象中可以保存一些数据，以供Handler使用。
+	   -  若需要传递给Handler的数据是int类型的，则可以使用Message类提供的两个int类型的属性arg1、arg2，它们方便使用且会更节约系统资源。
+	   -  若需要传递一个Object类型的数据，则可以使用Message类提供的obj属性。
+	   -  若需要传递多个Object类型的数据，则可以使用Bundle对象。当然也可以仍然使用obj属性，万物皆对象嘛。
 
-<br>　　程序运行后，我们可以通过不断的横竖屏切换来触发`Activity`重建，来模拟内存泄漏。
+<br>　　范例2：处理消息。
+``` android
+// 发送数据：
+public void sendMessage() {
+    new Thread() {
+        public void run() {
+            //  发送消息1：
+            Message msg = new Message();
+            msg.obj = "已下载 80%";
+            msg.what = 1;
+            mHandler.sendMessage(msg);
+ 
+            //  发送消息2：
+            msg = new Message();
+            msg.obj = "Hi";
+            msg.what = 2;
+            mHandler.sendMessage(msg); 
+        }
+    }.start();
+}
+// 接收数据：
+public Handler mHandler = new Handler() {
+    public void handleMessage(Message msg) {
+        switch(msg.what){
+        case 1:
+            System.out.println("更新进度条"+msg.obj);
+            break;
+        case 2:
+            System.out.println("打印数据"+msg.obj);
+            break;
+        }
+    }
+};
+```
+    语句解释：
+	-  父线程中创建的Handler对象可以接收来自其n个子线程中发送过来的消息。
+	-  这些不同的子线程所要完成的任务是不尽相同的，因而他们发送的Message对象需要区别开来处理。
+	-  Message的what属性类似于给消息增加一个“唯一标识”，以此来区分不同的Message 。
 
-<br>
-### 发现问题 ###
-　　若我们的项目运行一段时间后就变得很慢，那么不出意外的话是有内存泄漏了，但是由于不知道具体在哪里泄漏的，所以可能无从下手，应该怎么办呢？
-　　在`DDMS`视图中的`Heap`选项卡中部有一个`Type`叫做`data object`，即数据对象。
-　　在`data object`一行中有一列是`“Total Size”`，其值就是当前进程中所有`Java`数据对象的内存总量，一般情况下，这个值的大小决定了是否会有内存泄漏。
+<br>　　在继续向下之前，先来介绍一下`ThreadLocal`类。
+## ThreadLocal ##
+　　假设现在有一个需求：
 
-<br>　　以我们上面的问题代码为例，程序刚启动时内存的信息为：
+	-  有A、B、C、D四个类，它们的调用顺序是：A → B → C → D，即A类调用B类，B调用C，C调用D。
+	-  若现在有个变量n，在ABCD四个类中都会用到它，若是将变量n随着程序的执行流程从A类开始依次传递，最后转给D，则代码会很乱。若是这类变量有很多，则这种传递数据的方式就很繁琐。
+	-  用静态变量吗? 若是这个功能模块会被多个线程并发调用，那么静态变量很显然就不行了。
+　　此时可以使用`ThreadLocal`类来完成数据的传递。
 
-<center>
-![](/img/android/android_o02_12.png)
-</center>
+　　`ThreadLocal`可以将一些变量存放到某个线程对象中，那么只要是这个线程能走到的地方(代码)，都可以从线程对象中获取变量的值。
 
-　　然后我们不断的横竖屏切换`5~10`次后，内存的信息为：
-
-<center>
-![](/img/android/android_o02_13.png)
-</center>
-
-　　很明显可以看到，随着我们横竖屏切换的次数增加，`“Count”`和`“Total Size”`两列下的数值也不断的增加，并且不会减少。这基本就可以断定这个界面存在内存泄漏了。
-
-<br>　　因此我们可以这样判断是否存在内存泄漏：
-
-	-  首先，不断打开和关闭应用中的某个界面，同时注意观察data object的Total Size值。
-	-  然后，正常情况下Total Size值都会稳定在一个有限的范围内。
-	   -  也就是说若程序中的代码写的很好，即便不断的操作会不断的生成很多对象，而在虚拟机不断的进行GC的过程中，这些对象都被回收了，内存占用量会会落到一个稳定的水平。
-	   -  反之如果代码中存在没有释放对象引用的情况，则data object的Total Size值在每次GC后不会有明显的回落，随着操作次数的增多Total Size的值会越来越大，直到到达一个上限后导致进程被kill掉。
-	-  提示：我们可以点击DDMS视图里的“Cause GC”按钮来手动触发GC。
-
-<br>
-### Leak Suspects ###
-　　现在，我们已经确定程序存在内存泄漏的问题了，并且也知道是哪个界面存在泄漏了，为了进一步确定是哪块代码出的问题，我们需要将该进程的内存信息导出来，生成一个`.hprof`文件，并加以分析。
-
-　　再次提示：
-
-	-  如果你是使用MAT单机版，那么你需要把IDE导出的堆转储文件转换一下格式。
-
-<br>　　当使用`MAT`打开`.hprof`文件时，会默认打开一个名为`“Leak suspects”（泄露疑点）`的视图，并且生成报告给用户。
-　　`“泄露疑点”`会列出当前内存中的个头大的对象，在这里列出的对象并不一定是真正的内存泄露，但它仍然是检查内存泄露的一个绝佳起点。
-
-　　如下图所示：
-
-<center>
-![](/img/android/android_o02_14.png)
-</center>
-
-　　图释：
-
-	-  android.content.res.Resources：类名称。
-	-  <system class loader>：加载该类的加载器。
-	-  5,309,840 (47.06%)：该类所有对象所占用的内存。
-
-<br>　　我们可以点击上图中的`“Details »”`按钮来查看详细信息。
-　　报告主要包括`到达聚点的最短路径`，这个功能非常有用，它可以让开发人员快速发现到底是哪里让这些对象无法被`GC`回收：
-
-<center>
-![](/img/android/android_8_16.png)
-</center>
-
-<br>　　在继续向下讲解之前，我们需要先插一个知识点。
-
-<br>**浅堆和保留堆**
-　　`MAT`可以根据堆转储文件，以可视化的方式告诉我们哪个类，哪个对象分配了多少内存。不过要想看懂它们，则需要掌握2个概念：`Shallow heap`(浅堆)和`Retained heap`（保留堆）。
-
-<br>　　`Shallow Heap`是指该对象占用了多少内存（字节），不包含对其他对象的引用，也就是对象头加成员变量的头的总和。如：
+<br>　　范例1：传送变量。
 ``` java
-public class Person {	// 头部8字节
-    private int age;	// 整型4字节
-    private int age1;
-    private int age2;
-    private int age3;
-    private int age4;
-    private int age5;
-    private long birthday;	// 长整型8字节
-    private long birthday1;
-    private long birthday2;
+public class MainActivity extends ActionBarActivity {
+
+    ThreadLocal<String> threadLocal = new ThreadLocal<String>();
+
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        // 主线程调用set方法保存自己的数据。
+        threadLocal.set("1");
+        // 创建第一个子线程。
+        new Thread() {
+            public void run() {
+                threadLocal.set("2");
+                System.out.println("Thread 1 = " + threadLocal.get());  // 输出：Thread 1 = 2
+            }
+        }.start();
+        // 创建第二个子线程。
+        new Thread() {
+            public void run() {
+                threadLocal.set("3");
+                System.out.println("Thread 2 = " + threadLocal.get());  // 输出：Thread 2 = 3
+            }
+        }.start();
+        // 主线程调用get方法读取自己的数据。
+        System.out.println("Main Thread = " + threadLocal.get());       // 输出：Main Thread = 1
+    }
 }
 ```
     语句解释：
-    -  一个对象的头部往往需要32或64比特(bit)（基于不同的平台实现，该值也会不同），在32位系统上，对象头占用8字节，int占用4字节。这些是JVM规范里规定，但不同JVM实现可以按照自己方式来存储数据。另外，基于不同的Heap Dump格式，这些值也可能会有变化，但往往会更加真实地反应出内存的占用量。
-    -  因此这个Person对象的浅堆大小大约为56字节。
+	-  多个线程可以共用一个ThreadLocal对象，每个线程都可以通过ThreadLocal的set方法来保存数据，各线程的数据互不影响。
+	-  在同一个线程中，每个ThreadLocal只会为它保存一个值，若set两次，则新值覆盖旧值。
+	-  可以将ThreadLocal封装入一个单例类中，不同的线程调用get和set方法，操作的都是其自己的数据。
 
-<br>　　`Retained Set`指的是一个对象集合。假定一些对象会由于对象`X`被垃圾回收（`GC`）后，也同时需要被`GC`掉，那么这些对象就属于`X`的`Retained Set`。注意，`Retained Set`是包含`X`本身的。
-　　`Retained Heap`可以简单地理解为对象的`Retained Set`中的对象所占用的内存的总和。换句话说，`Retained Heap`是该对象自己的`shallow size`，加上从该对象能直接或间接访问到对象的`shallow size`之和。
+<br>　　范例2：一个线程对应多个`ThreadLocal`。
 ``` java
-public class Person2 { // 头部8字节
-    private int age;
-    private long birthday;
-    private String img; // 头部8字节
-    private Person p;   // 头部8字节
-    public Person2(Person p) {
-        this.p = p;
-    }
-}
-```
-　　我们计算`Person2`对象的浅堆是`36`字节，就算在你的机器上计算的值与笔者计算的有偏差也不必在乎它们，因为误差不是我们关注重点。事实上，我们只是借助`Person2`类来理解浅堆和保留堆的概念，至于`Person2`类会占多少字节`Who cares?`，只要不是很离谱就可以了。
+public class MainActivity extends ActionBarActivity {
 
-<br>　　如果程序中有这样的代码：
-```
-public class MainActivity extends Activity {
-    Person p ;
-    Person2 p2 ;
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        p = new Person();
-        p2 = new Person2(null);
+        
+        ThreadLocal<String> t1 = new ThreadLocal<String>();
+        ThreadLocal<String> t2 = new ThreadLocal<String>();
+
+        t1.set("大家好,");
+        t2.set("我是崔杰伦!");
+
+        System.out.println(t1.get()+""+t2.get());
     }
 }
 ```
-　　则计算出`Person`和`Person2`的浅堆与保留堆的大小如图所示：
+    语句解释：
+	-  由此可以得出结论，Thread和ThreadLocal是多对多的关系：
+	   -  一个Thread对象内可以有多个数据。
+	   -  一个ThreadLocal对象可以在多个Thread中被使用。
 
-<center>
-![](/img/android/android_8_13.png)
-</center>
-
-<br>　　若是有如下代码：
-``` android
-public class MainActivity extends Activity {
-    Person2 p2 ;
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        p2 = new Person2(new Person());
+<br>　　介绍完了基础用法，下面说一下它的内部原理。首先看`ThreadLocal`的`set`方法，如下所示：
+``` java
+public void set(T value) {
+    // 获取当前线程对象。
+    Thread currentThread = Thread.currentThread();
+    // Thread类中有一个ThreadLocal.Values类型的属性，用于保存ThreadLocal传递过去的数据。
+    // 获取线程对象的Values属性。
+    Values values = values(currentThread);
+    if (values == null) {
+        // 如果线程中还没有任何数据，则调用下面的方法初始化。
+        values = initializeValues(currentThread);
     }
+    // 将数据保存到Values对象中。
+    values.put(this, value);
 }
 ```
-　　则计算出`Person`和`Person2`的浅堆与保留堆的大小如图所示：
 
-<center>
-![](/img/android/android_8_14.png)
-</center>
+<br>　　`ThreadLocal.Values`类的`put`方法用来实现数据的存储，这里不去分析它的具体算法，但是可以看出如下几点：
 
-　　即`Person2`的保留堆为：`Person2`的浅堆+`Person`的浅堆。
+	-  第一，ThreadLocal的值存在ThreadLocal.Values类的table属性中，它是一个Object[]。
+	-  第二，每次存储新数据时，都会检查table是否存满，若满了则会自动扩充数组的长度。
+	-  第三，ThreadLocal的值最终会被存储在table[index+1]的位置上，这个index是依据ThreadLocal的一些属性计算出来的。
 
-<br>　　这里要说一下的是，`Retained Heap`并不总是那么有效：
+<br>　　然后看`ThreadLocal`的`get`方法，如下所示：
+``` java
+public T get() {
+    // Optimized for the fast path.
+    Thread currentThread = Thread.currentThread();
+    Values values = values(currentThread);
+    if (values != null) {
+        Object[] table = values.table;
+        int index = hash & values.mask;
+        if (this.reference == table[index]) {
+            return (T) table[index + 1];
+        }
+    } else {
+        // 如果当前线程没有保存过数据，则为它初始化values属性。
+        values = initializeValues(currentThread);
+    }
 
-	-  例如，我们new了一块内存，赋值给A的一个成员变量，同时让B也指向这块内存。
-	-  这样一来，由于A和B都引用到这块内存，所以当A释放时，该内存不会被释放。
-	-  所以这块内存不会被计算到A或者B的Retained Heap中。
-	-  因此我们应当只把它当作一个参考值，而不是精确的追求它的每一个字节对应的内容是什么。
+    // 返回默认值。
+    return (T) values.getAfterMiss(this);
+}
+```
+    语句解释：
+	-  get方法也很简单，一看就明白，也是不多说。
 
-<br>**话说回来**
-　　介绍完浅堆和保留堆的概念后，咱们回到`“Leak suspects”`上来。
+<br>　　最后，从`ThreadLocal`的`set`和`get`方法可以看出：
 
-　　不过需要说明的是，通常我们从`“Leak suspects”`中是没法直接得到有用的信息的，它只是一个参考界面，在很多时候是没多大屌用的，不过不要慌。
+	-  第一，数据最终是存储在table属性中的，table是一个数组，可以保存多个值。
+	-  第二，每个ThreadLocal只能在当前线程的table属性中保存一个值，因为保存值的时候，保存的位置是通过ThreadLocal计算出来的，因此两次计算的结果肯定是一样的。
+	-  第三，就像前面说的那样，ThreadLocal和Thread是多对多的关系。
 
-　　分析`.hprof`文件的起点有多个：
+## 运行原理 ##
+　　接下来咱们就需要研究一下`Message`对象到底是如何被发送给其他线程中创建的`Handler`的。
 
-	-  第一，我们确实会从“Leak suspects”开始查看，如果它没直观的提供出有用的信息，那也没关系，再换其他方法。
-	-  第二，使用Dominator Tree视图来继续追踪。
-	-  第三，使用Histogram视图来继续追踪。
+　　`Handler`机制中主要牵扯到了`Handler`、`Message`、`MessageQueue`、`Looper`四个类。
 
-<br>
-### Dominator Tree ###
-　　MAT提供了一个称为`支配树`（Dominator Tree）的对象图。支配树体现了对象实例间的支配关系。在对象引用图中，所有指向对象`B`的路径都经过对象`A`，则认为对象`A`支配对象`B`。
-　　简单的说，之所以提出支配树这个概念，就是为了计算对象的`Retained Heap`。
+<br>　　它们四者的身份：
 
-<center>
-![](/img/android/android_8_17.png)
-</center>
+	-  Message表示一个消息对象，它封装了子线程想要做的事情。
+	-  MessageQueue表示一个消息队列，队列中的每个元素都是一个Message对象，各个子线程发送给Handler的消息，都会先被放到消息队列中排队等待处理。
+	-  Looper：表示一个循环器，它会不断的从MessageQueue的头部获取Message对象，然后将该Message对象交给Handler去处理。
+	-  Handler：表示一个处理器，用于处理Message对象。
 
-　　比如我们可以从上图左侧的引用图（对象`A`引用`B`和`C`，`B`和`C`又都引用到`D`）构造出右侧的`Dominator Tree`，计算出来的`Retained Memory`为：
+<br>　　它们四者的关系：
 
-	-  A的包括A本身和B，C，D，E。
-	-  B和C因为共同引用D，所以B的Retained Memory只是它本身。
-	-  C是自己和E。
-	-  D、E当然也只是自己。
+	-  Handler中有一个Looper对象。
+	-  Looper中有一个MessageQueue对象。
+	-  MessageQueue是一个链队，链队中的每个节点都是一个Message对象，每个Message对象的next域指向下一个Message对象。
 
-<br>　　支配树有以下重要属性：
-
-	-  X的子树中的所有元素表示X的保留对象集合。
-	-  如果X是Y的持有者，那么X的持有者也是Y的持有者。
-	-  在支配树中表示持有关系的边并不是和代码中对象之间的关系直接对应，比如代码中X持有Y，Y持有Z，在支配树中，X的直接子节点中会有Z。
-　　这三个属性对于理解支配树而言非常重要，一个熟练的开发人员可以通过这个工具快速的找出持有对象中哪些是不需要的以及每个对象的保留堆。
-
-<br>**界面介绍**
-　　支配树可以算是`MAT`中第二有用的工具，它依据我们设置的关键字来列出符合条件的、堆中较大的（不是所有的）对象以及它们之间的引用关系
-　　我们可以直接在`“Overview”`选项页中点击`“Dominator Tree”`进入该工具，或者从菜单栏中也可以进入。
-
-<br>　　支配树的界面如下图所示：
-<center>
-![](/img/android/android_8_18.png)
-</center>
-
-　　表头依次代表：`类名`、`浅堆大小`、`保留堆大小`、`百分比`，可以通过点击某个表头来按特定的字段进行排序。
-　　第一行用于输入查找条件，支持正则表达式，如需要查找出`MainActivity`相关的类，则可以在`ClassName`列的第一行输入`“MainActivity”`关键字。
-　　
-<br>**检索出相关对象**
-　　如果你泄漏的对象所占据的内存比较大的话，那么通常在打开`Dominator Tree`时就可以看到它被排在前列。
-　　但是，由于前面的范例中只是在`onCreate`方法里创建了线程，并没有执行显示图片等耗内存的操作，因此即便是运行时多执行几次横竖屏切换，泄漏的内存也不会很大，还不至于在`Dominator Tree`视图打开的时候就被列出来，所以我们得通过输入关键字`“MainActivity”`查找后才能看到。
-
-　　如下图所示：
-
-<center>
-![](/img/android/android_o02_15.png)
-</center>
-
-　　上图列出了当前内存中存在的、所有符合筛选条件（`*.MainActivity.*`）的对象，可以看出明显存在多个`Thread`对象，这显然是不正常的。
-
-<br>**另一个范例**
-<br>　　当然，在实际操作的时候情况肯定会比上面的要复杂的多。比如我们有这样一段代码：
-``` android
-public class MainActivity extends Activity {
-    static Leaky leak = null;
-    class Leaky {
-        void doSomething() {
-            System.out.println("Wheee!!!");
+<br>**Handler对象**
+<br>　　既然上面说`Handler`类中有一个`Looper`对象，我们就来看看`Handler`的构造方法：
+``` java
+public Handler() {
+    this(null, false);
+}
+public Handler(Callback callback, boolean async) {
+    if (FIND_POTENTIAL_LEAKS) {
+        final Class<? extends Handler> klass = getClass();
+        if ((klass.isAnonymousClass() || klass.isMemberClass() || klass.isLocalClass()) &&
+                (klass.getModifiers() & Modifier.STATIC) == 0) {
+            Log.w(TAG, "The following Handler class should be static or leaks might occur: " +
+                klass.getCanonicalName());
         }
     }
+    // 从ThreadLocal中获取Looper对象。
+    mLooper = Looper.myLooper();
+    if (mLooper == null) {
+        throw new RuntimeException(
+            "Can't create handler inside thread that has not called Looper.prepare()");
+    }
+    mQueue = mLooper.mQueue;
+    mCallback = callback;
+    mAsynchronous = async;
+}
+```
+    语句解释：
+	-  如果当前线程中没有保存过Looper对象，那么就会抛异常。
+	-  也可以通过构造方法Handler(Looper looper)人为的为Handler设置Looper对象。
+
+<br>　　但是，以前我们在实例化`Handler`对象时，并没有为其提供`Looper`对象，为什么没有抛异常呢？
+
+	-  因为在主线程被创建的时候，会同时为其创建一个Looper对象，所以不会抛异常。
+
+<br>　　我们常说的主线程其实就是指的`ActivityThread`类，主线程的入口方法为`main`：
+``` java
+public static void main(String[] args) {
+
+    // 此处省略若干代码...
+
+    // 在主线程中创建一个Looper对象。
+    Looper.prepareMainLooper();
+
+    ActivityThread thread = new ActivityThread();
+    thread.attach(false);
+
+    if (sMainThreadHandler == null) {
+        sMainThreadHandler = thread.getHandler();
+    }
+
+    if (false) {
+        Looper.myLooper().setMessageLogging(new
+                LogPrinter(Log.DEBUG, "ActivityThread"));
+    }
+
+    // End of event ActivityThreadMain.
+    Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);
+    Looper.loop();
+
+    throw new RuntimeException("Main thread loop unexpectedly exited");
+}
+```
+    语句解释：
+	-  从上面第6和22行代码可以看出来，当主线程被创建时，会同时创建一个Looper对象，并调用它的loop方法。
+
+<br>　　总之，当`Handler`被成功创建的时候，就意味着它里面已经存在一个`Looper`对象了。
+
+<br>**Looper对象**
+<br>　　接下来咱们再来看看`Looper`类，`Looper`在消息机制中扮演着循环器的角色，具体来说就是：
+
+	-  Handler负责发送和处理消息，Handler发送的消息最终会被保存在Looper对象的MessageQueue属性中。
+	-  Looper对象就是一个循环器，它通过一个无限for循环，不断的从它的MessageQueue中读取消息。
+	   -  若读到了消息，则会处理；若读不到，则会阻塞在那里，等待新消息的到来。
+
+<br>　　在`Looper`类中提供了三个静态方法，用来在当前线程中创建`Looper`对象。
+``` java
+public static void prepare() {
+    prepare(true);
+}
+
+private static void prepare(boolean quitAllowed) {
+    if (sThreadLocal.get() != null) {
+        throw new RuntimeException("Only one Looper may be created per thread");
+    }
+    sThreadLocal.set(new Looper(quitAllowed));
+}
+
+public static void prepareMainLooper() {
+    prepare(false);
+    synchronized (Looper.class) {
+        if (sMainLooper != null) {
+            throw new IllegalStateException("The main Looper has already been prepared.");
+        }
+        sMainLooper = myLooper();
+    }
+}
+```
+    语句解释：
+	-  其中prepareMainLooper用法在主线程中创建Looper对象，另外两个方法用来在当前线程中创建Looper对象。
+
+<br>　　创建完`Looper`对象后，需要调用`loop`方法来启动`Looper`，一旦启动成功后，`Looper`就可以不断的接收和处理消息了。
+
+<br>　　范例1：在子线程中使用`Handler`。
+``` android
+public class TestActivity extends Activity {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        new Thread() {
+            public void run() {
+                Looper.prepare();// 在当前线程中创建一个Looper。
+                Handler mHandler = new Handler() {
+                    public void handleMessage(Message msg) {
+                        String currThdName = Thread.currentThread().getName();
+                        System.out.println("当前线程 = " + currThdName);
+                    }
+                };
+                Message msg = new Message();
+                mHandler.sendMessage(msg);
+                Looper.loop();
+            }
+        }.start();
+    }
+}
+```
+    语句解释：
+	-  若想在子线程中创建Handler对象，则需要手工的调用Looper类的prepare方法在当前线程中创建一个Looper对象。 
+	-  创建完Looper对象后，还需要调用Looper对象的loop方法来启动它本身。
+	-  Looper提供了quit和quitSafely两个方法来退出loop循环，二者的区别是，quit会直接退出，quitSafely会设定一个退出标记，然后等消息队列中的所有消息都处理完毕后才安全退出。
+
+<br>**消息的发送流程**
+　　假设现在主线程中创建了一个`Handler`对象，子线程A要向主线程中的`Handler`发送消息。
+
+<br>　　首先，子线程A通过`Handler`类发送消息：
+
+	-  Handler类中提供的sendMessage等方法，可以将Message对象发送到MessageQueue中。
+	-  当消息被发送到MessageQueue中后，子线程A就直接返回，它接着就去执行sendMessage之后的代码。
+	   -  这类似于咱们去邮局寄信，当咱们把信放入信箱后，咱们就可以回去了，至于信如何被发送到目的地，咱们不需要关心。
+	-  事实上，每个Message对象都有一个Handler类型的target属性，它指出由哪个Handler对象来处理当前消息对象。
+
+<br>　　然后，来看一下`Looper`类的`loop`方法：
+``` java
+public static void loop() {
+
+    // 此处省略若干代码...
+
+    for (;;) {
+        Message msg = queue.next(); // might block
+        if (msg == null) {
+            // No message indicates that the message queue is quitting.
+            return;
+        }
+
+        // 此处省略若干代码...
+
+        msg.target.dispatchMessage(msg);
+
+        // 此处省略若干代码...
+
+        msg.recycleUnchecked();
+    }
+}
+```
+    语句解释：
+	-  从上面的代码可以看出：
+	   -  当Looper会使用无限for循环，不断的调用MessageQueue的next方法，读取消息。
+	   -  若MessageQueue当前没有需要处理的消息，则它的next方法就会被阻塞，一直不返回。
+	   -  当next方法返回Message时，Looper就会将Message发送给其target属性指向的Handler的dispatchMessage方法。
+	-  当Message被处理后，Looper会执行上面第18行代码，将该Message对象的所有属性清空，并将其加入到一个回收栈中。
+	   -  当Handler调用obtainXxx()方法获取Message对象时，就从回收栈顶弹出一个Message对象。
+	   -  若回收栈栈中没有任何Message对象，则会new一个Message对象返回，但该Message不会被入栈。
+
+<br>　　为什么每个`Message`对象要存在一个`target`属性呢?  
+
+	-  一个线程中只会有一个Looper对象，但是却可能存在多个Handler对象。
+	-  当Looper从消息队列中拿到一个消息时，需要把这个消息交给某个具体的Handler处理。
+	-  通常这个Handler就是发送该消息的Handler对象。
+
+<br>　　接着看一下`Handler`的`dispatchMessage`方法：
+``` java
+public void dispatchMessage(Message msg) {
+    // 若Message对象的callback属性不为null，则调用callback属性的run()方法。
+    if (msg.callback != null) {
+        handleCallback(msg);
+    } else {
+        // 若当前Handler对象的mCallback属性不为null，则将消息交给它处理。
+        if (mCallback != null) {
+            if (mCallback.handleMessage(msg)) {
+                return;
+            }
+        }
+        // 最后，才会调用当前Handler对象的handleMessage(Message)方法去处理。
+        handleMessage(msg);
+    }
+}
+```
+
+<br>　　最后，在介绍三个`Handler`类的常用方法：
+``` android
+// 向当前Handler的消息队列中添加一个Runnable 。
+// 在Handler内部会构建一个Message对象，并将该对象的callback属性设为r，然后再将这个Message对象加入到消息队列。
+// 返回值：
+// -  若r被成功加入到消息队列中则返回true。
+public final boolean post(Runnable r);
+
+// 向当前Handler的消息队列中添加一个Runnable 。Handler会等待delayMillis毫秒后，才调用Runnable的run()方法。
+public final boolean postDelayed(Runnable r, long delayMillis);
+
+// 从当前Handler的消息队列中删除一个Message对象，若找不到该Message则不删除。
+public final void removeMessages(int what);
+```
+
+## HandlerThread ##
+　　我们已经知道了，如果想在子线程中使用Handler，那就得先在子线程中创建一个Looper对象。
+
+　　此时你可能会问：为什么要在子线程中使用Handler呢？
+
+	-  通常我们使用Handler是为了在主线程更新UI，但是这并不是Handler的唯一作用。
+	-  在以前，当需要执行耗时任务时就会开启一个线程，如果耗时任务比较多的话，那就会不断的创建和销毁大量的线程，这样就消耗过多的资源。
+	-  我们有两种方法解决这个问题：
+	   -  使用线程池。
+	   -  使用HandlerThread。
+
+　　那`HandlerThread`是如何解决这个问题的呢？ 通过阅读它的源码，可以得知：
+
+	-  继承自Thread类，本质上是一个线程对象。
+	-  内部封装了一个Looper对象，这样就省的我们自己去创建和管理了。
+	-  重写了run方法，并在其内执行Looper的创建和启动操作。
+
+<br>　　接下来通过一个范例来说明`HandlerThread`是如何解决这个问题的。
+
+<br>　　范例1：在子线程中使用`Handler`。
+``` android
+public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (leak == null) {
-            leak = new Leaky();
-        }
+
+        // 创建一个线程对象，并为其指定名称。
+        HandlerThread handlerThread = new HandlerThread("HandlerThread");
+        // 启动这个线程，在其内部会初始化并启动Looper对象。
+        handlerThread.start();
+
+        // 使用子线程中的Looper对象来创建Handler。
+        Handler handler = new Handler(handlerThread.getLooper()){
+            // 虽然Handler对象是在主线程中创建的，但是Looper却是运行在子线程中的。
+            // 而handleMessage方法又是由Looper调用的，所以该方法也是运行在子线程中的。
+            public void handleMessage(Message msg) {
+                System.out.println(Thread.currentThread()+" 准备处理消息");
+            }
+        };
+        // 在主线程中发送消息给子线程。
+        handler.sendEmptyMessage(1);
     }
-    // 此处省略了其它代码。
 }
 ```
-<br>　　并且我们在界面中显示了一些图片。于是我们导出的`Dominator Tree`如下图所示：
+    语句解释：
+	-  如果想停止HandlerThread，则可以调用它的quit或quitSafely方法。
+	-  HandlerThread是一个很有用的类，它在Android中的一个具体的使用场景是IntentService类，该类笔者在《入门篇　第三章 服务与广播接收者》中已经介绍过了。
 
-<center>
-![](/img/android/android_8_21.png)
-</center>
+<br>**本节参考阅读：**
+- [Android HandlerThread用法](http://blog.csdn.net/qq_695538007/article/details/43376985)
 
-　　`Resources`类型对象由于一般是系统用于加载资源的，所以`Retained heap`较大是个比较正常的情况。但我们注意到下面的`Bitmap`类型对象的`Retained heap`也很大，很有可能是由于内存泄漏造成的。
-　　所以我们右键点击这行，选择`Path To GC Roots -> exclude weak references`：
+# 第二节 AsyncTask #
+　　本节将介绍一个开发中常用的类：`AsyncTask`。
 
-	-  Path To GC Roots 选项用来告诉MAT将当前对象到某个GC根对象之间的所有引用链给列出来。
-	-  exclude weak references选项用来告诉MAT，不用列出weak类型的引用。
-<br>　　然后可以看到下图的情形：
+## 基础应用 ##
+　　`AsyncTask`与`Thread`一样，都是用来执行一些耗时的操作的类，但与传统方式不同：
 
-<center>
-![](/img/android/android_8_22.png)
-</center>
+	-  内部使用线程池管理线程，这样就减少了线程创建和销毁时的消耗。
+	-  内部使用Handler处理线程切换，这样省去了我们自己处理的过程，代码直观、方便。
 
-　　`Bitmap`最终被`leak`变量引用到，这应该是一种不正常的现象，内存泄漏很可能就在这里了。`MAT`不会告诉哪里是内存泄漏，需要你自行分析，由于这是`Demo`，是我们特意造成的内存泄漏，因此比较容易就能看出来，真实的应用场景可能需要你仔细的进行分析。
+<br>　　范例1：最简单的`AsyncTask`。
+``` android
+public class MyAsyncTask extends AsyncTask {
 
-　　如果我们`Path To GC Roots -> with all references`，我们可以看到下图的情形：
+    // 此方法用于执行当前异步任务。 
+    // 此方法会在AsyncTask的线程池中取出的线程上运行。此方法和Thread类的run方法类似。
+    protected Object doInBackground(Object... params) {
+        int sum = 0;
+        for (int i = 1; i <= 100; i++) {
+            try {
+                sum = sum + i;
+                Thread.sleep(200);
+                System.out.println("sum + " + i + " = " + sum);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+}
 
-<center>
-![](/img/android/android_8_23.png)
-</center>
+// 调用execute方法启动当前异步任务，此方法和Thread类的start方法类似。 
+AsyncTask task = new MyAsyncTask();
+task.execute();
+```
+    语句解释：
+    -  本范例是AsyncTask的最简单应用。
+    -  完全可以将本范例中的AsyncTask替换成Thread，把doInBackground方法替换成run方法。启动异步任务的execute方法和启动Thread的start方法是一样的。
 
-　　可以看到还有另外一个对象在引用着这个`Bitmap`对象，了解`weak references`的同学应该知道`GC`是如何处理`weak references`，因此在内存泄漏分析的时候我们可以把`weak references`排除掉。
+<br>　　假设现在有一个任务，要求在计算的时候显示一个进度条对话框，当计算完毕后关闭该对话框，并将计算的结果通过`Toast`输出。此时就需要使用`AsyncTask`类提供的其他方法了。
 
-<br>
-### Histogram ###
-　　支配树用来把当前内存中的、符合筛选条件的对象，按照保留堆从大到小的顺序列出来。如果你希望根据某种类型的对象个数来分析内存泄漏，此时可以使用`Histogram`视图。 
-　　与`Dominator Tree`一样，较小的对象可以通过在第一行的`“ClassName”`列中输入正则进行查找。
+<br>　　范例2：完成任务。
+``` android
+private final class MyAsyncTask extends AsyncTask {
+    private ProgressDialog dialog;
 
-　　我们在`Overview`视图中选择`Actions -> Histogram`，可以看到类似下图的情形：
+    // 此方法用于在开始执行当前异步任务之前，做一些初始化操作。 
+    // 此方法在主线程中运行。
+    // 此方法由execute方法调用。此方法会在doInBackground方法之前被调用。
+    protected void onPreExecute() {
+        // 创建一个对话框。
+        dialog = new ProgressDialog(AsyncTaskActivity.this);
+        dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        dialog.setTitle("百数相加");
+        dialog.setMessage("计算出：1+2+3+...+100的和 !");
+        dialog.setMax(5050);
+        dialog.show();
+    }
 
-<center>
-![](/img/android/android_8_24.png)
-</center>
+    // 在当前异步任务正在执行时，我们可以向AsyncTask里的Handler发送更新UI的消息。
+    // Handler接到消息后，会在主线程中，回调用此方法方法更新UI。 
+    protected void onProgressUpdate(Object... values) {// 更新进度条。
+        this.dialog.setProgress((Integer)values[0]);
+    }
 
-　　在上图中，`Objects`列表示内存中该类型的对象个数。
-　　我们看到`byte[]`占用`Shallow heap`最多，那是因为`Honeycomb`之后`Bitmap Pixel Data`的内存分配在`Dalvik heap`中。
+    protected Object doInBackground(Object... params) {// 计算结果。
+        int sum = 0;
+        for (int i = 1; i <= 100; i++) {
+            try {
+                sum = sum + i;
+                Thread.sleep(20);
+                // 此方法用于在当前异步任务正在执行时，向AsyncTask里的Handler发送更新UI的消息。
+                // Handler接到消息后，会调用onProgressUpdate方法更新UI。 此方法由用户根据需求手工调用。
+                this.publishProgress(sum); // 通知Handler更新UI。
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return sum;
+    }
 
-　　接下来，我们右键选中`byte[]`数组，选择`List Objects -> with incoming references`，然后可以看到`byte[]`具体的对象列表：
+    // 此方法用于在当前异步任务执行完成之后，做一些收尾操作。 
+    // 此方法在主线程中运行。
+    // 此方法会在doInBackground方法之后被调用。doInBackground方法的返回值会被当作此方法的参数。
+    protected void onPostExecute(Object result) {
+        // 销毁进度条。
+        dialog.dismiss();
+        Toast.makeText(AsyncTaskActivity.this,"计算结果为："+result,0).show();
+    }
+}
+```
+    语句解释：
+    -  AsyncTask内的各个方法调用顺序：
+       -  第一，我们调用execute方法启动AsyncTask 。
+       -  第二，调用onPreExecute方法，执行初始化操作。
+       -  第三，从线程池中取出一个空闲的线程，并使用该线程调用doInBackground方法，执行耗时的操作。
+       -  第四，当doInBackground方法执行完毕后，onPostExecute方法将被调用（onPostExecute方法的参数就是doInBackground方法的返回值）。
+       -  第五，若想更新UI控件，则可以在doInBackground方法中调用publishProgress方法。
+          -  提示：调用publishProgress方法时设置的参数将被传递给onProgressUpdate方法。
 
-<center>
-![](/img/android/android_8_25.png)
-</center>
+<br>　　在上面的范例中，各个方法的参数、返回值都是`Object`类型的，这对于严格控制程序有很大负面的影响。
+　　但是事实上，`AsyncTask`类是有泛型的。即`AsyncTask<Params, Progress, Result>`其中：
 
-<br>　　提示：
+	-  Params：用于设置execute和doInBackground方法的参数的数据类型。
+	-  Progress：用于设置onProgressUpdate和publishProgress方法的参数的数据类型。
+	-  Result：用于设置onPostExecute方法的参数的数据类型和doInBackground方法的返回值类型。
 
-	-  With Outgoing References表示该对象的出节点（被该对象引用的对象）。
-	-  With Incoming References表示该对象的入节点（引用到该对象的对象）。
+<br>　　`AsyncTask`类经过几次修改，导致了不同的API版本中的`AsyncTask`具有不同的表现：
 
-<br>　　从上图中我们发现第一个`byte[]`的`Retained heap`较大，内存泄漏的可能性较大。
-　　右键选中这行，`Path To GC Roots -> exclude weak references`，同样可以看到上文所提到的情况，我们的`Bitmap`对象被`leak`所引用到（如下图所示），这里存在着内存泄漏。
+	-  Android1.6之前，AsyncTask是串行执行任务的。
+	-  Android1.6时，开始采用线程池处理并行任务。
+	-  Android3.0开始，为了避免AsyncTask所带来的并发错误，AsyncTask又采用一个线程来串行执行任务。
 
-<center>
-![](/img/android/android_8_27.png)
-</center>
+　　尽管如此，在Android3.0以及之后的版本中，我们仍然可以通过`AsyncTask`的`executeOnExecutor`方法来并行的执行任务。
 
-<br>　　我们也可以在`Histogram`视图中第一行中输入`MainActivity`，来过滤出我们自己应用中的类型。
+## 运行原理 ##
+<br>　　我们先从`AsyncTask`的`execute`方法开始分析：
+``` java
+public final AsyncTask<Params, Progress, Result> execute(Params... params) {
+    // 转调用executeOnExecutor方法。
+    return executeOnExecutor(sDefaultExecutor, params);
+}
 
-<br>**本章参考阅读：**
-- [Memory Analyzer (MAT)](http://www.eclipse.org/mat/) 
-- [使用 Eclipse Memory Analyzer 进行堆转储文件分析](http://www.ibm.com/developerworks/cn/opensource/os-cn-ecl-ma/index.html)
-- [Android内存泄漏研究](http://jiajixin.cn/2015/01/06/memory_leak/)
-- [Android内存泄露开篇](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8B%E5%BC%80%E7%AF%87.md)
-- [Java程序内存分析：使用mat工具分析内存占用](http://my.oschina.net/biezhi/blog/286223#OSC_h4_7)
+public final AsyncTask<Params, Progress, Result> executeOnExecutor(Executor exec,
+        Params... params) {
+    if (mStatus != Status.PENDING) {
+        switch (mStatus) {
+            case RUNNING:
+                throw new IllegalStateException("Cannot execute task:"
+                        + " the task is already running.");
+            case FINISHED:
+                throw new IllegalStateException("Cannot execute task:"
+                        + " the task has already been executed "
+                        + "(a task can be executed only once)");
+        }
+    }
+
+    mStatus = Status.RUNNING;
+    // 在当前线程中调用AsyncTask的onPreExecute方法。
+    onPreExecute();
+
+    // 将params保存到当前AsyncTask对象的mWorker属性中。
+    mWorker.mParams = params;
+    // 调用sDefaultExecutor的execute方法来将当前AsyncTask对象的mWorker属性添加到队列中。
+    exec.execute(mFuture);
+
+    return this;
+}
+```
+    语句解释：
+    -  sDefaultExecutor是一个static属性，它实际上是一个串行的线程池，一个进程中的所有AsyncTask都在它里面排队，按照先进先出的顺序依次执行。
+
+<br>　　接着看一下`sDefaultExecutor`属性：
+``` java
+public static final Executor SERIAL_EXECUTOR = new SerialExecutor();
+private static volatile Executor sDefaultExecutor = SERIAL_EXECUTOR;
+
+private static class SerialExecutor implements Executor {
+    // 这是一个队列，用来保存等待执行的任务。
+    final ArrayDeque<Runnable> mTasks = new ArrayDeque<Runnable>();
+    Runnable mActive;
+
+    public synchronized void execute(final Runnable r) {
+        // 向队列中添加一个任务。
+        mTasks.offer(new Runnable() {
+            public void run() {
+                try {
+                    // 当任务被执行时，调用mFuture的run方法。
+                    r.run();
+                } finally {
+                    // 执行下一个任务。
+                    scheduleNext();
+                }
+            }
+        });
+        // 如果当前没有任务正在执行，则立刻开始执行队首任务。
+        if (mActive == null) {
+            scheduleNext();
+        }
+    }
+
+    protected synchronized void scheduleNext() {
+        // 尝试获取任务。
+        if ((mActive = mTasks.poll()) != null) {
+            // 使用THREAD_POOL_EXECUTOR线程池来执行队首任务。
+            THREAD_POOL_EXECUTOR.execute(mActive);
+        }
+    }
+}
+```
+    语句解释：
+    -  AsyncTask中有两个线程池：
+       -  sDefaultExecutor用来保存等待执行的任务。
+       -  THREAD_POOL_EXECUTOR用来执行任务。
+
+<br>　　接着看一下`mFuture`的定义：
+``` java
+public AsyncTask() {
+    mWorker = new WorkerRunnable<Params, Result>() {
+        // 在FutureTask的run方法中会调用mWorker的call方法。
+        // call方法是在子线程中被调用的。
+        public Result call() throws Exception {
+            mTaskInvoked.set(true);
+
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+            // 执行任务，并调用postResult方法处理结果。
+            return postResult(doInBackground(mParams));
+        }
+    };
+
+    mFuture = new FutureTask<Result>(mWorker) {
+        @Override
+        protected void done() {
+            try {
+                postResultIfNotInvoked(get());
+            } catch (InterruptedException e) {
+                android.util.Log.w(LOG_TAG, e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException("An error occured while executing doInBackground()",
+                        e.getCause());
+            } catch (CancellationException e) {
+                postResultIfNotInvoked(null);
+            }
+        }
+    };
+}
+```
+    语句解释：
+    -  从上面代码可以看出，mWorker和mFuture都是实例属性。
+    -  也就是说，当线程池执行任务的时候，程序的流程会从THREAD_POOL_EXECUTOR中回到某个具体的AsyncTask对象上。
+
+<br>　　接着看一下`postResult`方法：
+``` java
+private Result postResult(Result result) {
+    @SuppressWarnings("unchecked")
+    // 封装一个AsyncTaskResult对象，并将它发送到主线程中。
+    Message message = getHandler().obtainMessage(MESSAGE_POST_RESULT,
+            new AsyncTaskResult<Result>(this, result));
+    message.sendToTarget();
+    return result;
+}
+
+private static Handler getHandler() {
+    synchronized (AsyncTask.class) {
+        if (sHandler == null) {
+            sHandler = new InternalHandler();
+        }
+        return sHandler;
+    }
+}
+
+private static class InternalHandler extends Handler {
+    public InternalHandler() {
+        // 使用主线程的Looper对象。
+        super(Looper.getMainLooper());
+    }
+
+    @SuppressWarnings({"unchecked", "RawUseOfParameterizedType"})
+    @Override
+    public void handleMessage(Message msg) {
+        AsyncTaskResult<?> result = (AsyncTaskResult<?>) msg.obj;
+        switch (msg.what) {
+            case MESSAGE_POST_RESULT:
+                // 如果任务执行完毕，则调用AsyncTask类的finish方法。
+                result.mTask.finish(result.mData[0]);
+                break;
+            case MESSAGE_POST_PROGRESS:
+                // 这个你懂的。
+                result.mTask.onProgressUpdate(result.mData);
+                break;
+        }
+    }
+}
+
+private void finish(Result result) {
+    // 如你所见。
+    if (isCancelled()) {
+        onCancelled(result);
+    } else {
+        onPostExecute(result);
+    }
+    mStatus = Status.FINISHED;
+}
+```
+    语句解释：
+    -  InternalHandler类用来将程序的从子线程切换到主线程中。
+
+# 第三节 线程池 #
+　　提到线程池就必须先说一下线程池的好处：
+
+	-  线程池最大的好处就是，可以维持其内线程不死，让线程重复使用，避免因为线程的创建和销毁所带来的性能开销。
+
+　　比较常用的一个场景是`http`请求，如果程序需要频繁的、大量的执行请求，那么推荐使用线程池。
+
+<br>　　Android中的线程池都是直接或者间接通过配置`ThreadPoolExecutor`来实现的，因此我们来看一下它的构造方法：
+``` java
+public ThreadPoolExecutor(int corePoolSize,
+                              int maximumPoolSize,
+                              long keepAliveTime,
+                              TimeUnit unit,
+                              BlockingQueue<Runnable> workQueue,
+                              ThreadFactory threadFactory,
+                              RejectedExecutionHandler handler)
+```
+    语句解释：
+    -  corePoolSize表示线程池的核心线程数，默认情况下，核心线程会在线程池中一直存活，即使它们处于空闲状态。
+       -  线程池中有两类线程，一类是核心线程，另一类是非核心线程。
+       -  默认情况下，当任务的数量超过corePoolSize时，就会尝试开启非核心线程去执行任务，执行完毕后非核心线程将被销毁。
+    -  maximumPoolSize表示线程池所能容纳的最大线程数，即核心线程+非核心线程的和。
+       -  当线程池中的线程数达到这个数值后，新任务将交给handler处理。
+    -  keepAliveTime表示非核心线程闲置的时间，即非核心线程执行完任务会等待keepAliveTime时间后才会销毁。
+       -  当线程池的allowCoreThreadTimeOut属性设置为true时，keepAliveTime同样会作用于核心线程。
+    -  unit表示keepAliveTime的单位，常用取值为：TimeUnit.SECONDS（秒）、TimeUnit.MINUTES（分钟）等。
+    -  workQueue表示任务队列，通过线程池的execute方法提交的任务，会保存在此队列中。
+    -  threadFactory表示线程工厂，用来创建线程的。
+    -  handler当线程池无法执行新任务时（比如任务队列已满或者无法成功执行任务），就会调用RejectedExecutionHandler的rejectedException方法来处理。
+       -  线程池的默认实现是抛出一个RejectedExecution异常。
+
+<br>　　若任务队列使用`LinkedBlockingQueue`类，则`ThreadPoolExecutor`类在执行任务时大致遵循如下规则：
+
+	-  若线程池中的核心线程的数量 < corePoolSize，那么会直接启动一个核心线程来执行任务。
+	-  若大于或等于corePoolSize，则检测任务队列是否有空位，若有，则将任务直接添加到任务队列中等待执行。
+	-  若任务队列已满，则会尝试开启一个非核心线程来执行队首的任务，并把新任务放入队尾。
+	   -  注意，若任务队列未满，则不会开启非核心线程，所有的任务都会交给核心线程来执行。
+	   -  也就是说，若我们不为任务队列指定长度的话，那么线程池永远都不会开启非核心线程。
+	-  若任务队列满了，且线程池中的线程总数大于maximumPoolSize，那么就拒绝执行此任务，并调用RejectedExecutionHandler来处理。
+
+<br>　　我们来看看`AsyncTask`类的线程池：
+``` java
+private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
+private static final int CORE_POOL_SIZE = CPU_COUNT + 1;
+private static final int MAXIMUM_POOL_SIZE = CPU_COUNT * 2 + 1;
+private static final int KEEP_ALIVE = 1;
+
+private static final ThreadFactory sThreadFactory = new ThreadFactory() {
+    private final AtomicInteger mCount = new AtomicInteger(1);
+
+    public Thread newThread(Runnable r) {
+        return new Thread(r, "AsyncTask #" + mCount.getAndIncrement());
+    }
+};
+
+private static final BlockingQueue<Runnable> sPoolWorkQueue =
+        new LinkedBlockingQueue<Runnable>(128);
+
+/**
+ * An {@link Executor} that can be used to execute tasks in parallel.
+ */
+public static final Executor THREAD_POOL_EXECUTOR
+        = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE,
+                TimeUnit.SECONDS, sPoolWorkQueue, sThreadFactory);
+```
+
+<br>　　上面只是简单的介绍了各个参数的含义，在`Executors`类为我们提供好了四种线程池，在大部分情况下我们是不需要自己创建线程池的，因为直接使用它们就可以满足需求了。
+
+<br>　　范例1：FixedThreadPool。
+``` java
+public static ExecutorService newFixedThreadPool(int nThreads) {
+    return new ThreadPoolExecutor(nThreads, nThreads,
+                                  0L, TimeUnit.MILLISECONDS,
+                                  new LinkedBlockingQueue<Runnable>());
+}
+```
+    语句解释：
+    -  FixedThreadPool线程池中只有核心线程，除非线程池关闭，否则核心线程会一直存在。
+    -  由于没有非核心线程，所以也就没设置超时时间。
+    -  任务队列也没有设置长度，因而理论上可以无限接收任务。
+
+<br>　　范例2：CachedThreadPool。
+``` java
+public static ExecutorService newCachedThreadPool() {
+    return new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                                  60L, TimeUnit.SECONDS,
+                                  new SynchronousQueue<Runnable>());
+}
+```
+    语句解释：
+    -  CachedThreadPool线程池中没有核心线程，有多少任务就会执行多少任务，任务执行完毕后就销毁线程。
+    -  前面已经说过了线程池执行任务的流程，但那个过程是基于LinkedBlockingQueue做为任务队列的。
+    -  需要注意的是，CachedThreadPool线程池使用SynchronousQueue做为任务队列，该队列不会存储元素，任何任务都会被立刻执行，具体介绍请自行搜索。
+
+<br>　　范例3：ScheduledThreadPoolExecutor。
+``` java
+public static ScheduledExecutorService newScheduledThreadPool(int corePoolSize) {
+    return new ScheduledThreadPoolExecutor(corePoolSize);
+}
+
+public ScheduledThreadPoolExecutor(int corePoolSize) {
+    super(corePoolSize, Integer.MAX_VALUE,
+          DEFAULT_KEEPALIVE_MILLIS, MILLISECONDS,
+          new DelayedWorkQueue());
+}
+```
+    语句解释：
+    -  需要注意的是，ScheduledThreadPoolExecutor线程池使用DelayedWorkQueue做为任务队列，具体介绍请自行搜索。
+
+<br>　　范例4：SingleThreadExecutor。
+``` java
+public static ExecutorService newSingleThreadExecutor() {
+    return new FinalizableDelegatedExecutorService(new ThreadPoolExecutor(1, 1,
+                                0L, TimeUnit.MILLISECONDS,
+                                new LinkedBlockingQueue<Runnable>()));
+}
+```
+    语句解释：
+    -  此线程池只有1个核心线程，所有任务都由这个核心线程来执行。
+
+<br>　　最后，如果想让`AsyncTask`可以在`Android3.0`以及以上的系统上并行运行，可以使用如下代码：
+``` java
+task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params)
+```
 
 <br><br>

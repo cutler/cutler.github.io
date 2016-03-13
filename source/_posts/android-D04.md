@@ -1,6 +1,6 @@
 title: 媒体篇　第四章 视频
 date: 2015-8-25 17:54:40
-categories: android
+categories: Android开发 - 青铜
 ---
 　　笔者假设你对视频播放相关的知识一无所知，咱们从零开始。
 

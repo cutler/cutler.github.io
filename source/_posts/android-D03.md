@@ -1,6 +1,6 @@
 title: 媒体篇　第三章 动画
 date: 2015-5-15 12:29:42
-categories: android
+categories: Android开发 - 青铜
 ---
 　　动画是多媒体中的一个重要组成部分，我们常见的各种炫酷的特效大部分都是通过动画来实现的。
 

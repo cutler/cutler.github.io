@@ -1,6 +1,6 @@
 title: 架构篇　第三章 高效Android编程
 date: 2015-8-17 14:43:42
-categories: android
+categories: Android开发 - 青铜
 ---
 　　本章将介绍`Android`相关的一些高效编程方法，参考了`《Effective Java中文版（第2版）》`。
 
