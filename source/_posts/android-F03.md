@@ -494,21 +494,24 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 创建一个线程对象，并为其指定名称。
-        HandlerThread handlerThread = new HandlerThread("HandlerThread");
-        // 启动这个线程，在其内部会初始化并启动Looper对象。
-        handlerThread.start();
-
-        // 使用子线程中的Looper对象来创建Handler。
-        Handler handler = new Handler(handlerThread.getLooper()){
-            // 虽然Handler对象是在主线程中创建的，但是Looper却是运行在子线程中的。
-            // 而handleMessage方法又是由Looper调用的，所以该方法也是运行在子线程中的。
-            public void handleMessage(Message msg) {
-                System.out.println(Thread.currentThread()+" 准备处理消息");
+         // 创建一个线程对象，并为其指定名称。
+        HandlerThread handlerThread = new HandlerThread("HandlerThread") {
+            @Override
+            protected void onLooperPrepared() {
+                // 使用子线程中的Looper对象来创建Handler。
+                Handler handler = new Handler(getLooper()) {
+                    // 虽然Handler对象是在主线程中创建的，但是Looper却是运行在子线程中的。
+                    // 而handleMessage方法又是由Looper调用的，所以该方法也是运行在子线程中的。
+                    public void handleMessage(Message msg) {
+                        System.out.println(Thread.currentThread() + " 准备处理消息");
+                    }
+                };
+                // 在主线程中发送消息给子线程。
+                handler.sendEmptyMessage(1);
             }
         };
-        // 在主线程中发送消息给子线程。
-        handler.sendEmptyMessage(1);
+        // 启动这个线程，在其内部会初始化并启动Looper对象。
+        handlerThread.start();
     }
 }
 ```
