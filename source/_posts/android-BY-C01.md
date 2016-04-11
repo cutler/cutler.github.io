@@ -95,14 +95,12 @@ C -> 12334354
 	-  然后，驱动同意之后，该进程就开始负责管理整个系统的所有服务了，不过这时候通信录还是空的，一个号码都没有。
 	   -  常见的有服务有TelephonyManager、ActivityManager、PackageManager、LocationManager等。
 	   -  每个服务又分为Client端和Server端，其中Client端在每个用户进程中都有一份，而Server则在整个操作系统中唯一。
-	-  接着，每个服务的Server端进程启动之后，都会向SM报告，比如：
-	   -  我是zhangsan，如果有人要找我请返回0x1234。
-	   -  其他Server进程依次如此；这样SM就建立了一张表，对应着各个Server的名字和地址。
+	-  接着，每个服务的Server端启动之后，都会向SM报告，比如：
+	   -  我是zhangsan，如果有人要找我请返回0x1234；其它Server端也是如此。
+	   -  这样SM就建立了一张表，对应着各个Server的名字和地址。
 	-  接着，当某个Client想与某个服务的Server端通信时，会首先询问SM，SM收到请求后会返回一个联系方式，于是就开始通信了。
 	-  最后，Client与SM以及Client与Server的通信，都会经过Binder驱动，驱动在背后默默无闻，但是做着最重要的工作。
 	   -  驱动是整个通信过程的核心，因此完成跨进程通信的秘密全部隐藏在驱动里面；这个我们稍后讨论。
-
-<br>　　既然`SM`是一个单独的进程，那么其实`Client`与`SM`通信也是跨进程的，它们使用的也是`Binder`机制。
 
 <br>**本节参考阅读：**
 - [Binder学习指南](http://weishu.me/2016/01/12/binder-index-for-newer/)
@@ -118,7 +116,7 @@ C -> 12334354
 
 	-  答案就是：Binder驱动为我们做了一切。
 
-<br>　　假设`Client`进程想要调用`Server`进程的`object`对象的一个方法`add`；我们来看看Binder机制是如何做的：
+<br>　　假设`Client`进程想要调用`Server`进程的`object`对象的一个方法`add`；我们来看看`Binder`机制是如何做的：
 
 <center>
 ![](/img/android/android_BY_c01_02.jpg)
@@ -147,75 +145,85 @@ C -> 12334354
 
 <br>　　另外，在上一节中我们说到`Client`与`SM`通信是跨进程的，而事实上：
 
-	-  Server、Client、SM三个人是分别属于三个不同的进程。
+	-  一般情况下，Server、Client、SM三个人是分别属于三个不同的进程。
 	-  所以Server与SM的通信也是跨进程的，也是基于Binder机制的。
 	-  所以Server将自己注册到SM时，其实就是把自己的影子对象注册到SM中，之后Client从SM中获取的也是影子对象。
-	-  总之，Sever进程的本地对象仅有一个，其他进程所拥有的全部都是它的代理，代理对象协助驱动完成了跨进程通信。
+	-  总之Server进程的本地对象仅有一个，其他进程所拥有的全部都是它的代理，代理对象协助驱动完成了跨进程通信。
 
 <br>　　现在我们应该知道了，所谓的`Binder`机制就是一个进程间通信的机制，它的具体实现原理就是上面说的。
 
 # 第四节 源码分析 #
 　　笔者在[《第三章 服务与广播接收者》](http://cutler.github.io/android-A03/)和[《第一章 IPC机制》](http://cutler.github.io/android-F01/)中已经介绍了绑定方式启动`Service`和`AIDL`的基础用法，本节来从源码角度分析`Binder`机制的调用过程。
 
-<br>　　首先，我们按照[ 这里 ](http://cutler.github.io/android-F01/#AIDL)的步骤创建好`IDAO`、`MyService`等类，并保证程序能正确执行。
+## 基础知识 ##
 
-　　然后，打开`IDAO.java`，查看里面的源代码：
+<br>　　在正式进行源码分析之前，我们再来缕一下进程间通讯的相关知识：
+
+	-  第一，在进行IPC通信时会涉及到四个东西：Client、Server、Binder驱动、SM，其中前两者与我们关系最为密切。
+	-  第二，在通信之前Server端需要事先定义一个接口A，接口A用来告诉所有Client端，Server端提供哪些功能。
+	-  第三，在通信之前Server端还得定义一个实现了接口A的类B，类B用来执行具体的任务。
+	-  第四，既然是进程间通讯，那么Server端就得想法把类B的对象传递给各个Client，以便它们能调用功能。
+	-  第五，就像前面说的，当Client和Server端在同一个进程中时，Binder驱动会直接将类B的对象交给Client端，但当它们不再同一个进程时，就得创建一个影子对象了。
+	   -  显然，判断Client和Server是否在同一个进程以及创建影子的工作，得需要一个专门的类去做。
+
+　　如果你赞同上面我说的那五点，就可以继续往下看，如果不赞同，那请再读一遍。
+
+<br>　　首先，我们按照[ 这里 ](http://cutler.github.io/android-F01/#AIDL)的步骤创建好`IDAO.aidl`、`MyService`等类，并保证程序能正确执行。
+
+　　然后，打开生成`IDAO.java`，查看里面的源代码：
 ``` java
 public interface IDAO extends android.os.IInterface {
 
-    public static abstract class Stub extends android.os.Binder implements org.cutler.aidl.IDAO {
-        private static final java.lang.String DESCRIPTOR = "org.cutler.aidl.IDAO";
-
-        public Stub() {}
-
-        public static org.cutler.aidl.IDAO asInterface(android.os.IBinder obj) {}
-
-        @Override
-        public android.os.IBinder asBinder() {}
-
-        @Override
-        public boolean onTransact(int code, android.os.Parcel data, 
-            android.os.Parcel reply, int flags) throws android.os.RemoteException {}
-
-        private static class Proxy implements org.cutler.aidl.IDAO {
-            private android.os.IBinder mRemote;
-
-            Proxy(android.os.IBinder remote) {}
-
-            @Override
-            public android.os.IBinder asBinder() {}
-
-            public java.lang.String getInterfaceDescriptor() {}
-
-            @Override
-            public int add(int i, int j) throws android.os.RemoteException {}
-        }
-
-        static final int TRANSACTION_add = (android.os.IBinder.FIRST_CALL_TRANSACTION + 0);
-    }
+    public static abstract class Stub extends android.os.Binder implements org.cutler.aidl.IDAO { }
 
     public int add(int i, int j) throws android.os.RemoteException;
 }
 ```
-　　可以看到里面涉及到了很多类，我们依次来介绍它们。
+    语句解释：
+    -  可以看到里面涉及到了很多类，我们依次来介绍它们。
+    -  其中IDAO接口就是我们上面说的接口A，Client端通过查看IDAO接口可以知道Server端有哪些功能。
+    -  另外，一个接口如果想被跨进程访问就得遵循系统的规范，也就是得继承IInterface接口。
+
+<br>　　从上面的代码可以看到，还有一个`IDAO.Stub`内部类，它继承自`Binder`，我们先来介绍`IBinder`接口和`Binder`类。
 
 <br>　　**IBinder接口**
 
 	-  在Android中，如果你想让你的Service中的方法被其他进程调用，那就必须在它的onBind方法中返回一个IBinder对象。
-	-  也就是说，IBinder代表了一种跨进程传输的能力，只要实现了这个接口，系统就能将这个对象进行跨进程传递。
-	-  在跨进程数据流经Binder驱动的时候，驱动会识别IBinder类型的数据，从而自动完成不同进程Binder本地对象以及Binder代理对象的转换。
-	-  用人话说就是：IBinder接口中定义了一些进程间通信所必需的公共方法，若你想让你的类跨进程传递就得实现它。
+	-  这个IBinder接口中定义了一些进程间通信所必需的公共方法，若你想让你的类跨进程传递就得实现IBinder接口，并重写里面的抽象方法。
 
 <br>　　**Binder类**
 
 	-  虽然知道了IBinder接口定义了进程间通信必需的方法，但是我们却不知道应该如何实现这些方法。
 	-  好在Android为我们提供的一个现成的IBinder接口的实现类，Binder类。
-	-  也就是说，只要让我们的类去继承Binder类即可完成跨进程操作。
+	-  也就是说，理论上只要让我们的类去继承Binder类，那么我们的类就可以被跨进程访问了。
+	-  但事实上还差一步，原因在下面。
 
-<br>　　客户端绑定服务的代码为：
+<br>　　**Stub类**
+
+	-  因为虽然Binder类实现了IBinder接口中的所有方法，但是它只是进行了公共的实现。
+	   -  比如我们的A类有3个字段，B类有5个字段，而各个字段的类型不相同。
+	   -  再比如我们A类有一个add方法、B类有个remove方法，这两个方法都有不同的参数列表和返回值。
+	   -  按照刚才说的，如果想让A、B顺利跨进程传递属性值以及进行方法调用的话，就得让它继承Binder类，但是Binder类却不知道要如何将A、B类中的字段传递到其它进程中，也就是说需要类A、B自己处理字段的读和写，以及在调用方法的时候，手动的为它们设置参数以及读取返回值。
+	-  因此直接让类A、B继承Binder类还是不够的，我们还需要在A、B外面在套一个包装类，专门负责方法的调用、参数的传递。
+	-  而IDAO.Stub就是这个类。
+
+<br>　　**Proxy类**
+
+	-  其实在Stub类内部还有一个名为Proxy的内部类，顾名思义它是一个代理类，和Stub的作用是一样的，用来在正式的工作之前，帮我们做一些预处理。
+	-  可以不负责任的说：
+	   -  Proxy类主要由Client端调用。它用来处理方法参数的封装、调用Server端的方法并解析返回值。
+	   -  Stub类主要由Server端调用。它用来解析Client发来的请求，然后调用对应的方法去执行功能，并将结果返回给Client端的Proxy类。
+
+<br>　　下面用一个实例来讲解`Binder`机制的具体调用流程。
+
+
+## 分析实例 ##
+　　我们已经知道，客户端绑定服务的代码为：
 ``` java
 this.bindService(intent, new ServiceConnection() {
     public void onServiceConnected(ComponentName name, IBinder service) {
+
+        // 将服务端返回的IBinder对象，转换成一个IDAO对象。
         dao = IDAO.Stub.asInterface(service);
         try {
             Toast.makeText(MainActivity.this, dao.add(100, 200)+"", Toast.LENGTH_SHORT).show();
@@ -228,28 +236,11 @@ this.bindService(intent, new ServiceConnection() {
     }
 }, Context.BIND_AUTO_CREATE);
 ```
+    语句解释：
+    -  需要注意的是，上一节中说的是Stub类“主要”由Server端调用，并不是说Stub类“只会”由Server端调用。
+    -  所以我们在客户端中使用IDAO.Stub的方法，没什么好大惊小怪的。
 
-
-<br>　　**IInterface接口**
-
-	-  IInterface代表的就是远程Service对象具有什么能力。
-	-  也就是说，Client端通过查看IInterface的子类就可以知道你的Service有哪些功能。
-	-  比如在IDAO.java中，IDAO接口继承了IInterface，那么别人只要看IDAO接口有哪些方法就可以了。
-
-<br>　　**Stub类**
-
-	-  从上面的IDAO.java中可以看出，Stub类继承了Binder类并实现了IDAO接口。
-	-  这意味着，Stub类即可以被跨进程传递，同时它由具有IDAO接口的能力。
-	   -  客户端通过IDAO.Stub类的asInterface方法就可以获取一个IDAO对象。
-	-  Stub类具体是什么东西，语言已经无法解释清楚了，你行你上。
-
-<br>　　**Proxy类**
-
-	-  前面说了，如果通信的双方是在同一个进程，那么Binder驱动会直接将Binder本地对象传给Client。
-	-  否则的话，就会创建一个影子对象，并把影子对象交给Client。
-	-  而这个Proxy类就是这个影子对象。
-
-　　我们可以看一下`IDAO.Stub`类的`asInterface`方法的源码：
+<br>　　接着来看一下`IDAO.Stub`类的`asInterface`方法的源码：
 ``` java
 public static org.cutler.aidl.IDAO asInterface(android.os.IBinder obj) {
     if ((obj == null)) {
@@ -261,14 +252,19 @@ public static org.cutler.aidl.IDAO asInterface(android.os.IBinder obj) {
         // 如果本地对象获取成功，则意味着客户端和服务端处在同一个进程，则直接返回本地对象。
         return ((org.cutler.aidl.IDAO) iin);
     }
-    // 否则创建一个代理的影子对象。
+    // 否则创建一个代理对象。
+    // 因为既然是跨进程通信，那么在方法调用的时候，方法参数是不能直接传递到另一个进程的。
+    // 所以我们在obj外面加一层Proxy类，由Proxy类对方法的参数和返回值进行处理。
     return new org.cutler.aidl.IDAO.Stub.Proxy(obj);
 }
 ```
     语句解释：
-    -  由于影子对象的类IDAO.Stub.Proxy也实现了IDAO接口，所以外界可以正常调用add方法。
+    -  由于IDAO.Stub.Proxy也实现了IDAO接口，所以外界可以正常调用add方法。
+    -  只不过在Proxy类中并不会进行真正的任务，它只会对方法的参数进行封装，以及对返回值进行解析而已。
 
-<br>　　接着再来看看`IDAO.Stub.Proxy`类的`add`方法的源码：
+<br>　　如果通信的双方不再同一个进程的话，当程序执行`dao.add(100, 200)`时，其实就是调用的`Proxy.add()`方法。
+
+<br>　　因此，我们接着再来看看`IDAO.Stub.Proxy`类的`add`方法的源码：
 ``` java
 private static class Proxy implements org.cutler.aidl.IDAO {
     private android.os.IBinder mRemote;
@@ -310,15 +306,15 @@ private static class Proxy implements org.cutler.aidl.IDAO {
 }
 ```
     语句解释：
-    -  通过上面的分析，我们已经知道IDAO.Stub.Proxy类的mRemote属性是由IDAO.Stub的asInterface方法传递过来的。
+    -  通过上面的分析，我们已经知道Proxy类的mRemote属性是由Stub的asInterface方法传递过来的。
+    -  也就是说，上面第28行代码最终调用的其实是Binder类的transact方法。
 
 <br>　　事实上，在`Binder`类里还有一个名为`BinderProxy`的内部类：
 
-	-  就像我们刚才说的那样，IDAO.Stub.Proxy是Binder驱动创建的影子对象。
-	-  其实这个说法不太严谨，因为当客户端成功绑定上服务端的Service后，会接收到一个IBinder对象。
-	-  如果客户端和服务端不是在一个进程的话，这个IBinder其实是BinderProxy类型的，即BinderProxy才是真正的Binder驱动创建的影子对象。
+	-  当客户端成功绑定上服务端的Service后，会接收到一个IBinder对象。
+	-  如果客户端和服务端不是在一个进程的话，这个IBinder其实是BinderProxy类型的，即BinderProxy就是前面说的Binder驱动创建的影子对象。
 
-　　于是整个调用过程变成了：
+<br>　　于是整个调用过程变成了：
 
 	-  首先，Client端通过IDAO.Stub.asInterface(service)获取到一个IDAO对象，并调用它的add方法。
 	-  然后，真正被调用的其实是IDAO.Stub.Proxy类的add方法。
@@ -339,9 +335,9 @@ public native boolean transactNative(int code, Parcel data, Parcel reply,
 
 <br>　　经过Binder驱动的中转之后，接下来的程序的流程就进入到Server端了：
 
-	-  首先，Binder类的transact方法会被调用。
-	-  然后，在它的内部又会转调用onTransact方法。
-	   -  由于Server端的本地对象是Stub，且它重写了Binder类的onTransact方法，所以我们接下来看看它的源码。
+	-  首先，程序流程从JNI层回到Java层时，服务端的Binder类的transact方法会被调用。
+	-  然后，通过查看源码可知，在它的内部又会转调用onTransact方法。
+	-  最后，由于Server端的本地对象是Stub，且它重写了Binder类的onTransact方法，所以我们接下来看看它的源码。
 
 <br>　　`Stub`类的`onTransact`的源码：
 ``` java
@@ -437,7 +433,7 @@ public final class ServiceManager {
 }
 ```
     语句解释：
-    -  大家可以打开ServiceManagerNative类看看，他的执行流程和我们之前说的是一致的。
+    -  大家可以打开ServiceManagerNative类看看，它的执行流程和我们之前说的是一致的。
 
 <br>　　至于`ServiceManager`是何时被初始化的，大家可以自行寻找答案。
 
