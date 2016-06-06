@@ -1295,10 +1295,10 @@ public void connected(ComponentName name, IBinder service) {
 
 <br>**动态注册**
 
-　　广播的注册分为静态注册和动态注册，其中静态注册的广播是在应用安装时由系统自动完成注册，具体来说是有`PMS`来完成整个注册过程的。
+　　广播的注册分为静态注册和动态注册，其中静态注册的广播是在应用安装时由系统自动完成注册，具体来说是由`PMS`来完成整个注册过程的。
 
 	-  PMS就是PackageManagerService。
-	-  除了广播注册的过程外，其它三大组建只能在应用安装时有PMS解析并注册。
+	-  除了广播注册的过程外，其它三大组建只能在应用安装时由PMS解析并注册。
 
 <br>　　这里只分析广播的动态注册的过程，最先调用的同样是`ContextWrapper`类的`registerReceiver`方法。
 
@@ -1588,7 +1588,7 @@ private void handleBindApplication(AppBindData data) {
 }
 ```
     语句解释：
-    -  在handleBindApplication方法中做了很多事，我们主要就关注上面三件事。
+    -  在handleBindApplication方法中做了很多事，我们主要就关注上面四件事。
     -  就像第二节说的那样，整个进程中只会有一个对象Instrumentation，而这个对象就是在此时创建的。
 
 
