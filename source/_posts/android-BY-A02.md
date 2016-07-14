@@ -116,14 +116,16 @@ public class Test {
 }
 ```
 	语句解释：
-	-  程序运行后就会发现就算子线程栈溢出了，主线程依然会正常运行。
-	-  如果反过来，主线程栈溢出的话，那么整个进程就会被终止了。
+	-  程序运行后就会发现就算子线程栈溢出了，主线程依然会正常运行。如果反过来，主线程栈溢出的话，那么整个进程就会被终止了。
+	-  栈的大小因Java实现和架构的不同而不同，一些实现支持为 Java 线程指定栈大小，其范围通常在 256KB 到 756KB 之间。
+	-  尽管每个线程使用的内存量非常小，但对于拥有数百个线程的应用程序来说，线程栈的总内存使用量可能非常大。
+	-  如果运行的应用程序的线程数量比可用于处理它们的处理器数量多，效率通常很低，并且可能导致糟糕的性能和更高的内存占用。
 
 <br>**本节参考阅读：**
 - [对Java内存结构的一点思考和实践](http://zhangfengzhe.blog.51cto.com/8855103/1762431)
 - [Java 内存区域与内存溢出](http://wiki.jikexueyuan.com/project/java-vm/storage.html)
 - [《深入理解Java虚拟机》学习笔记](https://yq.aliyun.com/articles/38104)
-
+- [IBM内存详解](https://www.ibm.com/developerworks/cn/java/j-nativememory-linux/)
 
 ## Java垃圾回收 ##
 　　Java中垃圾回收的工作由垃圾回收器 (`Garbage Collector`) 完成的，它的核心思想是：
@@ -145,23 +147,102 @@ public class Test {
 	-  另外需要注意的是，Activity有View的引用，View也有Activity的引用，默认情况下当Activity被finish掉之后，Activity和View的循环引用已成孤岛，它们不再引用到GC Roots，因此它们之间无需断开也会被回收掉。
 	-  这和图1中底部的那两个对象的情况是一样的。
 
-
-<br>　　从上面可知，若对象的引用被某个GC Root对象所持有，那么该对象就不会被当做垃圾回收掉。
-　　而这里所说的`“引用”`是指的`“强引用”`：
+　　从上面可知，若对象的引用被某个GC Root对象所持有，那么该对象就不会被当做垃圾回收掉。
+　　而这里所说的引用是指的“强引用”：
 
 	-  从JDK1.2版本开始，Java把对象的引用分为四种级别，强引用、软引用、弱引用和虚引用。
 	-  这四种引用的用法很简单，网上教程一大堆，所以此处不再冗述，只介绍一些注意点。
 	   -  强引用：是Java程序中最普遍的，只要强引用还存在，GC宁愿抛OOM也不会回收掉被引用的对象。
-	   -  软引用：若对象存在强引用，则对象不会被GC回收，同时它的软引用也不会返回空；否则GC会在系统内存不够用时回收该对象，当该对象被回收后，它的软引用将返回空。
+	   -  软引用：若对象存在强引用，则对象不会被GC回收，同时它的软引用也不会返回空,否则GC会在系统内存不够用时回收该对象，当该对象被回收后，它的软引用将返回空。需要注意的是，软引用返回空有两个条件：系统内存不足和对象没有强引用；只满足某一条是不行的，比如若对象只是没有强引用时你主动调用gc后，你立刻访问软引用所引用的对象，是可以获取到该对象的。
 	   -  弱引用：它的强度比软引用更弱些，被弱引用关联的对象只能生存到下一次垃圾收集发生之前。当垃圾收集器工作时，无论当前内存是否足够，都会回收掉只被弱引用关联的对象。若对象存在强引用则不会回收弱引用。
 	   -  虚引用：最弱的一种引用关系，完全不会对其生存时间构成影响，也无法通过虚引用来取得一个对象实例。为一个对象设置虚引用关联的唯一目的是希望能在这个对象被收集器回收时收到一个系统通知。
 	-  将引用划分出四种级别是为了更好的管理JVM内存，防止出现内存泄漏甚至是程序抛出OOM的错误。
 
 <br>　　应用层开发中只有强引用和弱引用比较常用，而且非常简单不再冗述，笔者下面来介绍一下引用队列的概念。
+　　引用队列配合Reference的子类使用，当引用对象所指向的内存空间被GC回收后，该引用对象则被追加到引用队列的末尾。
 
 
+<br>　　范例1：引用队列的使用。
+``` java
+public class Test {
+    public static void main(String[] args) throws Exception {
+        ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
+        WeakReference<Object> soft = new WeakReference<Object>(new Test(), queue);
+        // 调用gc之前先打印一下内容。
+        System.out.println(soft.get() + "," + queue.poll());
+        System.gc();
+        // 之所以要等100毫秒是因为虚拟机将引用对象放入到队列中是有延迟的。
+        Thread.sleep(100);
+        System.out.println(soft.get() + "," + queue.poll());
+    }
+}
+```
+	语句解释：
+	-  引用队列的poll方法用来从队列中出队一个元素，若队列为空则返回null。
 
+<br>　　表面上来看引用队列好像没什么屌用，但那只是表面上看。
+　　在Github上有一个检测内存泄露的项目[leakcanary](https://github.com/square/leakcanary)，现在市面上有大量的项目都集成了它，它就是利用了引用队列的特性。
 
+<br>　　范例2：`com.squareup.leakcanary.RefWatcher`代码片段。
+``` java
+  // 当Activity被finish时，程序就会调用此方法。你暂时就把watchedReference当做一个Activity对象即可。
+  public void watch(Object watchedReference, String referenceName) {
+      checkNotNull(watchedReference, "watchedReference");
+      checkNotNull(referenceName, "referenceName");
+      if (debuggerControl.isDebuggerAttached()) {
+          return;
+      }
+      final long watchStartNanoTime = System.nanoTime();
+      String key = UUID.randomUUID().toString();
+      retainedKeys.add(key);
+      // 创建一个弱引用去持有Activity，当弱引用被回收时，虚拟机就会把它放入到queue中。
+      final KeyedWeakReference reference = new KeyedWeakReference(watchedReference, key, referenceName, queue);
+      // 然后在另一个线程中去执行后续工作。
+      watchExecutor.execute(new Runnable() {
+          @Override public void run() {
+            ensureGone(reference, watchStartNanoTime);
+          }
+      });
+  }
+
+  void ensureGone(KeyedWeakReference reference, long watchStartNanoTime) {
+      long gcStartNanoTime = System.nanoTime();
+
+      long watchDurationMs = NANOSECONDS.toMillis(gcStartNanoTime - watchStartNanoTime);
+      // 需要注意的是，线程间切换是存在时间的，因此当程序执行到此处时，多多少少经历了一些时间。
+      // 通常情况下，在这段时间中Activity就应该被回收了，且弱引用也应该被放入到queue中了。
+      // 因此下面先执行一次出队操作，判断弱引用是否成功入队了。
+      removeWeaklyReachableReferences();
+      // 如果出队成功则直接返回，出队成功就意味着Activity被回收了。
+      if (gone(reference) || debuggerControl.isDebuggerAttached()) {
+        return;
+      }
+      // 如果未出队成功，说明Activity虽然被finish了，但外界还有它的引用，即Activity没被加入到queue中。
+      // 此时主动调用gc。
+      gcTrigger.runGc();
+      // 再次尝试出队。
+      removeWeaklyReachableReferences();
+      // 如果依然出队失败，则此时就可以断定Activity被泄露了。
+      if (!gone(reference)) {
+        long startDumpHeap = System.nanoTime();
+        long gcDurationMs = NANOSECONDS.toMillis(startDumpHeap - gcStartNanoTime);
+
+        File heapDumpFile = heapDumper.dumpHeap();
+
+        if (heapDumpFile == HeapDumper.NO_DUMP) {
+          // Could not dump the heap, abort.
+          return;
+        }
+        // 既然出问题了，那就dump出当前进程的内存信息，以供我们分析原因。
+        long heapDumpDurationMs = NANOSECONDS.toMillis(System.nanoTime() - startDumpHeap);
+        heapdumpListener.analyze(
+            new HeapDump(heapDumpFile, reference.key, reference.name, excludedRefs, watchDurationMs,
+                gcDurationMs, heapDumpDurationMs));
+    }
+  }
+```
+	语句解释：
+	-  多的也不说了，大家可以去试一试leakcanary的效果。
 
 <br>　　在`Gingerbread(Andrid2.3)`之前，`GC`执行的时候整个应用会暂停下来执行全面的垃圾回收，因此有时候会看到应用卡顿的时间比较长，一般来说`>100ms`，对用户而言已经足以察觉出来。`Gingerbread`及以上的版本，`GC`做了很大的改进，基本上可以说是并发的执行，并且也不是执行完全的回收。只有在`GC`开始以及结束的时候会有非常短暂的停顿时间，一般来说`<5ms`，用户也不会察觉到。
 
