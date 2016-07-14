@@ -79,6 +79,6 @@ baidu_analytics: 53b4b0b5aeb5df5e4fb6263a58d8e1a9
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
-  type: github
+  type: git
   repository: git@github.com:cutler/cutler.github.io.git
   branch: master
