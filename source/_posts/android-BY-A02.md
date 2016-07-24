@@ -1,815 +1,1191 @@
-title: 优化篇　第二章 内存分析
-date: 2015-3-10 10:40:53
+title: 优化篇　第二章 插件化开发
+date: 2016-3-14 16:41:24
 categories: Android开发 - 白银
 ---
-　　本章来讲解一下Android开发中内存优化相关的知识。
+　　本章来讲解一下Android插件化开发相关的知识。
 
-# 第一节 概述 #
+# 第一节 基础知识 #
+<br>　　2015年是Android插件化技术突飞猛进的一年，随着业务的发展各大厂商都碰到了Android Native平台的瓶颈：
 
-　　尽管随着科技的进步，现今移动设备上的内存大小已经达到了低端桌面设备的水平，但是现今开发的应用程序对内存的需求也在同步增长，主要问题出在设备的屏幕尺寸上——`分辨率越高需要的内存越多`。
-　　熟悉Android平台的开发人员一般都知道垃圾回收器并不能彻底杜绝`内存泄露`问题，对于大型应用而言，内存泄露对性能产生的影响是难以估量的，因此开发人员必须要有内存分析的能力。
+	-  从技术上讲，业务逻辑的复杂导致代码量急剧膨胀，各大厂商陆续出到65535方法数的天花板；同时，运营为王的时代对于模块热更新提出了更高的要求。
+	-  在业务层面上，功能模块的解耦以及维护团队的分离也是大势所趋；各个团队维护着同一个App的不同模块，如果每个模块升级新功能都需要对整个app进行升级，那么发布流程不仅复杂而且效率低下；在讲究小步快跑和持续迭代的移动互联网必将遭到淘汰。
 
-　　从早期`G1`的`192MB RAM`开始，到现在动辄`2G -3G RAM`的设备，为单个App分配的内存从`16MB`到`48MB`甚至更多，但`OOM`从不曾离我们远去。这是因为大部分App中图片内容占据了`50%`甚至`75%`以上，而App内容的极大丰富，所需的图片越来越多，屏幕尺寸也越来越大分辨率也越来越高，所需的图片的大小也跟着往上涨，这在大屏手机和平板上尤其明显，而且还经常要兼容低版本的设备，所以Android的内存管理显得极为重要。
+　　插件化技术听起来高深莫测，实际上要解决的就是两个问题：`代码加载`和`资源加载`。
+<!-- more -->
+<br>　　**代码加载**
+	-  不同于Java的是，在Android中并不是说类加载进来就可以用了，很多组件都是有“生命”的（比如Activity）；因此对于这些有血有肉的类，必须给它们注入活力，也就是所谓的组件生命周期管理；
+	-  另外，如何管理加载进来的类也是一个问题。假设多个插件依赖了相同的类，是抽取公共依赖进行管理还是插件单独依赖？
 
-<br>**名词解释**
-　　内存泄漏（`Memory Leak`）
+<br>　　**资源加载**
 
-	-  有个引用指向一个不再被使用的对象，导致该对象不会被垃圾回收器回收。如果这个对象内部有个引用指向一个包括很多其他对象的集合，就会导致这些对象都不会被垃圾回收。
-　　内存溢出（`Out of memory`）：
+	-  资源加载方案大家使用的原理都差不多，都是用AssetManager的隐藏方法addAssetPath。
+	-  但是这里面还是存在不少问题：如何正确的从多个插件中正确加载这些资源？如何处理插件与宿主的资源冲突？等等。
 
-	-  当程序需要为新对象分配空间，但是虚拟机能使用的内存不足以分配时，将会抛出内存溢出异常（即我们常说的OOM），当内存泄漏严重时通常会导致内存溢出。
+<br>　　接下来，笔者通过几个简单的范例，来介绍如何实现动态加载代码和资源。
 
-<br>**最大内存限制**
-　　我们都知道Android是个多任务操作系统，同时运行着很多程序，它们都需要分配内存，所以系统不可能为一个程序分配越来越多的内存以至于让整个系统都崩溃。因此每个进程的`heap`的大小有个硬性的限制，跟设备相关，从发展来说也是越来越大，`G1：16MB`，`Droid：24MB`，`Nexus One：32MB`，`Xoom：48MB`，但是一旦超出了这个使用的范围，`OOM`便产生了。
-　　如果你想知道设备的单个进程最大内存的限制是多少，并根据这个值来估算自己应用的缓存大小应该限制在什么样一个水平，你可以使用`ActivityManager#getMemoryClass()`来获得一个单位为`MB`的整数值，一般来说最低不少于`16MB`，对于现在的设备而言这个值会越来越大，`32MB`，`128MB`甚至更大。
+## ClassLoader ##
 
-	-  需要知道的是，就算设备的单进程最大允许是128M，操作系统也不会在进程刚启动就给它128M，而是随着进程不断的有需求是才不断的分配，直到进程达到阀值（128M），系统就会抛出OOM。
+　　笔者在[《入门篇　第四章 数据存取》](http://cutler.github.io/android-A04/#ClassLoader)中简单的介绍了`Classloader`的作用，本节将通过源码阅读，来看一下它的内部实现。
 
-<br>　　但是对于一些内存非常吃紧的比如图库、浏览器等应用，在平板上所需的内存更大了。因此在`Honeycomb(Android3.0)`之后`AndroidManifest.xml`增加了`largeHeap`的选项：
-``` xml
-<application
-    android:largeHeap="true"
-    ...>
-</application>
-```
-　　它允许你的应用使用更多的`heap`，可以用`ActivityManager#getLargeMemoryClass()`获取允许使用的`heap`容量。
-　　但是这里要警告的是，千万不要因为你的应用报`OOM`了而使用这个选项，因为更大的`heap size`意味着更多的`GC`时间，意味着应用的性能越来越差，而且用户也会发现其他应用很有可能会内存不足。因此只有你需要使用很多的内存而且非常了解每一部分内存的用途，这些所需的内存都是不可或缺的，这个时候你才应该使用这个选项。
+<br>　　**双亲委托机制**
 
-<br>　　**扩展：为什么图片会占据大量内存？**
-　　笔者在[《媒体篇　第二章 图片》](http://cutler.github.io/android-D02/)中已经介绍了，这里再次重复一下：
+	-  任何自定义ClassLoader都必须继承抽象类ClassLoader，并为其paren字段初始化。
+	-  任何自定义ClassLoader在加载一个类之前都会先委托其parent去加载，只有parent加载失败才会自己加载。
+	   -  这样既可以防止重复加载，又可以排除安全隐患（防止用户替换系统核心类）。
 
-	-  需要知道的是，图片在磁盘中占据2M的大小，并不意味着它在内存中也占据2M。
-	-  图片在内存中大小的公式：图片的分辨率*单个像素点占据的字节大小。
-	   -  例如，Galaxy Nexus上的照相机所照的图片最大达到2592x1936像素(500万像素)。
-	   -  如果位图的配置使用ARGB_8888(Android 2.3的默认配置)那么加载这个图像到内存需要19MB的存储空间(2592*1936*4bytes)，直接超过了许多低端设备上的单应用限制。
-
-# 第二节 内存基础 #
-　　所谓知己知彼百战不殆，为了以后能更深入的进行内存分析，我们需要先来了解一下Java进程的内存结构。
-
-## JVM内存结构 ##
-　　JVM会把它所管理的内存会分为若干个不同的数据区域，这些区域都有各自的用途、创建和销毁的时间，有的区域随着虚拟机进程的启动而存在，有些区域则是依赖用户线程的启动和结束而建立和销毁。
-　　根据[《Java虚拟机规范》](https://book.douban.com/subject/25792515/)，包括以下几个运行时数据区域：
-
-<center>
-![](/img/android/android_BY_a02_01.jpg)
-</center>
-
-<br>　　我们先抛开上图不看，而是基于自己现有的Java基础来想象一下内存应该是什么样的。
-
-<br>　　首先，Java程序是多线程的。
-
-	-  即每个进程中可以同时存在多个线程，在进程运行的时候，CPU会在它内部的多个线程之间来回切换执行。
-	-  那么问题来了，当CPU从线程A上切换到线程B上执行时，线程B应该从哪里开始呢？换而言之，其实每个线程都应该有自己的专属内存空间，用来保存一些自己的数据。
-	-  比如线程需要记录当前执行到哪一行代码了，以便当CPU切走又切换来时可以继续向下执行。
-
-　　然后，还应该存在一个共有的区域。
-
-	-  无论是我们编写的代码，还是利用的第三方的工具，都是需要类装载器进行加载的，这说明应该有区域专门用于存储这些信息，即类，方法，常量池等。
-	-  这块区域应该对每个线程进行开放共享的。
-
-　　最后，堆和栈。
-
-	-  从学习JAVA开始，我们就知道了内存有堆和栈的概念，而且我们都说new出来的对象是存放在堆中的，要知道JAVA是面向对象的，所以说这一块应该是占用空间较大的一块，也是内存管理、回收的一个核心点。堆，也是每个线程都可以来访问的，如果堆的空间不足了，却仍需为对象分配空间的话，就会OOM了。
-	-  而栈空间其实是每个线程所私有的，栈中存放的是方法中的局部变量，方法入口信息等。每一次调用方法，都涉及到入栈和出栈，如果有一个递归方法调用了几千次，甚至几万次，那么可能会因为在栈中积压了那么多信息导致栈溢出的，从而抛出StackOverFlow。
-
-<br>　　现在我们再回过头去看上面那张图就清晰一些了：
-
-	-  方法区和堆就是我们说的公共区域（线程公用）。
-	-  方法区用于存储已经被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码等数据。
-	   -  相对而言，垃圾收集行为在这个区域比较少出现，主要是针对该区域废弃常量的和无用类的回收。
-	   -  运行时常量池是方法区的一部分，Class文件中除了有类的版本、字段、方法、接口等描述信息外，还有一项信息是常量池（Class文件常量池），用于存放编译器生成的各种字面量和符号引用，这部分内容将在类加载后存放到方法区的运行时常量池中。
-	-  虚拟机栈、本地方法栈、程序计数器则是线程私有的，各个线程相互不影响。
-	-  程序计数器就是上面说的用来记录线程的执行位置。字节码解释器工作时，会通过改变该计数器的值来选择下一条需要执行的字节码指令，分支、循环等基础功能都要依赖它来实现。每条线程都有一个独立的的程序计数器，各线程间的计数器互不影响，因此该区域是线程私有的。
-	-  虚拟机栈就是上面说的栈，该区域也是线程私有的，它的生命周期也与线程相同。每个方法被执行的时候都会同时创建一个栈帧，对于执行引擎来讲，活动线程中只有栈顶的栈帧是有效的，称为当前栈帧，这个栈帧所关联的方法称为当前方法。栈帧用于存储局部变量表、操作数栈、动态链接、方法返回地址和一些额外的附加信息。
-	-  本地方法栈，该区域与虚拟机栈所发挥的作用非常相似，只是虚拟机栈为虚拟机执行Java方法服务，而本地方法栈则为使用到的本地操作系统（Native）方法服务。
-
-
-<br>　　既然上面说栈是隶属于线程的，那么栈溢出时应该只会影响其所隶属的线程才对。
-
-<br>　　范例1：事实就是如此。
+<br>　　范例1：`ClassLoader`类。
 ``` java
-public class Test {
+public abstract class ClassLoader {
 
-    public static void main(String[] args) {
-        new Thread() {
-            public void run() {
-                deepCall();
-            }
-        }.start();
-        while (true) {
+    // 此处省略若干代码
+
+    private ClassLoader parent;
+
+    // 此处省略若干代码
+
+    ClassLoader(ClassLoader parentLoader, boolean nullAllowed) {
+        if (parentLoader == null && !nullAllowed) {
+            throw new NullPointerException("parentLoader == null && !nullAllowed");
+        }
+        parent = parentLoader;
+    }
+
+    // 此处省略若干代码
+}
+```
+
+<br>　　事实上，双亲委托机制是在`loadClass()`方法实现的，如果你要想避开这个机制，必须重写`loadClass()`方法。
+``` java
+protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
+    // 首先查看该类是否已在缓存中了。
+    Class<?> clazz = findLoadedClass(className);
+
+    if (clazz == null) {
+        ClassNotFoundException suppressed = null;
+        try {
+            // 然后调用父类去执行加载的任务
+            clazz = parent.loadClass(className, false);
+        } catch (ClassNotFoundException e) {
+            suppressed = e;
+        }
+
+        if (clazz == null) {
             try {
-                System.out.println(Thread.currentThread().getName());
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                    e.printStackTrace();
+                // 最后才会由自己加载
+                clazz = findClass(className);
+            } catch (ClassNotFoundException e) {
+                e.addSuppressed(suppressed);
+                throw e;
             }
         }
     }
 
-    private static void deepCall() {
-        System.out.println(Thread.currentThread().getName());
-        deepCall();
-    }
-
+    return clazz;
 }
 ```
-	语句解释：
-	-  程序运行后就会发现就算子线程栈溢出了，主线程依然会正常运行。如果反过来，主线程栈溢出的话，那么整个进程就会被终止了。
-	-  栈的大小因Java实现和架构的不同而不同，一些实现支持为 Java 线程指定栈大小，其范围通常在 256KB 到 756KB 之间。
-	-  尽管每个线程使用的内存量非常小，但对于拥有数百个线程的应用程序来说，线程栈的总内存使用量可能非常大。
-	-  如果运行的应用程序的线程数量比可用于处理它们的处理器数量多，效率通常很低，并且可能导致糟糕的性能和更高的内存占用。
+    语句解释：
+    -  从上面加载类的顺序中我们可以知道，loadClass会先看这个类是不是已经被loaded过，没有的话则去他的parent去找，如此递归，称之为双亲委托。
+
+<br>　　**Android的类加载器**
+
+　　需要知道的是，`Dalvik`虚拟机毕竟不算是标准的`Java`虚拟机，因此在类加载机制上，它们有相同的地方，也有不同之处。我们必须区别对待。
+
+	-  因此Android为我们从ClassLoader派生出了两个类：DexClassLoader和PathClassLoader。
+	-  这两个类都属于符合双亲委派模型的类加载器（因为它们没有重写loadClass方法）。
+	-  其中DexClassLoader类，可以在运行时动态加载并解释执行包含在jar或apk文件内的dex文件，也是我们接下来要用到的类。
 
 <br>**本节参考阅读：**
-- [对Java内存结构的一点思考和实践](http://zhangfengzhe.blog.51cto.com/8855103/1762431)
-- [Java 内存区域与内存溢出](http://wiki.jikexueyuan.com/project/java-vm/storage.html)
-- [《深入理解Java虚拟机》学习笔记](https://yq.aliyun.com/articles/38104)
-- [IBM内存详解](https://www.ibm.com/developerworks/cn/java/j-nativememory-linux/)
+- [DexClassLoader 实现 Android 插件加载](http://blog.rincliu.com/posts/150419-classloader/) 
+- [Android类动态加载技术](http://www.blogjava.net/zh-weir/archive/2011/10/29/362294.html) 
 
-## Java垃圾回收 ##
-　　Java中垃圾回收的工作由垃圾回收器 (`Garbage Collector`) 完成的，它的核心思想是：
 
-	-  有一组元素被称为根元素集合(GC Roots)，它们是一组被虚拟机直接引用的对象，比如，正在运行的线程对象，方法区中的类静态属性（以及常量）引用的对象等。
-	-  GC会对虚拟机可用内存空间中的对象进行识别，主要是堆空间。
-	-  GC会从这些根节点开始向下搜索，搜索所走过的路径称为引用链，当一个对象到GC Roots没有任何引用链相连时，就证明此对象是不可用的（可以被回收）。
-	-  也就是说，存活对象占据的内存空间不能被回收和释放，垃圾对象的空间则可以。
-	-  如果说一个对象已经不被任何程序逻辑所需要但是还存在被根元素引用的情况，我们就说这里存在内存泄露。
+## 加载代码 ##
 
-　　由于下图蓝色部分没有直接或者间接引用到`GC Roots`，所以它们就是垃圾，会被`GC`回收掉：
+　　接下来我们使用`DexClassLoader`来加载一个普通的`jar`文件。
 
-<center>
-![图1](/img/android/android_8_2.png)
-</center>
-
-　　从图中也可以看出，更大的`heap size`需要遍历的对象更多，所以说使用`largeHeap`选项会导致更多的`GC`时间。
-
-	-  另外需要注意的是，Activity有View的引用，View也有Activity的引用，默认情况下当Activity被finish掉之后，Activity和View的循环引用已成孤岛，它们不再引用到GC Roots，因此它们之间无需断开也会被回收掉。
-	-  这和图1中底部的那两个对象的情况是一样的。
-
-　　从上面可知，若对象的（强）引用被某个GC Root对象所持有，那么该对象就不会被当做垃圾回收掉。
-　　另外从JDK1.2版本开始，Java把对象的引用分为四种级别，强引用、软引用、弱引用和虚引用，简单的说：
-    -  强引用：是Java程序中最普遍的，只要强引用还存在，GC宁愿抛OOM也不会回收掉被引用的对象。
-    -  软引用：若对象存在强引用，则对象不会被GC回收，同时它的软引用也不会返回空,否则GC会在系统内存不够用时回收该对象，当该对象被回收后，它的软引用将返回空。需要注意的是，软引用返回空有两个条件：系统内存不足和对象没有强引用；只满足某一条是不行的，比如若对象只是没有强引用时你主动调用gc后，你立刻访问软引用所引用的对象，是可以获取到该对象的。
-    -  弱引用：它的强度比软引用更弱些，被弱引用关联的对象只能生存到下一次垃圾收集发生之前。当垃圾收集器工作时，无论当前内存是否足够，都会回收掉只被弱引用关联的对象。若对象存在强引用则不会回收弱引用。
-    -  虚引用：最弱的一种引用关系，完全不会对其生存时间构成影响，也无法通过虚引用来取得一个对象实例。为一个对象设置虚引用关联的唯一目的是希望能在这个对象被收集器回收时收到一个系统通知。
-
-<br>　　应用层开发中只有强引用和弱引用比较常用，而且非常简单不再冗述，笔者下面来介绍一下引用队列的概念。
-
-<br>　　引用队列配合Reference的子类使用，当引用对象所指向的内存空间被GC回收后，该引用对象则被追加到引用队列的末尾。
-　　范例1：引用队列的使用。
+<br>　　范例1：创建Person类。
 ``` java
-public class Test {
-    public static void main(String[] args) throws Exception {
-        ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
-        WeakReference<Object> soft = new WeakReference<Object>(new Test(), queue);
-        // 调用gc之前先打印一下内容。
-        System.out.println(soft.get() + "," + queue.poll());
-        System.gc();
-        // 之所以要等100毫秒是因为虚拟机将引用对象放入到队列中是有延迟的。
-        Thread.sleep(100);
-        System.out.println(soft.get() + "," + queue.poll());
+package com.cutler.classload;
+
+public class Person {
+    public static void say() {
+        System.out.println("Hello !!!");
     }
 }
 ```
-	语句解释：
-	-  引用队列的poll方法用来从队列中出队一个元素，若队列为空则返回null。
+    语句解释：
+    -  在Eclipse创建一个新项目，然后在项目中创建这个Person类即可。
 
-<br>　　表面上来看引用队列好像没什么屌用，但那只是表面上看。
-　　在Github上有一个检测内存泄露的项目[leakcanary](https://github.com/square/leakcanary)，现在市面上有大量的项目都集成了它，它就是利用了引用队列的特性。
+<br>　　接着，将这个`Person`导出成一个`test.jar`文件，如果不会导出，请点击[ 这里 ](http://blog.csdn.net/bboyfeiyu/article/details/11710497)。
+　　接着，将`test.jar`上传到手机的SD卡根目下，并在Android项目中执行下面`范例2`的代码。
 
-<br>　　范例2：`com.squareup.leakcanary.RefWatcher`代码片段。
+<br>　　范例2：动态加载Person类。
 ``` java
-  // 当Activity被finish时，程序就会调用此方法。你暂时就把watchedReference当做一个Activity对象即可。
-  public void watch(Object watchedReference, String referenceName) {
-      checkNotNull(watchedReference, "watchedReference");
-      checkNotNull(referenceName, "referenceName");
-      if (debuggerControl.isDebuggerAttached()) {
-          return;
-      }
-      final long watchStartNanoTime = System.nanoTime();
-      String key = UUID.randomUUID().toString();
-      retainedKeys.add(key);
-      // 创建一个弱引用去持有Activity，当弱引用被回收时，虚拟机就会把它放入到queue中。
-      final KeyedWeakReference reference = new KeyedWeakReference(watchedReference, key, referenceName, queue);
-      // 然后在另一个线程中去执行后续工作。
-      watchExecutor.execute(new Runnable() {
-          @Override public void run() {
-            ensureGone(reference, watchStartNanoTime);
-          }
-      });
-  }
+public class MainActivity extends Activity {
 
-  void ensureGone(KeyedWeakReference reference, long watchStartNanoTime) {
-      long gcStartNanoTime = System.nanoTime();
-
-      long watchDurationMs = NANOSECONDS.toMillis(gcStartNanoTime - watchStartNanoTime);
-      // 需要注意的是，线程间切换是存在时间的，因此当程序执行到此处时，多多少少经历了一些时间。
-      // 通常情况下，在这段时间中Activity就应该被回收了，且弱引用也应该被放入到queue中了。
-      // 因此下面先执行一次出队操作，判断弱引用是否成功入队了。
-      removeWeaklyReachableReferences();
-      // 如果出队成功则直接返回，出队成功就意味着Activity被回收了。
-      if (gone(reference) || debuggerControl.isDebuggerAttached()) {
-        return;
-      }
-      // 如果未出队成功，说明Activity虽然被finish了，但外界还有它的引用，即Activity没被加入到queue中。
-      // 此时主动调用gc。
-      gcTrigger.runGc();
-      // 再次尝试出队。
-      removeWeaklyReachableReferences();
-      // 如果依然出队失败，则此时就可以断定Activity被泄露了。
-      if (!gone(reference)) {
-        long startDumpHeap = System.nanoTime();
-        long gcDurationMs = NANOSECONDS.toMillis(startDumpHeap - gcStartNanoTime);
-
-        File heapDumpFile = heapDumper.dumpHeap();
-
-        if (heapDumpFile == HeapDumper.NO_DUMP) {
-          // Could not dump the heap, abort.
-          return;
-        }
-        // 既然出问题了，那就dump出当前进程的内存信息，以供我们分析原因。
-        long heapDumpDurationMs = NANOSECONDS.toMillis(System.nanoTime() - startDumpHeap);
-        heapdumpListener.analyze(
-            new HeapDump(heapDumpFile, reference.key, reference.name, excludedRefs, watchDurationMs,
-                gcDurationMs, heapDumpDurationMs));
-    }
-  }
-```
-	语句解释：
-	-  多的也不说了，大家可以去试一试leakcanary的效果。
-
-<br>　　了解了`leakcanary`后，咱们还得把话说回来。
-
-　　在`Gingerbread(Andrid2.3)`之前，`GC`执行的时候整个应用会暂停下来执行全面的垃圾回收，因此有时候会看到应用卡顿的时间比较长，一般来说`>100ms`，对用户而言已经足以察觉出来。`Gingerbread`及以上的版本，`GC`做了很大的改进，基本上可以说是并发的执行（注意只是基本上，实际上在GC时还是会有暂停所有线程的操作），并且也不是执行完全的回收。只有在`GC`开始以及结束的时候会有非常短暂的停顿时间，一般来说`<5ms`，用户也不会察觉到。
-
-　　注意，`Android4.4`引进了新的`ART虚拟机`来取代`Dalvik虚拟机`。它们的机制大有不同，简单而言：
-
-	-  Dalvik虚拟机的GC是非常耗资源的，并且在正常的情况下一个硬件性能不错的设备，单次GC很容易耗费掉10-20ms的时间；
-	-  ART虚拟机的GC会动态提升垃圾回收的效率，单次GC通常在2-3ms之间，比Dalvik虚拟机有很大的性能提升；
-	-  虽然单次GC时间被大幅缩短了，但我们仍需要尽可能避免产生过多的GC操作，特别是在执行动画的情况下，过多次的GC仍可能会导致一些让用户明显感觉的丢帧。
-
-　　推荐阅读：[《Android 4.4的ART虚拟机性能实测：任务切换更迅速》](http://www.expreview.com/29372.html) 
-
-　　最后，再来看一下常见的GC root：
-
-	-  Class：由系统类加载器加载的对象，这些类是不能够被回收的，他们可以以静态字段的方式保存持有其它对象。
-	-  Thread：已经启动且正在执行的线程。
-	-  JNI Local：JNI方法的local变量或参数。
-	-  JNI Global：全局JNI引用。
-	-  Monitor Used：用于同步的监控对象。
-
-<br>**本节参考阅读：**
-- [GC Root](http://blog.csdn.net/fenglibing/article/details/8928927)
-
-
-# 第三节 调优策略 #
-　　在智能手机App竞争越来越激烈的今天，Android App各项性能如CPU、内存消耗等都是我们在开发测试中需要关注的指标，如何将App打造得更加“优雅”是我们需要不断追求探索的方向，下面我们从内存和流畅度两个纬度来说说如何对Android App进行评测和调优。
-
-## 内存泄露 ##
-　　内存使用的不合理就会出现OOM、UI不流畅等问题，我们先来说说内存泄露的问题，流畅度后面单开一节详述。
-
-### 常见泄漏 ###
-　　本节先来介绍几个常见的内存年泄漏的范例，以便在以后写代码的时候可以避免掉。
-
-<br>　　范例1：Handler导致的泄露。
-``` java
-public class HandlerActivity extends Activity {
-    private final Handler mHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            // ...
-        }
-    };
-
-    public void onCreate(Bundle savedInstanceState) {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // 发送一个消息，60秒后处理。
-        mHandler.sendMessageDelayed(Message.obtain(), 60000);
-        // 关闭Activity。
-        finish();
+
+        // test.jar在SD卡上的位置
+        File filePath = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/test.jar");
+        // test.jar文件的解压目录，即/data/data/packagename/app_dex/下面
+        File outputDir = getDir("dex", Context.MODE_PRIVATE);
+        // 创建一个DexClassLoader对象
+        DexClassLoader classLoader = new DexClassLoader(
+                filePath.getAbsolutePath(),
+                outputDir.getAbsolutePath(), null, getClassLoader());
+        try {
+            // 使用类加载器加载类文件
+            Class<?> clazz = classLoader.loadClass("com.cutler.classload.Person");
+            // 获取say方法
+            Method m = clazz.getMethod("say");
+            // 调用say方法，由于它是静态方法所以参数传递null即可
+            m.invoke(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        }
     }
 }
 ```
-　　猛地一看并没有什么问题，但是`Eclipse`或`Android Studio`却会有如下警告：
+    语句解释：
+    -  如果不出意外的话，这段代码并不会成功运行，而是会抛异常。
+    -  这是因为普通的jar文件是没法被DexClassLoader加载的，我们需要使用sdk里的dx工具优化一下jar文件才行。
 
-	This Handler class should be static or leaks might occur (com.example.ta.HandlerActivity.1)
+<br>　　范例3：dx工具。
+``` c
+dx --dex --output=newtest.jar test.jar
+```
+    语句解释：
+    -  将test.jar拷贝到dx工具所在的目录后，执行这条命令即可。
+    -  dx工具在“android-sdk-windows\build-tools\选择一个版本\”下面。
 
-　　大体的意思是：`Handler`应该使用静态声明，不然可能导致`HandlerActivity`被泄露。
+<br>　　然后再把`newtest.jar`放到手机中就可以了。
 
-　　为啥出现这样的问题呢？这是因为：
+<br>　　**安全提醒**
 
-	-  首先，当在主线程中初始化Handler时，该Handler会和主线程中的Looper的消息队列关联。
-	-  然后，通过Handler发送的消息，会被发送到Looper的消息队列里，直到消息被处理。
-	-  接着，但是通过Handler对象发送的消息会反向持有Handler的引用，这样系统可以调用Handler#handleMessage(Message)来分发处理该消息。
-	-  最后，由于消息会延迟60秒处理，因此Message对象的引用会被一直持有，同时导致Handler无法回收，又因为Handler是实例内部类，所以最终会导致Activity被泄漏。
+　　需要注意的是，在实际开发的时候最好不要把`test.jar`放到SD卡上，有两个原因：
 
-　　也许你会说`“我不去执行这种延期的Message不就行了”`，但是：
+	-  首先，如果用户把SD卡上的test.jar文件给删除的话，程序就无法再加载了。
+	-  然后，SD卡上的test.jar文件是可以被任意程序修改的，因此它可能会遭到恶意程序的代码注入。
+	   -  如果必须放到SD卡上的话，那每次加载之前最好对jar或dex文件做完整性校验。
 
-	-  首先，你不会执行但你不能保证你同事也不会执行。
-	-  然后，由于程序中可以存在多个Handler，并且一般情况下都是在主线程中处理消息，因此你也不能保证在其他地方的Handler对象不会阻塞主线程，进而导致你的Message被迫延迟处理等。
-	-  因此，为了避免这些未知的情况，我们尽量不要这么写代码。
+　　最好的做法是把文件放到`私有目录(/data/data/...)`或者直接放到`apk`中。
 
-<br>**如何避免呢？**
-　　最简单的方法就是把`Handler`写成一个外部类，不过这样一来就会多出很多文件，也难以查找和管理。
+<br>**本节参考阅读：**
+- [Java ClassLoader基础及加载不同依赖 Jar 中的公共类](http://www.trinea.cn/android/java-loader-common-class/) 
 
-　　另一个方法就是使用`静态内部类+软引用`：
+## 加载资源 ##
+　　加载资源的操作也很简单，需要用到`ClassLoader`和`AssetManager`类。
+
+<br>　　首先，来创建一个新的Android项目，包名为`com.cutler.androidtest2`，并随便添加几个资源（如字符串、图片等）。
+　　然后，打出`apk`，并将`apk`放到SD卡上。
+
+<br>　　范例1：加载未安装apk中的资源。
 ``` java
-public class HandlerActivity2 extends Activity {
+public class MainActivity extends Activity {
 
-    private static final int MESSAGE_1 = 1;
-    private static final int MESSAGE_2 = 2;
-    private static final int MESSAGE_3 = 3;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-    private final Handler mHandler = new MyHandler(this);
+        ImageView img = (ImageView) findViewById(R.id.img);
 
+        // apk文件的路径
+        String pluginPath = Environment.getExternalStorageDirectory()
+                .getAbsolutePath() + "/app-debug.apk";
+        // 创建ClassLoader，稍后会用到。
+        ClassLoader classLoader = new DexClassLoader(
+                new File(pluginPath).getAbsolutePath(),
+                getDir("dex", Context.MODE_PRIVATE).getAbsolutePath(), null, getClassLoader());
+
+        // 新创建一个Resource对象。
+        Resources pluginRes = getPluginResource(pluginPath);
+
+        // 获取文本的资源id。
+        int resId = getPluginResourceId(classLoader, "com.cutler.androidtest2", "string", "text");
+        System.out.println(pluginRes.getString(resId));
+        // 获取图片的资源id。
+        resId = getPluginResourceId(classLoader, "com.cutler.androidtest2", "mipmap", "mv");
+        img.setImageDrawable(pluginRes.getDrawable(resId));
+    }
+
+    public Resources getPluginResource(String pluginPath) {
+        Resources pluginRes = null;
+        try {
+            // 创建一个新的AssetManager对象。
+            AssetManager assetManager = AssetManager.class.newInstance();
+            // 调用addAssetPath方法，将apk的路径放上去。
+            Method addAssetPath = assetManager.getClass().getMethod("addAssetPath", String.class);
+            addAssetPath.invoke(assetManager, pluginPath);
+            Resources superRes = super.getResources();
+            // 使用assetManager创建一个新的Resources对象。
+            pluginRes = new Resources(assetManager, superRes.getDisplayMetrics(),
+                    superRes.getConfiguration());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return pluginRes;
+    }
+
+    public int getPluginResourceId(ClassLoader classLoader, String packageName, 
+           String resType, String name) {
+        int resId = 0;
+        try {
+            // 反射apk中的R文件，获取资源所对应的id。
+            Class clazz = classLoader.loadClass(packageName + ".R$" + resType);
+            Field property = clazz.getField(name);
+            // 由于资源都是静态的，所以这里传null。
+            resId = property.getInt(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resId;
+    }
+
+}
+```
+    语句解释：
+    -  默认的Resources对象只能加载当前APK中的资源，想要加载其他APK的资源，就需要手动创建一个Resources对象。
+    -  由于新Resources对象是由AssetManager创建的，而该AssetManager查找文件时会从apk中查找，所以新Resources对象也会从apk中查找文件。
+
+<br>　　范例2：加载已安装apk中的资源。
+``` java
+public class MainActivity extends Activity {
+
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        ImageView img = (ImageView) findViewById(R.id.img);
+        String pkgName = "com.cutler.androidtest2";
+        try {
+            // 获取指定App的Context对象，如果该App未安装，则会抛异常。
+            Context context = createPackageContext(pkgName,
+                    Context.CONTEXT_IGNORE_SECURITY | Context.CONTEXT_INCLUDE_CODE);
+            Resources pluginRes = context.getResources();
+            // 加载文本
+            System.out.println(pluginRes.getString(
+                pluginRes.getIdentifier("text","string", pkgName)));
+            // 加载图片
+            img.setImageDrawable(pluginRes.getDrawable(
+                pluginRes.getIdentifier("mv","mipmap", pkgName)));
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+}
+```
+    语句解释：
+    -  从上面的代码可以看出来，如果App已经安装在手机上了，则我们可以很容易加载它的资源。
+
+# 第二节 插件化开源库 #
+
+　　通过上面的学习可以发现，动态加载代码和资源的过程其实十分的简单；但是实际开发中的情况要复杂的多，可能会要求我们能动态加载四大组件，这就会有很多问题：
+
+	-  Activity由代码和布局组成，布局如何加载？
+	-  由于是我们自己实例化的Activity，它的生命周期方法如何调用？so文件怎么加载？
+	-  如何保证在各种机型、各版本系统上都正常运行不报错？
+	-  插如何管理、如何升级？
+
+　　以上这些问题都需要去解决，如果只靠一个人的话就很慢了，所以笔者更推荐使用开源的插件库。
+
+<br>　　目前国内开源的较成熟的插件方案有`DL`和`DroidPlugin`：
+
+	-  DL方案仅仅对Framework的表层做了处理，严重依赖that语法，编写插件代码和主程序代码需单独区分。
+	-  DroidPlugin通过Hook增强了Framework层的很多系统服务，开发插件就跟开发独立app差不多。
+
+　　以Activity生命周期的管理为例：
+	-  DL的代理方式就像是牵线木偶，插件只不过是操纵傀儡而已。
+	-  而DroidPlugin则是借尸还魂，插件就是一个正常的APK，它自己并不知道自己是插件。
+	   -  DroidPlugin Hook了系统几乎所有的Sevice，欺骗了大部分的系统API；
+	   -  掌握这个Hook过程需要掌握很多系统原理，因此学习DroidPlugin对于整个Android FrameWork层大有裨益。
+
+<br>　　最后，笔者有两点要说：
+
+	-  首先，虽然笔者推荐去使用开源库，但不代表我们不需要去了解开源库是如何工作的。所以下一节会在源码层次来介绍这两个库的实现原理。
+	-  然后，就目前而言，笔者更偏向于使用DroidPlugin，上面介绍它的优点不太直观，稍后大家就会明白它的过人之处。
+
+## DL ##
+　　`DL` 全称[ dynamic-load-apk ](https://github.com/singwhatiwanna/dynamic-load-apk)，是由[ singwhatiwanna ](http://blog.csdn.net/singwhatiwanna)发起的一个插件化开源库。
+
+<br>**实现原理**
+<br>　　现有的问题：
+
+	-  所谓的插件化，其实包括“宿主”和“插件”两部分，插件可以是从网上下载到本地的。
+	-  由于插件未安装到设备上的，所以当我们过反射实例化插件里的Activity时，创建出来的只是一个普通的对象，它是没有Context对象的，这意味着如果我们调用这个Activity的getResources等方法，就会抛异常。
+	   -  也就是说，以前Activity的Context对象是系统设置给它的，而我们自己实例化Activity的话，它就没有Context对象了。
+	   -  我们都知道，Context对象可以做很多事，当Activity没有Context对象时，可以说是寸步难行了，甚至连布局都没法设置。
+<br>　　`DL` 是这么解决问题的：
+
+	-  首先，在宿主项目中定义一个ProxyActivity类，它是正经的Activity。
+	-  然后，每当宿主项目需要启动插件里的ActivityA时，DL框架都会先启动自己的ProxyActivity。
+	-  接着，再在ProxyActivity中反射并实例化ActivityA的对象，接着把ProxyActivity的引用传递给ActivityA对象。
+	-  最后，当ActivityA需要使用Context的时候，就使用ProxyActivity的Context对象。
+
+<br>　　整个过程说起来简单，实际操作的时候会遇到各种问题，我们接下来就仿写一下这个过程。
+
+
+<br>　　范例1：在宿主项目中，创建`ProxyActivity`类。
+``` java
+public class ProxyActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        String pluginPath = Environment.getExternalStorageDirectory()
+                .getAbsolutePath() + "/app-debug.apk";
+        ClassLoader classLoader = new DexClassLoader(
+                new File(pluginPath).getAbsolutePath(),
+                getDir("dex", Context.MODE_PRIVATE).getAbsolutePath(), null, getClassLoader());
+
+        try {
+            // 创建插件项目中的MainActivity的实例。
+            Class<?> clazz = classLoader.loadClass("com.cutler.androidtest2.MainActivity");
+            Constructor constructor = clazz.getConstructor();
+            Activity pluginActivity = (Activity) constructor.newInstance();
+            // 将ProxyActivity设置到pluginActivity中。
+            Method m1 = clazz.getMethod("setRemoteProxyActivity", Activity.class);
+            m1.invoke(pluginActivity, this);
+            // 调用pluginActivity的onCreate方法，并把插件的本地路径传递过去。
+            Method m2 = clazz.getDeclaredMethod("onCreate", Bundle.class);
+            m2.setAccessible(true);
+            Bundle bundle = new Bundle();
+            bundle.putString("pluginPath", pluginPath);
+            m2.invoke(pluginActivity, bundle);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+}
+```
+    语句解释：
+    -  宿主项目与插件项目不能包含相同的类，否则会抛异常：
+       -  Class ref in pre-verified class resolved to unexpected implementation
+       -  比如宿主项目引用了suport-v7库，那么插件项目就不能在编译的时候，也把suport-v7库放入apk中。
+
+
+<br>　　范例2：插件项目中的`MainActivity`。
+``` java
+public class MainActivity extends Activity {
+    // 默认情况下，让它指向自己，这么做是为了可以单独运行插件。
+    private Activity remoteProxyActivity = this;
+
+    @Override
+    protected void onCreate(Bundle bundle) {
+        Resources resources = null;
+        if (remoteProxyActivity == this) {
+            super.onCreate(bundle);
+            resources = getResources();
+        } else {
+            // 程序如果走此流程，则意味着当前Activity是被人当插件使用的。
+            // 所以不会调用super.onCreate()方法，因为当前Activity只是一个傀儡，它并不是真的Activity。
+
+            // 读取宿主的ProxyActivity传递过来的，当前插件的路径，并为当前插件新建一个Resources对象。
+            resources = getPluginResource(bundle.getString("pluginPath"));
+        }
+        // 为了统一处理，这里通过Resources加载一个XmlPullParser，在从XmlPullParser对象中创建布局。
+        // 之所以不使用LayoutInflater.from(remoteProxyActivity).inflate(int, ViewGroup)加载布局
+        // 是因为在该方法内部会使用remoteProxyActivity的Resources对象去加载资源，也就是宿主的Resources对象，
+        // 但是这个对象是无法加载插件中的资源的。
+        XmlPullParser parser = resources.getLayout(R.layout.activity_main);
+        View contentView = LayoutInflater.from(remoteProxyActivity).inflate(parser, null);
+
+        // 将加载好的布局设置到宿主的ProxyActivity中。
+        // 到这里大家应该是明白了，上面为什么说DL的实现机制是“操纵傀儡”了吧。
+        // 即在宿主里开启真正的Activity，而该Activity的布局、生命周期处理都是由插件来处理。
+        // 但插件仅仅是处理，它处理的结果需要放到宿主的那个Activity上展现。
+        remoteProxyActivity.setContentView(contentView);
+
+        // 为布局中的控件初始化数据。
+        // 需要注意的是，不要让布局文件中的控件引用任何资源，比如让TextView引用string资源等。
+        // 而应该在代码里，使用插件的Resources对象，来动态为它们设置值。
+        ImageView imageView = (ImageView) contentView.findViewById(R.id.image);
+        imageView.setImageDrawable(resources.getDrawable(R.mipmap.mv));
+        Button button = (Button) contentView.findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Toast.makeText(remoteProxyActivity,"click from plugin", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    public Resources getPluginResource(String pluginPath) {
+        Resources pluginRes = null;
+        try {
+            AssetManager assetManager = AssetManager.class.newInstance();
+            Method addAssetPath = assetManager.getClass().getMethod("addAssetPath", String.class);
+            addAssetPath.invoke(assetManager, pluginPath);
+            Resources superRes = remoteProxyActivity.getResources();
+            pluginRes = new Resources(assetManager, superRes.getDisplayMetrics(),
+                    superRes.getConfiguration());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return pluginRes;
+    }
+
+    public void setRemoteProxyActivity(Activity activity) {
+        this.remoteProxyActivity = activity;
+    }
+}
+```
+    语句解释：
+    -  注释写的很清楚了，也是不多说。
+
+<br>　　以上就模仿了`DL`框架的实现原理，接下来我们就跟着程序的执行流程，来阅读源码。
+
+<br>**源码阅读**
+
+　　很显然，插件化开发的第一步就是，让宿主项目在运行时把插件项目加载到内存中。
+　　而在`DL`中，宿主项目可以使用`DLPluginManager`类的`loadApk`方法来完成加载任务，我们来看一下源码：
+``` java
+public DLPluginPackage loadApk(String dexPath) {
+    return loadApk(dexPath, true);
+}
+
+public DLPluginPackage loadApk(final String dexPath, boolean hasSoLib) {
+    mFrom = DLConstants.FROM_EXTERNAL;
+    // 读取插件apk的信息，如果插件apk不存在，则返回null。
+    PackageInfo packageInfo = mContext.getPackageManager().getPackageArchiveInfo(dexPath,
+            PackageManager.GET_ACTIVITIES | PackageManager.GET_SERVICES);
+    if (packageInfo == null) {
+        return null;
+    }
+    // 初始化插件apk相关的参数（ClassLoader、Resources、AssetManager对象）。
+    // 如果已经初始化过了，则不会重复初始化。
+    DLPluginPackage pluginPackage = preparePluginEnv(packageInfo, dexPath);
+    // 如果需要，则拷贝so文件，若so已经拷贝过了（依靠最后修改时间来判断）则不会重复拷贝。
+    if (hasSoLib) {
+        copySoLib(dexPath);
+    }
+
+    return pluginPackage;
+}
+```
+    语句解释：
+    -  至于preparePluginEnv方法内部的代码是什么样的，请自行去查看源码。
+
+<br>　　当加载完插件之后，就可以调用`DLPluginManager`类的`startPluginActivity`方法来启动`Activity`了。
+``` java
+public int startPluginActivity(Context context, DLIntent dlIntent) {
+    return startPluginActivityForResult(context, dlIntent, -1);
+}
+
+public int startPluginActivityForResult(Context context, DLIntent dlIntent, int requestCode) {
+    // 此处省略若干代码，主要是做安全性校验，比如未调用loadApk初始化插件就调用此方法启动Activity。
+
+    // 获取ProxyActivity，若获取失败则返回。
+    Class<? extends Activity> activityClass = getProxyActivityClass(clazz);
+    if (activityClass == null) {
+        return START_RESULT_TYPE_ERROR;
+    }
+
+    // 将要启动的插件里的Activity放到参数里，然后去启动宿主项目中的ProxyActivity。
+    dlIntent.putExtra(DLConstants.EXTRA_CLASS, className);
+    dlIntent.putExtra(DLConstants.EXTRA_PACKAGE, packageName);
+    dlIntent.setClass(mContext, activityClass);
+    performStartActivityForResult(context, dlIntent, requestCode);
+    return START_RESULT_SUCCESS;
+}
+
+private Class<? extends Activity> getProxyActivityClass(Class<?> clazz) {
+    Class<? extends Activity> activityClass = null;
+    // 如果待启动的插件中的类是DLBasePluginActivity的子类，则宿主项目就启动DLProxyActivity类。
+    // 如果是DLBasePluginFragmentActivity的子类，则宿主就启动DLProxyFragmentActivity。
+    // 言外之意就是，插件中的所有Activity都必须继承这两个类，否则是无法被启动的。
+    if (DLBasePluginActivity.class.isAssignableFrom(clazz)) {
+        activityClass = DLProxyActivity.class;
+    } else if (DLBasePluginFragmentActivity.class.isAssignableFrom(clazz)) {
+        activityClass = DLProxyFragmentActivity.class;
+    }
+
+    return activityClass;
+}
+```
+    语句解释：
+    -  另外，Class类的isAssignableFrom方法用来比较两个Class对象，而instanceof关键字是判断一个对象是否属于某个类。
+
+<br>　　接着，我们去查看`DLProxyActivity`类的源码：
+``` java
+public class DLProxyActivity extends Activity implements DLAttachable {
+    // 插件Activity的引用。
+    // 刚才说了插件中的Activity必须继承DLBasePluginActivity和DLBasePluginFragmentActivity二者之一。
+    // 而它们二者又都实现了DLPlugin接口，所以这个mRemoteActivity其实就是一个Activity对象。
+    protected DLPlugin mRemoteActivity;
+    // 用来连接DLProxyActivity和mRemoteActivity类的一个业务类对象。
+    private DLProxyImpl impl = new DLProxyImpl(this);
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // 当DLProxyActivity被启动的时候，调用业务类对象的onCreate方法。
+        impl.onCreate(getIntent());
+    }
+
+    @Override
+    public void attach(DLPlugin remoteActivity, DLPluginManager pluginManager) {
+        mRemoteActivity = remoteActivity;
+    }
+
+    // 此处省略若干代码
+    // 主要都是一些生命周期方法，DLProxyActivity会调用mRemoteActivity去处理。
+}
+```
+    语句解释：
+    -  这里需要注意的是DLProxyActivity类实现了DLAttachable接口，并重写了接口中的attach方法，稍后会用到。
+
+<br>　　接着，我们去查看`DLProxyImpl`类的源码：
+``` java
+public void onCreate(Intent intent) {
+    intent.setExtrasClassLoader(DLConfigs.sPluginClassloader);
+
+    mPackageName = intent.getStringExtra(DLConstants.EXTRA_PACKAGE);
+    mClass = intent.getStringExtra(DLConstants.EXTRA_CLASS);
+    Log.d(TAG, "mClass=" + mClass + " mPackageName=" + mPackageName);
+
+    mPluginManager = DLPluginManager.getInstance(mProxyActivity);
+    mPluginPackage = mPluginManager.getPackage(mPackageName);
+    mAssetManager = mPluginPackage.assetManager;
+    mResources = mPluginPackage.resources;
+
+    initializeActivityInfo();
+    handleActivityInfo();
+    // 启动插件Activity。
+    launchTargetActivity();
+}
+protected void launchTargetActivity() {
+    try {
+        // 创建插件Activity的对象
+        Class<?> localClass = getClassLoader().loadClass(mClass);
+        Constructor<?> localConstructor = localClass.getConstructor(new Class[] {});
+        Object instance = localConstructor.newInstance(new Object[] {});
+        mPluginActivity = (DLPlugin) instance;
+
+        // 将插件Activity的引用设置到代理Activity中
+        ((DLAttachable) mProxyActivity).attach(mPluginActivity, mPluginManager);
+
+        // 将代理Activity的引用也设置到插件Activity中
+        mPluginActivity.attach(mProxyActivity, mPluginPackage);
+
+        // 手工调用插件Activity的onCreate方法
+        Bundle bundle = new Bundle();
+        bundle.putInt(DLConstants.FROM, DLConstants.FROM_EXTERNAL);
+        mPluginActivity.onCreate(bundle);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
+
+<br>　　至此程序的流程就走到了插件中了，由于插件Activity需要继承`DLBasePluginActivity`类，所接着来看它的源码：
+``` java
+public void attach(Activity proxyActivity, DLPluginPackage pluginPackage) {
+    Log.d(TAG, "attach: proxyActivity= " + proxyActivity);
+    mProxyActivity = (Activity) proxyActivity;
+    that = mProxyActivity;
+    mPluginPackage = pluginPackage;
+}
+
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    if (savedInstanceState != null) {
+        mFrom = savedInstanceState.getInt(DLConstants.FROM, DLConstants.FROM_INTERNAL);
+    }
+    if (mFrom == DLConstants.FROM_INTERNAL) {
+        super.onCreate(savedInstanceState);
+        mProxyActivity = this;
+        that = mProxyActivity;
+    }
+
+    mPluginManager = DLPluginManager.getInstance(that);
+    Log.d(TAG, "onCreate: from= "
+            + (mFrom == DLConstants.FROM_INTERNAL ? "DLConstants.FROM_INTERNAL" : "FROM_EXTERNAL"));
+}
+```
+    语句解释：
+    -  其中mFrom用来区别插件Activity当前是被宿主加载的还是自己启动的，这么做是为了在开发插件的时候可以调试。
+
+
+<br>　　通过以上源码阅读可以知道，DL框架的实现方式就是我们前面说的那样，由于篇幅有限，就不继续深入介绍了。
+<br>　　以上是简单的介绍了`DL`框架的基本原理，而`DL`里面所做的事情要多得多：
+
+	-  支持Service
+	-  支持在插件中用R访问plugin资源
+	-  支持so加载、生命周期处理、插件管理等等
+
+
+<br>**使用步骤**
+
+　　在使用`DL`进行插件化开发之前，需要先将`DL`的源码打包成一个`jar`，然后再将它分别引入到`宿主`和`插件`项目中。
+
+	-  也就是说，宿主项目和插件项目都需要引用jar。
+	-  但是，它们也都分别只会使用到这个jar包中的某几个类，而并不是全部的类。
+
+
+
+　　接下来简单的说一下`DL`的使用步骤。
+
+<br>　　第一步，前往[ dynamic-load-apk ](https://github.com/singwhatiwanna/dynamic-load-apk)将`DL`库的源代码下载下来，并导入到`Android Studio`中。
+
+	-  下载完毕后，先选中“lib”模块，然后打开Android Studio的Build菜单并执行Build Project。
+	-  完成后，AS会在lib/build/intermediates/bundles/debug（这个目录以后版本可能会变）里生成一个classes.jar。
+	-  classes.jar就是我们稍后会用到的DL库，把它拷贝出来并改名为dl.jar即可。
+
+<br>　　第二步，创建一个名为`DLHost`的宿主项目，并将`dl.jar`放入其`libs`目录下，并将下面代码放到清单文件中。
+``` xml
+<activity
+    android:name="com.ryg.dynamicload.DLProxyActivity"
+    android:label="@string/app_name" >
+    <intent-filter>
+        <action android:name="com.ryg.dynamicload.proxy.activity.VIEW" />
+
+        <category android:name="android.intent.category.DEFAULT" />
+    </intent-filter>
+</activity>
+<activity
+    android:name="com.ryg.dynamicload.DLProxyFragmentActivity"
+    android:label="@string/app_name" >
+    <intent-filter>
+        <action android:name="com.ryg.dynamicload.proxy.fragmentactivity.VIEW" />
+
+        <category android:name="android.intent.category.DEFAULT" />
+    </intent-filter>
+</activity>
+<service android:name="com.ryg.dynamicload.DLProxyService" />
+```
+    语句解释：
+    -  就像之前说的，DL是通过代理的方式实现的插件化，所以我们需要在宿主项目中配置代理Activity、Service。
+
+
+<br>　　第三步，在`DLHost`中加载插件。
+``` java
+public void onClick(View view) {
+    // 加载插件
+    DLPluginPackage pluginPackage = DLPluginManager.getInstance(this)
+            .loadApk(Environment.getExternalStorageDirectory() + File.separator + "plugin.apk");
+    // 如果加载成功，则启动其内的Activity
+    if(pluginPackage != null) {
+        DLIntent intent = new DLIntent("com.cutler.dlplugin","com.cutler.dlplugin.MainActivity");
+        DLPluginManager.getInstance(this).startPluginActivity(this, intent);
+    }
+}
+```
+    语句解释：
+    -  本范例用来加载SD卡根目录下的“plugin.apk”。
+
+<br>　　第四步，创建一个名为`DLPlugin`的插件项目，并将`dl.jar`放入其`libs`目录下，同时修改它的依赖。
+``` gradle
+dependencies {
+    provided fileTree(dir: 'libs', include: ['*.jar'])
+}
+```
+    语句解释：
+    -  需要注意的是，本范例使用的是“provided”关键字，它表示当前项目在打包的时候，不会把libs目录下的jar给放入APK中。
+    -  这么做的目的是防止插件和宿主项目引用重复的jar包，因为dl.jar已经在宿主项目中存在了。
+    -  使用provided关键字后，如果直接安装插件项目的apk的话，运行时就会抛异常，因为系统找不到apk所需要的类。
+    -  但是如果是在宿主项目动态加载插件项目的话，就不会有问题，因为宿主项目已经把dl.jar加载到进程中了。
+
+<br>　　第五步，让`DLPlugin`的`MainActivity`继承`DLBasePluginActivity`。
+``` java
+public class MainActivity extends DLBasePluginActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        mHandler.sendMessageDelayed(Message.obtain(), 60000);
-        finish();
-    }
-
-    private static class MyHandler extends Handler {
-        private final SoftReference<HandlerActivity2> mActivity;
-
-        public MyHandler(HandlerActivity2 activity) {
-            mActivity = new SoftReference<HandlerActivity2>(activity);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            // 如果当前Activity被GC回收了，则就不处理这个消息了，直接返回。
-            if (mActivity.get() == null) {
-                return;
-            }
-        }
-    }
-    public void onDestroy() {
-        // 当Activity被finish后Handler对象还是在Message中排队，还是会处理消息，但这些处理已经没有必要了。
-        // 我们可以在Activity的onStop或者onDestroy的时候，取消掉该Handler对象的Message和Runnable，代码如下：
-        mHandler.removeMessages(MESSAGE_1);
-        mHandler.removeMessages(MESSAGE_2);
-        mHandler.removeMessages(MESSAGE_3);
-        mHandler.removeCallbacks(mRunnable);
     }
 }
 ```
     语句解释：
-    -  本范例中创建了一个名为MyHandler的静态内部类，与实例内部类不同的是，静态内部类不会默认持有其外部类的引用。
-    -  在构造MyHandler类的对象时，虽然仍需要传递一个HandlerActivity2的引用过去，但MyHandler类不会持有它的强引用，因而不会阻止HandlerActivity2回收。
-
-<br>　　范例2：Thread导致的泄露。
-``` java
-public class ThreadActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        new MyThread().start();
-    }
-
-    private class MyThread extends Thread {
-        public void run() {
-
-        }
-    }
-}
-```
-    语句解释：
-    -  在MyThread执行结束之前，Activity也会一直被持有，解决的方法同样也是静态内部累+软引用。
-    -  此时你可能会有疑问，在范例1中，Activity被泄漏是因为Handler对象被持有，但是这里的Thread对象是一个匿名对象，没有任何人持有它，为什么也会导致Activity泄漏呢？
-    -  因为Thread对象是GCRoot对象，虽然没有被引用，但是一旦它被启动了，那直到它执行完毕，都不会被回收。除非程序被切到后台且因为系统内存不足，该进程被杀掉进而终止线程。
-
-<br>　　范例3：HanderThread对象是如何防止泄露的。
-``` java
-for (;;) {
-  // msg对象是栈上的局部变量，每次循环都将会重写，一旦被重写，上一次循环的msg引用指向的对象将不再被其引用。
-  // 但是在Dalvik虚拟机的实现中，如果queue.next()阻塞了，那么本次循环的msg未被赋值，则上次的msg的引用将不会被清除。
-  Message msg = queue.next(); // might block
-  if (msg == null) {
-    return;
-  }
-  msg.target.dispatchMessage(msg);
-  // 每次循环的最后都会清空msg，所以泄漏的仅仅是一个空的msg对象，影响不大。
-  msg.recycleUnchecked();
-}
-```
+    -  继承之后，就可以让宿主项目加载MainActivity了。
+    -  需要注意的是，由于插件中的MainActivity并不是真正的启动，所以不要在它里面使用this关键字，而应该使用DL为我们提供的that关键字。
+       -  如果你不知道that关键字是什么，那请自行阅读DL的源码，笔者只能帮你到这了。
 
 
 <br>**本节参考阅读：**
-- [Android App 内存泄露之Handler](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8BHandler.md) 
-- [Android App 内存泄露之Thread](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8BThread.md) 
-- [Memory leak专题](http://wiki.jikexueyuan.com/project/notes/Android-Java/MemoryLeak.html)
+- [DL动态加载框架技术文档](http://blog.csdn.net/singwhatiwanna/article/details/40283117)
+- [DynamicLoadApk 源码解析](https://github.com/aosp-exchange-group/android-open-project-analysis/tree/master/tool-lib/plugin/dynamic-load-apk)
 
-### MAT ###
-　　网上关于MAT的教程有很多，也很容易搜到，所以笔者就不重复造轮子了，下面主要介绍一些经验性的总结。
+## DroidPlugin ##
+　　在正式介绍`DroidPlugin`之前，我们得学一下代理相关的知识。
+<br>　　本节介绍的知识主要参考自[ 《Android插件化原理解析》 ](http://weishu.me/2016/01/28/understand-plugin-framework-overview/)，推荐大家去阅读该系列文章。
 
-　　`Memory Analyzer（MAT）`是一个功能丰富的`JAVA`堆转储文件分析工具，可以帮助你发现内存漏洞和减少内存消耗。
+	-  不过，如果你以为只看他写的博客就能日天的话，呵呵，那你就错了。
+	-  他写的知识我会写，他没写的我也会写，所以看我写的，才能日天！ 简单的说，哥就是抄，也能抄出自己的风格！
 
+<br>　　代理是什么？为什么需要代理呢？
 
-	通常内存泄露分析被认为是一件很有难度的工作，一般由团队中的资深人士进行。
-    不过，今天我们要介绍的MAT被认为是一个“傻瓜式”的堆转储文件分析工具，你只需要轻轻点击一下鼠标就可以生成一个专业的分析报告。
-    和其他内存泄露分析工具相比，MAT的使用非常容易，基本可以实现一键到位，即使是新手也能够很快上手使用。
+	-  其实程序里的代理与日常生活中的“代理”，“中介”差不多；比如你想海淘买东西，不可能亲自飞到国外去购物，这时候我们使用第三方海淘服务比如考拉海购等；
+	-  代理其实是有两面性的：
+	   -  好处是：方便、省时间。
+	   -  坏处是：由于我们不是和最终商家沟通，而是和代理者沟通，因此代理可以提高商品的价格、或者将购买的正品留下，换成次品再发给我们等。
 
-<br>　　先来看看MAT工具的预览界面：
+　　在程序中，我们通常用`“代理”`来对系统API进行拦截，或者修改原方法的参数和返回值，从而实现某种目的。
 
-<center>
-![](/img/android/android_8_11.png)
-</center>
+　　用文字说有点难以理解，下面通过代码来详细介绍。
 
-　　红框括起来了是一些快捷键和功能按钮，如果不小心把某个窗口给关掉后，可以通过这些按钮重新打开对应的界面。
-  
-<br>　　接下来我们有两个任务要做：
+<br>**静态代理**
 
-	-  第一，写一个内存泄漏的代码。
-	-  第二，导出一个堆转储文件，然后分析这个文件。所谓的堆转储文件，就是一个保存了内存中的各种信息的文件，我们通过分析它就可以定位出内存泄漏。
-
-#### 问题代码 ####
-　　前面说过`Thread`一旦被启动，那么直到它运行结束都不会被回收（当然若进程被操作系统杀掉了那么线程会中止），你可能会不信，那么咱们现在就创建一个范例，完成后面知识的讲解。
-
-<br>　　范例1：内存泄漏代码。
+　　静态代理，是最原始的代理方式；假设我们有一个购物的接口，如下：
 ``` java
-public class MainActivity extends Activity {
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+public interface Shopping {
+    // 传递钱进去，返回买到的商品。
+    Object[] doShopping(long money);
+}
+```
+　　它有一个原始的实现，我们可以理解为亲自，即亲自去商店购物：
+``` java
+public class ShoppingImpl implements Shopping {
+    @Override
+    public Object[] doShopping(long money) {
+        System.out.println("逛淘宝 ,逛商场,买买买!!");
+        System.out.println(String.format("花了%s块钱", money));
+        return new Object[] { "鞋子", "衣服", "零食" };
+    }
+}
+```
+　　好了，现在我们自己没时间但是需要买东西，于是我们就找了个代理帮我们买：
+``` java
+public class ProxyShopping implements Shopping {
 
-        new Thread() {
-            public void run() {
-                for (int i = 1; i <= 600; i++) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+    Shopping base;
+
+    ProxyShopping(Shopping base) {
+        this.base = base;
+    }
+
+    @Override
+    public Object[] doShopping(long money) {
+
+        // 帮忙我们买需要的东西
+        Object[] things = base.doShopping(money);
+
+        // 偷梁换柱
+        if (things != null && things.length > 0) {
+            things[0] = "被掉包的东西!!";
+        }
+
+        return things;
+    }
+}
+```
+    语句解释：
+    -  从上面可以看出，我们用代码所实现的代理，其实就是在真正的任务的开头或末尾加上一些操作。
+       -  换句话说，只要我们保证任务最终能被执行就可以，在任务执行之前和之后的事情没人会关注。
+       -  进而可以理解成，我们是不是可以将系统的startActivity方法给替换成我们的a方法呢？只要我们能保证最终在a方法中调用系统的startActivity即可，至于我们在a方法中还做了哪些事，谁会关心呢？
+    -  各位请先控制一下情绪，具体咱们稍后详述。
+
+<br>**动态代理**
+
+　　从上面的介绍可以知道，静态代理要为每一个需要代理的类写一个代理类。
+
+	-  如果需要代理的类有几百个，那就很蛋疼了；而且在使用的时候会发现，每个代理方法里的内容相似度很高。
+	-  为此Java提供了动态代理方式，可以简单理解为，在运行时虚拟机会帮我们动态生成一系列的代理类，这样我们就不需要手写每一个静态的代理类了。
+
+　　依然以购物为例，用动态代理实现如下：
+``` java
+public void onClick(View view) {
+    final Shopping women = new ShoppingImpl();
+    // 创建代理对象
+    Shopping womenProxy = (Shopping) Proxy.newProxyInstance(
+            Shopping.class.getClassLoader(),
+            women.getClass().getInterfaces(), new InvocationHandler() {
+
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    if ("doShopping".equals(method.getName())) {
+                        // 先黑点钱(修改输入参数)
+                        long money = (Long) args[0];
+                        long readCost = (long) (money * 0.5);
+
+                        // 帮忙买东西
+                        return method.invoke(women, readCost);
                     }
-                    System.out.println(Thread.currentThread().getName() + " = " + i+", " + MainActivity.this);
+                    return null;
                 }
-            };
-        }.start();
-    }
-}
-```
-	语句解释：
-	-  每当新建立一个Activity的时候就开启一个线程，并让这个线程运行600秒。
-
-<br>　　程序运行后，我们可以通过不断的横竖屏切换来触发`Activity`重建，来模拟内存泄漏。
-
-
-#### 堆转储文件 ####
-　　在进行分析内存之前，还需要获得一个堆转储文件(`dump heap`)，堆转储文件以`.hprof`为后缀，我们先来了解一下它。
-
-<br>**Heap Dump**
-　　一个`Heap Dump`是指在某个时刻对一个Java进程所使用的堆内存情况的一次`快照`，也就是在某个时刻把`Java`进程的内存以某种格式持久化到了磁盘上。`Heap Dump`的格式有很多种，而且不同的格式包含的信息也可能不一样。
-　　但总的来说，`Heap Dump`一般都包含了一个堆中的`Java Objects`，`Class`等基本信息。同时，当你在执行一个转储操作时，往往会触发一次`GC`，所以你转储得到的文件里包含的信息通常是有效的内容（包含比较少，或没有垃圾对象了）。
-
-　　我们往往可以在`Heap Dump`看到以下基本信息（一项或者多项，与`Dump`文件的格式有关）：
-
-	-  所有的对象信息：对象的类信息、字段信息、原生值(int, long等)及引用值。
-	-  所有的类信息：类加载器、类名、超类及静态字段。
-	-  垃圾回收的根对象：根对象是指那些可以直接被虚拟机触及的对象。
-	-  线程栈及局部变量：包含了转储时刻的线程调用栈信息和栈帧中的局部变量信息。
-　　一个`Heap Dump`是不包含内存分配信息的，也就是说你无法从中得知是谁创建了这些对象，以及这些对象被创建的地方是哪里。但是通过分析对象之间的引用关系，往往也能推断出相关的信息了。
-
-<br>**获取堆转储文件**
-　　首先，您需要了解到，不同厂家的`JVM `所生成的堆转储文件在数据存储格式以及数据存储内容上有很多区别，`MAT`不是一个万能工具，它并不能处理所有类型的堆存储文件。但是比较主流的厂家和格式，例如`Oracle`，`HP`，`SAP`所采用的`HPROF`二进制堆存储文件，以及`IBM`的`PHD`堆存储文件等都能被很好的解析。
-　　获得堆转储文件很容易，打开`DDMS`，启动想要监控的进程，点击左边`Devices`窗口上方工具栏的`“Dump HPROF File”`按钮。
-
-　　如果你直接使用`MAT`打开刚生成的堆转储文件的话，那么`MAT`通常会报如下错误：
-``` c
-Error opening heap dump 'a.hprof'. Check the error log for further details.
-Error opening heap dump 'a.hprof'. Check the error log for further details.
-Unknown HPROF Version (JAVA PROFILE 1.0.3) (java.io.IOException)
-Unknown HPROF Version (JAVA PROFILE 1.0.3)
-```
-　　原因是: Android的虚拟机导出的`hprof`文件格式与标准的`java hprof`文件格式标准不一样，根本原因两者的虚拟机不一致导致的。
-　　解决方法：使用`sdk\platform-tools\hprof-conv.exe`工具转换就可以了：
-``` c
-hprof-conv 源文件 目标文件
-```
-
-#### 发现问题 ####
-　　若我们的项目运行一段时间后就变得很慢，那么不出意外的话是有内存泄漏了，但是由于不知道具体在哪里泄漏的，所以可能无从下手，应该怎么办呢？
-　　在`DDMS`视图中的`Heap`选项卡中部有一个`Type`叫做`data object`，即数据对象。
-　　在`data object`一行中有一列是`“Total Size”`，其值就是当前进程中所有`Java`数据对象的内存总量，一般情况下，这个值的大小决定了是否会有内存泄漏。
-
-<br>　　以我们上面的问题代码为例，程序刚启动时内存的信息为：
-
-<center>
-![](/img/android/android_o02_12.png)
-</center>
-
-　　然后我们不断的横竖屏切换`5~10`次后，内存的信息为：
-
-<center>
-![](/img/android/android_o02_13.png)
-</center>
-
-　　很明显可以看到，随着我们横竖屏切换的次数增加，`“Count”`和`“Total Size”`两列下的数值也不断的增加，并且不会减少。这基本就可以断定这个界面存在内存泄漏了。
-
-　　因此我们可以这样判断是否存在内存泄漏：
-
-	-  首先，不断打开和关闭应用中的某个界面，同时注意观察data object的Total Size值。
-	-  然后，正常情况下Total Size值都会稳定在一个有限的范围内。
-	   -  也就是说若程序中的代码写的很好，即便不断的操作会不断的生成很多对象，而在虚拟机不断的进行GC的过程中，这些对象都被回收了，内存占用量会会落到一个稳定的水平。
-	   -  反之如果代码中存在没有释放对象引用的情况，则data object的Total Size值在每次GC后不会有明显的回落，随着操作次数的增多Total Size的值会越来越大，直到到达一个上限后导致进程被kill掉。
-	-  提示：我们可以点击DDMS视图里的“Cause GC”按钮来手动触发GC。
-
-#### Leak Suspects ####
-　　现在，我们已经确定程序存在内存泄漏的问题了，并且也知道是哪个界面存在泄漏了，为了进一步确定是哪块代码出的问题，我们需要将该进程的内存信息导出来，生成一个`.hprof`文件，并加以分析。
-
-　　再次提示：
-
-	-  如果你是使用MAT单机版，那么你需要把IDE导出的堆转储文件转换一下格式。
-
-<br>　　当使用`MAT`打开`.hprof`文件时，会默认打开一个名为`“Leak suspects”（泄露疑点）`的视图，并且生成报告给用户。
-　　`“泄露疑点”`会列出当前内存中的个头大的对象，在这里列出的对象并不一定是真正的内存泄露，但它仍然是检查内存泄露的一个绝佳起点。
-
-　　如下图所示：
-
-<center>
-![](/img/android/android_o02_14.png)
-</center>
-
-　　图释：
-
-	-  android.content.res.Resources：类名称。
-	-  <system class loader>：加载该类的加载器。
-	-  5,309,840 (47.06%)：该类所有对象所占用的内存。
-
-<br>　　我们可以点击上图中的`“Details »”`按钮来查看详细信息。
-　　报告主要包括`到达聚点的最短路径`，这个功能非常有用，它可以让开发人员快速发现到底是哪里让这些对象无法被`GC`回收：
-
-<center>
-![](/img/android/android_8_16.png)
-</center>
-
-<br>　　在继续向下讲解之前，我们需要先插一个知识点。
-
-<br>**浅堆和保留堆**
-　　`MAT`可以根据堆转储文件，以可视化的方式告诉我们哪个类，哪个对象分配了多少内存。不过要想看懂它们，则需要掌握2个概念：`Shallow heap`(浅堆)和`Retained heap`（保留堆）。
-
-<br>　　`Shallow Heap`是指该对象占用了多少内存（字节），不包含对其他对象的引用，也就是对象头加成员变量的头的总和。如：
-``` java
-public class Person {	// 头部8字节
-    private int age;	// 整型4字节
-    private int age1;
-    private int age2;
-    private int age3;
-    private int age4;
-    private int age5;
-    private long birthday;	// 长整型8字节
-    private long birthday1;
-    private long birthday2;
+            });
+    System.out.println(Arrays.toString(women.doShopping(100)));
 }
 ```
     语句解释：
-    -  一个对象的头部往往需要32或64比特(bit)（基于不同的平台实现，该值也会不同），在32位系统上，对象头占用8字节，int占用4字节。这些是JVM规范里规定，但不同JVM实现可以按照自己方式来存储数据。另外，基于不同的Heap Dump格式，这些值也可能会有变化，但往往会更加真实地反应出内存的占用量。
-    -  因此这个Person对象的浅堆大小大约为56字节。
+    -  如果不明白Proxy类的用法，请自行搜索，网上都是答案。
+    -  另外，动态代理只能作用在接口上，不能动态代理类。
 
-<br>　　`Retained Set`指的是一个对象集合。假定一些对象会由于对象`X`被垃圾回收（`GC`）后，也同时需要被`GC`掉，那么这些对象就属于`X`的`Retained Set`。注意，`Retained Set`是包含`X`本身的。
-　　`Retained Heap`可以简单地理解为对象的`Retained Set`中的对象所占用的内存的总和。换句话说，`Retained Heap`是该对象自己的`shallow size`，加上从该对象能直接或间接访问到对象的`shallow size`之和。
+<br>**Hook**
+
+　　我们把通过`“代理”`技术来替换掉对象，并修改参数，替换返回值等行为，称之为`Hook`。
+
+	-  具体来说，Hook是基于Java的反射技术来实现的。
+
+<br>　　现在我们有一个任务：
+
+	-  Hook掉startActivity方法，使得在任何地方调用这个方法时，都能额外弹出一条Toast。
+
+　　Hook的思路为：
+
+	-  首先，Hook操作的第一步就是寻找Hook点，即找到一个可以被我们替换的对象。
+	   -  查看startActivity的源码，发现最终会调用Activity的mInstrumentation属性的execStartActivity方法。
+	   -  这意味着，若能把Activity的mInstrumentation属性替换为我们的对象，那么启动Activity时调用的就是我们的对象了。
+	-  第二，通过代码搜索得知Activity的mInstrumentation属性是在它的attach方法中初始化的，即是由外界传递过来的。
+	-  第三，我们知道Activity的attch方法是由ActivityThread的performLaunchActivity方法调用的（你现在知道了）。
+	   -  这意味着，我们得继续看ActivityThread中的Instrumentation对象是哪来的。
+	-  第四，通过阅读android-23版本的ActivityThread源码发现，Instrumentation对象是它的一个属性。
+	   -  这意味着，我们如果把ActivityThread的Instrumentation属性给Hook掉，那么就能完成任务了。
+	   -  同时也发现ActivityThread类的currentActivityThread方法可以获取它的对象。
+　　有了思路后，接下来就开始Hook吧。
+
+<br>　　范例1：在Application里执行Hook操作。
 ``` java
-public class Person2 { // 头部8字节
-    private int age;
-    private long birthday;
-    private String img; // 头部8字节
-    private Person p;   // 头部8字节
-    public Person2(Person p) {
-        this.p = p;
-    }
-}
-```
-　　我们计算`Person2`对象的浅堆是`36`字节，就算在你的机器上计算的值与笔者计算的有偏差也不必在乎它们，因为误差不是我们关注重点。事实上，我们只是借助`Person2`类来理解浅堆和保留堆的概念，至于`Person2`类会占多少字节`Who cares?`，只要不是很离谱就可以了。
+public class MyApplication extends Application {
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        try {
+            // 由于ActivityThread类被hide了，所以只能通过反射来获取它的Class对象。
+            Class clazz = Class.forName("android.app.ActivityThread");
 
-　　如果程序中有这样的代码：
-``` java
-public class MainActivity extends Activity {
-    Person p ;
-    Person2 p2 ;
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        p = new Person();
-        p2 = new Person2(null);
-    }
-}
-```
-　　则计算出`Person`和`Person2`的浅堆与保留堆的大小如图所示：
+            // 下面这段代码用来获取ActivityThread对象。
+            // 需要注意的是，不同版本的Android源码的ActivityThread的内部实现是不同的。
+            // 所以为了确保反射成功，我们应该调用currentActivityThread方法来获取ActivityThread的对象。
+            // 而不是直接访问ActivityThread的sCurrentActivityThread属性。
+            // 简单的说，在android2.x的源码里，ActivityThread是没有sCurrentActivityThread属性的。
+            // 它是用过ThreadLocal来保存变量。
+            Method currentActivityThreadMethod = clazz.getMethod("currentActivityThread");
+            currentActivityThreadMethod.setAccessible(true);
+            Object currentActivityThread = currentActivityThreadMethod.invoke(null);
 
-<center>
-![](/img/android/android_8_13.png)
-</center>
+            // 获取mInstrumentation属性
+            Field mInstrumentationField = clazz.getDeclaredField("mInstrumentation");
+            mInstrumentationField.setAccessible(true);
+            Instrumentation instrumentation = (Instrumentation) 
+                                 mInstrumentationField.get(currentActivityThread);
 
-<br>　　若是有如下代码：
-``` java
-public class MainActivity extends Activity {
-    Person2 p2 ;
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        p2 = new Person2(new Person());
-    }
-}
-```
-　　则计算出`Person`和`Person2`的浅堆与保留堆的大小如图所示：
-
-<center>
-![](/img/android/android_8_14.png)
-</center>
-
-　　即`Person2`的保留堆为：`Person2`的浅堆+`Person`的浅堆。
-
-　　这里要说一下的是，`Retained Heap`并不总是那么有效：
-
-	-  例如，我们new了一块内存，赋值给A的一个成员变量，同时让B也指向这块内存。
-	-  这样一来，由于A和B都引用到这块内存，所以当A释放时，该内存不会被释放。
-	-  所以这块内存不会被计算到A或者B的Retained Heap中。
-	-  因此我们应当只把它当作一个参考值，而不是精确的追求它的每一个字节对应的内容是什么。
-
-<br>**话说回来**
-　　介绍完浅堆和保留堆的概念后，咱们回到`“Leak suspects”`上来。
-
-　　不过需要说明的是，通常我们从`“Leak suspects”`中是没法直接得到有用的信息的，它只是一个参考界面，在很多时候是没多大屌用的，不过不要慌。
-
-　　分析`.hprof`文件的起点有多个：
-
-	-  第一，我们确实会从“Leak suspects”开始查看，如果它没直观的提供出有用的信息，那也没关系，再换其他方法。
-	-  第二，使用Dominator Tree视图来继续追踪。
-	-  第三，使用Histogram视图来继续追踪。
-
-#### Dominator Tree ####
-　　MAT提供了一个称为`支配树`（Dominator Tree）的对象图。支配树体现了对象实例间的支配关系。在对象引用图中，所有指向对象`B`的路径都经过对象`A`，则认为对象`A`支配对象`B`。
-　　简单的说，之所以提出支配树这个概念，就是为了计算对象的`Retained Heap`。
-
-<center>
-![](/img/android/android_8_17.png)
-</center>
-
-　　比如我们可以从上图左侧的引用图（对象`A`引用`B`和`C`，`B`和`C`又都引用到`D`）构造出右侧的`Dominator Tree`，计算出来的`Retained Memory`为：
-
-	-  A的Retained Heap包括A本身和B，C，D，E。
-	-  B和C因为共同引用D，所以B的Retained Memory只是它本身。
-	-  C是自己和E。
-	-  D、E当然也只是自己。
-
-<br>　　支配树有以下重要属性：
-
-	-  X的子树中的所有元素表示X的保留对象集合。
-	-  如果X是Y的持有者，那么X的持有者也是Y的持有者。
-	-  在支配树中表示持有关系的边并不是和代码中对象之间的关系直接对应，比如代码中X持有Y，Y持有Z，在支配树中，X的直接子节点中会有Z。
-　　这三个属性对于理解支配树而言非常重要，一个熟练的开发人员可以通过这个工具快速的找出持有对象中哪些是不需要的以及每个对象的保留堆。
-
-<br>**界面介绍**
-　　支配树可以算是`MAT`中第二有用的工具，它依据我们设置的关键字来列出符合条件的、堆中较大的（不是所有的）对象以及它们之间的引用关系
-　　我们可以直接在`“Overview”`选项页中点击`“Dominator Tree”`进入该工具，或者从菜单栏中也可以进入。
-
-<br>　　支配树的界面如下图所示：
-<center>
-![](/img/android/android_8_18.png)
-</center>
-
-　　表头依次代表：`类名`、`浅堆大小`、`保留堆大小`、`百分比`，可以通过点击某个表头来按特定的字段进行排序。
-　　第一行用于输入查找条件，支持正则表达式，如需要查找出`MainActivity`相关的类，则可以在`ClassName`列的第一行输入`“MainActivity”`关键字。
-　　
-<br>**检索出相关对象**
-　　如果你泄漏的对象所占据的内存比较大的话，那么通常在打开`Dominator Tree`时就可以看到它被排在前列。
-　　但是，由于前面的范例中只是在`onCreate`方法里创建了线程，并没有执行显示图片等耗内存的操作，因此即便是运行时多执行几次横竖屏切换，泄漏的内存也不会很大，还不至于在`Dominator Tree`视图打开的时候就被列出来，所以我们得通过输入关键字`“MainActivity”`查找后才能看到。
-
-　　如下图所示：
-
-<center>
-![](/img/android/android_o02_15.png)
-</center>
-
-　　上图列出了当前内存中存在的、所有符合筛选条件（`*.MainActivity.*`）的对象，可以看出明显存在多个`Thread`对象，这显然是不正常的。
-
-　　当然，在实际操作的时候情况肯定会比上面的要复杂的多。比如我们有这样一段代码：
-``` android
-public class MainActivity extends Activity {
-    static Leaky leak = null;
-    class Leaky {
-        void doSomething() {
-            System.out.println("Wheee!!!");
+            // 使用我们自定义的CutlerInstrumentation，替换mInstrumentation属性
+            mInstrumentationField.set(currentActivityThread, new CutlerInstrumentation(instrumentation));
+            System.out.println(instrumentation);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        if (leak == null) {
-            leak = new Leaky();
-        }
-    }
-    // 此处省略了其它代码（加载图片等）。
 }
 ```
     语句解释：
-    -  本范例是通过Leaky泄露了MainActivity对象，并且我们在MainActivity中显示了一些图片。
-    -  解析来我们就演示一下如何通过Bitmap对象来定位出内存泄露的根源。
+    -  之所以把Hook的代码写在Application里是想在程序启动的第一时间执行Hook操作。
 
-　　于是我们导出的`Dominator Tree`如下图所示：
+<br>　　范例2：CutlerInstrumentation类。
+``` java
+// 首先让我们的类继承Instrumentation，不然没法用它进行替换。
+public class CutlerInstrumentation extends Instrumentation {
 
-<center>
-![](/img/android/android_8_21.png)
-</center>
+    // 还得持有被Hook的对象，因为启动Activity的操作，还是得由它来完成。
+    Instrumentation obj;
 
-　　`Resources`类型对象由于一般是系统用于加载资源的，所以`Retained heap`较大是个比较正常的情况。但我们注意到下面的`Bitmap`类型对象的`Retained heap`也很大，很有可能是由于内存泄漏造成的。
-　　所以我们右键点击这行，选择`Path To GC Roots -> exclude weak references`：
+    public CutlerInstrumentation(Instrumentation obj) {
+        this.obj = obj;
+    }
 
-	-  Path To GC Roots 选项用来告诉MAT将当前对象到某个GC根对象之间的所有引用链给列出来。
-	-  exclude weak references选项用来告诉MAT，不用列出weak类型的引用。
-<br>　　然后可以看到下图的情形：
+    // 定义一个与父类具有相同签名的方法。
+    public ActivityResult execStartActivity(
+            Context who, IBinder contextThread, IBinder token, Activity target,
+            Intent intent, int requestCode, Bundle options) {
 
-<center>
-![](/img/android/android_8_22.png)
-</center>
+        Toast.makeText(who, "Cutler 虎爷! 到此一游！", Toast.LENGTH_SHORT).show();
+        ActivityResult result = null;
+        try {
+            // 调用obj同名的方法，执行启动Activity的任务。
+            // 由于Instrumentation类的execStartActivity方法也被hide，所以只能通过反射进行调用。
+            Method execStartActivityMethod = Instrumentation.class.getDeclaredMethod("execStartActivity",
+                    Context.class, IBinder.class, IBinder.class, Activity.class,
+                    Intent.class, int.class, Bundle.class);
+            execStartActivityMethod.setAccessible(true);
+            result = (ActivityResult) execStartActivityMethod.invoke(obj, who,
+                    contextThread, token, target, intent, requestCode, options);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+}
+```
+    语句解释：
+    -  然后运行程序，在启动Activity时就可以看到Toast消息了。
 
-　　`Bitmap`最终被`leak`变量引用到，这应该是一种不正常的现象，内存泄漏很可能就在这里了。`MAT`不会告诉哪里是内存泄漏，需要你自行分析，由于这是`Demo`，是我们特意造成的内存泄漏，因此比较容易就能看出来，真实的应用场景可能需要你仔细的进行分析。
+<br>　　需要注意的是：
 
-　　如果我们`Path To GC Roots -> with all references`，我们可以看到下图的情形：
+	-  不同的Android版本的源码是不同的，如果你把上面的代码运行在2.3.2（及以下）的手机上，就会发现并没有Toast弹出来。
 
-<center>
-![](/img/android/android_8_23.png)
-</center>
+　　这是因为在[ 2.3.2版本中的Activity的源码 ](http://grepcode.com/file/repository.grepcode.com/java/ext/com.google.android/android/2.3.2_r1/android/app/Activity.java#Activity.startActivityForResult%28android.content.Intent%2Cint%29)调用的是：
 
-　　可以看到还有另外一个对象在引用着这个`Bitmap`对象，了解`weak references`的同学应该知道`GC`是如何处理`weak references`，因此在内存泄漏分析的时候我们可以把`weak references`排除掉。
+	-  execStartActivity(Context, IBinder, IBinder, Activity,Intent, int)
+　　而`范例2`重写的方法比它多一个`Bundle`参数，所以只要在`CutlerInstrumentation`类中也重写该方法即可。
 
-#### Histogram ####
-　　支配树用来把当前内存中的、符合筛选条件的对象，按照保留堆从大到小的顺序列出来。如果你希望根据某种类型的对象个数来分析内存泄漏，则可以使用`Histogram`视图。
-　　与`Dominator Tree`一样，较小的对象可以通过在第一行的`“ClassName”`列中输入正则进行查找。
+<br>　　还有一点需要注意的是：
 
-　　我们在`Overview`视图中选择`Actions -> Histogram`，可以看到类似下图的情形：
+	-  Hook的作用于仅限于当前进程。
+	-  也就是说，如果你在A进程中hook了ActivityThread，那么B进程中调用的startActivity方法时，并不会弹出Toast。
+	   -  即便B进程和A进程是属于同一个项目的两个不同的进程也不行。
+	-  这很好理解，即ActivityThread等Framework层的API是运行在我们进程中的，它们与远程的系统进程中的服务进行IPC通信。无论我们对自己进程中的API做何种修改，都不会影响系统进程中服务的执行流程。
 
-<center>
-![](/img/android/android_8_24.png)
-</center>
+<br>**DroidPlugin简介**
 
-　　在上图中，`Objects`列表示内存中该类型的对象个数。
-　　我们看到`byte[]`占用`Shallow heap`最多，那是因为`Honeycomb`之后`Bitmap Pixel Data`的内存分配在`Dalvik heap`中。
+　　`DroidPlugin` 全称 [Qihoo360/DroidPlugin](https://github.com/Qihoo360/DroidPlugin/blob/master/readme_cn.md) ，是由 [Andy Zhang](https://github.com/cmzy) 发起的一个插件化开源库。
 
-　　接下来，我们右键选中`byte[]`数组，选择`List Objects -> with incoming references`，然后可以看到`byte[]`具体的对象列表：
+<br>　　我们首先要明白的一点是：
 
-<center>
-![](/img/android/android_8_25.png)
-</center>
+	-  正常情况下，任何人都无法调起一个未安装的apk中的Activity。
+	-  市面上的各类插件化框架都是通过“代理”的方式成功加载插件中的Activity的，不同只是它们的实现代理方式。
 
-<br>　　提示：
+　　一个成熟的插件框架通常具备如下特点：
 
-	-  With Outgoing References表示该对象的出节点（被该对象引用的对象）。
-	-  With Incoming References表示该对象的入节点（引用到该对象的对象）。
+	-  使用DexLoader动态的加载dex文件进入进程中。
+	-  在宿主的AndroidManifest.xml中预注册一些将要使用的四大组件，做为代理组件。
+	-  能处理好插件中的so文件、Resources对象、保证R文件的正确使用。 
 
-　　从上图中我们发现第一个`byte[]`的`Retained heap`较大，内存泄漏的可能性较大。
-　　右键选中这行，`Path To GC Roots -> exclude weak references`，同样可以看到上文所提到的情况，我们的`Bitmap`对象被`leak`所引用到（如下图所示），这里存在着内存泄漏。
+<br>　　笔者引用知乎上两位答主的答案：
 
-<center>
-![](/img/android/android_8_27.png)
-</center>
+　　**@周柯文　-　**[原文连接 ](https://www.zhihu.com/question/35138070/answer/62789302) 
 
-<br>　　我们也可以在`Histogram`视图中第一行中输入`MainActivity`，来过滤出我们自己应用中的类型。
+	360这个就是用的动态代理，而且用的非常彻底，看的出来开发者很熟悉AOP和Android。
+	DroidPlugin把所有常用到的XXXManager都代理了一遍，然后由自己模拟的各种XXXManagerHookHandle接管，并且开发者为版本兼容性做了很大的努力。
+	总之是个很值得学习的框架。
 
-<br>**本章参考阅读：**
-- [Memory Analyzer (MAT)](http://www.eclipse.org/mat/)
-- [使用 Eclipse Memory Analyzer 进行堆转储文件分析](http://www.ibm.com/developerworks/cn/opensource/os-cn-ecl-ma/index.html)
-- [Android内存泄漏研究](http://jiajixin.cn/2015/01/06/memory_leak/)
-- [Android内存泄露开篇](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8B%E5%BC%80%E7%AF%87.md)
-- [Java程序内存分析：使用mat工具分析内存占用](http://my.oschina.net/biezhi/blog/286223#OSC_h4_7)
+　　**@AndyZhang　-　**[原文连接 ](https://www.zhihu.com/question/35138070/answer/61622444) 
 
-# 第四节 性能优化 #
-　　性能优化总的来说，可以分为内存优化（流畅度等）、功耗优化（电量等），总的来说就是一些不严谨的代码，在低端机型造成卡顿，对手机上有限电量的浪费，昂贵流量的浪费，造成用户流失。
-　　本节将会介绍流畅度优化相关的知识。
-　　在继续向下阅读之前，笔者建议你先去看一下[《优化篇　第一章 基础优化》](http://cutler.github.io/android-BY-A01)的第一节。
-
-<br>　　我们常说的流畅度低就是指APP卡顿，也就是丢帧。通常影响流畅度有如下几个因素（但不限于）：
-
-	1、APP的主线程被阻塞，导致主线程没有足够的时间去绘制界面，或者直接导致ANR。
-	2、APP的界面控件多且复杂，导致主线程虽然不忙但是依然无法在16ms内绘制完一帧。
-	3、GC频繁，因为GC触发时虚拟机会先暂停所有线程后再执行GC操作，所以当内存泄露、内存抖动等问题发生时，也会导致丢帧发生。
-	4、操作系统内存不足，当APP向系统申请更多内存时（比如加载大图片），若系统内存不足则系统会执行去杀后台进程等操作回收内存，这就会导致APP阻塞，进而丢帧。
-	5、CPU饥渴，不论是系统APP还是普通APP，如果其内部开启大量线程执行耗时任务，则就会导致丢帧。道理很简单，同一时间干的事情越多，越容易让主线程得不到CPU去绘制界面。其中SystemServer进程里的各类服务忙碌的话，还会导致AMS等无法为普通APP服务，进而导致普通APP阻塞、丢帧。
-
-<br>　　本节就来介绍如何分析、定位出上面说的各种情况，非系统战斗人员请撤离，或者先去阅读[《第四章 Linux》](http://cutler.github.io/base-04/)。
-
-## 日志收集 ##
-　　暂缓，我先去写[《第四章 Linux》](http://cutler.github.io/base-04/)，然后再回来。 by 2016-07-15。
+	1、基于动态代理的Hook，我们通过此，hook了系统的大部分与system—server进程通讯的函数，以此作为“欺上瞒下”的目的，欺骗系统“以为”只有一个apk在运行，瞒过插件让其“认为”自己已经安装。
+	2、基于Android的多个apk可以运行在同一个进程的原理。
+	3、预注册 Activity等组件实现免注册。
+	4、灵活的进程管理，回收机制。
 
 
+<br>　　接下来，笔者将从源码角度来介绍`DP`的工作机制，但是不会介绍的太深（因为需要的前驱知识太多）。
+
+<br>**DP的启动流程**
+
+　　官方文档要求我们在`Application`创建的时候，执行如下代码：
+``` java
+@Override
+public void onCreate() {
+    super.onCreate();
+    //这里必须在super.onCreate方法之后，顺序不能变
+    PluginHelper.getInstance().applicationOnCreate(getBaseContext());
+}
+
+@Override
+protected void attachBaseContext(Context base) {
+    PluginHelper.getInstance().applicationAttachBaseContext(base);
+    super.attachBaseContext(base);
+}
+```
+　　那我们就从`PluginHelper`类的`applicationOnCreate`方法开始吧。
+
+<br>　　通过阅读源码发现，`applicationOnCreate`方法会转调用`initPlugin`方法：
+``` java
+private void initPlugin(Context baseContext) {
+    // 此处省略若干代码
+
+    // 安装各个Hook类
+    PluginProcessManager.installHook(baseContext);
+
+    // 此处省略若干代码
+
+    // 将已经安装到DP中的插件加载到内存中
+    PluginManager.getInstance().addServiceConnection(PluginHelper.this);
+    PluginManager.getInstance().init(baseContext);
+
+    // 此处省略若干代码
+}
+```
+    语句解释：
+    -  在DP中，对于插件有两个操作：安装、卸载。
+       -  当我们把SD卡中的插件安装到DP中后，DP会将其解压到宿主项目中的/data/data目录下，这意味着如果随后用户把SD卡上的文件给删除了，DP依然能访问到插件。
+       -  卸载就不用说了。
+
+<br>　　接着调到了`HookFactory`类的`installHook`方法：
+``` java
+public final void installHook(Context context, ClassLoader classLoader) throws Throwable {
+    installHook(new IClipboardBinderHook(context), classLoader);
+
+    // 此处省略若干代码
+
+    installHook(new IActivityManagerHook(context), classLoader);
+    installHook(new InstrumentationHook(context), classLoader);
+
+    // 此处省略若干代码
+}
+
+public void installHook(Hook hook, ClassLoader cl) {
+    try {
+        // 调用Hook类的onInstall方法执行安装操作。
+        hook.onInstall(cl);
+        synchronized (mHookList) {
+            mHookList.add(hook);
+        }
+    } catch (Throwable throwable) {
+        Log.e(TAG, "installHook %s error", throwable, hook);
+    }
+}
+```
+    语句解释：
+    -  可以看出来，在DP被初始化的时候，就会安装很多Hook到系统中，但是这些Hook只会在当前进程中有效。
+    -  正如你所见到的那样，在DP中Hook类是所有XxxHook的父类。
+
+<br>　　我们以`InstrumentationHook`类为例，看一下它的源码：
+``` java
+public class InstrumentationHook extends Hook {
+
+    // 此处省略若干代码
+
+    @Override
+    protected void onInstall(ClassLoader classLoader) throws Throwable {
+        // 获取ActivityThread.mInstrumentation属性
+        Object target = ActivityThreadCompat.currentActivityThread();
+        Class ActivityThreadClass = ActivityThreadCompat.activityThreadClass();
+        Field mInstrumentationField = FieldUtils.getField(ActivityThreadClass, "mInstrumentation");
+        Instrumentation mInstrumentation = (Instrumentation) 
+            FieldUtils.readField(mInstrumentationField, target);
+
+        // 创建我们自己的PluginInstrumentation，并用它替换掉之前的Instrumentation。
+        if (!PluginInstrumentation.class.isInstance(mInstrumentation)) {
+            PluginInstrumentation pit = new PluginInstrumentation(mHostContext, mInstrumentation);
+            pit.setEnable(isEnable());
+            mPluginInstrumentations.add(pit);
+            FieldUtils.writeField(mInstrumentationField, target, pit);
+        }
+        // 此处省略若干代码
+    }
+}
+```
+    语句解释：
+    -  从上面的代码可以看出，DP框架Hook的步骤和我们之前说的步骤是一样的。
+    -  也就是说，当程序执行startActivity时，系统会调用PluginInstrumentation去处理。
+    -  但是如果你打开PluginInstrumentation类看时会发现，它根本就没有重写execStartActivity方法，这是为什么呢？
+       -  这是因为之前笔者为了方便讲解，才对Instrumentation进行Hook的。
+       -  其实更适合Hook对象是ActivityManagerNative类，只是怕大家迷糊才没对它Hook。
+
+<br>　　我们如果点开`Instrumentation`类的`execStartActivity`方法可以看到：
+``` java
+public ActivityResult execStartActivity(
+        Context who, IBinder contextThread, IBinder token, Activity target,
+        Intent intent, int requestCode, Bundle options) {
+
+    // 此处省略若干代码
+
+    int result = ActivityManagerNative.getDefault()
+        .startActivity(whoThread, who.getBasePackageName(), intent,
+                intent.resolveTypeIfNeeded(who.getContentResolver()),
+                token, target != null ? target.mEmbeddedID : null,
+                requestCode, 0, null, options);
+
+    // 检测是否成功启动了Activity
+    checkStartActivityResult(result, intent);
+
+    // 此处省略若干代码
+}
+
+public static void checkStartActivityResult(int res, Object intent) {
+    // 此处省略若干代码
+
+    switch (res) {
+        case ActivityManager.START_INTENT_NOT_RESOLVED:
+        case ActivityManager.START_CLASS_NOT_FOUND:
+                throw new ActivityNotFoundException(
+                        "Unable to find explicit activity class "
+                        + ((Intent)intent).getComponent().toShortString()
+                        + "; have you declared this activity in your AndroidManifest.xml?");
+
+        // 此处省略若干代码
+    }
+}
+
+```
+    语句解释：
+    -  发现Instrumentation类其实又调用了ActivityManagerNative类的startActivity方法。
+    -  同时我们也在这里看到了那个常见的异常：
+       -  have you declared this activity in your AndroidManifest.xml?
 
 
+<br>　　事实上我们前面看到的`IActivityManagerHook`类就是`ActivityManagerNative`类的`Hook`类，它的源码：
+``` java
+public class IActivityManagerHook extends ProxyHook {
+
+    // 此处省略若干代码
+
+    @Override
+    public BaseHookHandle createHookHandle() {
+        return new IActivityManagerHookHandle(mHostContext);
+    }
+
+    @Override
+    public void onInstall(ClassLoader classLoader) throws Throwable {
+        // 先获取ActivityManagerNative类的静态属性gDefault。
+        Class cls = ActivityManagerNativeCompat.Class();
+        Object obj = FieldUtils.readStaticField(cls, "gDefault");
+        if (obj == null) {
+            ActivityManagerNativeCompat.getDefault();
+            obj = FieldUtils.readStaticField(cls, "gDefault");
+        }
+
+        if (IActivityManagerCompat.isIActivityManager(obj)) {
+            setOldObj(obj);
+            Class<?> objClass = mOldObj.getClass();
+
+            // 此处省略若干代码
+
+            // 使用动态代理创建一个代理对象
+            Object proxiedActivityManager = MyProxy.newProxyInstance(objClass.getClassLoader(), ifs, this);
+
+            // 将我们的代理对象设置到ActivityManagerNative类的gDefault属性上。
+            FieldUtils.writeStaticField(cls, "gDefault", proxiedActivityManager);
+        }
+
+        // 此处省略若干代码
+    }
+}
+
+```
+    语句解释：
+    -  简而言之，此后我们不论在什么地方调用ActivityManagerNative的方法，最终都会被IActivityManagerHook接管。
+    -  也就说会调用IActivityManagerHook的invoke方法，该方法定义在其父类ProxyHook中。
+
+<br>　　由于篇幅有限，后续的操作就不贴代码了，下面简单说一下后续步骤：
+
+	-  在ProxyHook类的invoke方法中会调用mHookHandles.getHookedMethodHandler去处理。
+	   -  其中mHookHandles是在Hook类的createHookHandle方法中被初始化的。
+	   -  换到IActivityManagerHook类的话，它的mHookHandles属性就是IActivityManagerHookHandle类型的。
+	-  接着打开IActivityManagerHookHandle类，看他的init方法就能明白了，它拦截了哪些方法。
+
+<br>　　继续深入的话，大家很容易迷失在代码里，所以如果真想看的话自己去看就行，总之：
+
+	-  当我们调用startActivity方法时，IActivityManagerHookHandle.startActivity类的beforeInvoke方法会被调用。
+	-  而在该方法中会修改Intent的内容，即让系统去启动代理Activity，同时该方法也处理了各个系统版本的兼容性问题。
+
+<br>**DP的使用**
+
+　　使用方法官方文档已经介绍的很清楚了，有几个需要注意的问题是：
+
+	-  截止至2016.3.25日，DP的项目源码还是Eclipse格式的，不过笔者推荐大家在AndroidStudio中使用DP。
+	-  将DP导入到AndroidStudio中后，如果发现AIDL文件无法生成，可以clean、build一下项目。
+	-  正式使用时，只需要将Libraries-DroidPlugin导入即可。
+
+<br>**本节参考阅读：**
+- [ArchSummit北京2015-《分拆：DroidPl](http://pan.baidu.com/s/1bnWR2b1)
 
 
+# 第三节 结尾 #
 
+　　除了上一节中所介绍的插件库之外，市面上还有不少优秀的插件库，由于精力关系笔者就不再一一介绍了。
 
+<br>　　笔者选择插件库时，会主要考虑如下几点：
 
+	-  成熟稳定。即经历了大量的用户测试、处理了各种兼容问题。 这一点DL和DP都符合。
+	-  易移植。　即API入侵低，可以方面的从该插件库移植到另一个插件库。这一点DP要更胜一筹。
+	-  代码性能。当然是越快越好、越少占内存越好。这一点DL要更胜一筹，毕竟DP里有很多反射和静态属性。
+	-  功能完备（可选）。即插件库提供了除“安装、卸载”以外的其他功能。
 
-
-
-
-
-
-
-
-
-
-
-
+<br>　　综合考虑的话，笔者暂时更倾向于使用`DP`，但不排除以后随着笔者对它们二者的了解加深，情况会有所改变。
 
 <br><br>
