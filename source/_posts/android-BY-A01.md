@@ -432,10 +432,13 @@ int[] mHashes;
 </center>
 
 
-　　为了避免`HashMap`的`autoboxing`行为，系统提供了：
+　　为了避免`HashMap`的`autoboxing`行为，系统提供了下面几个容器：
 
-	-  SparseBoolMap，SparseIntMap，SparseLongMap，LongSparseMap等容器。
-	-  关于这些容器的基本原理请参考前面的ArrayMap的介绍，另外这些容器的使用场景也和ArrayMap一致，需要满足数量级在千以内，数据组织形式需要包含Map结构。
+	-  SparseArray：key是int，value是Object。
+	-  SparseBooleanArray：key是int，value是boolean。
+	-  SparseIntArray：key是int，value是int。
+	-  SparseLongArray：key是int，value是long。
+	-  这些容器的使用场景也和ArrayMap一致，需要满足数量级在千以内，数据组织形式需要包含Map结构。
 
 ### Enum ###
 　　假设我们有这样一份代码，编译之后的`dex`大小是`2556 bytes`，在此基础之上，添加一些如下代码，这些代码使用普通`static`常量相关作为判断值：
