@@ -1320,4 +1320,81 @@ imageView.setColorFilter(new ColorMatrixColorFilter(matrix));
 - [维基百科 - 位图](http://zh.wikipedia.org/wiki/%E4%BD%8D%E5%9B%BE)
 - [百度百科 - 位图图像](http://baike.baidu.com/view/80262.htm)
 
+# 第五节 SVG #
+　　在Android 5.0(API level 21)中Google提供了对SVG的图片支持，本节就来介绍一下它。
+
+<br>**SVG和矢量图**
+
+	-  SVG全称是Scalable Vector Graphics（可缩放矢量图形），从名字可以看出，它也是矢量图的一种。
+	-  矢量图形是计算机图形学中用点、线或者多边形等基于数学方程的几何图元表示图像。
+	-  位图则又称点阵图，它使用像素点来表示图像，一张图由n个点组成，显然一张图的分辨率越高，画质越细腻。
+
+<br>**矢量图优缺点**
+
+	- 图像中保存的是线条和图块的信息，所以矢量图形文件与分辨率和图像大小无关，只与图像的复杂程度有关，通常图像文件所占的存储空间较小。比如对于画一条线来说，只需要记录线的起点和终点即可。
+	- 图像可以无级缩放，对图形进行缩放，旋转或变形操作时，图形不会产生锯齿效果，边缘会非常顺滑（因为它不像位图那样用像素点表示）。
+	- 矢量图难以表现色彩层次丰富的逼真图像效果。因为颜色丰富的图可能每个点的颜色都不一样，这种场景下位图比矢量图更适合。
+
+　　这些特征使矢量图特别适用于图例和三维建模以及一些简单的图标。
+
+<br>**SVG的特点**
+
+	-  使用XML文件来保存图像。
+	-  SVG是在运行时才动态解析、渲染的，而且它占用内存少，因此它是优化APP所占内存的首选。
+	-  如果SVG图片太复杂的话，则会导致GPU绘制的时间加长，从而影响UI流畅度。
+	-  在Android中，SVG会根据屏幕的dpi自动缩放到合适的大小，所以只需要用一个SVG文件就可以了。
+
+<br>　　知道了SVG的相关概念后，我们来创建一个SVG文件。
+
+<br>　　范例1：test.svg。
+``` xml
+<?xml version="1.0" standalone="no"?>
+<svg width="48" height="48" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="48" height="48" fill="#FF0000"/>
+</svg>
+```
+    语句解释：
+    -  正如前面说的，SVG图片的内容使用XML文件来记录，且必须用svg标签做为根节点。
+    -  本范例用来画一个红色的矩形，至于除了rect外还有哪些标签，不要慌，马上就介绍。
+    -  目前各大浏览器都支持svg文件，所以直接拖当浏览器中就可以查看效果。
+
+<br>　　需要知道的是，Android是不能直接显示上面创建的原生的SVG文件的，需要在[ svg2android ](http://inloop.github.io/svg2android/)转换一下。
+
+<br>　　范例2：转换之后的test.xml。
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <path
+        android:fillColor="#FF0000"
+        android:pathData="M 0 0 H 48 V 48 H 0 V 0 Z" />
+</vector>
+```
+    语句解释：
+    -  将这个XML文件放到任意一个res/drawable-xxxxx目录下面就可以了，引用的方法和普通的drawable一样。
+    -  这是因为，运行时系统不会关注这个SVG图片是从哪个drawable-xxxxx里加载的，只会读取SVG的尺寸（即本范例中的android:width和android:height），由于这两个值使用的单位是dp，所以系统会依据当前设备的dpi来设置SVG图片的最终显示尺寸，因此以mdpi的标准来设计SVG就可以。
+    -  另外，SVG图片加载到内存时，使用VectorDrawable类来表示。
+　　提示：大家可以去 [W3C](http://www.w3school.com.cn/svg/) 和 [mozilla](https://developer.mozilla.org/zh-CN/docs/Web/SVG/Tutorial) 中学习SVG的基础语法，笔者就不冗述了。
+
+<br>　　话说回来，如果你以为SVG图片的内容都很简单的话，那就错了，比如我们可以用SVG实现下图的效果：
+<center>
+![原图（左）、变黄（中）、灰度化（右）](/img/android/android_d02_01.png)
+</center>
+
+    源码地址：
+    https://github.com/SpikeKing/TestSVG/blob/master/app/src/main/res/drawable/v_homer_simpson_online.xml
+
+　　如果你想使用 Material 的 SVG 图标，则可以去[ Material icons ](https://design.google.com/icons/)下载。
+
+## SVG动画 ##
+
+<br>**本节参考阅读：**
+- [维基百科 - 矢量图](https://zh.wikipedia.org/zh-cn/%E7%9F%A2%E9%87%8F%E5%9B%BE%E5%BD%A2)
+- [百度百科 - 矢量图](http://baike.baidu.com/view/138039.htm)
+- [AndroidStudio中使用SVG](https://developer.android.com/studio/write/vector-asset-studio.html)
+
 <br><br>
