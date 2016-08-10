@@ -17,7 +17,7 @@ java.lang.OutofMemoryError: bitmap size exceeds VM budget
 	-  不同的Android版本，虚拟机所分配的内存大小是不同的，在各个版本的Android兼容性定义文档(CDD)的3.7章节中，虚拟机兼容性给出了不同尺寸和密度的手机屏幕下应用程序所需的最小内存。如：
 	   -  Android2.2中，对于中等或者低密度的屏幕尺寸，虚拟机必须为每个应用程序分配至少16MB的内存。
 	   -  Android4.2中，内存分配的情况如下图所示。
-	-  Android不光存在最小的内存的限制（即系统最小会分配的内存大小），也存在最大内存限制，因此应用程序应当进行优化处理后再运行。
+	-  Android不光存在最小的内存的限制（即系统最小会分配的内存大小），也存在最大内存限制，因此应用程序应当进行优化处理后再上线。
 
 <center>
 ![最小内存示意图](/img/android/android_e02_1.png)
@@ -83,12 +83,11 @@ public void loadSize(){
     options.inJustDecodeBounds = true;
     BitmapFactory.decodeResource(getResources(), R.id.myimage, options);
 
-    // 当inJustDecodeBounds为true且图片加载完毕后，图片的高度会保存在options.outHeight中。
+    // 当inJustDecodeBounds为true且图片的尺寸加载完毕后，图片的高度会保存在options.outHeight中。
     int imageHeight = options.outHeight;
 
-    // 当inJustDecodeBounds为true且图片加载完毕后，图片的宽度会保存在options.outWidth中。
+    // 图片的宽度会保存在options.outWidth中。
     int imageWidth = options.outWidth;
-    String imageType = options.outMimeType;
 }
 ```
 
@@ -105,7 +104,7 @@ public void loadSize(){
 　　若使用`inSampleSize`值为`4`的设置来解码，产生的`Bitmap`大小约为`512*384px`，相较于完整图片占用`12M`的内存，这种方式只需`0.75M`内存。
 
 <br>　　范例3：这里有一个方法用来计算基于目标高宽的`sample size`的值：
-``` android
+``` java
 public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
     // Raw height and width of image
     final int height = options.outHeight;
@@ -125,7 +124,7 @@ public static int calculateInSampleSize(BitmapFactory.Options options, int reqWi
     -  使用2的次幂来设置inSampleSize值可以使解码器执行地更加迅速、更加高效。
 
 <br>　　范例4：完整范例。
-``` android
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -153,7 +152,7 @@ public class MainActivity extends Activity {
 ## 在非UI线程处理图片 ##
 　　在上一节中我们讲解了`BitmapFactory.decode*`系列方法，这些方法主要用来加载本地的图片，但如果源数据来自网络，是不应该在主线程加载的。
 　　这是因为读取这样的数据所需的加载时间是不确定的，如果时间过长就会阻塞了主线程，系统会弹出`ANR`对话框。
-　　本节将使用`AsyncTask`类来加载并显示来自网络的图片，如果你不会使用`AsyncTask`类，请先阅读[《进阶篇　第四章 Android的消息机制》](http://cutler.github.io/android-F04/)。
+　　本节将使用`AsyncTask`类来加载并显示来自网络的图片，如果你不会使用`AsyncTask`类，请先阅读[《进阶篇　第三章 消息机制与线程池》](http://cutler.github.io/android-F03/)。
 
 <br>　　这里有一个使用`AsyncTask`和`decodeSampledBitmapFromResource()`加载大图片到`ImageView`中的例子：
 ``` java
@@ -646,7 +645,7 @@ YCbCrPositioning                      2
 　　此类主要描述多媒体文件比如`JPG`格式图片的`EXIF`信息，比如拍照的设备厂商，当时的日期时间，曝光时间等。该类需要调用`API Level`至少为`5`即`Android 2.0`。
 
 <br>　　范例1：`ExifInterface`类 。
-``` android
+``` java
 // 获取和设置一个String类型的EXIF信息。 本类还提供了支持设置int、double类型。
 public String getAttribute(String tag);
 public void setAttribute(String tag, String value);
@@ -661,7 +660,7 @@ public byte[] getThumbnail();
 ```
 
 <br>　　范例2：常用的`Exif`信息。
-``` android
+``` java
 ExifInterface.TAG_DATETIME     // 拍照日期。
 ExifInterface.TAG_IMAGE_LENGTH  // 图片长度。
 ExifInterface.TAG_IMAGE_WIDTH   // 图片宽度。
@@ -679,7 +678,7 @@ ExifInterface.TAG_IMAGE_WIDTH   // 图片宽度。
 　　`位图`是我们开发中最常用的资源，毕竟一个漂亮的界面对用户是最有吸引力的，在`Android`中使用`Bitmap`类来表示位图。在第一节中我们已经介绍了如何加载一个`Bitmap`到内存中，本节将继续深入讲解`Bitmap`的其它操作。
 
 <br>　　范例1：将`Bitmap`保存到本地。
-``` android
+``` java
 private boolean writeBitmap(Bitmap bitmap,String name){
     // 获取一个Bitmap对象。
     try{
@@ -707,7 +706,7 @@ private boolean writeBitmap(Bitmap bitmap,String name){
     -  在使用完毕Bitmap对象后，应该调用recycle方法将其所占据的系统资源回收掉。
 
 <br>　　范例2：获取`View`的快照。
-``` android
+``` java
 public void camera(){
     this.linearLayout = (LinearLayout) findViewById(R.id.layout);
     // 此方法继承自View类，用来设置当前View的缓存图像功能是否启用。
@@ -842,7 +841,7 @@ matrix       将图片的左上角和ImageView的左上角对齐，且不缩放�
 　　若想通过`Matrix`来操作`ImageView`中的图片，则就需要将`ImageView`的`scaleType`属性设置为`matrix`。
 
 　　在`ImageView`类中提供了两个方法，可以获取和设置当前图片的`Matrix`对象。
-``` android
+``` java
 // 获取当前ImageView的矩阵，返回值可能为null。
 public Matrix getImageMatrix();
 
@@ -871,7 +870,7 @@ public void setImageMatrix(Matrix matrix);
 <br>　　提示：一个刚创建的`Matrix`对象其实就是一个`单位矩阵`。
 
 <br>　　范例1：Matrix类。
-```
+``` java
 // 构造一个Matrix对象，其实就是一个3*3的单位矩阵。
 public Matrix();
 
@@ -888,7 +887,7 @@ public boolean postTranslate(float dx, float dy);
 　　因为矩阵的`乘法不满足交换律`，因此先乘、后乘必须要严格区分。但是矩阵的`加法则是满足交换律`的。
 
 <br>　　范例2：平移操作。
-```
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -908,7 +907,7 @@ public class MainActivity extends Activity {
     -  在控制台中输出m就会看到，m[0][2]和m[1][2]的值都变成100了。
 
 <br>　　范例3：缩放操作。
-```
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -928,7 +927,7 @@ public class MainActivity extends Activity {
     -  在控制台中输出m就会看到，m[0][0]的值变成了2，m[1][1]的值变成了0.5。
 
 <br>　　范例4：旋转操作。
-```
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -958,7 +957,7 @@ public class MainActivity extends Activity {
 　　简单地说，错切变幻指的是类似于四边形不稳定性那种性质，`方形变平行四边形`，任意一边都可以被拉长的过程。
 
 <br>　　范例1：倾斜操作。
-```
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -983,7 +982,7 @@ public class MainActivity extends Activity {
 <br>　　除`平移`外，`旋转`、`缩放`和`倾斜`都可以`围绕一个中心点`来进行，如果不指定，在默认情况下是围绕`(0, 0)`来进行相应的变换的。 也就是说，`setRotate(45)`与`setRotate(45, 0, 0)`是等价的。
 
 <br>　　范例1：指定旋转的中心点。
-```
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -1014,7 +1013,7 @@ public class MainActivity extends Activity {
 </center>
 
 <br>　　由于矩阵乘法不满足交换律，`Matrix`类为我们提供了类似的方法，以平移操作为例，`Matrix`类的源代码为：
-``` android
+``` java
     /**
      * Preconcats the matrix with the specified translation.
      * M' = M * T(dx, dy)
@@ -1036,7 +1035,7 @@ public class MainActivity extends Activity {
 <br>**单次运算** 
 
 <br>　　范例1：单次运算——旋转45度。
-```
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -1056,7 +1055,7 @@ public class MainActivity extends Activity {
     -  一旦单位矩阵执行了某种操作，那么它就不再是单位矩阵了，此时就需要区分pre和post方法的调用。
 
 <br>　　范例2：`setXxx`方法。
-```
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -1081,7 +1080,7 @@ public class MainActivity extends Activity {
 　　接下来我们通过一个范例来讲解如何进行混合连乘。
 
 <br>　　范例1：请证明下面两段代码是等价的。
-``` android
+``` java
 // 需求是：让图片沿着点(a,b)顺时针旋转30度。
 int a = 100, b = 100;
 
@@ -1147,7 +1146,7 @@ M1 = R(30) * T(a, b) * T(-a, -b)
 	-  m.setTranslate(a, b)  ：清空matrix中所有变换，调用这个函数后，matrix就会只包含平移(a, b)这一个变换。
 
 <br>　　范例1：移动图片。
-``` android
+``` java
 private final class MyOnTouchListener implements OnTouchListener{
     private Matrix matrix = new Matrix();
     private float preX;
@@ -1235,7 +1234,7 @@ private final class MyOnTouchListener implements OnTouchListener{
 </center>
 
 <br>　　范例1：让图片变黄。
-``` android
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -1260,7 +1259,7 @@ public class MainActivity extends Activity {
     -  通过计算后可以得知该颜色矩阵的作用是使图像的红色分量和绿色分量均增加100，这样的效果就使图片泛黄（因为红色与绿色混合后得到黄色）。
 
 <br>　　范例2：让图片灰度化。
-``` android
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -1321,48 +1320,77 @@ imageView.setColorFilter(new ColorMatrixColorFilter(matrix));
 - [百度百科 - 位图图像](http://baike.baidu.com/view/80262.htm)
 
 # 第五节 SVG #
-　　在Android 5.0(API level 21)中Google提供了对SVG的图片支持，本节就来介绍一下它。
+　　在Android 5.0（API level 21）中Google提供了对SVG的图片支持，本节就来介绍一下SVG图片。
+## 基础常识 ##
+　　在Android开发中常见的的图片格式是`jpg`和`png`，它们被称为位图（Bitmap），又称为栅格图（Raster graphics）或点阵图。虽然这两者格式的图片应用十分广泛，但是实际上还有一些压缩级别是它们无法达到的。
 
-<br>**SVG和矢量图**
+　　在正式学习SVG之前，需要先理解一些位图、矢量图相关的基础概念。
 
-	-  SVG全称是Scalable Vector Graphics（可缩放矢量图形），从名字可以看出，它也是矢量图的一种。
-	-  矢量图形是计算机图形学中用点、线或者多边形等基于数学方程的几何图元表示图像。
-	-  位图则又称点阵图，它使用像素点来表示图像，一张图由n个点组成，显然一张图的分辨率越高，画质越细腻。
+<br>**位图**
+
+	-  通常来讲，位图是一个m行n列的点组成的一个矩阵，矩阵每个元素都是一个点，每个点都用来表示一个颜色，这个点被称为像素点。
+	-  由于每个像素点非常小，所以当我们从远处看时，像素点间边缘从视觉上是融合在一起了，因此最后呈现出平滑的图片。
+	-  一张位图中的每个像素点所能表示的颜色越多，整张位图的色彩就越丰富。
+	   -  转换到计算机，像素点所能显示的颜色的数量被称为位深，根据位深度,可将位图分为1、4、8、16、24及32位图像等。
+	   -  比如位深为1的位图，它里面的每个像素点只能表示2^1个颜色，即只能表示黑白两色。
+	   -  我们知道任何颜色可以由R、G、B三基色混合而成，因此如果一个位图的位深是16的话，那么通常会让R占5位、G占6位、B占5位，因为效果好。
+	-  Android中位图每个像素点的RGB占多少位是有规定的，常见的取值有：ALPHA_8、ARGB_4444（A表示透明度）、ARGB_8888、RGB_565。
+	-  另外，位图的尺寸（分辨率）越大，则其所包含的像素点就越多，图就越细腻、清晰，相应的图片的体积就越大。
+
+　　正因为位图是由像素点组成的，所以当对它进行缩放的时候，就会出现失真、模糊的问题。而为了解决这个问题，Android为我们提供了mdip，hdpi， xhdpi， xxhdpi， xxhdpi 和xxxhdpi等目录，我们在不同的目录放入不同尺寸的文件，就能尽可能的降低图片失真的严重度。
+
+	-  比如你在hdpi和xxhdpi中各放了一个图片，当你的APK运行在一个xxhdpi的设备时，系统就会从xxhdpi目录下加载图片。
+	-  如果你只在hdpi中放了图片，而xxhdpi没放，则系统就会从hdpi中读取图片，然后把它放大到xxhdpi所应该拥有的尺寸，最后再显示。
+
+　　这么做不是很妥，如果类似的图片很多的话，那么生成的APK就会很大，为了解决这个问题，我们可以使用矢量图。
+
+<br>**矢量图**
+
+　　如果，我们不是用位图像素来记录图片，而是用描述性语言呢？我们同样可以用绘图操作命令来绘制上图。
+
+	-  比如程序绘制一个半径为r的圆所需的主要信息是：半径r、圆心坐标、轮廓样式与颜色、填充样式与颜色。
+	-  那么我们就只保存这几个信息在图片文件中就好了，当需要显示图片时，就用程序把文件加载到内存，然后解析文件的各个参数，最后执行绘制操作。
+
+　　这种只保存图形信息的图片，我们称为矢量图；维基百科的解释：
+
+	-  矢量图形是计算机图形学中用点、直线或者多边形等基于数学方程的几何图元表示图像。
 
 <br>**矢量图优缺点**
 
-	- 图像中保存的是线条和图块的信息，所以矢量图形文件与分辨率和图像大小无关，只与图像的复杂程度有关，通常图像文件所占的存储空间较小。比如对于画一条线来说，只需要记录线的起点和终点即可。
-	- 图像可以无级缩放，对图形进行缩放，旋转或变形操作时，图形不会产生锯齿效果，边缘会非常顺滑（因为它不像位图那样用像素点表示）。
-	- 矢量图难以表现色彩层次丰富的逼真图像效果。因为颜色丰富的图可能每个点的颜色都不一样，这种场景下位图比矢量图更适合。
+	-  矢量图文件中保存的是图片里的线条和图块的信息，所以矢量图文件的大小与分辨率和图像大小无关，只与图像的复杂程度有关。比如对于画一条线来说，只需要记录线的起点和终点即可。
+	-  矢量图可以无限缩放，对它进行缩放，旋转或变形操作时，图形不会产生锯齿效果，边缘会非常顺滑（因为它不像位图那样用像素点表示）。
+	-  矢量图难以表现色彩层次丰富的逼真图像效果。因为颜色丰富的图可能每个点的颜色都不一样，这种场景下位图比矢量图更适合。
 
-　　这些特征使矢量图特别适用于图例和三维建模以及一些简单的图标。
+　　也就是说，无论是`16×16`分辨率的还是`8092×8092`分辨率，一个矢量文件就能搞定。
 
-<br>**SVG的特点**
 
-	-  使用XML文件来保存图像。
-	-  SVG是在运行时才动态解析、渲染的，而且它占用内存少，因此它是优化APP所占内存的首选。
-	-  如果SVG图片太复杂的话，则会导致GPU绘制的时间加长，从而影响UI流畅度。
-	-  在Android中，SVG会根据屏幕的dpi自动缩放到合适的大小，所以只需要用一个SVG文件就可以了。
+<br>**SVG**
+　　SVG全称是Scalable Vector Graphics（可缩放矢量图形），矢量图最广泛的实现方式就是SVG。
 
-<br>　　知道了SVG的相关概念后，我们来创建一个SVG文件。
+　　它的优缺点为：
 
-<br>　　范例1：test.svg。
+	-  使用XML文件来记录图像的内容。
+	-  如果SVG图片太复杂的话，则会导致GPU绘制的时间加长，从而影响UI流畅度，同时源代码也会显得臃肿。
+	-  但它最大的优点就是会根据屏幕的dpi自动缩放到合适的大小，所以只需要用一个SVG文件就可以了。
+
+<br>　　范例1：创建一个SVG图片。
 ``` xml
-<?xml version="1.0" standalone="no"?>
 <svg width="48" height="48" version="1.1" xmlns="http://www.w3.org/2000/svg">
   <rect x="0" y="0" width="48" height="48" fill="#FF0000"/>
 </svg>
 ```
     语句解释：
     -  正如前面说的，SVG图片的内容使用XML文件来记录，且必须用svg标签做为根节点。
-    -  本范例用来画一个红色的矩形，至于除了rect外还有哪些标签，不要慌，马上就介绍。
+    -  上面只是画一个红色的矩形，本范例的目的是让大家知道SVG文件到底是个啥，具体的语法规则请点击下面的链接。
     -  目前各大浏览器都支持svg文件，所以直接拖当浏览器中就可以查看效果。
 
-<br>　　需要知道的是，Android是不能直接显示上面创建的原生的SVG文件的，需要在[ svg2android ](http://inloop.github.io/svg2android/)转换一下。
+　　提示：大家可以去 [W3C](http://www.w3school.com.cn/svg/) 和 [mozilla](https://developer.mozilla.org/zh-CN/docs/Web/SVG/Tutorial) 中学习SVG的基础语法，笔者就不冗述了。
 
-<br>　　范例2：转换之后的test.xml。
+## 简单应用 ##
+　　需要知道的是，Android是不能直接显示上面创建的原生的SVG文件的，需要在[ svg2android ](http://inloop.github.io/svg2android/)转换一下。
+
+<br>　　范例1：转换之后的test.xml。
 ``` xml
-<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="48dp"
     android:height="48dp"
@@ -1375,12 +1403,20 @@ imageView.setColorFilter(new ColorMatrixColorFilter(matrix));
 </vector>
 ```
     语句解释：
-    -  将这个XML文件放到任意一个res/drawable-xxxxx目录下面就可以了，引用的方法和普通的drawable一样。
+    -  将这个XML文件放到任意一个res/drawable-xxxxx目录都就可以，引用的方法和普通的drawable一样。
     -  这是因为，运行时系统不会关注这个SVG图片是从哪个drawable-xxxxx里加载的，只会读取SVG的尺寸（即本范例中的android:width和android:height），由于这两个值使用的单位是dp，所以系统会依据当前设备的dpi来设置SVG图片的最终显示尺寸，因此以mdpi的标准来设计SVG就可以。
     -  另外，SVG图片加载到内存时，使用VectorDrawable类来表示。
-　　提示：大家可以去 [W3C](http://www.w3school.com.cn/svg/) 和 [mozilla](https://developer.mozilla.org/zh-CN/docs/Web/SVG/Tutorial) 中学习SVG的基础语法，笔者就不冗述了。
 
-<br>　　话说回来，如果你以为SVG图片的内容都很简单的话，那就错了，比如我们可以用SVG实现下图的效果：
+<br>　　说到要以“mdpi”为标准来设计图片尺寸，那就得看一下各种屏幕密度之间的关系了：
+
+	-  Google官方推荐，不同屏幕密度的设备，使用的图片尺寸要遵循3（low）:4（medium）:6（high）:8（xhigh）:12（xxhigh）:16（xxxhigh）。
+	-  举个例子来说：
+	   -  如果medium下面存放一个48x48尺寸的图片，那么low就应该存放36x36尺寸的图片。
+	   -  相应的就是：high下存放72x72、xhigh下存放96x96、xxhigh下存放144x144、xxxhigh下存放192x192。
+	-  事实上，Google将存放到medium下面的图片视为基准值，当设备是low密度但是图却是从mdpi中加载的时候，系统就会让图片缩小到原来的75%。
+	-  对应的比率其实是：low（0.75x）、medium（1.0x）、high（1.5x）、xhigh（2.0x）、xxhigh（3.0x）、xxxhigh（4.0x）。
+
+<br>　　话说回来，如果你以为SVG只能绘制很简单的矩形、圆的话，那就错了，比如我们可以用SVG实现下图的效果：
 <center>
 ![原图（左）、变黄（中）、灰度化（右）](/img/android/android_d02_01.png)
 </center>
@@ -1388,13 +1424,33 @@ imageView.setColorFilter(new ColorMatrixColorFilter(matrix));
     源码地址：
     https://github.com/SpikeKing/TestSVG/blob/master/app/src/main/res/drawable/v_homer_simpson_online.xml
 
-　　如果你想使用 Material 的 SVG 图标，则可以去[ Material icons ](https://design.google.com/icons/)下载。
+## 注意事项 ##
+　　关于SVG在Android中的应用，还有如下几点要知道：
 
-## SVG动画 ##
+	-  SVG主要用来降低APK打包大小。
+	-  SVG是在5.0中提出的，如果你想在5.0之前使用，则需要导入官方支持库。
+	-  矢量图加载可能会比相应的位图花费CPU运行周期更长，不过在内存使用和性能方面，两者相似。
+	-  矢量图主要用来制作小的、简单的图片，建议矢量图像最大为200×200dp,否则，它们可能会加载更长的时间。
+	-  Android不能直接解析标准的SVG文件，需要先将SVG转成Android能识别的xml才行。
+	-  Android只支持标准SVG文件的某一些功能，并不是全部，比如不支持gradients和patterns。
+
+　　上面说到，在Android中SVG和普通位图，在内存使用和性能方面差别不大，有两点可以证明：
+
+	-  从VectorDrawable类的draw方法中可以看到，SVG绘制的本质就是解析xml文件，并将里面的各种Path绘制到一个Bitmpa中，然后再将Bitmpa显示。
+	-  从hprof文件中也可以看到，VectorDrawable最终会持有Bitmap的引用，而Bitmap最终又会持有一个byte[]。
+
+<br>　　另外，如果你想使用 Material 的 SVG 图标，则可以去[ Material icons ](https://design.google.com/icons/)下载，SVG也可以用来播放动画，请自行学习。
+
 
 <br>**本节参考阅读：**
 - [维基百科 - 矢量图](https://zh.wikipedia.org/zh-cn/%E7%9F%A2%E9%87%8F%E5%9B%BE%E5%BD%A2)
+- [维基百科 - 位图](https://zh.wikipedia.org/wiki/%E4%BD%8D%E5%9B%BE)
 - [百度百科 - 矢量图](http://baike.baidu.com/view/138039.htm)
 - [AndroidStudio中使用SVG](https://developer.android.com/studio/write/vector-asset-studio.html)
+- [VectorDrawable的工作原理](http://www.jianshu.com/p/c37e119faa55#)
+- [Supporting Multiple Screens](https://developer.android.com/guide/practices/screens_support.html)
+- [Add Multi-Density Vector Graphics](https://developer.android.com/studio/write/vector-asset-studio.html#about)
+
+
 
 <br><br>
