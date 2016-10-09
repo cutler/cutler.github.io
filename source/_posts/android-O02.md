@@ -1,4 +1,4 @@
-title: 实战篇　第二章 Android Studio
+title: 综合篇　第二章 Android Studio
 date: 2015-4-15 21:44:35
 categories: Android开发 - 青铜
 ---

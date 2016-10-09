@@ -1,4 +1,4 @@
-title: 实战篇　第一章 Maven
+title: 综合篇　第一章 Maven
 date: 2014-12-6 15:46:45
 categories: Android开发 - 青铜
 ---

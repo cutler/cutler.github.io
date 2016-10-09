@@ -234,7 +234,7 @@ android:paddingBottom="30dp"
 　　TableLayout代表表格页面布局，它不显示行、列或单元格的边框线，表的每行会有多个带有单元格的列，单元格可以为空。
 
 <br>　　范例1：`main.xml`文件。
-``` android
+``` xml
 <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
     <TableRow>
@@ -506,8 +506,7 @@ android:shadowRadius      设置文字的阴影半径(范围)。
 ```
 　　属性解释：
 ``` xml
-android:src	         指定图片的资源ID。 
-
+android:src	         指定图片的资源ID。
 android:layout_gravity	 指定当前控件在其父元素内部的对齐方式。
 常用对齐方式：
 水平左对齐(left)、水平右对齐(right)、水平垂直居中(center)、垂直顶对齐(top)、垂直底部对齐(bottom)。    
@@ -524,7 +523,7 @@ android:layout_gravity	 指定当前控件在其父元素内部的对齐方式�
     android:onClick="onImageViewClick"/>
 ```
 　　Java代码：
-``` android
+``` java
 public class ViewTextActivity extends Activity {
     public void onImageViewClick(View view){
         // 调用Activity类的方法,并指定ID,从当前xml布局文件中获取ImageView控件。
@@ -554,7 +553,7 @@ android:visibility  此属性继承自View类，任何View的子类都可以使�
 ```
 
 <br>　　范例2：ProgressBar类的常用方法。
-``` android
+``` java
 //  设置ProgressBar对象的当前进度值。
 public synchronized void setProgress (int progress)
 
@@ -573,7 +572,7 @@ public synchronized void setSecondaryProgress (int secondaryProgress)
 ```
 
 <br>　　范例3：代码片段。
-``` android
+``` java
 class UpdateBar extends Thread{
     private int i = 0;
     public void run(){
@@ -610,14 +609,14 @@ class UpdateBar extends Thread{
 ```
 
 <br>　　范例2：SeekBar类的常用方法。
-``` android
+``` java
 //  为当前SeekBar添加一个监听器。当SeekBar的值被改变、被拖动时会触发相应的事件。
 public void setOnSeekBarChangeListener (SeekBar.OnSeekBarChangeListener l)
 
 ```
 
 <br>　　范例3：SeekBar.OnSeekBarChangeListener接口。
-``` android
+``` java
 //  当SeekBar的值被改变时，触发此方法。
 //  progress：SeekBar的当前值。  
 //  fromUser：当前事件是否由用户拖动或点击SeekBar而导致的。
@@ -707,7 +706,7 @@ public abstract void onStopTrackingTouch (SeekBar seekBar)
 　　您也可以声明单击事件处理程序，而不是在XML布局中通过`android:clickable`属性。这可能是必要的，如果你在运行时实例化`<Button>`，或者你需要在一`<Fragment>`子类中声明单击事件。
 
 　　为了声明事件处理程序，你需要创建一个`View.OnClickListener`类的对象，并将它分配给按钮。例如：
-``` android
+``` java
 Button button = (Button) findViewById(R.id.button_send);
 // 为当前Button对象添加一个事件监听器。当用户点击此按钮时，会触发此监听器。
 button.setOnClickListener(new View.OnClickListener() {
@@ -811,7 +810,7 @@ button.setOnClickListener(new View.OnClickListener() {
 
 <br>**响应按钮事件**
 　　如果您已指定键盘采用`android:imeOptions`属性，则可以使用`TextView.OnEditorActionListener`监听事件行为。
-``` android
+``` java
 EditText editText = (EditText) findViewById(R.id.search);
 editText.setOnEditorActionListener(new OnEditorActionListener() {
     @Override
@@ -865,7 +864,7 @@ android:hint        设置文本框中的背景文字。用户向文本框输入
 	-  属性android:inputType="number"的效果和android:numeric="integer" 一样。它们都会修改软件盘的布局。
 
 <br>　　范例3：EditText类常用方法。
-``` android
+``` java
 //  以Editable类型的对象，将文本框中的数据返回。修改Editable对象中的数据会导致文本框中当前保存的数据一同被修改。
 public Editable getText()
 
@@ -880,7 +879,7 @@ public void setSelection(int index)
 ```
 
 <br>　　范例4：Editable接口。
-``` android
+``` java
 //  向当前对象中添加指定CharSequence对象。修改了Editable对象中的数据，会导致文本框中的数据同步改变。
 //  若想获取EditText中的内容，可以调用Editable的toString方法。
 public abstract Editable append(CharSequence text)
@@ -890,7 +889,7 @@ public abstract void clear()
 ```
 
 <br>　　范例5：密码的显示和隐藏。
-``` android
+``` java
 // 明文显示密码。
 editText.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
 // 密文显示密码。
@@ -919,7 +918,7 @@ editText.setTransformationMethod(PasswordTransformationMethod.getInstance());
 　　当用户选择一个复选框中的选项时，该复选框对象接收`onClick`事件，当复选框的选中状态被改变时，该复选框对象接受`onCheckedChange`事件。 因此这两种方案都可以处理复选框的点击事件。
 
 <br>　　范例1：CheckBox类常用方法。
-``` android
+``` java
 //  修改当前CheckBox的选定状态。true为选定，false为不选定。
 public void setChecked(boolean checked)
 
@@ -931,7 +930,7 @@ public void setOnCheckedChangeListener(CompoundButton.OnCheckedChangeListener li
 ```
 
 <br>　　范例2：CompoundButton.OnCheckedChangeListener接口。 
-``` android
+``` java
 //  当CheckBox触发OnCheckedChange事件时，事件监听器会触发此事件。
 //  buttonView ：触发事件的CheckBox对象。
 //  isCheck ：CheckBox对象是否处于选中状态。
@@ -939,7 +938,7 @@ public abstract void onCheckedChanged(CompoundButton buttonView, boolean isCheck
 ```
 
 <br>　　范例3：事件监听。
-``` android
+``` java
 CheckBox box = (CheckBox) this.findViewById(R.id.java);
 box.setOnCheckedChangeListener(new OnCheckedChangeListener(){
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -951,7 +950,7 @@ box.setOnCheckedChangeListener(new OnCheckedChangeListener(){
 <br>　　`CheckBox`和`RadioButton`都继承自`TextView` ，因此它们都具有`TextView`类提供的方法。
 
 <br>　　范例4：监听onClick事件。
-``` android
+``` java
 public void onCheckboxClicked(View view) {
     boolean isChecked = ((CheckBox) view).isChecked();
     switch(view.getId()) {
@@ -1008,7 +1007,7 @@ public void onCheckboxClicked(View view) {
 ```
 
 <br>　　范例2：RadioButton类。 
-``` android
+``` java
 //  修改当前RadioButton对象的选定状态。true为选定。false为不选定。
 public void setChecked(boolean checked)
 
@@ -1017,13 +1016,13 @@ public boolean isChecked()
 ```
 
 <br>　　范例3：RadioGroup类。 
-``` android
+``` java
 //  监听当前按钮组中的按钮，当用户的选择改变时，会触发此事件。
 public void setOnCheckedChangeListener(RadioGroup.OnCheckedChangeListener listener)
 ```
 
 <br>　　范例4：RadioGroup.OnCheckedChangeListener接口。
-``` android
+``` java
 //  监听当前按钮组中的按钮，当用户的选择改变时，会调用此方法。
 //  group ：产生事件的RadioGroup对象。
 //  checkeId ：当前被选中的RadioButton对象的id ，此id在R.java中定义。
@@ -1031,7 +1030,7 @@ public abstract void onCheckedChanged(RadioGroup group, int checkedId)
 ```
 
 <br>　　范例5：监听按钮组。
-``` android
+``` java
 RadioGroup g = (RadioGroup) this.findViewById(R.id.group);
 g.setOnCheckedChangeListener(
     new OnCheckedChangeListener(){
@@ -1091,7 +1090,7 @@ android:checked   设置按钮的当前是否处于选中状态。
 　　提示：本范例中涉及到的`<selector>`标签将在后面章节中详细介绍。
 
 <br>　　范例3：控制文字的显示位置。
-``` android
+``` java
 public void onClick(View view) {
     ToggleButton switchbtn = (ToggleButton) view;
     // 若当前按钮处于选中状态。

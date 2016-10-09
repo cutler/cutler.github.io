@@ -57,13 +57,13 @@ MODE_WORLD_READABLE         读/写                                只读
 MODE_WORLD_WRITEABLE        读/写                                只写，不会追加。
 ```
 　　提示：若想让其他程序对当前应用程序的文件既可以写，又可以读，则可以这么做：
-``` android
+``` java
 Context.MODE_WORLD_READABLE + Context.MODE_WORLD_WRITEABLE
 ```
 　　也就是说其他程序可以通过指定某个文件的绝对路径（`/data/data/...`），来访问某个应用程序的文件，具体如何访问，后面会有详细描述。
 
 <br>　　范例3：创建文件。
-``` android
+``` java
 public class MyActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,7 +86,7 @@ public class MyActivity extends Activity {
 	   -  数据目录就是：/data/data/packagename/。
 
 <br>　　范例4：读入文件。
-``` android
+``` java
 public class ViewTextActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -140,7 +140,7 @@ public class ViewTextActivity extends Activity {
 <br>　　相应的，`Android`也为我们提供了操作外部存储设备上的文件的`API`。
 
 <br>　　范例1：Environment类。
-``` android
+``` java
 // 获取当前系统，外部存储器的根目录。
 public static File getExternalStorageDirectory()
 
@@ -217,7 +217,7 @@ if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
 　　`Andriod`偏好设置默认使用`xml`文件来保存用户数据，文件存储在`“/data/data/packagename/shared_prefs”`目录下。
 
 <br>　　范例1：`SharedPreferences`接口。
-``` android
+``` java
 // 指定key从当前SharePreferences对象中，获取所对应的一个values 。
 // -  若当前对象中没有指定的key，则返回defValue 。
 // -  若当前对象中存在指定的key，但是value的值不是String类型的，则抛异常。
@@ -235,7 +235,7 @@ public abstract boolean contains(String key);
 ```
 
 <br>　　范例2：`SharedPreferences.Editor`接口。
-``` android
+``` java
 // 向Editor对象中，添加一个Boolean类型的属性 。
 // -  除了此方法外，还有：putInt、putLong、putString、putFloat四个方法。
 // -  在Editor对象中key是唯一的，若重复添加多个相同的key，则会新值覆盖旧值。
@@ -250,7 +250,7 @@ public abstract boolean commit();
 ```
 
 <br>　　范例3：Activity类。
-``` android
+``` java
 // 指定文件名称name ，系统会默认从<当前应用>/shared_prefs文件夹下，查找xml文件。
 // -  mode：指定文件的打开方式。
 // -  若未找到指定的文件，则创建该文件并返回该文件的SharedPreferences对象。
@@ -258,7 +258,7 @@ public abstract SharedPreferences getSharedPreferences (String name, int mode)
 ```
 
 <br>　　范例4：创建文件。
-``` android
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -279,7 +279,7 @@ public class MainActivity extends Activity {
     -  注意：不论您是否为文件指定了后缀名，系统都会自动在文件名后面加上.xml。
 
 <br>　　范例5：读取文件。
-``` android
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -300,7 +300,7 @@ public class MainActivity extends Activity {
 <br>　　在`Android`中使用`SQLiteOpenHelper`类来创建/打开数据库。
 
 <br>　　范例1：SQLiteOpenHelper类。
-``` android
+``` java
 // context ：上下文对象。
 // name ：数据库的名称。
 // factory：游标工厂，若为null，则使用Android系统默认的游标工厂。通常都为null 。
@@ -321,7 +321,7 @@ public abstract void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion
 ```
 
 <br>　　范例2：创建数据库。
-``` android
+``` java
 SQLiteOpenHelper helper = new SQLiteOpenHelper(this,"data.db",null,1){
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE person(id int primary key,name varchar(20))");
@@ -423,7 +423,7 @@ public void setTransactionSuccessful()
 ```
 
 <br>　　范例10：事务操作。
-``` android
+``` java
 public void test() {
     SQLiteDatabase db = dbOpenHelper.getWritableDatabase();
     db.beginTransaction();    // 开启事务，默认情况下，事务标志为False 。
@@ -454,7 +454,7 @@ public void test() {
 	   -  XmlPullParser.START_TAG标签结束。 
 
 <br>　　范例2：XMLPullParser接口。
-``` android
+``` java
 // 指定属性的下标，获取当前元素的某个属性的值，下标从0开始。
 public abstract String getAttributeValue(int index);
 
@@ -472,13 +472,13 @@ public abstract int next();
 ```
 
 <br>　　范例3：Xml类。
-```
+``` java
 // 创建一个XML解析器。
 public static XmlPullParser newPullParser()
 ```
 
 <br>　　范例4：读取文件。
-``` android
+``` java
 public void xmlParse() throws Exception{
     XmlPullParser parser = Xml.newPullParser();
     InputStream input = getClassLoader().getResourceAsStream("person.xml");
@@ -519,7 +519,7 @@ public void xmlParse() throws Exception{
 <br>　　使用`XmlSerializer`接口来创建XML文档，使用`Xml`类来实例化`XmlSerializer`。
 
 <br>　　范例6：XmlSerializer接口。
-``` android
+``` java
 // 创建一个文档开始标记。
 public abstract void startDocument(String encoding, Boolean standalone);
 
@@ -540,13 +540,13 @@ public abstract void flush();
 ```
 
 <br>　　范例7：Xml类。
-```
+``` java
 // 创建一个XmlSerializer对象。
 public static XmlSerializer newSerializer ()
 ```
 
 <br>　　范例8：代码。
-``` android
+``` java
 public void xmlWrite()throws Exception{
     XmlSerializer serializer = Xml.newSerializer();
     File file = new File(this.getContext().getFilesDir(),"cxy.xml");
@@ -649,7 +649,7 @@ public class AndroidTestActivity extends Activity {
     -  若程序执行的时候出现了乱码，请检查您Android项目的编码是否使用的UTF-8。
 
 <br>　　范例4：加载文件2.0 。
-``` android
+``` java
 InputStream input=getClassLoader().getResourceAsStream("org/cxy/test/b.txt");
 ```
     语句解释：
@@ -664,7 +664,7 @@ InputStream input=getClassLoader().getResourceAsStream("org/cxy/test/b.txt");
 	-  第二，类装载器，对于一个文件只会装载一次，若文件的内容在程序运行的时候被更新，则程序无法及时获得新的数据。
 
 <br>　　范例5：思考题，下面`File`对象的相对路径相对于谁?。
-``` android
+``` java
 package org.cxy.test;
 import java.io.File;
 import android.app.Activity;
@@ -695,7 +695,7 @@ public class AndroidTestActivity extends Activity {
 	-  最后，assets文件夹主要用于保存一些“容量小且固定不变”的文件，如：游戏音乐等。所谓的“固定不变”指的是在程序运行的时候，该文件仅会被程序读取而不会去修改其内容。 
 
 <br>　　范例1：获取输入流。
-``` android
+``` java
 public class AndroidTestActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -716,7 +716,7 @@ public class AndroidTestActivity extends Activity {
 
 
 <br>　　范例2：遍历所有文件。
-``` android
+``` java
 public void test(){
     String folder="a";
     AssetManager manager = getAssets();

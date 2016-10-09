@@ -82,7 +82,7 @@ categories: Android开发 - 青铜
 	-  因此若想在APILevel 13或更高的版本中防止屏幕方向变化时重启Activity，你必须同时包含“screenSize”和“orientation”两个值。
 
 <br>　　例如，接下来的`onConfigurationChanged()`方法中实现了检查当前设备的方向：
-``` android
+``` java
 // 当这个方法被调用时，你的Activity的Resources对象会被更新并返回一个基于新配置的Resources对象。
 // 因此你可以在不用系统重启你的Activity的情况下很容易地重置你的UI元素。
 public void onConfigurationChanged(Configuration newConfig) {
@@ -112,7 +112,7 @@ public void onConfigurationChanged(Configuration newConfig) {
 	   -  我们重写此方法时，从该方法的参数（一个Bundle对象）中还原我们的数据即可。
 
 <br>　　范例1：保存数据。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     @Override
@@ -205,7 +205,7 @@ public class MainActivity extends Activity {
 	-  如果A启动了5次B，那么A的Task中就有5个B的实例。
 
 　　当我们用`Application`或`Service`对象来启动一个`standard`模式的Activity时，会报如下错误：
-``` c
+``` java
 Caused by: android.util.AndroidRuntimeException: Calling startActivity() 
             from outside of an Activity  context requires the FLAG_ACTIVITY_NEW_TASK flag. 
             Is this really what you want?
@@ -253,7 +253,7 @@ Caused by: android.util.AndroidRuntimeException: Calling startActivity()
 adb shell dumpsys activity
 ```
 　　使用`adb`命令可以查看当前操作系统中存在的所有`Task`。
-``` android
+``` java
 Running activities (most recent first):
    TaskRecord{44fbd658 #3 A com.example.androidtest}
      Run #1: HistoryRecord{45032428 com.example.androidtest/.MainActivity}
@@ -261,7 +261,7 @@ Running activities (most recent first):
      Run #0: HistoryRecord{4502ab48 com.android.launcher/com.android.launcher2.Launcher}
 ```
 　　此时系统中有两个`Task`，若在`MainActivity`中启动`Activity1`，在`Activity1`中启动`Activity2`，则`Task`中的情况如下：
-``` android
+``` java
 Running activities (most recent first):
   TaskRecord{4500ff48 #4 A com.example.androidtest}
     Run #3: HistoryRecord{450ea0a8 com.example.androidtest/.Activity2}
@@ -275,7 +275,7 @@ Running activities (most recent first):
 <activity android:name=".Activity1" android:launchMode="singleTask" >
 ```
 　　则在`MainAcitivity`中启动它后，栈中的情况如下：
-``` android
+``` java
 Running activities (most recent first):
    TaskRecord{45008f00 #6 A com.example.androidtest}
      Run #2: HistoryRecord{45040e18 com.example.androidtest/.Activity1}
@@ -332,7 +332,7 @@ Running activities (most recent first):
 	-  FLAG_ACTIVITY_SINGLE_TOP:与launchMode属性值等于singleTop时具有同样的行为。
 
 <br>　　范例1：设置`Flag`。
-``` android
+``` java
 Intent intent = new Intent(this,SecondActivity.class);
 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 this.startActivity(intent);
@@ -377,7 +377,7 @@ this.startActivity(intent);
 
 
 <br>　　范例1：通过`ComponentName`启动新`Activity`。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -406,7 +406,7 @@ public class MainActivity extends Activity {
        -  Intent intent = new Intent(MainActivity.this,MyActivity.class);
 
 <br>　　范例2：接收参数。
-``` android
+``` java
 public class SecondActivity extends Activity{
 
     protected void onCreate(android.os.Bundle savedInstanceState) {
@@ -485,7 +485,7 @@ public class SecondActivity extends Activity{
 
 <br>**Action匹配**
 　　在清单文件中的`<intent-filter>`元素内的`<action>`子元素对应咱们前面说的“动作”。如：
-``` android
+``` xml
 <intent-filter>
     <action android:name="com.example.project.SHOW_CURRENT" />
     <action android:name="com.example.project.SHOW_RECENT" />
@@ -501,7 +501,7 @@ public class SecondActivity extends Activity{
 
 <br>**Category检测**
 　　`<intent-filter>`元素内的`<category>`子元素对应前面说的“分类”。例如：
-``` android
+``` xml
 <intent-filter>
     <category android:name="android.intent.category.DEFAULT" />
     <category android:name="android.intent.category.BROWSABLE" />
@@ -517,7 +517,7 @@ public class SecondActivity extends Activity{
 
 <br>**Data检测**
 　　像`Action`、`Category`检测一样，针对`IntentFilter`的“数据”也要包含在一个子元素中，这个子元素能够出现`0~n`次。例如：
-``` android
+``` xml
 <intent-filter>
     <data android:mimeType="video/mpeg" android:scheme="http" /> 
     <data android:mimeType="audio/mpeg" android:scheme="http" />
@@ -541,7 +541,7 @@ content://com.example.project:200/folder/subfolder/etc
 <br>
 ### 开始匹配 ###
 　　范例1：新建Activity。
-``` android
+``` xml
 <activity android:name="org.cxy.intent.SecondActivity">
     <intent-filter>
         <action android:name="act.second"/>
@@ -550,7 +550,7 @@ content://com.example.project:200/folder/subfolder/etc
 </activity>
 ```
 　　在MainActivity中书写如下跳转语句：
-``` android
+``` java
 Intent intent =  new Intent();
 intent.setAction("act.second"); 
 this.startActivity(intent);
@@ -560,7 +560,7 @@ this.startActivity(intent);
 	-  在调用startActivity方法启动Activity时，该方法会自动为Intent对象设置一个category，即：“android.intent.category.DEFAULT”。
 
 <br>　　范例2：data匹配。
-``` android
+``` xml
 <activity android:name="org.cxy.intent.SecondActivity">
     <intent-filter>
         <action android:name="org.cxy.action.Second"/>
@@ -570,7 +570,7 @@ this.startActivity(intent);
 </activity>
 ```
 　　在MainActivity中书写如下跳转语句：
-``` android
+``` java
 Intent intent = new Intent();
 intent.setAction("org.cxy.action.Second");
 intent.setData(Uri.parse("http://www.cxy.com:80/hi.jsp"));
@@ -593,7 +593,7 @@ this.startActivity(intent);
 </activity>
 ```
 　　在MainActivity中书写如下跳转语句：
-``` android
+``` java
 Intent intent = new Intent();
 intent.setAction("org.cxy.action.Second");
 intent.setDataAndType(Uri.parse("http://www.cxy.com:80/hi.jsp"),"image/gif");
@@ -617,7 +617,7 @@ this.startActivity(intent);
 </activity>
 ```
 　　那么我们可以用如下代码进行匹配：
-``` android
+``` java
 Intent intent = new Intent();
 intent.setAction("aa.test.BBBBBB");
 intent.setDataAndType(Uri.parse("content://abc"),"image/png");
@@ -628,7 +628,7 @@ startActivity(intent);
     -  另外，在<data>元素的path和mimeType属性的值中，都可以包含通配符“*”，用来匹配0~n个任意字符。
 
 <br>　　范例5：安装应用程序。
-``` android
+``` java
 Intent intent = new Intent(Intent.ACTION_VIEW);
 // Uri.fromFile()方法根据文件对象的路径来构造一个Uri。
 intent.setDataAndType(Uri.fromFile(file),"application/vnd.android.package-archive");
@@ -641,7 +641,7 @@ startActivity(intent);
 	-  APK文件的MIME类型为application/vnd.android.package-archive ，而查看APK文件，其实就是安装APK文件。
 
 <br>　　范例6：卸载应用程序。
-``` android
+``` java
 Intent intent = new Intent();
 intent.setAction(Intent.ACTION_DELETE);
 intent.setData(Uri.parse("package:"+ this.getPackageName()));
@@ -653,7 +653,7 @@ startActivity(intent);
 	-  调用Activity的getPackageName()方法可以获取当前应用程序的包名称。
 
 <br>　　范例7：启动发送短信Acitivity。
-``` android
+``` java
 Intent intent = new Intent();
 // 设置意图的动作为“发送”和“发送数据”的MIME类型。
 intent.setAction(Intent.ACTION_SEND);
@@ -725,7 +725,7 @@ startActivity(intent);
 　　答：实现`Fragment`类的`onCreateView()`回调方法即可，该方法是`Fragment`的生命周期方法之一，当`Activity`需要`Fragment`创建它自己的`view`时，就会调用它。
 
 <br>　　范例1：MyFragment。
-``` android
+``` java
 public static class MyFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -771,7 +771,7 @@ public static class MyFragment extends Fragment {
 	-  如果以上2个你都没有提供，系统使用Fragment所在的容器view的ID。
 
 <br>　　范例1：添加Fragment。
-``` android
+``` java
 public class MyActivity extends FragmentActivity{
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -791,7 +791,7 @@ public class MyActivity extends FragmentActivity{
 	-  本范例是通过继承FragmentActivity类来实现的。执行完毕编辑操作后，若不调用commit()方法则事务是永远不会生效的。
 
 <br>　　范例2：FragmentManager类。
-``` android
+``` java
 public abstract class FragmentManager extends Object {
     // 开启一个事务，之后对Fragment的操作都是在这个事务对象进行的。
     public abstract FragmentTransaction beginTransaction(){}
@@ -807,7 +807,7 @@ public abstract class FragmentManager extends Object {
 	-  每当需要编辑Activity中的某个Fragment时，都要先开启一个事务。然后在事务对象上执行编辑操作(如add、remove、replace等)，执行完毕所有的编辑后再一次性的提交给Activity去更新界面。
 
 <br>　　范例3：FragmentTransaction类。
-``` android
+``` java
 public abstract class FragmentTransaction extends Object {
     // 将参数fragment对象添加到Activity的布局中containerViewId组件下。
     // containerViewId所指向的组件必须是ViewGroup类型的，否则抛异常。
@@ -841,7 +841,7 @@ container.addView(f.mView);
 　　在`FragmentManager`中维护了一个`事务栈`。我们可以在事务对象提交(`commit`)之前，设置是否要将该事务放在事务栈中。 当用户在`Activity`中按下`back`键时，会撤销栈顶的事务所做出的修改。
 
 <br>　　范例1：添加Fragment。
-``` android
+``` java
 public class MyActivity extends FragmentActivity{
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -862,7 +862,7 @@ public class MyActivity extends FragmentActivity{
 	-  如果添加多个变化到事务(例如add()或remove())并调用addToBackStack()，然后在你调用commit()之前的所有应用的变化会被作为一个单个事务添加到后台堆栈，BACK按键会将它们一起回退。
 
 <br>　　范例2：替换Fragment。
-``` android
+``` java
 public class MyActivity extends FragmentActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -895,7 +895,7 @@ public class MyActivity extends FragmentActivity{
 	-  本范例的三个事务都被加入到事务栈中，当第一次按下BACK键时，f3会被移除，f会被还原。 注意：f会被还原到f3的位置，而不是f2的前面。也就是说，对于addToBackStack()方法，它只会记录fragment的操作，而不会记录fragment当时的位置。当执行还原的时候，会将fragment放到containerView的末尾。
 
 <br>　　范例3：删除Fragment。
-``` android
+``` java
 public class MyActivity extends FragmentActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -920,7 +920,7 @@ public class MyActivity extends FragmentActivity{
 　　例如，`Activity`中有`2`个`Fragment`，一个用来显示文章列表(`A`)，另一个显示文章内容(`B`)。 当用户点击了`A`中的某个文章时，`A`就告诉宿主`Activity`，然后宿主`Activity`就可以转告诉`B`去显示文章。
 
 <br>　　范例1：定义回调接口。
-``` android
+``` java
 public class FragmentA extends ListFragment {
     // Container Activity must implement this interface
     public interface OnArticleSelectedListener {
@@ -987,7 +987,7 @@ public class FragmentA extends ListFragment {
 
 <br>**实例化的方法**
 　　现在我们又遇到一个问题： 很多时候我们需要在实例化`Fragment`的同时为其传递一些参数，而系统在重建`Fragment`时只会调用无参的构造方法，也就跳过传参的这一步骤，这必然会导致程序出问题。
-　　这该怎么解决呢?  
+　　这该怎么解决呢?
 <br>　　这个问题`Fragment`已经替我们考虑到了，`Fragment`类有一个属性名为`mArguments`，它是`Bundle`类型的。
 ``` android
 // Construction arguments;
@@ -995,7 +995,7 @@ Bundle mArguments;
 ```
 　　当我们构造`Fragment`对象时，可以将需要传递给`Fragment`的参数放到这个`Bundle`对象中。这样即便是随后`Fragment`对象被摧毁了也没关系，因为系统会将`Fragment`的`mArguments`属性的值保存起来，当重建的时候也会将`mArguments`属性的值给还原。
 <br>　　因此对于`Fragment`的初始化操作，我们通常的写法是这样的：
-``` android
+``` java
 public class MainActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -1008,7 +1008,7 @@ public class MainActivity extends FragmentActivity {
 ```
 
 <br>　　范例2：MyFragment。
-``` android
+``` java
 public class MyFragment extends Fragment {
     private String property;
     public static MyFragment getInstance(String property) {

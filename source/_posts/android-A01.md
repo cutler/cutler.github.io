@@ -212,7 +212,7 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 　　在`“<application>”`标签下面同样定义了若干个子标签，应用程序创建的组件都需要在此标签内部声明。
 
 <br>　　范例4：声明应用程序组件。
-``` android
+``` xml
 <application android:icon="@drawable/ic_launcher" android:label="@string/app_name">
     <activity/>
     <service/>
@@ -229,7 +229,7 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 
 <br>　　范例5：`<activity>`标签。
 　　此标签代表一个`Activity`组件，任何一个派生自`Activity`类的类都是一个`Activity`组件 。
-``` android
+``` xml
 <application android:icon="@drawable/ic_launcher" android:label="@string/app_name">
     <activity
         android:name="com.example.androidtest.MainActivity"
@@ -255,7 +255,7 @@ android.widget 		包含各种 UI 元素(大部分是可见的)在应用程序的
 	   -  若意图对象A与某个意图过滤器匹配成功，则系统将调用该意图过滤器所隶属的组件。 
 	   -  若匹配失败，则继续与下一个组件中的意图过滤器进行匹配。
 	   -  若有多个组件的意图过滤器都与意图对象A匹配，则Android系统会给用户弹出一个对话框，要求用户自己选择出，想要调用的组件。
-``` android
+``` xml
 <activity
     android:name="com.example.androidtest.MainActivity"
     android:label="@string/app_name" >

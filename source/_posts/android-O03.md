@@ -1,4 +1,4 @@
-title: 实战篇　第三章 开源库
+title: 综合篇　第三章 开源库
 date: 2015-7-17 19:05:35
 categories: Android开发 - 青铜
 ---

@@ -280,7 +280,7 @@ public void sendPost()throws Exception{
 　　在`HttpClient`框架中最核心的一个接口就是`HttpClient`接口，使用它的实例可以向服务器端发送请求。
 
 <br>　　范例1：`HttpClient`接口。
-``` android
+``` java
 public interface HttpClient {
     // 使用当前HttpClient对象，发送一个HTTP请求，并将返回值封装成一个HttpResponse对象。
     public abstract HttpResponse execute(HttpUriRequest request)
@@ -293,7 +293,7 @@ public interface HttpClient {
 <br>　　`HttpClient`会将服务器返回的数据封装成一个`HttpResonse`对象，客户端通过该对象提供的方法查看响应的内容。
 
 <br>　　范例2：`HttpResponse`接口。
-``` android
+``` java
 public interface HttpResponse extends HttpMessage {
     // 返回服务器端返回的响应的正文数据。若没有响应则返回null。
     public abstract HttpEntity getEntity()
@@ -307,7 +307,7 @@ public interface HttpResponse extends HttpMessage {
 　　`DefaultHttpClient`类是`HttpClient`接口的具体实现类，我们用它来与服务器进行交互。
 
 <br>　　范例1：发送Get请求。
-``` android
+``` java
 public class HttpClientDemo{
     public static void main(String[] args) throws Exception{
         HttpClient client = new DefaultHttpClient();
@@ -326,7 +326,7 @@ public class HttpClientDemo{
     -  默认情况下，若服务器端一直无响应，则HttpClient是会永远等待下去。
 
 <br>　　范例2：拼接URI。
-``` android
+``` java
 public class HttpClientDemo{
     public static void main(String[] args) throws Exception{
         // 依据指定参数创建一个URI对象。
@@ -422,7 +422,7 @@ public viod text() {
 　　在`HttpClient`中使用`HttpResponse`类表示服务器对客户端的响应。
 
 <br>　　范例1：获取响应中的数据。
-``` android
+``` java
 public void test() {
     HttpGet get = new HttpGet(URI.create("http://www.google.com.tw"));
     HttpResponse response = client1.execute(get);
@@ -435,7 +435,7 @@ public void test() {
     -  程序输出：200 OK HTTP/1.1。
 
 <br>　　范例2：响应头字段。
-``` android
+``` java
 public void test() {
     HttpGet get = new HttpGet(URI.create("http://www.google.com.tw"));
     HttpResponse response = client1.execute(get);
@@ -698,7 +698,7 @@ Content-Length: length
 	-  若不需要为<userID>传递值，则可以不写。但是标签<userID>必须要写上。
 
 <br>　　范例3：发送消息。
-``` android
+``` java
 public static void sendXML(String xml)throws Exception {
     // 核心代码如下。
     URL url = new URL("http://webservice.webxml.com.cn/WebServices/MobileCodeWS.asmx");
@@ -758,7 +758,7 @@ wsimport -s . test.xml
 	   -  “-p  <生成的新包名>”     将生成的类，放于指定的包下。
 
 <br>　　范例4：查询天气。
-``` android
+``` java
 public class Test {
     public static void main(String[] args){
         WeatherWS service = new WeatherWS();

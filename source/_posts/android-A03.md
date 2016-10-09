@@ -29,7 +29,7 @@ categories: Android开发 - 青铜
 	-  IntentService：Service类的子类，它使用工作线程（非UI线程）来依次处理启动请求。
 
 <br>　　范例1：继承Service类。
-``` android
+``` java
 package com.example.androidtest;
 import android.app.Service;
 import android.content.Intent;
@@ -69,7 +69,7 @@ public class MyService extends Service {
 	-  Service类的所有生命周期方法都是在主线程中被调用的，这意味着如果你需要执行耗时操作的话，就必须自己开启一个线程，然后在线程中去执行。
 
 <br>　　范例2：继承IntentService类。
-``` android
+``` java
 package com.example.androidtest;
 import android.app.IntentService;
 import android.content.Intent;
@@ -171,7 +171,7 @@ public class MyIntentService extends IntentService {
 </center>
 
 <br>　　范例1：创建绑定服务。
-``` android
+``` java
 public class MyService extends Service {
 
     // 1、onBind方法只会在第一个访问者和服务建立连接时会调用。
@@ -197,7 +197,7 @@ public class MyService extends Service {
     -  创建具有绑定能力的服务时，必须提供一个IBinder对象，它用于给客户端提供与服务端进行交互的编程接口。
 
 <br>　　范例2：创建客户端。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     public void onCreate(Bundle savedInstanceState) {
@@ -258,7 +258,7 @@ public class MainActivity extends Activity {
 　　包管理器(PackageManager)可以获取当前用户手机中已安装`APK`文件中的信息（如`AndroidManifest`文件）。
 
 <br>　　范例1：获取基本信息。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -299,7 +299,7 @@ public class MainActivity extends Activity {
        -  若需要获取其它信息，请自行查阅API。
 
 <br>　　范例2：获取所有的Activity。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -320,7 +320,7 @@ public class MainActivity extends Activity {
     -  若getPackageInfo方法的第二个参数设置为0，则调用info.activities获得的将是null。
 
 <br>　　范例3：获取ActivityInfo的基本信息。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -381,7 +381,7 @@ public class MainActivity extends Activity {
     -  元数据value的类型可以是：boolean、int、String、float类型的。
 
 <br>　　范例5：访问元数据。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -423,7 +423,7 @@ res/drawable-mdpi/icon.png
     -  直接给元数据的value赋图片资源的ID是不可以的，当程序运行时从Bundle对象中获取到的数据，是该图片资源所在的路径，这个路径是String类型的。
 
 <br>　　范例7：resource属性。
-``` android
+``` java
 // 在Activity标签内配置：
 <meta-data android:name="img" android:resource="@drawable/icon"/>
 
@@ -437,7 +437,7 @@ setContentView(img);
     -  元数据的value也可以使用android:resource属性为其赋值，android:resource保存资源数据的ID。在程序运行时，使用Bundle对象的getInt方法可以获取该资源数据的ID。
 
 <br>　　范例8：用户程序和系统程序。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -481,7 +481,7 @@ public abstract Intent getLaunchIntentForPackage (String packageName)
 	-  ActivityManager.RunningTaskInfo： 正在运行的任务信息
 
 <br>　　范例1：获取当前系统中所有Task。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -510,7 +510,7 @@ public class MainActivity extends Activity {
        -  topActivity：当前Task的栈顶Activity 。
 
 <br>　　范例2：获取当前系统的内存使用情况。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -538,7 +538,7 @@ public class MainActivity extends Activity {
     -  android.text.format.Formatter类是提供的用于格式化各类文本的工具类。
 
 <br>　　范例3：获取当前系统中的所有进程的信息。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -606,7 +606,7 @@ public class MainActivity extends Activity {
 
 
 <br>　　范例4：获取各个进程所占用的内存大小。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -625,7 +625,7 @@ public class MainActivity extends Activity {
     -  调用Formatter.formatFileSize来格式化显示字节数量。
 
 <br>　　范例5：关闭进程。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -667,7 +667,7 @@ public class MainActivity extends Activity {
 <br>　　在`Sensor`类中没有提供`public`的构造器，若想构造一个`Sensor`对象，则可以使用系统提供的一个类`SensorManager`。
 
 <br>　　范例1：获取方向传感器。
-``` android
+``` java
 public class MainActivity extends Activity {
     SensorManager manager;
     Sensor orientationSensor;
@@ -685,7 +685,7 @@ public class MainActivity extends Activity {
 <br>　　由于手机所处的环境是不断变化的，因此在代码中通常会定义一个监听器，当外界环境改变时`SensorManager`就会调用监听器中的方法。
 
 <br>　　范例2：监听传感器的数据变化。
-``` android
+``` java
 public class MainActivity extends Activity {
     SensorManager manager;
     Sensor orientationSensor;
@@ -754,7 +754,7 @@ public class MainActivity extends Activity {
 　　我们使用一个`Intent`对象来代表`广播`，用户或系统发送广播时，发送的就是`Intent`对象，与广播相关的数据都被保存在`Intent`对象中了。
 
 <br>　　范例1：简单的广播接收者。
-``` android
+``` java
 public class MyBroadcastReceiver extends BroadcastReceiver {
 
     /**
@@ -778,7 +778,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 <br>　　做为`Android`中的四大组件之一，广播接收者同样需要在清单文件中进行声明。
 
 <br>　　范例2：配置接收者。
-``` android
+``` java
 <receiver android:name="com.example.androidtest.MyBroadcastReceiver">
     <intent-filter>
         <action android:name="aaa.abc" />
@@ -791,7 +791,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 	-  当广播产生后，系统会依次拿广播Intent和所有的广播接收者的intent-filter进行匹配，若匹配成功，则将广播交给该广播接收者。一个广播可以同时被多个广播接收者接收。
 
 <br>　　范例3：发送广播。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -824,7 +824,7 @@ public class MainActivity extends Activity {
 　　除此之外，无序广播相对有序广播消息传递的效率比较高，但各个接收者无法终止和修改广播。而有序广播的某个接收者在中途可以终止、修改广播。
 
 <br>　　范例1：广播接收者的优先级。
-``` android
+``` java
 <receiver android:name="com.example.androidtest.MyBroadcastReceiver2" >
     <intent-filter android:priority="1000" >
         <action android:name="aaa.abc" />
@@ -836,7 +836,7 @@ public class MainActivity extends Activity {
     -  优先级的取值范围是 -1000 ~ 1000 ，最高优先级为1000。
 
 <br>　　范例2：发送广播。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -854,7 +854,7 @@ public class MainActivity extends Activity {
     -  如果MyBroadcastReceiver2在接到广播后把广播给拦截了（让广播不再往下继续传递），那么MyBroadcastReceiver将无法接到广播。
 
 <br>　　范例3：自定义权限。
-``` android
+``` java
 <permission android:name="cxy.mypermisson"/>
 ```
     语句解释：
@@ -863,7 +863,7 @@ public class MainActivity extends Activity {
 	-  定义完权限后，在其他应用程序中就可以通过<uses-permission>标签直接使用这个权限。
 
 <br>　　范例4：发送广播。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -882,7 +882,7 @@ public class MainActivity extends Activity {
 	-  提示：一般情况下，当系统发送广播时，若广播接收者所在的应用程序并没有运行，则系统会自动将其运行。以保证广播能被顺利接收。
 
 <br>　　范例5：终止广播。
-``` android
+``` java
 public class MyBroadcastReceiver2 extends BroadcastReceiver{
     public void onReceive(Context context, Intent intent) {
         Toast.makeText(context, "Hi Tom2", Toast.LENGTH_SHORT).show();
@@ -898,7 +898,7 @@ public class MyBroadcastReceiver2 extends BroadcastReceiver{
 
 
 <br>　　范例6：哥不是你可以终止的。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -925,7 +925,7 @@ public class MainActivity extends Activity {
 
 
 <br>　　范例7：发送数据。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -946,7 +946,7 @@ public class MainActivity extends Activity {
     -  发送有序广播时除了可以往Intent对象中设置数据外，还可以将数据放在一个Bundle对象中，然后通过sendOrderedBroadcast方法发送数据。
 
 <br>　　范例8：接收数据。
-``` android
+``` java
 public class MyBroadcastReceiver extends BroadcastReceiver {
 
     public void onReceive(Context context, Intent intent) {
@@ -965,7 +965,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 
 
 <br>　　范例9：妈的，还有谁?
-``` android
+``` java
 public class MyBroadcastReceiver2 extends BroadcastReceiver{
     public void onReceive(Context context, Intent intent) {
         setResultData("from receiver 2");
@@ -980,7 +980,7 @@ public class MyBroadcastReceiver2 extends BroadcastReceiver{
     -  但是调用setResultData()修改值和修改getResultExtras()方法获取的Bundle对象的值却是可以影响到后面的接收者的。
 
 <br>　　范例10：广播的发送者，你也得证明你是个好人。
-``` android
+``` xml
 <receiver 
     android:name="com.example.androidtest.MyBroadcastReceiver2"
     android:permission="org.cxy.permission.TEST">
@@ -1001,7 +1001,7 @@ public class MyBroadcastReceiver2 extends BroadcastReceiver{
 <br>　　在Android的广播机制中，动态注册的优先级是要高于静态注册优先级的，而且有的广播只接收动态注册广播接收者，因此我们需要学习如果动态注册广播接收器。
 
 <br>　　范例1：动态注册广播接收者。
-``` android
+``` java
 public class MainActivity extends Activity {
     private static final String ACTION = "cn.etzmico.broadcastreceiverregister.SENDBROADCAST"; 
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
@@ -1035,7 +1035,7 @@ public class MainActivity extends Activity {
 ### 开机启动广播 ###
 <br>**最简单的用法：**
 　　开机广播需要监听`BOOT_COMPLETED`动作：
-``` android
+``` xml
 <receiver android:name="com.example.androidtest.BootReceiver" >
     <intent-filter>
         <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -1043,7 +1043,7 @@ public class MainActivity extends Activity {
 </receiver>
 ```
 　　接收开机启动广播所需的权限：
-``` android
+``` xml
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 ```
 
