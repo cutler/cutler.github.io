@@ -239,7 +239,7 @@ git checkout -B latest k0.3.2.2
 　　笔者此时能看到的最新版就是`k0.3.2.2`，您在执行之前请去官网查看一下最新版的版本号。
 
 <br>　　第七步，依次使用如下代码来初始化、编译`ijkPlayer`，要一条条执行，别一口气都执行了：
-``` c
+``` sh
 cd ijkplayer-android
 #下面这条语句会自动下载 ffmpeg 和 android-libyuv 依赖包。
 #其中由于 ffmpeg 仓库在国外，故需要等待较长时间，本人以 15KB/s 的速度下载了两个多小时。

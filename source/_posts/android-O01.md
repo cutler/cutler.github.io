@@ -58,8 +58,7 @@ categories: Android开发 - 青铜
 　　Ant不是指蚂蚁，而是意指“另一个整洁的工具”（`Another Neat Tool`），它最早用来构建著名的`Tomcat`，其作者James Duncan Davidson创作它的动机就是因为受不了`Makefile`的语法格式。
 　　我们可以将Ant看成是一个Java版本的Make，也正因为使用了Java，Ant是跨平台的。
 　　此外，Ant使用XML定义构建脚本，相对于Makefile来说，这也更加友好。与Make类似，Ant有一个构建脚本`build.xml`，如下所示：
-``` android
-<?xml version="1.0" encoding="utf-8"?>
+``` xml
 <project name="Hello" default="compile"> 
     <target name="compile" description="compile the Java source code to class files"> 
         <mkdir dir="classes"/>  
@@ -125,7 +124,7 @@ categories: Android开发 - 青铜
 
 ### M2_HOME ###
 　　前面我们讲到设置`M2_HOME`环境变量指向Maven的安装目录，本章之后所有使用`M2_HOME`的地方都指代了该安装目录，让我们看一下该目录的结构和内容：
-``` android
+``` xml
 -  bin 
    -  mvn
    -  mvn.bat
@@ -205,7 +204,7 @@ categories: Android开发 - 青铜
 　　现在我们通过创建一个最简单的hello-world项目，来一步步了解Maven。在此之前先看一下Maven项目的标准目录结构。
 
 <br>　　范例1：hello-world项目目录结构。
-``` android
+``` xml
 hello-world
 - src
   - main
@@ -235,8 +234,7 @@ hello-world
 　　那么，接下来我们进入到`hello-world`文件夹中，并创建一个`pom.xml`（该文件的编码应该为`UTF-8`）。
 
 <br>　　范例1：pom.xml。
-``` android
-<?xml version="1.0" encoding="UTF-8"?>
+``` xml
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -272,7 +270,7 @@ hello-world
 　　Maven坐标的包括`groupId`、`artifactId`、`version`、`packaging`、`classifier`五个部分。
 
 <br>　　范例1：Maven坐标。
-``` android
+``` xml
 <groupId>com.juvenxu.mvnbook</groupId>
 <artifactId>hello-world</artifactId>
 <version>1.0-SNAPSHOT</version>
@@ -344,7 +342,7 @@ public class HelloWorld {
 [INFO] Finished at: Fri Oct 09 02:08:09 CST 2009   
 [INFO] Final Memory: 9M/16M
 [INFO] ------------------------------------------------------------------------  
-``` 
+```
 　　`mvn clean compile`命令中的`clean`是告诉Maven清理输出目录`target`。
 　　而且从输出的日志第`5`行我们也可以看到Maven首先执行了`clean:clean`任务，删除`target/`目录，默认情况下Maven构建的所有输出都在`target/`目录中。由于我们之前并没有创建它，所以maven不会执行任何操作。
 　　接着执行第`7`行`resources:resources`任务（由于我们也未定义项目资源，所以跳过了这个步骤）。
@@ -411,8 +409,7 @@ mvn package
 　　要在Maven项目上使用`JUnit`，我们首先需要修改项目的`POM`文件来为Hello World项目添加一个`JUnit`的`依赖`，所谓添加依赖就是添加引用，即通过`pom.xml`来告诉Maven当前项目需要使用到其他第三方开发的`jar`等库。
 
 <br>　　范例1：pom.xml。
-``` android
-<?xml version="1.0" encoding="UTF-8"?>
+``` xml
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -454,7 +451,7 @@ mvn package
 
 　　默认情况下，不论是`Windows`还是`Linux`，当首次执行`mvn`命令时Maven会在当前登录到操作系统的用户的目录下创建一个`.m2`的隐藏文件夹，其内有一个`repository`目录就是默认的本地仓库。
 　　有时候，因为某些原因（例如C盘空间不够），用户会想要自定义本地仓库目录地址。这是可以通过修改`.m2/settings.xml`来更改本地仓库的路径。
-``` android
+``` xml
 <settings>
     <localRepository>D:\java\repository\</localRepository>
 </settings>
@@ -469,7 +466,7 @@ mvn package
 <br>**中央仓库**
 　　由于最原始的本地仓库是空的，Maven必须知道至少一个可用的远程仓库，才能在执行Maven命令的时候下载到需要的构件。中央仓库就是这样一个默认的远程仓库，Maven文件自带了中央仓库的配置。
 　　读者可以使用解压工具打开`M2_HOME/lib/maven-model-builder-3.2.3.jar`文件，然后访问路径`org/apache/maven/model/pom-4.0.0.xml`，打开后可以看到如下配置：
-``` android
+``` xml
   <repositories>
     <repository>
       <id>central</id>
@@ -495,7 +492,7 @@ mvn package
 ## 依赖 ##
 
 <br>　　范例1：dependency的子标签。
-``` android
+``` xml
 <dependencies>    
     <dependency>
         <groupId>...</groupId>
@@ -613,7 +610,7 @@ Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
 　　还是以Hello World为例，我们使用`archetype`来创建该项目的骨架，离开当前的Maven项目目录，返回到上层目录，然后进去执行下面的范例。
 
 <br>　　范例1：创建一个最简单的Maven项目。
-``` android
+``` java
 mvn archetype:generate 
 -DgroupId=com.juvenxu.mvnbook 
 -DartifactId=hello-world2 
@@ -689,13 +686,13 @@ frame-simple
 <br>　　第一步，用Eclipse创建一个名为`MavenBuild`的Android项目，并在它的`assets`目录下创建一个`common.properties`文件，用于配置渠道号。项目的本地路径为：`D:\makeApk\MavenBuild`。
 
 　　范例1：`assets\common.properties`文件。
-``` android
+``` java
 channel=default
 ```
 <br>　　第二步，在`MainActivity.java`中读取渠道信息，并使用`Toast`把渠道显示到屏幕上。
 
 　　范例2：MainActivity类。
-``` android
+``` java
 package com.example.mavenbuild;
 import java.io.IOException;
 import java.io.InputStream;
@@ -784,7 +781,7 @@ public class MainActivity extends Activity {
 　　接下来将按照标签出现的顺序依次介绍上面各个标签的含义。
 
 <br>　　范例4：`<properties>`标签。
-``` android
+``` xml
 <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 </properties>
@@ -794,7 +791,7 @@ public class MainActivity extends Activity {
 
 
 <br>　　范例5：`<dependencies>`标签。
-``` android
+``` xml
 <dependencies>
     <dependency>
         <groupId>com.google.android</groupId>
@@ -807,7 +804,7 @@ public class MainActivity extends Activity {
 　　本范例通过Maven的依赖机制引用了`anroid4.1.1.4`的`jar`包，如果不依赖它的话，程序中的`Activity`、`Toast`等类都将无法使用。
 
 <br>　　范例6：`<build>`标签。
-``` android
+``` xml
 <sourceDirectory>src</sourceDirectory>
 <finalName>${project.artifactId}</finalName>
 ```
@@ -817,7 +814,7 @@ public class MainActivity extends Activity {
 　　事实上`project.artifactId`是Maven内置的一个常量，Maven会将检测到的项目的`artifactId`值赋值给它。
 
 <br>　　范例7：编译插件。
-``` android
+``` xml
 <!-- 此处省略了pluginManagement标签里的内容 -->
 <plugins>
     <plugin>
@@ -962,7 +959,7 @@ C:\Users\cutler\.m2\repository\com\srapp\srapp\1.1
 ```
 
 <br>　　最后，我们需要把它配置到`pom.xml`文件中：
-``` pom
+``` xml
 <dependency>
     <groupId>com.srapp</groupId>
     <artifactId>srapp</artifactId>
@@ -974,7 +971,7 @@ C:\Users\cutler\.m2\repository\com\srapp\srapp\1.1
 　　实际开发中通常会引用第三方提供的`apklib`项目，而Maven也可以帮我们处理。
 
 　　首先，在`apklib`项目中添加一个`pom.xml`文件，具体的添加流程和普通项目完全一样，唯一不同的是`packaging`属性的值：
-``` mvn
+``` xml
 <groupId>com.srapp.coreres</groupId>
 <artifactId>coreres</artifactId>
 <version>1.0.0</version>
@@ -982,12 +979,12 @@ C:\Users\cutler\.m2\repository\com\srapp\srapp\1.1
 ```
 
 　　然后，在命令行中进入到`apklib`项目的根目录下，执行：
-``` mvn
+``` xml
 mvn clean install
 ```
 
 　　如果执行成功的话，我们就可以在本地仓库中找到它。然后在主项目的`pom.xml`中添加如下代码：
-``` mvn
+``` xml
 <dependency>
     <groupId>com.srapp.coreres</groupId>
     <artifactId>coreres</artifactId>

@@ -30,7 +30,7 @@ categories: Android开发 - 青铜
 	   -  此方法属于特殊情况，并不常用，因此我们也不关注它。
 
 <br>　　范例1：让Activity运行在不同的进程中。
-``` android
+``` xml
 <activity
     android:name=".MainActivity"
     android:screenOrientation="portrait">
@@ -64,7 +64,7 @@ categories: Android开发 - 青铜
 	   -  而进程名不以“:”开头的进程则属于全局进程，其他应用通过ShareUID方式可以和它跑在同一个进程中。
 
 <br>　　多进程实现虽然起来很简单，但是也会带来一些问题，比如说我们有这么一个类：
-``` android
+``` java
 public class UserManager {
     public static int userId = 1;
 }
@@ -100,7 +100,7 @@ public class UserManager {
 　　答：将对象转成字节并保存在硬盘的操作就是对象序列化，相应的从磁盘中将序列化后得到的数据给读到内存中，并还原成对象的操作就是对象反序列化。
 
 <br>　　范例1： 序列化对象。
-``` android
+``` java
 class Person implements Serializable {
 
     private String name;
@@ -173,7 +173,7 @@ public class MainActivity extends Activity {
 
 <br>**序列化一组对象**
 　　由于Object类型的引用变量是可以接受任意引用类型的对象的，因此可以利用此特点来序列化一组对象。
-``` android
+``` java
 out.writeObject(
     new Person[]{
         new Person("张三",40),
@@ -202,7 +202,7 @@ out.writeObject(
 	-  最后，再在该类中增加一个Parcelable.Creator接口的静态对象CREATOR，用来执行反序列化。
 
 <br>　　范例1：实现Parcelable接口。
-``` android
+``` java
 public class Person implements Parcelable {
     private int age;	
     private String name;	
@@ -286,7 +286,7 @@ public class Person implements Parcelable {
 	5、服务端，在它的Handler的handleMessage()方法中依次接收客户端发来的每个Message对象，并处理。
 
 <br>　　范例1：客户端MainActivity（代码片段）。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     // 客户端的信使对象，用于接收服务端发来的响应。
@@ -321,7 +321,7 @@ public class MainActivity extends Activity {
 ```
 
 <br>　　范例2：服务端MyService。
-``` android
+``` java
 public class MyService extends Service {
 
     // 服务端的信使对象，用来接收来自各个客户端的请求。
@@ -404,7 +404,7 @@ public class MyService extends Service {
 	   -  这个工作由IDE来调用AndroidSDK里的工具来完成，最终会在gen目录下产生一个.java文件，以供我们使用。
 
 <br>　　首先创建`org.cutler.aidl`包，并在其内创建一个`IDAO.aidl`，内容如下：
-``` android
+``` java
 // IDAO.aidl
 package org.cutler.aidl;
 
@@ -421,7 +421,7 @@ interface IDAO {
 
 <br>**创建服务**
 <br>　　按照刚才说的，Android SDK工具会依照`IDAO.aidl`来生成一个`IDAO.java`文件，它的内容如下所示：
-``` android
+``` java
 public interface IDAO extends android.os.IInterface {
 
     public static abstract class Stub extends android.os.Binder implements org.cutler.aidl.IDAO {
@@ -440,7 +440,7 @@ public interface IDAO extends android.os.IInterface {
 <br>　　接下来要做的就是，在你应用程序中实现该接口，并在`Service`的`onBind()`方法被调用时，将该实例返回。
 
 <br>　　范例1：MyService。
-``` android
+``` java
 public class MyService extends Service {
 
     // 注意，此处继承的是IDAO.Stub类。
@@ -460,7 +460,7 @@ public class MyService extends Service {
 ```
 
 <br>　　范例2：配置服务。
-``` android
+``` xml
 <service android:name="com.cutler.androidtest.MyService" android:process=":remote">
     <intent-filter>
         <action android:name="com.cutler.androidtest.MyService" />
@@ -473,7 +473,7 @@ public class MyService extends Service {
 
 <br>**客户端代码**
 <br>　　范例1：客户端代码。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     public void onCreate(Bundle savedInstanceState) {
@@ -523,7 +523,7 @@ public class MainActivity extends Activity {
 <br>　　接下来我们添加一个Person类，具体的过程如下：
 
 <br>　　1、在服务端的`org.cutler.aidl.entity`包中创建一个`Person`类，并实现`Parcelable`接口，代码如下：
-``` android
+``` java
 package org.cutler.aidl.entity;
 
 import android.os.Parcel;
@@ -572,7 +572,7 @@ public class Person implements Parcelable {
 }
 ```
 <br>　　2、在服务端的`org.cutler.aidl.entity`包中创建一个`Person.aidl`文件，内容如下： 
-``` android
+``` java
 // Person.aidl
 package org.cutler.aidl.entity;
 
@@ -584,7 +584,7 @@ parcelable Person;
 	-  关键字parcelable必须全部小写。
 
 <br>　　3、修改服务端的`IDAO.aidl`文件，代码如下：
-``` android
+``` java
 // IDAO.aidl
 package org.cutler.aidl;
 import org.cutler.aidl.entity.Person;
@@ -600,7 +600,7 @@ interface IDAO {
     -  在IDAO.aidl文件中，需要使用import关键字，导入Person的aidl文件。
 
 <br>　　4、修改服务端的`MyService`类。
-``` android
+``` java
 public class MyService extends Service {
 
     private IBinder mBinder = new IDAO.Stub() {
@@ -651,7 +651,7 @@ sourceSets {
 　　这是一种典型的观察者模式，客户端不需要定时的去检查服务端的数据，省去了不少麻烦，我们接下来就来完成这个需求。
 
 <br>　　第一步，创建`IOnNewPersonListener.aidl`，用来让客户端接收服务端的通知。
-``` aidl
+``` java 
 // IOnNewPersonListener.aidl
 package org.cutler.aidl;
 
@@ -665,7 +665,7 @@ interface IOnNewPersonListener {
     -  参数Person前面需要使用in关键字。
 
 <br>　　第二步，修改`IDAO.aidl`，添加两个新的方法，分别用来注册、删除观察者。
-``` aidl
+``` java
 // IDAO.aidl
 package org.cutler.aidl;
 import org.cutler.aidl.entity.Person;
@@ -683,7 +683,7 @@ interface IDAO {
 ```
 
 <br>　　第三步，修改`MyService`，重写新加两个新的方法，并定时创建`Person`对象。
-``` android
+``` java
 public class MyService extends Service {
 
     // 观察者列表
@@ -764,7 +764,7 @@ public class MyService extends Service {
 ```
 
 <br>　　第四步，修改`MainActivity`。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     // 注意此处的内部类是IOnNewPersonListener.Stub类型的。
@@ -821,7 +821,7 @@ public class MainActivity extends Activity {
 　　这是因为虽然客户端在注册和删除观察者时传递的`IOnNewPersonListener`对象是同一个，但是当程序执行在服务端时，每次接到的都是一个新的`IOnNewPersonListener`对象。
 
 <br>　　系统专门提供的用于删除跨进程`listener`的泛型类`RemoteCallbackList`。它支持管理任意的AIDL接口，这点从它的声明就可以看出，因为所有的AIDL接口都继承自`IInterface`接口：
-``` android
+``` java
 public class RemoteCallbackList<E extends IInterface>
 ```
 
@@ -839,7 +839,7 @@ Callback cb = new Callback(callback, cookie);
 　　另外，`RemoteCallbackList`内部已经实现了线程同步的功能，所以我们使用它来注册和解注册时，不需要做额外的线程同步工作。
 
 <br>　　最终修改后的MyService的代码为：
-``` android
+``` java
 public class MyService extends Service {
 
     private RemoteCallbackList<IOnNewPersonListener> list = new RemoteCallbackList<IOnNewPersonListener>();
@@ -956,7 +956,7 @@ public class MyService extends Service {
 　　下面通过创建一个简单的内容提供者来介绍ContentProvider类的常用方法。
 
 <br>　　范例1：服务端的MyContentProvider类。
-``` android
+``` java
 public class MyContentProvider extends ContentProvider{
 
     /**
@@ -1037,7 +1037,7 @@ public class MyContentProvider extends ContentProvider{
 <br>　　我们可以通过`ContentResolver`类来访问内容提供者。
 
 <br>**插入数据**
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -1078,7 +1078,7 @@ Cursor mCursor = getContentResolver().query(mUri, mProjection, mSelection, mSele
 
 <br>　　范例1：Cursor接口。
 　　此接口代表一个游标，即一个行集，最初游标指向第一个实体之前的位置。
-``` android
+``` java
 public interface Cursor implements Closeable {
 
     /**
@@ -1116,7 +1116,7 @@ public interface Cursor implements Closeable {
 　　前面说了，不论客户端调用提供者“增删查改”中的哪个方法，都需要提供一个URI，用来告知提供者其所要操作的表。 提供者为了确保客户端传递的URI格式的合法性，需要进行必要的验证。
 
 <br>　　范例1：UriMatcher类。
-``` android
+``` java
 public class UriMatcher extends Object {
 
     /**
@@ -1152,7 +1152,7 @@ public class UriMatcher extends Object {
 ```
 
 <br>**完整范例**
-``` android
+``` java
 public class MyContentProvider extends ContentProvider {
 
     public static final String AUTHORITIES = "org.cxy.provider.test";
@@ -1262,7 +1262,7 @@ public class MyContentProvider extends ContentProvider {
 	-  最后，在访问者所在的应用程序中使用<uses-permission>标签申请权限。
 
 <br>　　范例1：定义读权限。
-``` android
+``` xml
 <permission android:name="com.example.app.provider.permission.READ_PROVIDER"/>
 ```
 	语句解释：

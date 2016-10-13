@@ -20,7 +20,7 @@ categories: Android开发 - 青铜
 　　但是再深入点看的话，就会发现Activity其实主要是处理一些逻辑问题（比如生命周期的管理等），显示在屏幕上的控件并不是由它来管理的，而是交给了`Window`类。
 
 　　不信的话，可以打开Activity类的源码，看一下它的setContentView方法：
-``` android
+``` java
 private Window mWindow;
 private WindowManager mWindowManager;
 
@@ -232,7 +232,7 @@ public boolean requestFeature(int featureId) {
 
 <br>　　比如，我们可以在`Activity`中通过代码来控制`内容区域`的显示与隐藏。
 　　范例1：隐藏`contentView`。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     @Override
@@ -454,7 +454,7 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
 　　接下来，从最简单的范例开始，一步步的介绍`WindowManager`类。
 
 <br>　　范例1：添加一个`TextView`。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -506,7 +506,7 @@ params.flags =
 
 <br>　　解决了这个问题之后，又发现如果我们点击`Home`键，那么屏幕上的按钮就会随着`Activity`一起被切到后台。
 　　如果想让按钮一直显示在屏幕上，而不随着`Activity`一起隐藏，那么可以这么写：
-``` android
+``` java
 public class MainActivity extends Activity {
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -550,7 +550,7 @@ public class MainActivity extends Activity {
 <br>**优先级**
 　　事实上`WindowManager`中可以放置很多个`View`（控件），控件之间有优先级之分，`优先级高的将被放到优先级低的上面`。若最高优先级控件的宽高是`“MATCH_PARENT”`，则其下面的控件都将被完全遮住，`若优先级相同则后加入的会被放到上面显示`。
 <br>　　我们来看一下下面的代码：
-``` android
+``` java
 public class MainActivity extends Activity {
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -630,7 +630,7 @@ mWindowManager.updateViewLayout(view, mParams);
 　　为了对自定义控件有个整体的认识，接下来我们先来写一个`HelloWorld`，其中涉及到的知识后面会详细介绍。
 
 <br>　　范例1：`MyView`。
-``` android
+``` java
 // 所有自定义控件都必须继承View或View的子类。
 public class MyView extends View {
     // 当通过代码来创建View对象时（通过new关键字），调用此方法初始化View。
@@ -652,7 +652,7 @@ public class MyView extends View {
 <br>　　然后，我们来重写`onDraw`方法，该方法继承自`View`类，当系统需要绘制某个`View`时，就会调用该`View`对象的`onDraw`方法执行绘制操作。
 
 <br>　　范例2：`MyView`。
-``` android
+``` java
 public class MyView extends View {
 
     // 当通过代码来创建View对象时（通过new关键字），调用此方法初始化View。
@@ -748,7 +748,7 @@ public class MyView extends View {
 ```
 
 <br>　　然后，`MyViewGroup`类的代码为：
-``` android
+``` java
 public class MyViewGroup extends LinearLayout {
 
     private MyView myView;
@@ -846,7 +846,7 @@ public class MyView extends View {
 <br>　　既然这两参数是混合值，那么在使用它们之前，首先得使用`MeasureSpec`类来拆分出`SpecMode`和`SpecSize`。
 
 　　范例1：获取`mode`与`size`。
-``` android
+``` java
 protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
@@ -1018,7 +1018,7 @@ public static int getChildMeasureSpec(int spec, int padding, int childDimension)
 
 <br>**普通View的重写**
 <br>　　范例1：重写`onMeasure`方法。
-``` android
+``` java
 public class MyView extends View {
 
     public MyView(Context context) {
@@ -1151,7 +1151,7 @@ protected void measureChildWithMargins(View child,
 　　当所有`View`都测量完毕后，就需要设置它们的位置了，这个过程同样是从`DecorView`开始，调用的方法为`layout()`。
 
 <br>　　首先，我们来看下`View.java`中的`layout()`方法的源码：
-``` android
+``` java
 public void layout(int l, int t, int r, int b) {
     if ((mPrivateFlags3 & PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT) != 0) {
         onMeasure(mOldWidthMeasureSpec, mOldHeightMeasureSpec);
@@ -1199,7 +1199,7 @@ public void layout(int l, int t, int r, int b) {
 	-  对于ViewGroup类来说，在它内部onLayout方法被改为抽象方法了，即要求所有ViewGroup的子类都必须重写它。
 
 <br>　　接着我们来看下`ViewGroup.java`中的`layout()`和`onLayout()`方法的源码：
-``` android
+``` java
 public final void layout(int l, int t, int r, int b) {
     if (!mSuppressLayout && (mTransition == null || !mTransition.isChangingLayout())) {
         if (mTransition != null) {
@@ -1224,7 +1224,7 @@ protected abstract void onLayout(boolean changed, int l, int t, int r, int b);
 
 
 <br>　　我们来看下`LinearLayout`的`onLayout`方法：
-``` android
+``` java
 //  参数 changed 表示当前ViewGroup的尺寸或者位置是否发生了改变。
 //  也就是说ViewGroup的尺寸和位置没有发生变化时，此方法也有可能被调用。
 protected void onLayout(boolean changed, int l, int t, int r, int b) {
@@ -1289,7 +1289,7 @@ private void setChildFrame(View child, int left, int top, int width, int height)
 　　`Canvas`这个类的用法非常丰富，基本可以把它当成一块画布，在上面绘制任意的东西，那么我们就来尝试一下吧。
 
 <br>　　范例1：初步使用画笔和画布。
-``` android
+``` java
 public class MyView extends View {
     private Paint mPaint;
     public MyView(Context context, AttributeSet attrs) {
@@ -1356,7 +1356,7 @@ public class MyView extends View {
 	-  第二，若计时器View当前不再屏幕中（比如用户把App切换到后台了），那么线程仍然在跑，View仍然是每秒钟都重绘一次，浪费大量资源。
 
 <br>　　如果你不需要`定时重绘`，那么最好也去使用`postInvalidate()`方法，当`View`不再显示时，它同样不会立刻执行重绘操作，它的源码为：
-``` android
+``` java
 public void postInvalidate() {
     postInvalidateDelayed(0);
 }

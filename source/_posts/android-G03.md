@@ -13,7 +13,7 @@ categories: Android开发 - 青铜
 	   -  理论结合实践是非常重要的，举个例子：我们都会用嘴发声，也会通过击打手臂发声，但是当我们看到芈月用嘴和手臂放屁时，还是会眼前一亮，原来还可以这么玩。
 	   -  也就是说，基础知识学会之后，还要再学习如何将它们组合在一起使用。
 　　千言万语汇成一句话：想创新，先模仿！
-<!-- more -->
+
 # 第一节 基础入门 #
 　　在绘制`View`时会涉及到两个类：`Paint`和`Canvas`，这两个类分别代表`画笔`和`画布`。
 　　我们需要调用`Canvas`对象所提供的方法进行绘制，其中`Canvas`对象由系统创建，在View的`onDraw()`方法被调用时，系统会同时将`Canvas`对象以形参的形式传递给该方法。
@@ -35,7 +35,7 @@ categories: Android开发 - 青铜
 　　虽然我们只能使用`Canvas`所提供的方法来进行绘制，但绘制时还要传递给`Canvas`一个`Paint`对象，`Paint`对象用来设置画笔的相关的参数。
 
 <br>　　范例1：绘制文字。
-``` android
+``` java
 public class MyView extends View {
     private Paint mPaint;
     public MyView(Context context, AttributeSet attrs) {
@@ -130,7 +130,7 @@ private void drawText(String s, int x, int y, Paint p, Canvas canvas) {
 
 ## 绘制图形 ##
 <br>　　范例1：绘制图形。
-``` android
+``` java
 @Override
 protected void onDraw(Canvas canvas) {
     // 定义一个画笔对象。
@@ -164,7 +164,7 @@ protected void onDraw(Canvas canvas) {
 ![本范例运行效果示意图](/img/android/android_b08_01.png)
 </center>
 
-``` android
+``` java
 @Override
 protected void onDraw(Canvas canvas) {
     Paint p = new Paint();
@@ -229,7 +229,7 @@ protected void onDraw(Canvas canvas) {
 　　当然也可以使用`drawLines`方法来实现多边形，但是`drawPath`方法更为灵活、方便。
 
 <br>　　范例1：平行四边形与棒棒糖。
-``` android
+``` java
 protected void onDraw(Canvas canvas) {
     Paint paint = new Paint();
     paint.setColor(Color.RED);
@@ -256,7 +256,7 @@ protected void onDraw(Canvas canvas) {
     -  Path.Direction.CCW 表示逆时针，Path.Direction.CW 表示顺时针。
 
 <br>　　范例2：`Path`与文字。
-``` android
+``` java
 protected void onDraw(Canvas canvas) {
     Paint paint = new Paint();
     paint.setTextSize(30);
@@ -493,7 +493,7 @@ protected void onDraw(Canvas canvas) {
 </center>
 
 <br>　　完整代码如下：
-``` android
+``` java
 public class MyView extends View {
 
     private Paint mPaint;
@@ -625,7 +625,7 @@ public class MyView extends View {
     -  如果你想深刻理解自定控件，那么就必须得亲自去写。
 
 <br>　　范例3：绘制`Bitmap`。
-``` android
+``` java
 public class MyView extends TextView {
 
     // 此处省略构造方法和onMeasure()方法。
@@ -657,7 +657,7 @@ public class MyView extends TextView {
     -  更多关于Btimap与Matrix类的介绍，请参看笔者的另一篇博文《媒体篇　第二章 图片》。
 
 <br>　　范例4：绘制`GIF`。
-``` android
+``` java
 public class MyView extends TextView {
     // 我们将使用android.graphics.Movie类来绘制GIF。
     private Movie mMovie;
@@ -714,7 +714,7 @@ public class MyView extends TextView {
 ![本范例运行效果示意图，最左边的为原始图像](/img/android/android_b08_02.png)
 </center>
 
-``` android
+``` java
 public class MyView extends View {
 
     public MyView(Context context) {
@@ -889,7 +889,7 @@ public class MyView extends View {
 ![运行效果](/img/android/android_g03_12.png)
 </center>
 
-``` android
+``` java
 public class MyView extends View {
     public MyView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -931,7 +931,7 @@ public class MyView extends View {
 ![营养跟不上了](/img/android/android_g03_13.png)
 </center>
 
-``` android
+``` java
 public class MyView extends View {
     private Bitmap mBgBitmap;    // 背景图片
     private Bitmap mFgBitmap;    // 前景图片
@@ -1352,7 +1352,7 @@ protected void onDraw(Canvas canvas) {
 <br>　　在程序中有多种方法可以获取到`xml`文件中的属性的值，最为简便、易懂的方法是通过`TypedArray`类来完成。
 
 <br>　　范例3：获取属性值。
-``` android
+``` java
 public class MyView extends View {
 
     public MyView(Context context) {

@@ -1,4 +1,4 @@
-title: 入门篇　第二章 Activity
+title: 入门篇　第一章 Activity
 date: 2014-10-30 23:28:28
 categories: Android开发 - 青铜
 ---

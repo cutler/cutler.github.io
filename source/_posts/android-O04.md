@@ -1,16 +1,18 @@
-title: 综合篇　第四章 通用项目架构
+title: 综合篇　第四章 项目架构
 date: 2015-6-29 17:15:30
 categories: Android开发 - 青铜
 ---
 　　我们都知道要写一款精品软件是有难度且很复杂的：不仅要满足特定要求，而且软件还必须具有稳健性，可维护、可测试性强，并且能够灵活适应各种发展与变化。
 　　因此，我们需要掌握一些常见的架构知识，以便能编写出结构合理的项目。
 
-　　本章将介绍如下两个内容：
+# 第一节 结构划分 #
+
+<br>　　本节将介绍如下两个内容：
 
 	-  包结构的划分
 	-  类结构的划分
 
-# 第一节 包结构的划分 #
+## 包结构的划分 ##
 　　当我们在`IDE`中创建了一个全新的`Android`项目后，相信不少人接下来要做的就是，把老项目的代码`copy`过来、添加各种开源库等，避免重复造轮子。
 　　这么做没有任何问题，但是笔者认为不应该把它排在第一步，第一步要做的是划分包结构。
 
@@ -27,7 +29,7 @@ com.cutler.demo
   -  MainApplication.java
 ```
 
-## common ##
+<br>　　**common**
 <br>　　`com.cutler.demo.common`包用来存放与当前项目有关的公用类，它下面可以根据不同的模块划分出不同的子包。比如：
 
 	-  common.receiver：存放广播接收者。
@@ -35,7 +37,7 @@ com.cutler.demo
 	-  common.util：存放项目内部使用的工具类，即与当前项目的代码紧密耦合。
 
 <br>　　`Congif.java`用来存放当前项目中的`全局常量`（它没有任何方法），它内部的代码通常是这样的：
-``` android
+``` java
 public class Config {
     // 配置文件的名称。
     public static final String KEY_SHARE_PRE_FILE_NAME = "share_prefile";
@@ -56,208 +58,30 @@ public class Config {
 }
 ```
 
-<br>　　`SystemParams.java`用来存放整个项目中所有的`全局变量`，以及与那些变量相关的操作方法，通常它是单例模式的。同时，你可以在全局变量的值被修改时，执行持久化操作。
-　　既然`SystemParams`通常是单例的，那么我们接下来就正式的介绍一下单例模式（后续章节会陆续插入其它设计模式）。
-
-<br>　　扩展阅读：
-
-	-  设计模式，有非常多的定义，有人会举出Gang of Four那本《Design Patterns》来解释，而笔者认为：
-	   -  设计模式是软件开发领域中针对特定上下文的特定问题的解决方案。
-	   -  《Design Patterns》中举出了23种设计模式，它们分别用于不同的场景，当我们处在这23种场景下时，按照对应的设计模式所规定的思路去编程，可以写出结构合理、扩展性很强的代码。
-<br>
-### 何为单例？ ###
-　　所谓的单例(`Singleton`)设计模式，就是指一个类只允许有一个对象。如果我们的某个类不需要存在多个对象，那么就可以考虑把这个类写成单例模式的。
-
-　　单例设计模式的实施步骤：
-
-	1、使用private修饰构造方法。这样外界就不可以通过new关键字来创建该类的对象了，但本类中的代码仍然可以创建。
-	2、在本类中建立一个静态的本类的对象。
-	3、建立一个静态方法用来返回此对象的引用。
-
-<br>　　范例1：最简单的单例模式。
-``` java
-public class SingleClass {
-    private static SingleClass instance = new SingleClass();
-
-    private SingleClass() {
-        // 默认提供的构造方法是public的，因此在此需要自定义一个无参的构造，并将访问权限该为private的。
-    }
-
-    public static SingleClass getInstance() {
-        return instance;
-    }
-
-    // 定义一个实例方法，以供外界调用。
-    public void getInfo() {
-        System.out.println("single");
-    }
-}
-```
+<br>　　`SystemParams.java`用来存放整个项目中所有的`全局变量`，以及与那些变量相关的操作方法，通常它是单例模式（稍后会详细介绍）的。同时，你可以在全局变量的值被修改时，执行持久化操作。
 
 
-<br>　　上面就是一个最简单的单例模式的写法，不过它并不是最优的写法，后面我们会继续完善它。
 
-<br>　　当程序运行的时候，我们可以通过下面的代码来调用`SingleClass`类的`getInfo`方法：
-``` java
-// 不需要创建任何SingleClass类的对象，就可以在程序的任何地方调用getInfo()方法。
-SingleClass.getInstance().getInfo();
-```
-<br>
-### 单例与静态 ###
-　　我们在设计程序经常会有这种需求，某个类里的方法能够全局访问。在这种情况下有两种实现方案：
-
-	-  单例模式(Singleton)
-	-  静态方法
-
-　　但是，我们应该如何选择使用哪种方式呢？
-
-	-  如果你的类不维持任何状态，仅仅是提供全局的访问，这个时候就适合用静态类。
-	   -  最基本的例子就是在Java中的java.lang.Math类的实现方式，Math类就是用过静态方法来实现的，而不是单例来实现的。
-	-  如果你的类需要维持一些状态，或者需要从线程安全、兼容性上来考虑一些问题，那么选用单例为宜。
-	   -  比如我们上面说的SystemParams类，它需要保存一些变量的值。
-<br>
-### 单例的各种写法 ###
-　　上面的范例的写法有个缺点，当`SingleClass`类被加载的时候就会立刻实例化单例对象。
-　　这意味着如果单例对象里包含了很多属性，那这个对象就会占有很多内存空间，而这块空间我们一时半会可能用不到。因此可以改造一下代码，只有在我们需要使用单例对象的时候才去创建这个单例对象。
-
-<br>　　范例1：懒汉式。
-``` java
-public class SingleClass {
-    private static SingleClass instance;
-
-    private SingleClass() { }
-
-    public static SingleClass getInstance() {
-        if(instance == null){
-            instance = new SingleClass();
-        }
-        return instance;
-    }
-
-    // 定义一个实例方法，以供外界调用。
-    public void getInfo() {
-        System.out.println("single");
-    }
-}
-```
-
-<br>　　不过懒汉式的写法依然存在问题，当多个线程同时访问`getInstance`方法时，会导致创建多个`SingleClass`类的对象。 
-
-<br>　　范例2：懒汉式（线程安全）。
-``` java
-public class SingleClass {
-    private static SingleClass instance;
-
-    private SingleClass() { }
-
-    public static SingleClass getInstance() {
-        if(instance == null){
-            // 此处加个线程同步。
-            synchronized (SingleClass.class) {
-                if(instance == null){
-                    instance = new SingleClass();
-                }
-            }
-        }
-        return instance;
-    }
-
-    // 定义一个实例方法，以供外界调用。
-    public void getInfo() {
-        System.out.println("single");
-    }
-}
-```
-    语句解释：
-    -  此种方式也被称为双重校验锁。
-    -  也有人将synchronized关键字直接修饰在getInstance()方法上，缺点是每次调用getInstance()方法都需要进行线程同步操作。
-
-<br>　　范例3：静态内部类。
-``` java
-public class SingleClass {
-    private static class SingletonHolder {
-        private static final SingleClass INSTANCE = new SingleClass ();
-    }
-    private SingleClass(){}
-    public static final SingleClass  getInstance() {
-        return SingletonHolder.INSTANCE;
-    }
-}
-```
-    语句解释：
-    -  此种方式利用了静态内部类的特点，即实现了懒加载又不用担心多线程问题。
-    -  但是由于双重校验锁更直观容易理解，因而比此种方式常见。
-
-<br>**有两个问题需要注意：**
-　　1、如果单例由不同的类装载器装入，那便有可能存在多个单例类的实例。
-　　2、如果`Singleton`实现了`java.io.Serializable`接口，那么这个类的实例就可能被序列化和复原。不管怎样，如果你序列化一个单例类的对象，接下来复原多个那个对象，那你就会有多个单例类的实例。
-
-<br>　　范例4：通过反序列化来创建多个对象。
-``` java
-import java.io.*;
-public class Main {
-
-    public static void main(String[] args) throws Exception {
-        // 先输出两遍单例对象，结果它们输出的内存地址是一样的。
-        System.out.println(SingleClass.getInstance());
-        System.out.println(SingleClass.getInstance());	
-		
-        File file = new File("a.txt");
-        // 将单例对象序列化到a.txt文件中。
-        write(file);
-        // 反序列化4次，程序每次输出的内存地址都是不一样的。
-        System.out.println(read(file));
-        System.out.println(read(file));
-        System.out.println(read(file));
-        System.out.println(read(file));
-    }
-	
-    private static void write(File file) throws Exception {
-        ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(file));
-        output.writeObject(SingleClass.getInstance());
-        output.close();
-    }
-	
-    private static SingleClass read(File file) throws Exception{
-        ObjectInputStream input = new ObjectInputStream(new FileInputStream(file));
-        SingleClass inst = (SingleClass)input.readObject();
-        input.close();
-        return inst;
-    }
-
-}
-```
-    语句解释：
-    -  在执行本范例之前，请先让SingleClass实现Serializable接口。
-
-<br>　　解决方案请自行搜索，不过笔者认为，开发的时候使用`“双重校验锁”`方式就够用的了，单例模式的这两个缺点了解即可。
-　　另外，如果你担心别人通过反射的方式来调用你的私有构造器，那么可以在里面加上检测，一旦存在了单例对象，则直接抛出异常。
-
-<br>**参考阅读：**
-- [程序设计之---单例模式VS静态方法](http://blog.csdn.net/johnny901114/article/details/11969015)
-- [单例模式的七种写法](http://cantellow.iteye.com/blog/838473)
-
-## model ##
-　　`com.cutler.demo.model`包用来存放`model`类，它下面可以根据不同的模块划分出不同的子包。比如：
+<br>　　**model**
+<br>　　`com.cutler.demo.model`包用来存放`model`类，它下面可以根据不同的模块划分出不同的子包。比如：
 
 	-  common.user：存放用户相关的类，如：User、Photo（照片）、UserDAO等。
 	   -  其中UserDAO用来处理User对象的数据库相关的操作。
 	-  common.message：存放消息相关的类，如：Message、Topic（会话）等。
 
-## ui ##
-　　`com.cutler.demo.ui`包用来存放界面相关（`Activity`、`Fragment`、`Adapter`等）的类，它下面可以根据不同的模块划分出不同的子包。比如：
+<br>　　**ui**
+<br>　　`com.cutler.demo.ui`包用来存放界面相关（`Activity`、`Fragment`、`Adapter`等）的类，它下面可以根据不同的模块划分出不同的子包。比如：
 
 	-  ui.welcome：存放登录相关的类，如：LoginActivity、RegisterActivity等。
 	-  ui.message：存放消息相关的类，如：MessageActivity等。
 
-## util ##
-　　`com.cutler.demo.util`包用来存放与当前项目无关的工具类，即这些类可以轻松的拿到其他项目中直接使用。它下面可以根据不同的模块划分出不同的子包。比如：
+<br>　　**util**
+<br>　　`com.cutler.demo.util`包用来存放与当前项目无关的工具类，即这些类可以轻松的拿到其他项目中直接使用。它下面可以根据不同的模块划分出不同的子包。比如：
 
 	-  util.http：存放网络请求相关的类。
 	-  util.log：存放日志相关的类。
 
-## 整体的分包思路 ##
-　　如果项目是这样的一个由行和列组成的表结构： 
+<br>　　因此，如果项目是这样的一个由行和列组成的表结构： 
 ``` c
                       model      ui      common      util 
    消息模块             xx        xx        xx         xx 
@@ -268,8 +92,8 @@ public class Main {
 　　那么笔者划分包的思路是： 先纵向划分出`model`、`ui`、`common`、`util`四个顶层包，然后在每个顶层包下面再横向的依据模块来划分子包。
 
 
-# 第二节 类结构的划分 #
-## 问题引入 ##
+## 类结构的划分 ##
+### 问题引入 ###
 　　我们现在有个任务，从一个`JSON`串中解析出一个列表，列表一共三行数据，每一行对应一个学生的信息，并实现下图所示的界面：
 
 <center>
@@ -297,7 +121,7 @@ public class Main {
     -  使用LinearLayout作为根节点，垂直方向上排列布局。
 
 <br>　　范例2：`Student`类。
-``` android
+``` java
 public class Student {
     private String name;
     private int age;
@@ -330,7 +154,7 @@ public class Student {
 ```
 
 <br>　　范例3：`MainActivity`。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     String json = "[{\"name\":\"张三\",\"age\":24,\"sex\":\"boy\"},{\"name\":\"李四\",\"age\":25,\"sex\":\"girl\"},{\"name\":\"王五\",\"age\":26,\"sex\":\"boy\"}]";
@@ -396,15 +220,16 @@ public class MainActivity extends Activity {
 　　不过如果你是一个有经验的开发人员，可能就会发现这段代码不利于重用，也就是说如果在其它界面也需要显示这个列表，我们就得把这一整段代码给`copy`过去，这是不能忍的。
 　　因此，我们接下来要对这段代码进行重构。
 
-## 代码重构 ##
+### 代码重构 ###
 
-### 重构Model ###
-　　首先，我们从解析`JSON`这块入手。 
+<br>**重构Model**
+
+　　首先，我们从解析`JSON`这块入手。
 
 　　问题是这样的：如果在项目的多个地方都需要将一个`JSON`转换成`Student`对象，那我们就得把上面的解析代码（`15~27`行）`copy`多份，如果某一天服务端同事告诉我们说`Student`的某个字段名要修改，同时项目中有`11`个地方都存在这段代码，那么我们就得依次将每个地方的代码都修改一遍，有任何一个遗漏的都会导致程序出`bug`。
 
 <br>　　第一步，修改`Student`类，代码如下：
-``` android
+``` java
 public class Student {
     private String name;
     private int age;
@@ -455,7 +280,7 @@ public class Student {
     -  请注意举一反三，本范例这个方法接收的是JSONObject的类型的参数，你可以通过方法重载等其它方式来达到你的需求。
 
 <br>　　第二步，增加一个`StudentList`类。它用来表示一组`Student`对象，代码如下：
-``` android
+``` java
 public class StudentList {
     private int maxCount;   // 用来分页。 咱们暂时不使用它。
 
@@ -488,7 +313,7 @@ public class StudentList {
 
 
 <br>　　第三步，更新`MainActivity`。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     String json = "[{\"name\":\"张三\",\"age\":24,\"sex\":\"boy\"},{\"name\":\"李四\",\"age\":25,\"sex\":\"girl\"},{\"name\":\"王五\",\"age\":26,\"sex\":\"boy\"}]";
@@ -539,7 +364,8 @@ public class MainActivity extends Activity {
     -  代码重构目的不只是想让原来需要3行完成的功能改成1行，更主要的是要让代码的结构变得更加合理，方便扩展、重用。
     -  因此虽然现在MainActivity中的代码只有1行，但是在Student等其他地方的代码却多了，不过这没关系，因为代码的可扩展性、可读性以及可重用性变强了。
 
-### 重构View ###
+<br>**重构View**
+
 　　接下来，我们重构一下`View`这块。
 
 　　从`MainActivity`中我们可以看到，有一个`for`循环依次为每行创建一个`LinearLayout`对象，而`LinearLayout`中又包含`姓名`、`年龄`、`性别`三个子控件，这些控件都是通过代码来创建的，这也不利于代码的重用。
@@ -618,7 +444,7 @@ public class MainActivity extends Activity {
 　　解决的方法就是：进一步把这个列表给封装成一个控件。
 
 <br>　　第三步，添加`MyStudentListView`类。
-``` android
+``` java
 public class MyStudentListView extends LinearLayout {
 
     private StudentList list;
@@ -689,14 +515,12 @@ public class MainActivity extends Activity {
 　　问：`“为什么要用MVC？”`
 　　答：因为`MVC`是一个遵循了`“高内聚低耦合”`原则的模式，它提出了代码分层的思想，十分符合主流开发思路、社会主义核心价值观，因而我们使用它。
 
-<br>**使用ListView、RecyclerView搞定一切**
-　　本范例主旨是为了讲解代码的分层思路，实际开发中我们完全可以使用`ListView`来实现这个功能。
-　　`ListView`比我们上面的代码抽象的更合理，它将它所要显示的数据以及每个数据的绘制工作都交给了一个`Adapter`对象，而我们则是默认的将每个数据的绘制工作写死在`MyStudentListView`的构造方法里了。
+<br>　　提示：
 
-<br>**本节参考阅读：**
-- [百度百科 - 高内聚低耦合](http://baike.baidu.com/view/3082578.htm)
+	-  本范例主旨是为了讲解代码的分层思路，实际开发中我们完全可以使用ListView来实现这个功能。
+	-  ListView比我们上面的代码抽象的更合理，它将它所要显示的数据以及每个数据的绘制工作都交给了一个Adapter对象，而我们则是默认的将每个数据的绘制工作写死在MyStudentListView的构造方法里了。
 
-## MVC ##
+### MVC ###
 　　`MVC`全名是`Model View Controller`，百度百科上说它不应该称为`设计模式`，而应该称为`框架`，在此我们就不关心到底该称它是什么，只研究它的实现方法。
 
 <br>　　`MVC`把代码分为`3`个核心的模块：模型(`model`)、视图(`view`)、控制器(`controller`)，这三个模块分别担当不同的任务。
@@ -724,10 +548,7 @@ public class MainActivity extends Activity {
 <br>　　`MVC`的其中一个缺点便是没有明确的定义，所以不同的实现（比如`Struts`和`http://ASP.NET MVC`）细节上都是不一样的。
 
 
-<br>**本节参考阅读：**
-- [百度百科 - MVC框架](http://baike.baidu.com/view/5432454.htm?fromtitle=MVC%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F&fromid=8160955&type=syn)
-
-## MVP ##
+### MVP ###
 　　咱们错开晦涩难懂的理论，直接通过实例来介绍`MVP`（`Model View Presenter`）模式，关于此模式，笔者认为了解即可。
 
 <br>**问题是这样的：**
@@ -842,11 +663,7 @@ public class LoginActivity extends Activity implements LoginPresenter.LoginView 
 　　许多时候并不是一种模式不好，而是因为人没办法执行，比如不容易理解，我们就会选择容易理解的方式。
 　　因此笔者认为，在`MVP`中虽然代码看起来清晰了很多，但是写起来却很麻烦（已有不少人吐槽），所以不需要所有的界面都按照`MVP`模式这种风格来编写，灵活应变即可。
 
-<br>**本节参考阅读：**
-- [浅谈 MVP in Android](http://blog.csdn.net/lmj623565791/article/details/46596109)
-- [你对MVC、MVP、MVVM 三种组合模式分别有什么样的理解？](http://www.zhihu.com/question/20148405)
-
-## MVVM ##
+### MVVM ###
 　　`MVVM`是`Model-View-ViewModel`的简写。
 　　`MV-X`本质都是一样的，重点还是在于`MV`的桥梁要靠`X`来牵线，`X`的不同对应着`M`与`V`的数据传递的流程不同。
 
@@ -864,11 +681,17 @@ public class LoginActivity extends Activity implements LoginPresenter.LoginView 
 <br>**本节参考阅读：**
 - [百度百科 - MVVM](http://baike.baidu.com/view/3507915.htm)
 - [百度百科 - 数据绑定](http://baike.baidu.com/view/159779.htm)
+- [百度百科 - 高内聚低耦合](http://baike.baidu.com/view/3082578.htm)
+- [百度百科 - MVC框架](http://baike.baidu.com/view/5432454.htm?fromtitle=MVC%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F&fromid=8160955&type=syn)
+- [浅谈 MVP in Android](http://blog.csdn.net/lmj623565791/article/details/46596109)
+- [你对MVC、MVP、MVVM 三种组合模式分别有什么样的理解？](http://www.zhihu.com/question/20148405)
 
+# 第二节 设计模式 #
 
-　　本章将介绍如何通过观察者模式来管理`Model`数据。
+## 观察者模式 ##
 
-# 第一节 问题描述 #
+<br>**问题描述**
+
 　　在`Adroid`中从`A`页面跳转到`B`页面，然后`B`页面进行某些操作后需要通知`A`页面去刷新数据，我们可以通过在`A`页面重写`onActivityResult`来接收返回结果从而来刷新页面。
 　　但是如果跳转路径是`A->B->C->……`，那么`C`或者`C`以后的页面来刷新`A`，就会非常的难处理。
 
@@ -883,7 +706,7 @@ public class LoginActivity extends Activity implements LoginPresenter.LoginView 
 	   -  然后，在Application中创建一个Map对象专门用来保存全局变量，C界面修改完数据后就将数据放入到Map中。
 	   -  最后，当A界面onResume时再从Map中读取数据。
 
-<br>　　这三种解决方法各有缺点：
+　　这三种解决方法各有缺点：
 
 	-  使用广播机制的缺点：
 	   -  代码混乱，各个界面都得动态注册和销毁接收者，不利于维护。
@@ -893,14 +716,14 @@ public class LoginActivity extends Activity implements LoginPresenter.LoginView 
 	   -  文件存储涉及到IO操作，相比之下要消耗不少资源。
 	-  使用Application对象的缺点： 如果处理不当，Map中的对象会不断累积，导致内存泄露。
 
-<br>　　我们可以使用`“观察者模式”`来解决数据刷新的问题，同时不会存在上面这三种方案带来的弊端。
+　　其实，我们可以使用`“观察者模式”`来解决数据刷新的问题，同时不会存在上面这三种方案带来的弊端。
 
-# 第二节 观察者模式 #
+<br>**开始使用**
+
 　　假设我们的项目有一个登录功能，当登录成功后会依据服务端返回的数据来创建一个`User`对象。
 　　需求是：登陆成功后，在项目的任何界面都可以访问和修改该`User`对象。
 
-<br>　　为了实现这个需求，我们先创建一个`User`类。
-<br>　　范例1：`com.cutler.demo.model.user.User`类。
+<br>　　范例1：为了实现这个需求，我们先创建一个`com.cutler.demo.model.user.User`类。
 ``` java
 public class User {
     private int id;
@@ -943,7 +766,6 @@ public interface Observer<T> {
     -  T是泛型，不懂请自己查去。
 
 <br>　　接着，再创建一个名为的`EntityManager`类，用来管理观察者。
-
 <br>　　范例3：`com.cutler.demo.common.entity.EntityManager`类。
 ``` java
 public class EntityManager<T> {
@@ -1075,7 +897,7 @@ public class LoginUserEntityManager extends EntityManager<User> {
 ```
 
 <br>　　最后，就可以让`Activity`实现接口：
-``` android
+``` java
 public class LoginActivity extends Activity implements Observer<User> {
 
     @Override
@@ -1120,6 +942,337 @@ public class LoginActivity extends Activity implements Observer<User> {
 
 <br>**本节参考阅读：**
 - [观察者模式在android 上的最佳实践](http://www.akiyamayzw.com/%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F%E5%9C%A8android-%E4%B8%8A%E7%9A%84%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/)
+
+
+## 单例模式 ##
+
+　　所谓的单例(`Singleton`)设计模式，就是指一个类只允许有一个对象。如果我们的某个类不需要存在多个对象，那么就可以考虑把这个类写成单例模式的。
+
+　　单例设计模式的实施步骤：
+
+	1、使用private修饰构造方法。这样外界就不可以通过new关键字来创建该类的对象了，但本类中的代码仍然可以创建。
+	2、在本类中建立一个静态的本类的对象。
+	3、建立一个静态方法用来返回此对象的引用。
+
+<br>　　范例1：最简单的单例模式。
+``` java
+public class SingleClass {
+    private static SingleClass instance = new SingleClass();
+
+    private SingleClass() {
+        // 默认提供的构造方法是public的，因此在此需要自定义一个无参的构造，并将访问权限该为private的。
+    }
+
+    public static SingleClass getInstance() {
+        return instance;
+    }
+
+    // 定义一个实例方法，以供外界调用。
+    public void getInfo() {
+        System.out.println("single");
+    }
+}
+```
+
+<br>　　上面就是一个最简单的单例模式的写法，不过它并不是最优的写法，后面我们会继续完善它。
+<br>　　当程序运行的时候，我们可以通过下面的代码来调用`SingleClass`类的`getInfo`方法：
+``` java
+// 不需要创建任何SingleClass类的对象，就可以在程序的任何地方调用getInfo()方法。
+SingleClass.getInstance().getInfo();
+```
+<br>**单例与静态**
+
+　　我们在设计程序经常会有这种需求，某个类里的方法能够全局访问。在这种情况下有两种实现方案：
+
+	-  单例模式(Singleton)
+	-  静态方法
+
+　　但是，我们应该如何选择使用哪种方式呢？
+
+	-  如果你的类不维持任何状态，仅仅是提供全局的访问，这个时候就适合用静态类。
+	   -  最基本的例子就是在Java中的java.lang.Math类的实现方式，Math类就是用过静态方法来实现的，而不是单例来实现的。
+	-  如果你的类需要维持一些状态，或者需要从线程安全、兼容性上来考虑一些问题，那么选用单例为宜。
+	   -  比如我们上面说的SystemParams类，它需要保存一些变量的值。
+<br>**单例的各种写法**
+
+　　上面的范例的写法有个缺点，当`SingleClass`类被加载的时候就会立刻实例化单例对象。
+　　这意味着如果单例对象里包含了很多属性，那这个对象就会占有很多内存空间，而这块空间我们一时半会可能用不到。因此可以改造一下代码，只有在我们需要使用单例对象的时候才去创建这个单例对象。
+
+<br>　　范例1：懒汉式。
+``` java
+public class SingleClass {
+    private static SingleClass instance;
+
+    private SingleClass() { }
+
+    public static SingleClass getInstance() {
+        if(instance == null){
+            instance = new SingleClass();
+        }
+        return instance;
+    }
+
+    // 定义一个实例方法，以供外界调用。
+    public void getInfo() {
+        System.out.println("single");
+    }
+}
+```
+
+<br>　　不过懒汉式的写法依然存在问题，当多个线程同时访问`getInstance`方法时，会导致创建多个`SingleClass`类的对象。 
+<br>　　范例2：懒汉式（线程安全）。
+``` java
+public class SingleClass {
+    private static SingleClass instance;
+
+    private SingleClass() { }
+
+    public static SingleClass getInstance() {
+        if(instance == null){
+            // 此处加个线程同步。
+            synchronized (SingleClass.class) {
+                if(instance == null){
+                    instance = new SingleClass();
+                }
+            }
+        }
+        return instance;
+    }
+
+    // 定义一个实例方法，以供外界调用。
+    public void getInfo() {
+        System.out.println("single");
+    }
+}
+```
+    语句解释：
+    -  此种方式也被称为双重校验锁。
+    -  也有人将synchronized关键字直接修饰在getInstance()方法上，缺点是每次调用getInstance()方法都需要进行线程同步操作。
+
+<br>　　范例3：静态内部类。
+``` java
+public class SingleClass {
+    private static class SingletonHolder {
+        private static final SingleClass INSTANCE = new SingleClass ();
+    }
+    private SingleClass(){}
+    public static final SingleClass  getInstance() {
+        return SingletonHolder.INSTANCE;
+    }
+}
+```
+    语句解释：
+    -  此种方式利用了静态内部类的特点，即实现了懒加载又不用担心多线程问题。
+    -  但是由于双重校验锁更直观容易理解，因而比此种方式常见。
+
+<br>**有两个问题需要注意：**
+　　1、如果单例由不同的类装载器装入，那便有可能存在多个单例类的实例。
+　　2、如果`Singleton`实现了`java.io.Serializable`接口，那么这个类的实例就可能被序列化和复原。不管怎样，如果你序列化一个单例类的对象，接下来复原多个那个对象，那你就会有多个单例类的实例。
+
+<br>　　范例4：通过反序列化来创建多个对象。
+``` java
+import java.io.*;
+public class Main {
+
+    public static void main(String[] args) throws Exception {
+        // 先输出两遍单例对象，结果它们输出的内存地址是一样的。
+        System.out.println(SingleClass.getInstance());
+        System.out.println(SingleClass.getInstance());	
+		
+        File file = new File("a.txt");
+        // 将单例对象序列化到a.txt文件中。
+        write(file);
+        // 反序列化4次，程序每次输出的内存地址都是不一样的。
+        System.out.println(read(file));
+        System.out.println(read(file));
+        System.out.println(read(file));
+        System.out.println(read(file));
+    }
+	
+    private static void write(File file) throws Exception {
+        ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(file));
+        output.writeObject(SingleClass.getInstance());
+        output.close();
+    }
+	
+    private static SingleClass read(File file) throws Exception{
+        ObjectInputStream input = new ObjectInputStream(new FileInputStream(file));
+        SingleClass inst = (SingleClass)input.readObject();
+        input.close();
+        return inst;
+    }
+
+}
+```
+    语句解释：
+    -  在执行本范例之前，请先让SingleClass实现Serializable接口。
+
+<br>　　解决方案请自行搜索，不过笔者认为，开发的时候使用`“双重校验锁”`方式就够用的了，单例模式的这两个缺点了解即可。
+　　另外，如果你担心别人通过反射的方式来调用你的私有构造器，那么可以在里面加上检测，一旦存在了单例对象，则直接抛出异常。
+
+
+<br>　　扩展阅读：
+
+	-  设计模式，有非常多的定义，有人会举出Gang of Four那本《Design Patterns》来解释，而笔者认为：
+	   -  设计模式是软件开发领域中针对特定上下文的特定问题的解决方案。
+	   -  《Design Patterns》中举出了23种设计模式，它们分别用于不同的场景，当我们处在这23种场景下时，按照对应的设计模式所规定的思路去编程，可以写出结构合理、扩展性很强的代码。
+
+<br>**参考阅读：**
+- [程序设计之---单例模式VS静态方法](http://blog.csdn.net/johnny901114/article/details/11969015)
+- [单例模式的七种写法](http://cantellow.iteye.com/blog/838473)
+
+
+## Builder模式 ##
+
+<br>**问题描述**
+
+　　假设我们有一个`Person`类，类中有`id`、`age`、`sex`、`name`四个必须的属性，并且还会有若干个可选的属性（比如`address`、`phone`等）。
+
+　　对于这样的类，它的构造方法通常我们会这么写：
+``` java
+public class Person {
+    private int id;
+    private int age;
+    private String sex;
+    private String name;
+	
+    public Person(int id, int age, String sex, String name) {
+        this.id = id;
+        this.age = age;
+        this.sex = sex;
+        this.name = name;
+    }
+}
+```
+    语句解释：
+    -  如果你需要重载多个构造方法，那么Person类的代码将会变得很乱。
+
+<br>　　猛地一看没有任何问题，但是当`Person`类不断的增加字段后，客户端的代码就会变得很难编写以及阅读。如果客户端不小心颠倒了其中两个参数的顺序，编译器也不会报错，但程序在运行的时候会出现错误的行为。
+<br>　　遇到有许多构造器参数的时候，还有第二种替代方法，即`JavaBean`模式，在这种模式下，调用一个无参的构造器来创建对象，然后调用`setter`方法来设置每个必要的参数：
+``` java
+public class Person {
+    private int id;
+    private int age;
+    private String sex;
+    private String name;
+
+    public Person() { }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+```
+<br>　　这种模式可以很容易的创建实例，同时代码读起来也很舒服：
+``` java
+Person p = new Person();
+p.setId(1);
+p.setAge(30);
+p.setName("Tome");
+p.setSex("M");
+```
+
+<br>　　遗憾的是，`JavaBean`模式自身有着很严重的缺点。因为构造过程被分到几个调用过程中，在构造过程中`JavaBean`可能处于不一致状态（比如需要额外的工作来保证它的线程安全）、存在未初始化的参数等问题。
+
+<br>　　幸运的是，还有第三种替代方法，既能保证构造方法那样的安全性，也能保证`JavaBean`模式的可读性。这就是`Builder`模式。
+
+<br>**模式介绍**
+
+　　`Builder`模式不允许外界直接实例化类对象（通过私有化构造器的方式来实现），而是由一个名为`Builder`的内部来来完成实例化的任务。
+
+<br>　　范例1：`Person`类。
+``` java
+public class Person {
+
+    private int id;
+    private int age;
+    private String sex;
+    private String name;
+
+    // 私有化构造方法。
+    private Person(Builder builder) { 
+        id = builder.id;
+        age = builder.age;
+        sex = builder.sex;
+        name = builder.name;
+    }
+
+    public static class Builder {
+        private int id;
+        private int age;
+        private String sex;
+        private String name;
+		
+        public Builder setId(int id){
+            this.id = id;
+            return this;
+        }
+		
+        public Builder setAge(int age){
+            this.age = age;
+            return this;
+        }
+		
+        public Builder setSex(String sex){
+            this.sex = sex;
+            return this;
+        }
+		
+        public Builder setName(String name){
+            this.name = name;
+            return this;
+        }
+		
+        // 执行实例化操作。
+        public Person build(){
+            return new Person(this);
+        }
+    }
+}
+```
+    语句解释：
+    -  Builder类内的各个方法返回本身，以便可以连续调用。
+
+<br>　　下面就是客户端代码：
+``` java
+Person p = new Person.Builder()
+    .setId(1)
+    .setAge(30)
+    .setName("Tom")
+    .setSex("M")
+    .build(); // 执行构造
+```
+    语句解释：
+    -  这样的代码容易编写，也易于阅读。
+
+<br>　　**Builder模式好处和优点**
+
+	-  使用Builder模式必然会导致写两遍相关属性的代码和SETTER方法，看起来有点吃力不讨好。然而需要看到的是，客户端代码的便用性和可读性得到了大大提高。与此同时，构造函数的参数数量明显减少调用起来非常直观。
+	-  你可以在build方法里设计你想要的约束，一旦客户端没有满足，则可以抛出异常。
+
+<br>　　**Builder模式的代价和缺点**
+
+	-  为了实例化对象，我们需要为类添加一个Builder类，让代码变得稍显冗长。
+	-  当类新添加属性时，容易忘记给Builder类也添加上该属性，因此通常推荐把Builder类作为静态内部类来写。
+
+<br>　　简而言之，如果类的构造器中有多个参数，设计这种类时，`Builder`模式就是种不错的选择，特别的是当大多数参数都是可选的时候。
+　　提示：`Android`中的`AlertDialog`、`NotificationCompat`等类都是使用了`Builder`模式。
+
+<br>**本节参考阅读：**
+- [Java方法参数太多怎么办—Part3—Builder模式](http://www.importnew.com/6605.html)
+
 
 
 

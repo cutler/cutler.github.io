@@ -11,9 +11,9 @@ categories: Android开发 - 青铜
 
 # 第一节 V7 appcompat #
 
-　　我们可以从官方的[ Dashboards ](http://developer.android.com/about/dashboards/index.html)中看出来，目前市场上的Android设备的系统版本已经转移到`4.x`上。虽然如此，我们仍应该保持对低版本的适配，因此本节将以添加`V7 appcompat`库的方式来讲解如何使用`ActionBar`。
+　　本节将以添加`V7 appcompat`库的方式来讲解如何使用`ActionBar`。
 
-<br>　　`ActionBar`有多种形式，你既可以在上面同时放置多个图标、按钮，也可以什么都不放。但对于大多数应用来说，`ActionBar`可以分割为`3`个不同的功能区域，下面是一张使用`ActionBar`的界面截图：
+　　`ActionBar`有多种形式，你既可以在上面同时放置多个图标、按钮，也可以什么都不放。但对于大多数应用来说，`ActionBar`可以分割为`3`个不同的功能区域，下面是一张使用`ActionBar`的界面截图：
 
 <center>
 ![ActionBar示意图](/img/android/android_b07_01.png)
@@ -40,7 +40,7 @@ categories: Android开发 - 青铜
 
 <br>　　由于`ActionBar`在不同的Android版本中显示的效果是不一样的，因此为了提供统一的视觉效果，我们接下来要修改一下`ActionBar`的背景图片。
 　　范例1：修改背景图片。
-``` android
+``` java
 public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
 
 <br>　　`ActionBar`支持两个文本标题，在上面的被称为主标题（`title`），在下面的被称为子标题（`subTitle`）。
 　　范例2：修改标题文本。
-``` android
+``` java
 public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -182,7 +182,7 @@ public class MainActivity extends ActionBarActivity {
        -  never：则表示永远显示在overflow中。
 
 <br>　　范例2：将菜单添加到Activity的`ActionBar`中。
-``` android
+``` java
 @Override
 public boolean onCreateOptionsMenu(Menu menu) {
     // Inflate the menu; this adds items to the action bar if it is present.
@@ -197,7 +197,7 @@ public boolean onCreateOptionsMenu(Menu menu) {
     -  MenuInflater类是一个用来将菜单文件加载并解析为一个Menu对象的工具类。调用Activity的getMenuInflater()方法可以获取一个MenuInflater对象。   
 
 <br>　　范例3：响应菜单项的点击事件。
-``` android
+``` java
 @Override
 public boolean onOptionsItemSelected(MenuItem item) {
     // Handle action bar item clicks here. The action bar will
@@ -223,7 +223,7 @@ public boolean onOptionsItemSelected(MenuItem item) {
 　　[《Android ActionBar完全解析，使用官方推荐的最佳导航栏(上)》](http://blog.csdn.net/guolin_blog/article/details/18234477) 中解释了，即`overflow`按钮的显示情况和手机的硬件情况是有关系的，如果手机没有物理`Menu`键的话，`overflow`按钮就可以显示，如果有物理`Menu`键的话（比如Android模拟器都有物理`Menu`键），`overflow`按钮就不会显示出来。
 
 <br>　　范例4：显示出`overflow`按钮。
-``` android
+``` java
 private void setOverflowShowingAlways() {
     try {
         ViewConfiguration config = ViewConfiguration.get(this);
@@ -243,7 +243,7 @@ private void setOverflowShowingAlways() {
 <br>　　如果你此时运行程序，然后点击`overflow`按钮，你会发现里面的`ActionButton`都是只显示文字不显示图标的。这是官方的默认效果，但我们可以通过反射来改变这一默认行为。
 
 <br>　　范例5：让菜单项显示图标。
-``` android
+``` java
 @Override
 public boolean onMenuOpened(int featureId, Menu menu) {
     if (featureId == Window.FEATURE_ACTION_BAR && menu != null) {

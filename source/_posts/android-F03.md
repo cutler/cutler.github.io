@@ -46,7 +46,7 @@ void checkThread() {
 　　因为`Handler`的用法十分简单，所以笔者不打算过多介绍如何使用它，下面给出两个范例，如果不理解请自行搜索。
 
 <br>　　范例1：发送消息。
-``` android
+``` java
 public class TestActivity extends Activity {
     public Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -78,7 +78,7 @@ public class TestActivity extends Activity {
 	   -  若需要传递多个Object类型的数据，则可以使用Bundle对象。当然也可以仍然使用obj属性，万物皆对象嘛。
 
 <br>　　范例2：处理消息。
-``` android
+``` java
 // 发送数据：
 public void sendMessage() {
     new Thread() {
@@ -359,7 +359,7 @@ public static void prepareMainLooper() {
 <br>　　创建完`Looper`对象后，需要调用`loop`方法来启动`Looper`，一旦启动成功后，`Looper`就可以不断的接收和处理消息了。
 
 <br>　　范例1：在子线程中使用`Handler`。
-``` android
+``` java
 public class TestActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -453,8 +453,8 @@ public void dispatchMessage(Message msg) {
 }
 ```
 
-<br>　　最后，在介绍三个`Handler`类的常用方法：
-``` android
+<br>　　最后，介绍三个`Handler`类的常用方法：
+``` java
 // 向当前Handler的消息队列中添加一个Runnable 。
 // 在Handler内部会构建一个Message对象，并将该对象的callback属性设为r，然后再将这个Message对象加入到消息队列。
 // 返回值：
@@ -488,7 +488,7 @@ public final void removeMessages(int what);
 <br>　　接下来通过一个范例来说明`HandlerThread`是如何解决这个问题的。
 
 <br>　　范例1：在子线程中使用`Handler`。
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -532,7 +532,7 @@ public class MainActivity extends Activity {
 	-  内部使用Handler处理线程切换，这样省去了我们自己处理的过程，代码直观、方便。
 
 <br>　　范例1：最简单的`AsyncTask`。
-``` android
+``` java
 public class MyAsyncTask extends AsyncTask {
 
     // 此方法用于执行当前异步任务。 
@@ -563,7 +563,7 @@ task.execute();
 <br>　　假设现在有一个任务，要求在计算的时候显示一个进度条对话框，当计算完毕后关闭该对话框，并将计算的结果通过`Toast`输出。此时就需要使用`AsyncTask`类提供的其他方法了。
 
 <br>　　范例2：完成任务。
-``` android
+``` java
 private final class MyAsyncTask extends AsyncTask {
     private ProgressDialog dialog;
 

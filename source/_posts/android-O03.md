@@ -38,7 +38,7 @@ compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.4'
 　　环境配置完毕后，我们在使用`UIL`之前还需要在`Activity`或者`Application`（推荐）类中执行初始化操作。
 
 <br>　　范例1：初始化`UIL`。
-``` android
+``` java
 public class MainApplication extends Application {
 
     @Override
@@ -55,7 +55,7 @@ public class MainApplication extends Application {
     -  我们也可以自定义一个配置对象来执行初始化操作，具体后面会介绍。
 
 <br>　　范例2：直接将图片显示在`ImageView`上。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     @Override
@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
     -  调用displayImage(uri, view)方法可以直接加载图片，并在加载完毕后将自动显示图片。
 
 <br>　　范例3：设置加载图片时的额外参数。
-``` android
+``` java
 
 public class MainActivity extends Activity {
 
@@ -114,7 +114,7 @@ public class MainActivity extends Activity {
 	-  当context.getCacheDir()返回null时，则缓存目录为：/data/data/packageName/cache/。
 
 <br>　　范例4：设置加载图片的回调。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     @Override
@@ -165,7 +165,7 @@ public class MainActivity extends Activity {
     -  当且仅当把图片缓存到本地时，才会调用ImageLoadingProgressListener中的方法，如果本地有缓存则不会调用。
 
 <br>　　范例5：设置渐入效果的`displayer`。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     @Override
@@ -192,7 +192,7 @@ public class MainActivity extends Activity {
        -  FadeInBitmapDisplayer、RoundedBitmapDisplayer、RoundedVignetteBitmapDisplayer、SimpleBitmapDisplayer（默认）。
 
 <br>　　范例6：只是加载图片。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     @Override
@@ -217,7 +217,7 @@ public class MainActivity extends Activity {
     -  使用loadImage去加载图片，并获取到Bitmap对象，然后你想干什么就干什么。
 
 <br>　　范例7：动态拼接`Uri`。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     @Override
@@ -245,7 +245,7 @@ public class MainActivity extends Activity {
        -  crop：用来从Uri中解析出图片的路径。
 
 <br>　　范例8：同步加载。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     @Override
@@ -266,7 +266,7 @@ public class MainActivity extends Activity {
     -  如果你的图片是本地图片并且不是很大，那么可以使用同步加载的方式。
 
 <br>　　范例9：限制图片尺寸。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     @Override
@@ -293,7 +293,7 @@ public class MainActivity extends Activity {
 
 
 <br>　　范例1：初始化`UIL`。
-``` android
+``` java
 public class MainApplication extends Application {
 
     @Override
@@ -415,7 +415,7 @@ dependencies {
 
 
 <br>　　范例3：Activity代码。
-``` android
+``` java
 public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout drawer;
@@ -644,7 +644,7 @@ dependencies {
 	-  第三，为RecyclerView设置Adapter。
 
 <br>　　范例2：`MainActivity`。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     @Override
@@ -670,7 +670,7 @@ public class MainActivity extends Activity {
     -  系统内置的Item布局方式还有网格（GridView）和瀑布流两种，稍后会介绍它们。
 
 <br>　　范例3：`MyRecyclerAdapter`。
-``` android
+``` java
 // 注意：MyRecyclerAdapter的父类是RecyclerView.Adapter类型的。
 public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.ViewHolder> {
     private List<String> items;
@@ -750,7 +750,7 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.Vi
 　　`RecyclerView`没有提供设置点击事件的方法，我们可以直接在`ViewHolder`类上添加事件。
 
 <br>　　范例1：点击和长按事件。
-``` android
+``` java
 public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
     public TextView text;
 
@@ -785,7 +785,7 @@ public static class ViewHolder extends RecyclerView.ViewHolder implements View.O
 <br>**Item排列方式**
 
 <br>　　范例1：网格、瀑布流。
-``` android
+``` java
 // 线性布局排列
 mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
 
@@ -823,7 +823,7 @@ mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLa
 	-  更新：notifyItemChanged(position)、notifyItemChanged(position, itemCount)。
 
 <br>　　范例1：局部更新。
-``` android
+``` java
 public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.ViewHolder> {
     private List<String> items;
 
@@ -912,7 +912,7 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.Vi
 
 
 <br>　　范例2：设置下拉事件监听器。
-``` android
+``` java
 final SwipeRefreshLayout mRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.refreshLayout);
 // 调用此方法设置下拉监听器，当用户触发下拉刷新时，会在主线程中回调onRefresh()方法。
 mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -1085,7 +1085,7 @@ dependencies {
     -  菜单是可以嵌套的，嵌套时会将菜单的名字显示出来，同时自动出现一个分割线，具体效果请自行写代码体验。
 
 <br>　　范例5：Activity代码。
-``` android
+``` java
 public class MainActivity extends AppCompatActivity {
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -1190,7 +1190,7 @@ android:fitsSystemWindows="true"
 ![Snackbar显示效果](/img/android/android_o03_04.jpg)
 </center>
 
-``` android
+``` java
 final Snackbar snackbar = Snackbar.make(view,"这是一条Snackbar消息", Snackbar.LENGTH_LONG);
 // 当用户点击“关闭”二字的时候，就把Snackbar给关掉。
 snackbar.setAction("关闭",new View.OnClickListener() {

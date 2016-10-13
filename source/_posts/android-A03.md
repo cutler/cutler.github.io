@@ -1,4 +1,4 @@
-title: 入门篇　第三章 服务与广播接收者
+title: 入门篇　第二章 服务与广播接收者
 date: 2014-11-12 22:40:14
 categories: Android开发 - 青铜
 ---
@@ -778,7 +778,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 <br>　　做为`Android`中的四大组件之一，广播接收者同样需要在清单文件中进行声明。
 
 <br>　　范例2：配置接收者。
-``` java
+``` xml
 <receiver android:name="com.example.androidtest.MyBroadcastReceiver">
     <intent-filter>
         <action android:name="aaa.abc" />
@@ -824,7 +824,7 @@ public class MainActivity extends Activity {
 　　除此之外，无序广播相对有序广播消息传递的效率比较高，但各个接收者无法终止和修改广播。而有序广播的某个接收者在中途可以终止、修改广播。
 
 <br>　　范例1：广播接收者的优先级。
-``` java
+``` xml
 <receiver android:name="com.example.androidtest.MyBroadcastReceiver2" >
     <intent-filter android:priority="1000" >
         <action android:name="aaa.abc" />
@@ -854,7 +854,7 @@ public class MainActivity extends Activity {
     -  如果MyBroadcastReceiver2在接到广播后把广播给拦截了（让广播不再往下继续传递），那么MyBroadcastReceiver将无法接到广播。
 
 <br>　　范例3：自定义权限。
-``` java
+``` xml
 <permission android:name="cxy.mypermisson"/>
 ```
     语句解释：

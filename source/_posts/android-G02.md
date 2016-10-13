@@ -23,7 +23,7 @@ categories: Android开发 - 青铜
 	   -  调用View的setOnTouchListener方法来监听此事件。
 
 <br>　　比如，下面代码展示了如何给一个`Button`注册一个`View.OnClickListener`监听器：
-``` android
+``` java
 Button button = (Button) findViewById(R.id.button_send);
 button.setOnClickListener(new View.OnClickListener() {
     public void onClick(View v) {
@@ -32,7 +32,7 @@ button.setOnClickListener(new View.OnClickListener() {
 });
 ```
 　　你可能也发现把`OnClickListener`作为Activity的一部分来实现会更方便。这样会避免类的加载和对象空间的分配。如：
-``` android
+``` java
 public class ExampleActivity extends Activity implements OnClickListener {
     protected void onCreate(Bundle savedValues) {
         Button button = (Button)findViewById(R.id.corky);
@@ -73,7 +73,7 @@ onTouchEvent(MotionEvent event)
 　　在开发中，比较常见的一个需求：让View能随着用户的手指而拖动，要实现这个功能就需要监听View的触摸事件。
 
 　　示例代码：
-``` android
+``` java
 Button button = (Button) this.findViewById(R.id.img);
 button.setOnTouchListener(new View.OnTouchListener() {
     public boolean onTouch(View v, MotionEvent event) {
@@ -82,7 +82,7 @@ button.setOnTouchListener(new View.OnTouchListener() {
 });
 ```
 <br>　　为了了解`onTouch`方法，我们先来看看`View.OnTouchListener`接口：
-``` android
+``` java
 //  描述：当View被用户“触摸”时，会调用此回调方法。
 //  参数：
 //       v：     被触摸的组件。
@@ -124,7 +124,7 @@ public final float getRawY();
 <br>　　最后，下面给出一个完整的范例，如果你感觉看不懂，那就请去阅读其它人的教程，学会了触摸事件后，再回来继续。
 
 <br>　　范例2：通过`getX()`和`getY()`移动按钮。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,7 +162,7 @@ public class MainActivity extends Activity {
     -  需要注意的是本范例中，只有当手指按下的时候才会保存位置，手指移动时并不会。
 
 <br>　　范例3：通过`getRawX()`和`getRawY()`移动按钮。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -420,11 +420,11 @@ public class MyView extends View {
 　　幸运的是，`Android SDK`给我们提供了一个手势识别的类——`GestureDetector`，通过这个类我们可以识别很多的手势。
 
 　　它的使用方法也很简单，直接看代码吧：
-``` android
+``` java
 public class MyView extends View {
 
     private GestureDetector mGestureDetector;
-    
+
     private GestureDetector.OnGestureListener onGestureListener = 
                 new GestureDetector.SimpleOnGestureListener() {
         public void onLongPress(MotionEvent e) {
@@ -461,7 +461,7 @@ public class MyView extends View {
         return true;
     }
 }
-``` 
+```
     语句解释：
     -  SimpleOnGestureListener和SimpleOnGestureListener类里还有其它方法，请自行查看。
     -  需要说明的是，若你需要监听双击事件的话就用GestureDetector吧，否则还是自己处理触摸事件比较好。
@@ -736,7 +736,7 @@ public boolean dispatchTouchEvent(MotionEvent event) {
 	-  在手机横屏的时候，允许它滑动。
 	-  在手机竖屏的时候，不许它滑动。
 　　示例代码：
-``` android
+``` java
 // 此处设置的OnTouchListener会优先于ScrollView本身的onTouchEvent方法执行。
 mScrollView.setOnTouchListener(new View.OnTouchListener(){
     public boolean onTouch(View v, MotionEvent event) {
@@ -831,7 +831,7 @@ public boolean performClick() {
 　　现在有个需求，创建一个ViewGroup控件，可以通过滑动来在多个子View之间切换，效果和ViewPager类似。
 
 　　代码：
-``` android
+``` java
 public class MyScrollView extends LinearLayout {
 
     private Scroller mScroller = new Scroller(getContext());
@@ -901,7 +901,7 @@ public class MyScrollView extends LinearLayout {
 ```
 
 　　Activity的代码：
-``` android
+``` java
 public class MainActivity extends Activity {
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -958,7 +958,7 @@ public class MainActivity extends Activity {
 	-  依据依据路径和水平方向所形成的夹角来判断
 
 　　接下来以“距离差”为例子，做示范，我们只需要在MyScrollView中重写xxx方法即可，其它代码不需要修改：
-``` android
+``` java
 private int mLastInterceptX;
 private int mLastInterceptY;
 @Override
@@ -984,7 +984,7 @@ public boolean onInterceptTouchEvent(MotionEvent ev) {
 ```
 
 　　然后是Activity的代码：
-``` android
+``` java
 public class MainActivity extends ActionBarActivity {
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -1018,7 +1018,7 @@ public class MainActivity extends ActionBarActivity {
 	-  然后，由子View来决定事件处理。
 
 <br>　　第一步，创建一个MyScrollView2类，所有代码与MyScrollView相同，但下面的代码不同：
-``` android
+``` java
 @Override
 public boolean onInterceptTouchEvent(MotionEvent ev) {
     // 按下事件不能拦截，否则子View将接不到事件。
@@ -1032,7 +1032,7 @@ public boolean onInterceptTouchEvent(MotionEvent ev) {
 ```
 
 <br>　　第二步，定义MyListView类：
-``` android
+``` java
 public class MyListView extends ListView {
     public MyListView(Context context) {
         super(context);
@@ -1068,7 +1068,7 @@ public class MyListView extends ListView {
 }
 ```
 <br>　　第三步，Activity的代码为：
-``` android
+``` java
 
 public class MainActivity extends ActionBarActivity {
 

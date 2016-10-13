@@ -58,7 +58,7 @@ toast.setGravity(Gravity.TOP|Gravity.LEFT, 0, 0);
 　　如果一个简单的文本消息不能满足显示的需要，你可以给`Toast`通知创建一个自定义的布局(`layout`)，然后把布局传递给`setView(View)`方法。
 
 <br>　　范例1：显示一个按钮。
-``` android
+``` java
 public class AndroidTestActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -152,7 +152,7 @@ AlertDialog dialog = builder.create();
 ```
 
 <br>　　范例2：添加按钮。
-``` android
+``` java
 public void onClick(View view) {
     // 创建一个事件监听器，注意这里是DialogInterface.OnClickListener类型的。
     OnClickListener listener = new OnClickListener() {
@@ -202,7 +202,7 @@ public void onClick(View view) {
 </center>
 
 　　由于这个列表显示在对话框的内容区域中，所以你不可以同时显示文本消息和列表，也就是说`AlertDialog.Builder`类的`setItems()`方法和`setMessage()`方法不可以同时使用。
-``` android
+``` java
 public void onClick(View view) {
     final String[] array = { "A", "B", "C", "D" };
     // 创建一个事件监听器。
@@ -231,7 +231,7 @@ public void onClick(View view) {
     -  当某个Item被点击时，当前对话框同样会自动被关闭，参数which的值就是该Item的下标，下标从0开始计算。
 
 <br>　　范例4：单选对话框。
-``` android
+``` java
 private String choose = null;
 private String[] array = {"男","女"};
 public void onClick(View view){
@@ -261,7 +261,7 @@ public void onClick(View view){
     -  参数which是用户点击的单选按钮的下标，下标从0开始。
 
 <br>　　范例5：多选对话框。
-``` android
+``` java
 private boolean[] choose = new boolean[2];
 private String[] array = { "A", "B" };
 public void onClick(View view) {
@@ -306,7 +306,7 @@ public void onClick(View view) {
 　　进度条对话框`ProgressDialog`和进度条控件`ProgressBar`的用法十分相似，都是通过线程来不断的更新进度条。
 
 <br>　　范例1：创建进度条对话框。
-``` android
+``` java
 public class ViewTextActivity extends Activity {
     private ProgressDialog dialog;
     public void onCreate(Bundle savedInstanceState) {
@@ -358,7 +358,7 @@ public class ViewTextActivity extends Activity {
 ```
 
 <br>　　范例2：通过编码的方式添加TextView。
-``` android
+``` java
 public class MainActivity extends Activity {
     private LinearLayout rootLayout;
     private TextView textView;
@@ -383,7 +383,7 @@ public class MainActivity extends Activity {
     -  最后，一个控件只可以有一个父控件，即textView被放入到rootLayout后就不可以再被放入其他布局对象中，否则程序将抛异常。
 
 <br>　　范例3：对象重用。
-``` android
+``` java
 TextView text1 = (TextView) this.findViewById(R.id.text);
 TextView text2 = (TextView) this.findViewById(R.id.text);
 System.out.println(text1 == text2); //输出true。
@@ -394,7 +394,7 @@ System.out.println(text1 == text2); //输出true。
 <br>　　假设有一个需求，需要将其它XML布局中的控件添加到当前Activity中，此时就需要使用`LayoutInflater`类了。 
 
 <br>　　范例4：`LayoutInflater`类。
-``` android
+``` java
 //  描述：从指定的xml文件中获取其根节点(View) ，然后将根节点添加到root中，接着将该根节点的引用返回来。
 //  参数：
 //    resource ：xml文件的id 。如R.layout.main。root的取值可以为空。
@@ -468,7 +468,7 @@ public class MainActivity extends Activity {
 　　前面已经成功的实现动态向Activity中添加控件了。但是还是有一个缺点：上面的代码在创建完毕控件后，并没有为控件指定宽、高等属性。
 
 <br>　　范例1：动态添加组件。
-``` android
+``` java
 public class WebViewActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -492,7 +492,7 @@ public class WebViewActivity extends Activity {
     -  本范例中控件的宽、高、padding、margin等属性的值都没有设置。 这些属性被称为：布局参数。使用ViewGroup.LayoutParams类来表示。 
 
 <br>　　范例2：指定宽、高。
-``` android
+``` java
 //  设置线性布局的排列方式。取值有：LinearLayout.VERTICAL（垂直排列）和LinearLayout.HORIZONTAL（水平排列）。
 linear.setOrientation(LinearLayout.VERTICAL);
 // 将Button和TextView添加到LinearLayout中，同时为它们指定宽、高。
@@ -506,7 +506,7 @@ setContentView(linear);
     -  各个LayoutParams各自提供了不同的布局参数，用于描述该控件不同的属性。它们都派生自ViewGroup.LayoutParams。 
 
 <br>　　范例3：Margin属性。
-``` android
+``` java
 public class AndroidTestActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -584,7 +584,7 @@ dialog.show();
 </center>
 
 <br>　　范例1：创建一个时间选择器。
-``` android
+``` java
 public class MainActivity extends Activity implements OnTimeSetListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -608,7 +608,7 @@ public class MainActivity extends Activity implements OnTimeSetListener {
 ```
 
 <br>　　范例2：创建一个日期选择器。
-``` android
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -627,7 +627,7 @@ public class MainActivity extends Activity {
 <br>　　开发中往往不会直接写死具体日期常量，而是使用`Calendar`工具类。
 
 <br>　　范例3：Calendar抽象类。
-``` android
+``` java
 Calendar calendar = new GregorianCalendar();
 System.out.println("年: " + calendar.get(Calendar.YEAR));
 System.out.println("月: " + (calendar.get(Calendar.MONTH)+1));
@@ -781,7 +781,7 @@ mNotificationManager.cancel(0);
 	-  NotificationCompat.InboxStyle，在细节部分显示多行文本。
 
 <br>　　下面会以一个示例来展示`InboxStyle`的使用，模仿上面图片的显示。
-``` android
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -841,7 +841,7 @@ public class MainActivity extends Activity {
 
 
 <br>　　范例1：有进度刻度。
-``` android
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -901,7 +901,7 @@ public class MainActivity extends Activity {
 ```
 
 <br>**添加声音**
-``` android
+``` java
 // 使用res/raw目录下的音乐文件。
 mBuilder.setSound(Uri.parse("android.resource://"+getPackageName()+"/"+R.raw.system));
 
@@ -913,7 +913,7 @@ mBuilder.setDefaults(Notification.DEFAULT_SOUND);
 ```
 
 <br>**添加震动**
-``` android
+``` java
 // 使用系统默认的震动
 mBuilder.setDefaults(Notification.DEFAULT_VIBRATE);
 
@@ -925,7 +925,7 @@ mBuilder.setVibrate(new long[] { 100, 200, 300 });
     -  第一个值是指振动前的准备（间歇）时间，第二个值是第一次振动的时间，第三个值又是间歇的时间，以此类推。
 
 <br>**添加闪灯**
-``` andriod
+``` java
 // 使用默认闪灯
 mBuilder.setDefaults(Notification.DEFAULT_LIGHTS);
 ```
@@ -996,7 +996,7 @@ mBuilder.setDefaults(Notification.DEFAULT_LIGHTS);
 ```
 
 <br>　　范例2：代码实现
-``` android
+``` java
 public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -1031,7 +1031,7 @@ public class MainActivity extends Activity {
 </center>
 
 <br>　　如果想在`Android4.0`以下使用带有进度条的通知，则就需要自定义通知了：
-``` android
+``` java
 // 当想修改进度条的值时，只需要调用RemoteViews.setProgressBar()方法即可。
 contentViews.setProgressBar(R.id.progressbar, 100, curProgress, false);
 contentViews.setTextViewText(R.id.percent, "已下载："+curProgress); 

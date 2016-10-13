@@ -1,4 +1,4 @@
-title: 入门篇　第四章 数据存取
+title: 入门篇　第三章 数据存取
 date: 2015-3-5 16:19:10
 categories: Android开发 - 青铜
 ---
@@ -29,7 +29,7 @@ categories: Android开发 - 青铜
 　　在读写文件之前，我们需要先获取该文件的输入输出流，`Context`类就为我们提供了这样的方法。
 
 <br>　　范例1：Context类。
-```
+``` java
 // 指定文件名称，从/data/data/packagename/files目录下获取该文件的输入流，若文件不存在则抛异常。
 public abstract FileInputStream openFileInput(String name) 
 
@@ -49,7 +49,7 @@ public abstract File getFilesDir()
 ```
 
 <br>　　范例2：文件打开方式。
-```
+``` java
 打开方式                     当前应用程序对文件的权限              其他应用程序对文件的权限
 MODE_PRIVATE                读/写                                无
 MODE_APPEND                 读/写 写的时候采用追加方式             无
@@ -689,10 +689,9 @@ public class AndroidTestActivity extends Activity {
 ## AssetManager ##
 　　在`Android`中可以使用`AssetManager`类来访问`assets`目录下的文件。`assets`目录的特点：
 
-	-  首先，assets文件夹内单个文件的大小必须<=1MB 。
-	-  然后，assets文件夹内的文件不会被注册到R文件中。
-	-  接着，assets文件夹内可以任意自定义子文件夹。
-	-  最后，assets文件夹主要用于保存一些“容量小且固定不变”的文件，如：游戏音乐等。所谓的“固定不变”指的是在程序运行的时候，该文件仅会被程序读取而不会去修改其内容。 
+	-  首先，assets文件夹内的文件不会被注册到R文件中。
+	-  然后，assets文件夹内可以任意自定义子文件夹。
+	-  最后，assets文件夹主要用于保存一些“容量小且固定不变”的文件，如：游戏音乐等。所谓的“固定不变”指的是在程序运行的时候，该文件仅会被程序读取而不会去修改其内容。
 
 <br>　　范例1：获取输入流。
 ``` java

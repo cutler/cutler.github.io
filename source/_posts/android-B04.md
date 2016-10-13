@@ -32,7 +32,7 @@ categories: Android开发 - 青铜
 <br>　　`Drawable`顾名思义就是可画的、可编辑的，因而`Bitmap`对象可以通过`BitmapDrawable`类进行编辑。
 
 <br>　　范例2：获取图像宽高。
-``` android
+``` java
 public class AndroidTestActivity extends Activity {
     private ImageView img;
     private BitmapDrawable drawable;
@@ -179,7 +179,7 @@ public class AndroidTestActivity extends Activity {
     -  本范例中为<item>标签设置一个ID 。
 
 　　动态更新图片：
-``` android
+``` java
 public class AndroidTestActivity extends Activity {
     private ImageView img;
     private Resources rs;
@@ -378,7 +378,7 @@ android:state_window_focused   应用程序的窗口是否处于聚焦状态。
     -  若有两个或以上的<item>标签同时匹配，则系统会选择最先扫描到的，选择之后就不再继续向下匹配。
 
 <br>　　范例2：更改等级。
-``` android
+``` java
 public class AndroidTestActivity extends Activity {
     private ImageView img; // 图片。
     private EditText text; // 文本框,用来让用户输入等级。
@@ -416,7 +416,7 @@ public class AndroidTestActivity extends Activity {
     -  系统从第一张图片过渡向第二张图片后，第二张图片会覆盖到第一张图片的上面，但是第一张图片并不会消失，因此实际应用中，通常第二张图片的尺寸会大于等于第一张图片的尺寸，以达到完全覆盖的目的。
 
 <br>　　范例2：过渡图片。
-``` android
+``` java
 public class AndroidTestActivity extends Activity {
     private ImageView img; // 图片。
     public void onCreate(Bundle savedInstanceState) {
@@ -449,7 +449,7 @@ public class AndroidTestActivity extends Activity {
     -  gravity 图片的起始方向，取值：left(从左向右)，bottom(从下向上)等。
 
 <br>　　范例2：设置等级。
-``` android
+``` java
 public class AndroidTestActivity extends Activity {
     private ImageView img; // 图片。
     private ClipDrawable clip;

@@ -54,7 +54,7 @@ categories: Android开发 - 青铜
     -  android:duration	  播放动画时持续的时间。 
 
 <br>　　范例2：播放动画。
-``` android
+``` java
 public class AndroidTestActivity extends Activity {
     private ImageView img;
     public void onCreate(Bundle savedInstanceState) {
@@ -72,7 +72,7 @@ public class AndroidTestActivity extends Activity {
     -  本范例是在ImageView上面播放刚才我们创建的透明动画。
  
 <br>　　范例3：通过代码实现动画。
-``` android
+``` java
 public class AndroidTestActivity extends Activity {
     private ImageView img; 
     public void onCreate(Bundle savedInstanceState) {
@@ -149,7 +149,7 @@ public class AndroidTestActivity extends Activity {
     若将fromDegrees或toDegrees属性的值设置为负数，则动画会按照逆时针旋转。
 
 <br>　　范例2：`RotateAnimation`类。
-``` android
+``` java
 // 根据指定的参数构造一个RotateAnimation对象。 
 // 此构造方法默认是相对于屏幕上的某个点进行旋转。若想相对于控件本身或父元素旋转，则需要调用另一个构造方法。
 public RotateAnimation(float fromDegrees, float toDegrees, float pivotX, float pivotY)
@@ -462,7 +462,7 @@ anim.start();
     -  我们只需要将初始值和结束值提供给ValueAnimator，并且告诉它动画所需运行的时长，那么ValueAnimator就会自动帮我们完成从初始值平滑地过渡到结束值这样的效果。
 
 <br>　　范例2：运行上面的代码时无法看到任何效果，需要借助监听器才能知道这个动画是否已经真正运行了，如下所示：
-``` android
+``` java
 ValueAnimator anim = ValueAnimator.ofFloat(0f, 1f);
 anim.setDuration(300);
 anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -477,7 +477,7 @@ anim.start();
     -  回调onAnimationUpdate()方法的时间间隔是ValueAnimator类根据你设置的初始值、结束值、动画时间三个参数来计算出来的，不需要我们设置，它会尽可能的让动画平滑的播放出来（即在使用最少的回调次数的基础上，保证动画流畅）。
 
 <br>　　范例3：`ofFloat()`方法可以传入任意多个参数。
-``` android
+``` java
 // 在3秒内从0过渡到5，再过渡到3，再过渡到10。
 ValueAnimator anim = ValueAnimator.ofFloat(0f, 5f, 3f, 10f);
 anim.setDuration(3000);
@@ -496,7 +496,7 @@ anim.start();
 　　`ObjectAnimator`除了具有其父类的所有特性之外，还在父类的基础上增加了对对象属性进行动画功能，如动画`View`的`alpha`属性的值。
 
 <br>　　范例1：修改透明度。
-``` android
+``` java
 Button btn = (Button) findViewById(R.id.btn);
 // 第一个参数是想动画的对象，第二个参数是该对象的属性。
 ObjectAnimator animator = ObjectAnimator.ofFloat(btn, "alpha", 1f, 0f, 1f);
@@ -519,7 +519,7 @@ animator.start();
 
 <br>**引入一个问题**
 　　我们现在有个需求，给`Button`加一个动画，让这个`Button`的`paddingLeft`从当前值增加到`500px`。按照上面的思路，我们可以这么写代码：
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -536,7 +536,7 @@ public class MainActivity extends Activity {
 	-  object必须要提供set方法，如果动画的时候没有传递初始值，那么还要提供get方法，因为系统要去拿属性的初始值。
 	-  object的set对属性所做的改变必须能够通过某种方法反映出来，比如会带来UI的改变之类的（如果这条不满足，动画就不会有效果）。
 　　上面范例之所以不成功是因为`View`类没有`setPaddingLeft`方法，而只有`setPadding()`方法，为了实现这个需求，我们可以用一个类来包装原始的`Button`对象，代码为：
-``` android
+``` java
 public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -579,7 +579,7 @@ public class MainActivity extends Activity {
 	-  with(Animator anim)     将现有动画和传入的动画同时执行
 
 <br>　　比如说我们想要让`Button`先从屏幕外移动进屏幕，然后开始旋转`360`度，旋转的同时进行淡入淡出操作，就可以这样写：
-``` android
+``` java
 Button btn = (Button) findViewById(R.id.btn);
 ObjectAnimator moveIn = ObjectAnimator.ofFloat(btn, "translationX", -500f, 0f);
 ObjectAnimator rotate = ObjectAnimator.ofFloat(btn, "rotation", 0f, 360f);
@@ -595,7 +595,7 @@ animSet.start();
 ### Animator监听器 ###
 　　在`Animator`类当中提供了一个`addListener()`方法，这个方法接收一个`AnimatorListener`用于监听动画的各种事件了。
 
-``` android
+``` java
 ValueAnimator anim = ValueAnimator.ofInt(0, 10);
 anim.setDuration(1000);
 // 动画播放的过程中，会回调此接口中的方法。
@@ -619,7 +619,7 @@ anim.start();
 ```
 
 <br>　　为了方便使用，可以继承`AnimatorListenerAdapter`类，这样我们就可以只重写自己需要的方法了，如下所示：
-``` android
+``` java
 anim.addListener(new AnimatorListenerAdapter() {
     @Override
     public void onAnimationEnd(Animator animation) {
@@ -1012,7 +1012,7 @@ void setAnimatedValue(Object target) {
 　　本节就来介绍一下，如何动画一个对象。
 
 <br>　　首先来定义一个`Point`类，如下所示：
-``` android
+``` java
 public class Point {
     private float x;
 
@@ -1036,7 +1036,7 @@ public class Point {
     -  Point类非常简单，只有x和y两个变量用于记录坐标的位置，并提供了构造方法来设置坐标。
 
 <br>　　接下来定义`PointEvaluator`，如下所示：
-``` android
+``` java
 public class PointEvaluator implements TypeEvaluator{
     @Override
     public Object evaluate(float fraction, Object startValue, Object endValue) {
@@ -1053,7 +1053,7 @@ public class PointEvaluator implements TypeEvaluator{
     -  这样我们就将PointEvaluator编写完成了，接下来我们就可以非常轻松地对Point对象进行动画操作了。
 
 <br>　　比如说我们有两个`Point`对象，现在需要将`Point1`通过动画平滑过度到`Point2`，就可以这样写：
-``` android
+``` java
 Point point1 = new Point(0, 0);
 Point point2 = new Point(300, 300);
 ValueAnimator anim = ValueAnimator.ofObject(new PointEvaluator(), point1, point2);
@@ -1064,7 +1064,7 @@ anim.start();
     -  ValueAnimator.ofObject专门用来动画一个对象。
 
 <br>　　接下来新建一个`MyAnimView`，在其内部播放动画，代码如下所示：
-``` android
+``` java
 public class MyAnimView extends View {
     public static final float RADIUS = 50f;
     private Point currentPoint;
@@ -1159,7 +1159,7 @@ private void startAnimation() {
 
 　　`NineOldAndroids`的原理很简单，判断当前设备的`API Level`版本，如果大于等于`11`，那么就调用`官方的API`，否则就调用自己实现动画效果。在`API`的名称等方面，它与官方的属性动画基本一致（如`ObjectAnimator`、`ValueAnimator`等），这意味着你只需要修改一下包名就可以在官方和`NineOldAndroids`之间切换。
 　　比如说想要将一个值从`0`平滑过渡到`1`，时长`300`毫秒，写法与官方`API`完全一致：
-``` android
+``` java
 ValueAnimator anim = ValueAnimator.ofFloat(0f, 1f);
 anim.setDuration(300);
 anim.start();
@@ -1174,7 +1174,7 @@ You need to physically move the view when the animation ends on pre-Honeycomb.
 ```
 　　[点击查看详情](http://stackoverflow.com/questions/13173808/nineoldandroids-not-clickable-view-after-rotation-or-move?rq=1)
 
-　　更劲爆的是，作者本人已经将这个项目给`DEPRECATED`了，下面是他的解释：
+　　而且作者本人已经将这个项目给`DEPRECATED`了，下面是他的解释：
 ``` c
 NineOldAndroids is deprecated. No new development will be taking place. 
 Existing versions will (of course) continue to function. 
@@ -1184,12 +1184,7 @@ Thanks for all your support!
 ```
 
 
-<br>　　这是不是说`NineOldAndroids`动画库就完全没用了？ 并不是！笔者提出如下的建议：
-
-	-  如果你的项目是基于Android3.0或以上开发的，那么完全不需要使用NineOldAndroids库，直接用系统的API即可。
-	-  如果基于Android3.0之前的版本：
-	   -  如果你只是想用属性动画来动画一个非View对象，那么使用NineOldAndroids库完全没问题。
-	   -  如果你想真正意义的在Android3.0之前的设备上改变View位置、旋转等属性，那么NineOldAndroids库很难做到。
+<br>　　这是不是说`NineOldAndroids`动画库就完全没用了？ 是的，因为就现在来说（2016年10月），你已经可以把App的最低安装版本设置为4.0了。
 
 
 <br>**本节参考阅读：**

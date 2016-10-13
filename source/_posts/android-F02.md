@@ -63,7 +63,7 @@ categories: Android开发 - 青铜
 </center>
 
 　　我们可以通过`context.getResources().getDisplayMetrics().density`来在获取当前设备的`dppx`参数，即`1dp=?px`，然后可以写出如下的代码让实现`dp`和`px`之间的转换：
-``` android
+``` java
 // 从dp转成为px
 public static int dip2px(Context context, float dpValue) {
     float dppx = context.getResources().getDisplayMetrics().density;
@@ -155,7 +155,7 @@ public static int px2dip(Context context, float pxValue) {
     -  创建垂直排列的三个ImageView控件，它们的尺寸都是wrap_content。
 
 <br>　　范例2：`MainActivity`。
-``` android
+``` java
 public class MainActivity extends Activity {
 
     @Override
