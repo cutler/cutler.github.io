@@ -1,6 +1,6 @@
 title: 入门篇　第四章 网络编程
 date: 2015-3-9 10:38:36
-categories: Android开发 - 青铜
+categories: Android开发 - 倔强青铜
 ---
 　　本章来讲解一下`Android`开发中网络编程相关的知识。
 

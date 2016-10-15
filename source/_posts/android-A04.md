@@ -1,6 +1,6 @@
 title: 入门篇　第三章 数据存取
 date: 2015-3-5 16:19:10
-categories: Android开发 - 青铜
+categories: Android开发 - 倔强青铜
 ---
 　　本章将详细介绍`Android`中数据存取相关的知识。
 

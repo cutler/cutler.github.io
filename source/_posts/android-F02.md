@@ -1,6 +1,6 @@
 title: 进阶篇　第二章 屏幕适配
 date: 2015-3-12 16:44:50
-categories: Android开发 - 青铜
+categories: Android开发 - 倔强青铜
 ---
 　　`Android`的屏幕适配一直以来都在折磨着我们这些开发者，本篇文章以`Google`的官方文档为基础，全面而深入的讲解了`Android`屏幕适配的原因、重要概念、解决方案及最佳实践。
 

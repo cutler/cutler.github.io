@@ -1,6 +1,6 @@
 title: 优化篇　第三章 内存优化（下）
 date: 2015-3-10 10:40:53
-categories: Android开发 - 白银
+categories: Android开发 - 不屈白银
 ---
 # 第三节 系统内存优化 #
 　　本节将会介绍系统内存优化（进程内存、系统流畅度等）的相关知识。
@@ -17,7 +17,7 @@ categories: Android开发 - 白银
 <br>　　本节就来介绍如何分析、定位出上面说的各种情况，非系统战斗人员请撤离，或者先去阅读[《第四章 Linux》](http://cutler.github.io/base-04/)。
 
 
-<br>　　暂缓，我先去写[《第四章 Linux》](http://cutler.github.io/base-04/)，然后再回来。 by 2016-07-15。
+<br>　　暂缓，我先去写[《第四章 Linux》](http://cutler.github.io/android-BY-C01/)，然后再回来。 by 2016-07-15。
 
 
 

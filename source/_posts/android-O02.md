@@ -1,6 +1,6 @@
 title: 综合篇　第二章 Android Studio
 date: 2015-4-15 21:44:35
-categories: Android开发 - 青铜
+categories: Android开发 - 倔强青铜
 ---
 　　`Android Studio`是谷歌推出的一个Android开发环境，基于`IntelliJ IDEA`。
 

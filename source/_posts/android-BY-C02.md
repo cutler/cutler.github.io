@@ -1,6 +1,6 @@
 title: Framework篇　第二章 Binder机制
 date: 2016-3-28 9:58:23
-categories: Android开发 - 白银
+categories: Android开发 - 不屈白银
 ---
 　　从本章开始我们将学习`Android Framework`中的东西，而首当其冲的就是`Binder`。
 

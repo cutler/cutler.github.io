@@ -1,6 +1,6 @@
 title: 综合篇　第一章 Maven
 date: 2014-12-6 15:46:45
-categories: Android开发 - 青铜
+categories: Android开发 - 倔强青铜
 ---
 　　本章的目的是帮助你理解`Maven`的工作机制。因此教程主要关注`Maven`的核心概念。一旦你理解了这些核心概念，当你想了解更多的细节时，再去查看`Maven`文档，或者从网上搜索，就变得容易多了。
 　　同时，在本章的末尾会有一个范例，使用`Maven`进行`Android`应用程序多渠道打包，以此来练习所学的知识。
@@ -88,7 +88,7 @@ categories: Android开发 - 青铜
 　　Maven还能帮助我们管理原本分散在项目中各个角落的项目信息，包括项目描述、开发者列表、版本控制系统地址、许可证、缺陷管理系统地址等。这些微小的变化看起来很琐碎，并不起眼，但却在不知不觉中为我们节省了大量寻找信息的时间。
 　　除了直接的项目信息，还可以通过Maven自动生成的站点，以及一些已有的插件，我们还能够轻松获得项目文档、测试报告、静态分析报告、源码版本日志报告等非常具有价值的项目信息。
 
-　　事实上，Maven开发者认为Maven不仅仅是一个构建工具。你可以去阅读他们的文档 [Maven哲学](http://maven.apache.org/background/philosophy-of-maven.html)，看看他们是怎么想的。但是现在，我们就把Maven当作一个构建工具，当你理解和开始使用Maven后，你就明白Mavan到底是什么了。
+　　事实上，Maven开发者认为Maven不仅仅是一个构建工具。你可以去阅读他们的文档 [Maven哲学](http://maven.apache.org/background/philosophy-of-maven.html)，看看他们是怎么想的。但是现在，我们就把Maven当作一个构建工具，当你理解和开始使用Maven后，你就明白Maven到底是什么了。
 
 # 第二节 环境搭建 #
 
@@ -143,7 +143,7 @@ categories: Android开发 - 青铜
 <br>　　bin：该目录包含了mvn运行的脚本，这些脚本用来配置Java命令，准备好classpath和相关的Java系统属性，然后执行Java命令。
 
 	-  mvn：基于UNIX平台的shell脚本。
-	-  mvn.bat：基于Windows平台的bat脚本。在命令行输入任何一条mvn命令时，实际上就是在调用mvn或mvn.bat脚本。
+	-  mvn.bat：基于Windows平台的脚本。在命令行输入任何一条mvn命令时，实际上就是在调用mvn或mvn.bat脚本。
 	-  mvnDebug和mvnDebug.bat：前者是UNIX平台的shell脚本，后者是windows的bat脚本。
 	-  mvn和mvnDebug两者的内容基本是一样的，只是mvnDebug多了一条MAVEN_DEBUG_OPTS配置，作用就是在运行Maven时开启debug，以便调试Maven本身。
 	-  m2.conf：classworlds的配置文件，稍微会介绍classworlds。
@@ -159,7 +159,7 @@ categories: Android开发 - 青铜
 	-  一般情况下，我们更偏向于复制该文件至~/.m2/目录下（这里~表示用户目录），然后修改该文件，在用户范围定制Maven的行为。
 
 <br>　　lib：该目录包含了所有Maven运行时需要的Java类库。
-　　Maven本身是分模块开发的，因此用户能看到诸如`mavn-core-3.0.jar`、`maven-model-3.0.jar`之类的文件，此外这里还包含一些Maven用到的第三方依赖如`common-cli-1.2.jar`、`google-collection-1.0.jar`等等。
+<br>　　Maven本身是分模块开发的，因此用户能看到诸如`mavn-core-3.0.jar`、`maven-model-3.0.jar`之类的文件，此外这里还包含一些Maven用到的第三方依赖如`common-cli-1.2.jar`、`google-collection-1.0.jar`等等。
 　　可以说，这个lib目录就是真正的Maven。
 　　
 <br>　　其他： 

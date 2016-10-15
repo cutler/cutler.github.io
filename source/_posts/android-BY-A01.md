@@ -1,6 +1,6 @@
 title: 优化篇　第一章 插件化开发
 date: 2016-3-14 16:41:24
-categories: Android开发 - 白银
+categories: Android开发 - 不屈白银
 ---
 　　本章来讲解一下Android插件化开发相关的知识。
 

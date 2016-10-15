@@ -1,6 +1,6 @@
 title: UI篇　第二章 通知与 RemoteViews
 date: 2015-1-29 14:30:28
-categories: Android开发 - 青铜
+categories: Android开发 - 倔强青铜
 ---
 　　有几种类型的场景可能会要求你把应用程序中发生的事件通知给用户，这些事件有的需要用户响应，有的则不需要。
 

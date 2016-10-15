@@ -1,6 +1,6 @@
 title: 进阶篇　第三章 消息机制与线程池
 date: 2015-4-29 11:41:12
-categories: Android开发 - 青铜
+categories: Android开发 - 倔强青铜
 ---
 
 # 第一节 Handler #

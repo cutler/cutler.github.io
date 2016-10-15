@@ -1,6 +1,6 @@
 title: UI篇　第三章 ActionBar 和 Toolbar
 date: 2015-4-14 14:09:02
-categories: Android开发 - 青铜
+categories: Android开发 - 倔强青铜
 ---
 　　在`Android 3.0`中除了`Fragment`外，`ActionBar`也是一个重要的内容。`ActionBar`主要是用于代替传统的`标题栏`与`Menu按钮`：
 

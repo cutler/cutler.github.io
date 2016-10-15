@@ -1,6 +1,6 @@
 title: 媒体篇　第二章 图片
 date: 2015-3-29 17:43:45
-categories: Android开发 - 青铜
+categories: Android开发 - 倔强青铜
 ---
 
 # 第一节 高效的显示图片 #
