@@ -1,11 +1,11 @@
-title: 优化篇　第三章 内存优化（中）
+title: 优化篇　第三章 内存优化 —— 应用内存
 date: 2015-3-10 10:40:53
 categories: Android开发 - 不屈白银
 ---
-# 第二节 内存基础 #
+
 　　所谓知己知彼百战不殆，为了以后能更深入的进行内存分析，我们需要先来了解内存相关的知识。
 
-## 概述 ##
+# 第一节 概述 #
 <br>**名词解释**
 　　内存泄漏（`Memory Leak`）
 
@@ -38,7 +38,7 @@ categories: Android开发 - 不屈白银
 	   -  例如，Galaxy Nexus上的照相机所照的图片最大达到2592x1936像素(500万像素)。
 	   -  如果位图的配置使用ARGB_8888(Android 2.3的默认配置)那么加载这个图像到内存需要19MB的存储空间(2592*1936*4bytes)，直接超过了许多低端设备上的单应用限制。
 
-## JVM内存结构 ##
+# 第二节 JVM内存结构 #
 　　接着再来看一下JVM的内存结构。
 
 　　JVM会把它所管理的内存会分为若干个不同的数据区域，这些区域都有各自的用途、创建和销毁的时间，有的区域随着虚拟机进程的启动而存在，有些区域则是依赖用户线程的启动和结束而建立和销毁。
@@ -58,7 +58,7 @@ categories: Android开发 - 不屈白银
 
 　　然后，还应该存在一个共有的区域。
 
-	-  无论是我们编写的代码，还是利用的第三方的工具，都是需要类装载器进行加载的，这说明应该有区域专门用于存储这些信息，即类，方法，常量池等。
+	-  无论是我们编写的代码，还是利用的第三方的类库，都是需要载入到内存的，即内存中应该有区域专门用于存储这些信息（类，方法，常量池等）。
 	-  这块区域应该对每个线程进行开放共享的。
 
 　　最后，堆和栈。
@@ -169,9 +169,9 @@ public class Test {
 	-  引用队列的poll方法用来从队列中出队一个元素，若队列为空则返回null。
 
 <br>　　表面上来看引用队列好像没什么屌用，但那只是表面上看。
-　　在Github上有一个检测内存泄露的项目[leakcanary](https://github.com/square/leakcanary)，现在市面上有大量的项目都集成了它，它就是利用了引用队列的特性。
+　　在Github上有一个检测内存泄露的项目 [leakcanary](https://github.com/square/leakcanary) ，现在市面上有大量的项目都集成了它，它就是利用了引用队列的特性。
 
-　　我们来看一下[leakcanary](https://github.com/square/leakcanary)的源码，它是如何利用引用队列的。
+　　我们来看一下 [leakcanary](https://github.com/square/leakcanary) 的源码，它是如何利用引用队列的。
 <br>　　范例2：`com.squareup.leakcanary.RefWatcher`代码片段。
 ``` java
   // 当Activity被finish时，程序就会调用这个watch方法。
@@ -232,7 +232,7 @@ public class Test {
   }
 ```
 	语句解释：
-	-  多的也不说了，大家可以去试一试leakcanary的效果。
+	-  多的也不说了，大家可以去试一试 leakcanary 的效果。
 
 <br>　　了解了`leakcanary`后，咱们还得把话说回来。
 
@@ -254,18 +254,13 @@ public class Test {
 	-  JNI Global：全局JNI引用。
 	-  Monitor Used：用于同步的监控对象。
 
-## 分析内存泄露 ##
+## 常见内存泄露 ##
 
 　　在应用层开发的兄弟，最常见到内存问题应该就是因为OOM了。
 
 　　从早期`G1`的`192MB RAM`开始，到现在动辄`2G - 3G RAM`的设备，系统为单个App分配的内存从`16MB`到`48MB`甚至更多，但`OOM`从不曾离我们远去。这是因为大部分App中图片内容占据了`50%`甚至`75%`以上，而App内容的极大丰富，所需的图片越来越多，屏幕尺寸也越来越大分辨率也越来越高，所需的图片的大小也跟着往上涨，这在大屏手机和平板上尤其明显，而且还经常要兼容低版本的设备，所以Android的内存管理显得极为重要。
 
-
-　　内存使用的不合理就会出现OOM、UI不流畅等问题，下面来说说内存泄露的问题。
-
-### 常见泄漏 ###
 　　本节先来介绍几个常见的内存年泄漏的范例，以便在以后写代码的时候可以避免掉。
-
 <br>　　范例1：Handler导致的泄露。
 ``` java
 public class HandlerActivity extends Activity {
@@ -379,10 +374,9 @@ public class ThreadActivity extends Activity {
 <br>　　范例3：HanderThread对象是如何防止泄露的。
 ``` java
 for (;;) {
-  // msg对象是栈上的局部变量，每次循环都将会重写。
+  // 下面的msg对象是栈上的局部变量，每次循环都将会重写。
   // 一旦被重写，上一次循环的msg引用指向的对象将不再被其引用。
-  // 但是在Dalvik虚拟机的实现中，如果queue.next()阻塞了。
-  // 那么本次循环的msg未被赋值，则上次的msg的引用将不会被清除。
+  // 但是在Dalvik虚拟机的实现中，如果queue.next()阻塞了，那么本次循环的msg未被赋值，则上次的msg的引用将不会被清除。
   Message msg = queue.next(); // might block
   if (msg == null) {
     return;
@@ -399,7 +393,93 @@ for (;;) {
 - [Android App 内存泄露之Thread](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8BThread.md) 
 - [Memory leak专题](http://wiki.jikexueyuan.com/project/notes/Android-Java/MemoryLeak.html)
 
-### MAT ###
+# 第三节 内存优化 #
+　　实际工作中遇到的问题可不会像上一节说的那么简单，假设Leader给你一个任务，让你把你们进程所占的内存在原有的基础上降低15M，你是不是就不知道要如何下手了？
+
+　　不要怕，本节将通过若干实例来让大家对内存优化有一个简单的认识。
+
+## 预备知识 ##
+　　知己知彼才能胜利，因此“想优化，就得先了解”，我们只有先了解现有进程的内存占用情况，才能制定出相应的优化方案。
+
+<br>**1、进程占了多少内存？**
+
+　　通常我们会通过Android Studio（以后简称AS）里的Android Monitor或者DDMS来查看某个进程所占的内存值，一般情况下是没问题的，但是它不是很精确。
+
+　　推荐使用adb命令来查看进程的内存（要把手机连接到电脑上不用我说了吧？）：
+
+```
+adb shell dumpsys meminfo com.android.systemui
+```
+
+<br>　　下图是输出的内容摘要：
+<center>
+![](/img/android/android_BY_a03_01.png)
+</center>
+
+　　这些字段的含义为：
+
+    -  Native Heap行和Dalvik Heap行，分别表示当前进程的Native堆和Dalvik堆的大小，这些数字的单位都是KB。
+    -  Heap Size列表示堆的总大小，它与后两者的关系是 Heap Size = Heap Alloc + Heap Free。其实AS和DDMS中所显示的堆大小、已分配、空闲内存，就是这三个字段的值。
+    -  Pss Total列表示实际占用的内存值，比如Dalvik Heap的Pss Total占了62M，即Heap Alloc并不是堆的实际内存大小，Pss Total才是（具体后述）。
+    -  最后一行就是一个合计，它的Pss Total就是表示当前进程最终占据的实际内存大小，即125M。
+
+
+<br>**2、手机总内存**
+
+　　整个系统的已用内存就是各进程的Total Pss的总和，执行如下命令可以查看所有进程的内存和系统总内存：
+
+``` c
+adb shell dumpsys meminfo
+```
+<br>　　下图是输出的内容摘要：
+<center>
+![](/img/android/android_BY_a03_02.png)
+</center>
+
+　　这些字段的含义为：
+
+	-  Total RAM表示手机的总内存，我的手机是3G的；另外三项也很容易理解，分别是：空闲内存、已使用内存、丢失内存。
+	-  上面四者的关系是：Total = Free + Used + Lost。
+	-  其中Used RAM就是由当前系统中所有正在运行的进程的Pss Total的值加在一起得到的。
+
+
+<br>**3、堆转储文件**
+
+　　除了要知道进程所占的内存外，还得去获取进程的详细内存log，有了log之后，就可以通过分析log，来知道进程的内存都被什么对象占据了。
+
+　　堆转储文件（Heap Dump）就是我们说的log文件。
+
+　　它是某个时刻对一个Java进程所使用的堆内存情况的一次快照，也就是在某个时刻把Java进程的内存以某种格式持久化到了磁盘上，通常以`.hprof`为后缀名。
+
+	-  不同厂家的JVM所生成的堆转储文件在数据存储格式以及数据存储内容上有很多区别。
+	-  比如Oracle、HP、IBM等。
+	-  但总的来说，Heap Dump一般都包含了一些堆中的Java Objects，Class等基本信息。当你在执行一个转储（dump）操作时，往往会触发一次GC，所以你转储得到的文件里包含的信息通常是有效的内容（包含比较少，或没有垃圾对象了）。
+
+　　大家可以在 DDMS 或 Android Studio 中自己 dump 出 hprof 文件（具体方法请自行搜索）。
+
+	-  需要注意的是，只有root后的手机才能dump进程的hprof文件。
+	-  未root的手机在DDMS和AS中是看不见进程列表的，或者使用Android模拟机也行，它默认是root的。
+	-  如果你是小米手机，直接用小米助手刷一个开发版的ROM就可以方便的root，市面上的一键root工具都是菜。
+
+<br>　　接下来需要知道的是，hprof文件不是普通的文件，得需要专业的软件才能查看它的内容，目前比较常见的、用来查看hprof的软件就是MAT（稍后详述）。
+
+　　这里强调一下，如果你直接使用MAT打开刚 dump 的堆转储文件的话，那么MAT通常会报如下错误：
+
+``` java
+Error opening heap dump 'com.android.systemui.hprof'. Check the error log for further details.
+Error opening heap dump 'com.android.systemui.hprof'. Check the error log for further details.
+Unknown HPROF Version (JAVA PROFILE 1.0.3) (java.io.IOException)
+Unknown HPROF Version (JAVA PROFILE 1.0.3)
+```
+　　原因是: Android的虚拟机导出的hprof文件格式与标准的java hprof文件格式标准不一样，根本原因两者的虚拟机不一致导致的。解决方法：使用`sdk\platform-tools\hprof-conv.exe`工具转换就可以了：
+
+``` c
+hprof-conv 源文件 目标文件
+```
+
+
+## MAT入门 ##
+
 　　网上关于MAT的教程有很多，也很容易搜到，所以笔者就不重复造轮子了，下面主要介绍一些经验性的总结。
 
 　　`Memory Analyzer（MAT）`是一个功能丰富的`JAVA`堆转储文件分析工具，可以帮助你发现内存漏洞和减少内存消耗。
@@ -419,10 +499,10 @@ for (;;) {
   
 <br>　　接下来我们有两个任务要做：
 
-	-  第一，写一个内存泄漏的代码。
-	-  第二，导出一个堆转储文件，然后分析这个文件。所谓的堆转储文件，就是一个保存了内存中的各种信息的文件，我们通过分析它就可以定位出内存泄漏。
+	第一，写一个内存泄漏的代码。
+	第二，导出一个堆转储文件，然后使用MAT工具来分析这个文件。
 
-#### 问题代码 ####
+### 问题代码 ###
 　　前面说过`Thread`一旦被启动，那么直到它运行结束都不会被回收（当然若进程被操作系统杀掉了那么线程会中止），你可能会不信，那么咱们现在就创建一个范例，完成后面知识的讲解。
 
 <br>　　范例1：内存泄漏代码。
@@ -450,42 +530,7 @@ public class MainActivity extends Activity {
 	语句解释：
 	-  每当新建立一个Activity的时候就开启一个线程，并让这个线程运行600秒。
 
-<br>　　程序运行后，我们可以通过不断的横竖屏切换来触发`Activity`重建，来模拟内存泄漏。
-
-
-#### 堆转储文件 ####
-　　在进行分析内存之前，还需要获得一个堆转储文件(`dump heap`)，堆转储文件以`.hprof`为后缀，我们先来了解一下它。
-
-<br>**Heap Dump**
-　　一个`Heap Dump`是指在某个时刻对一个Java进程所使用的堆内存情况的一次`快照`，也就是在某个时刻把`Java`进程的内存以某种格式持久化到了磁盘上。`Heap Dump`的格式有很多种，而且不同的格式包含的信息也可能不一样。
-　　但总的来说，`Heap Dump`一般都包含了一个堆中的`Java Objects`，`Class`等基本信息。同时，当你在执行一个转储操作时，往往会触发一次`GC`，所以你转储得到的文件里包含的信息通常是有效的内容（包含比较少，或没有垃圾对象了）。
-
-　　我们往往可以在`Heap Dump`看到以下基本信息（一项或者多项，与`Dump`文件的格式有关）：
-
-	-  所有的对象信息：对象的类信息、字段信息、原生值(int, long等)及引用值。
-	-  所有的类信息：类加载器、类名、超类及静态字段。
-	-  垃圾回收的根对象：根对象是指那些可以直接被虚拟机触及的对象。
-	-  线程栈及局部变量：包含了转储时刻的线程调用栈信息和栈帧中的局部变量信息。
-　　一个`Heap Dump`是不包含内存分配信息的，也就是说你无法从中得知是谁创建了这些对象，以及这些对象被创建的地方是哪里。但是通过分析对象之间的引用关系，往往也能推断出相关的信息了。
-
-<br>**获取堆转储文件**
-　　首先，您需要了解到，不同厂家的`JVM `所生成的堆转储文件在数据存储格式以及数据存储内容上有很多区别，`MAT`不是一个万能工具，它并不能处理所有类型的堆存储文件。但是比较主流的厂家和格式，例如`Oracle`，`HP`，`SAP`所采用的`HPROF`二进制堆存储文件，以及`IBM`的`PHD`堆存储文件等都能被很好的解析。
-　　获得堆转储文件很容易，打开`DDMS`，启动想要监控的进程，点击左边`Devices`窗口上方工具栏的`“Dump HPROF File”`按钮。
-
-　　如果你直接使用`MAT`打开刚生成的堆转储文件的话，那么`MAT`通常会报如下错误：
-``` c
-Error opening heap dump 'a.hprof'. Check the error log for further details.
-Error opening heap dump 'a.hprof'. Check the error log for further details.
-Unknown HPROF Version (JAVA PROFILE 1.0.3) (java.io.IOException)
-Unknown HPROF Version (JAVA PROFILE 1.0.3)
-```
-　　原因是: Android的虚拟机导出的`hprof`文件格式与标准的`java hprof`文件格式标准不一样，根本原因两者的虚拟机不一致导致的。
-　　解决方法：使用`sdk\platform-tools\hprof-conv.exe`工具转换就可以了：
-``` c
-hprof-conv 源文件 目标文件
-```
-
-#### 发现问题 ####
+### 发现问题 ###
 　　若我们的项目运行一段时间后就变得很慢，那么不出意外的话是有内存泄漏了，但是由于不知道具体在哪里泄漏的，所以可能无从下手，应该怎么办呢？
 　　在`DDMS`视图中的`Heap`选项卡中部有一个`Type`叫做`data object`，即数据对象。
 　　在`data object`一行中有一列是`“Total Size”`，其值就是当前进程中所有`Java`数据对象的内存总量，一般情况下，这个值的大小决定了是否会有内存泄漏。
@@ -512,12 +557,12 @@ hprof-conv 源文件 目标文件
 	   -  反之如果代码中存在没有释放对象引用的情况，则data object的Total Size值在每次GC后不会有明显的回落，随着操作次数的增多Total Size的值会越来越大，直到到达一个上限后导致进程被kill掉。
 	-  提示：我们可以点击DDMS视图里的“Cause GC”按钮来手动触发GC。
 
-#### Leak Suspects ####
+### Leak Suspects ###
 　　现在，我们已经确定程序存在内存泄漏的问题了，并且也知道是哪个界面存在泄漏了，为了进一步确定是哪块代码出的问题，我们需要将该进程的内存信息导出来，生成一个`.hprof`文件，并加以分析。
 
 　　再次提示：
 
-	-  如果你是使用MAT单机版，那么你需要把IDE导出的堆转储文件转换一下格式。
+	-  如果你是使用MAT单机版（而不是AS或者Eclipse插件），那么你需要手动把hprof转换一下格式。
 
 <br>　　当使用`MAT`打开`.hprof`文件时，会默认打开一个名为`“Leak suspects”（泄露疑点）`的视图，并且生成报告给用户。
 　　`“泄露疑点”`会列出当前内存中的个头大的对象，在这里列出的对象并不一定是真正的内存泄露，但它仍然是检查内存泄露的一个绝佳起点。
@@ -534,14 +579,7 @@ hprof-conv 源文件 目标文件
 	-  <system class loader>：加载该类的加载器。
 	-  5,309,840 (47.06%)：该类所有对象所占用的内存。
 
-<br>　　我们可以点击上图中的`“Details »”`按钮来查看详细信息。
-　　报告主要包括`到达聚点的最短路径`，这个功能非常有用，它可以让开发人员快速发现到底是哪里让这些对象无法被`GC`回收：
-
-<center>
-![](/img/android/android_8_16.png)
-</center>
-
-<br>　　在继续向下讲解之前，我们还需要再插一个知识点。
+<br>　　我们可以点击上图中的`“Details »”`按钮来查看详细信息。在继续向下讲解之前，还需要再插一个知识点。
 
 <br>**浅堆和保留堆**
 　　`MAT`可以根据堆转储文件，以可视化的方式告诉我们哪个类，哪个对象分配了多少内存。不过要想看懂它们，则需要掌握2个概念：`Shallow heap`(浅堆)和`Retained heap`（保留堆）。
@@ -577,7 +615,7 @@ public class Person2 { // 头部8字节
     }
 }
 ```
-　　我们计算`Person2`对象的浅堆是`36`字节，就算在你的机器上计算的值与笔者计算的有偏差也不必在乎它们，因为误差不是我们关注重点。事实上，我们只是借助`Person2`类来理解浅堆和保留堆的概念，至于`Person2`类会占多少字节`Who cares?`，只要不是很离谱就可以了。
+　　笔者计算`Person2`对象的浅堆是`36`字节，就算在你的机器上计算的值与笔者计算的有偏差也不必在乎它们，因为误差不是我们关注重点。事实上，我们只是借助`Person2`类来理解浅堆和保留堆的概念，至于`Person2`类会占多少字节`Who cares?`，只要不是很离谱就可以了。
 
 　　如果程序中有这样的代码：
 ``` java
@@ -635,7 +673,7 @@ public class MainActivity extends Activity {
 	-  第二，使用Dominator Tree视图来继续追踪。
 	-  第三，使用Histogram视图来继续追踪。
 
-#### Dominator Tree ####
+### Dominator Tree ###
 　　MAT提供了一个称为`支配树`（Dominator Tree）的对象图。支配树体现了对象实例间的支配关系。在对象引用图中，所有指向对象`B`的路径都经过对象`A`，则认为对象`A`支配对象`B`。
 　　简单的说，之所以提出支配树这个概念，就是为了计算对象的`Retained Heap`。
 
@@ -702,26 +740,28 @@ public class MainActivity extends Activity {
 ```
     语句解释：
     -  本范例是通过Leaky泄露了MainActivity对象，并且我们在MainActivity中显示了一些图片。
-    -  解析来我们就演示一下如何通过Bitmap对象来定位出内存泄露的根源。
+    -  接下来我们就演示一下如何通过Bitmap对象来定位出内存泄露的根源。
 
-　　于是我们导出的`Dominator Tree`如下图所示：
+　　依然是打开`Dominator Tree`视图，由于Bitmap比较大，所以在打开`Dominator Tree`的第一眼就能看到它，于是我们按照下图所示的操作，来查看Bitmap的引用连：
 
 <center>
 ![](/img/android/android_8_21.png)
 </center>
 
-　　`Resources`类型对象由于一般是系统用于加载资源的，所以`Retained heap`较大是个比较正常的情况。但我们注意到下面的`Bitmap`类型对象的`Retained heap`也很大，很有可能是由于内存泄漏造成的。
+　　上图中排在第一的是`Resources`类型对象，由于一般是系统用于加载资源的，所以`Retained heap`较大是个比较正常的情况。但我们注意到下面有一个`Retained heap`很大的`Bitmap`对象，为了防止存在内存泄露的问题，我们就去看看它被谁引用了（如果没人引用，那这个Bitmap就被回收了，不会出现在hprof中）。
 　　所以我们右键点击这行，选择`Path To GC Roots -> exclude weak references`：
 
 	-  Path To GC Roots 选项用来告诉MAT将当前对象到某个GC根对象之间的所有引用链给列出来。
-	-  exclude weak references选项用来告诉MAT，不用列出weak类型的引用。
+	-  exclude weak references选项用来告诉MAT，不用列出weak类型的引用，如果你只想查看强引用的话，可以直接选倒数第二项。
 <br>　　然后可以看到下图的情形：
 
 <center>
 ![](/img/android/android_8_22.png)
 </center>
 
-　　`Bitmap`最终被`leak`变量引用到，这应该是一种不正常的现象，内存泄漏很可能就在这里了。`MAT`不会告诉哪里是内存泄漏，需要你自行分析，由于这是`Demo`，是我们特意造成的内存泄漏，因此比较容易就能看出来，真实的应用场景可能需要你仔细的进行分析。
+　　`Bitmap`最终被`leak`变量引用到，这应该是一种不正常的现象，内存泄漏很可能就在这里了。
+
+　　也就是说，`MAT`不会告诉哪里是内存泄漏，需要你自行分析，由于这是`Demo`，是我们特意造成的内存泄漏，因此比较容易就能看出来，真实的应用场景可能需要你仔细的进行分析。
 
 　　如果我们`Path To GC Roots -> with all references`，我们可以看到下图的情形：
 
@@ -731,9 +771,9 @@ public class MainActivity extends Activity {
 
 　　可以看到还有另外一个对象在引用着这个`Bitmap`对象，了解`weak references`的同学应该知道`GC`是如何处理`weak references`，因此在内存泄漏分析的时候我们可以把`weak references`排除掉。
 
-#### Histogram ####
+### Histogram ###
 　　支配树用来把当前内存中的、符合筛选条件的对象，按照保留堆从大到小的顺序列出来。如果你希望根据某种类型的对象个数来分析内存泄漏，则可以使用`Histogram`视图。
-　　与`Dominator Tree`一样，较小的对象可以通过在第一行的`“ClassName”`列中输入正则进行查找。
+　　与`Dominator Tree`一样，较小的对象可以通过在第一行的`“ClassName”`列中输入关键字进行查找。
 
 　　我们在`Overview`视图中选择`Actions -> Histogram`，可以看到类似下图的情形：
 
@@ -771,5 +811,76 @@ public class MainActivity extends Activity {
 - [Android内存泄露开篇](https://github.com/loyabe/Docs/blob/master/%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/Android%20App%20%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E4%B9%8B%E5%BC%80%E7%AF%87.md)
 - [Java程序内存分析：使用mat工具分析内存占用](http://my.oschina.net/biezhi/blog/286223#OSC_h4_7)
 
+## 内存泄露分析技巧 ##
+
+<br>**第一，导出Bitmap对象。**
+
+　　在[《 查看MAT中的bitmap》](http://blog.csdn.net/chenzhiqin20/article/details/51241249)中介绍了如何把 hprof 文件里的 Bitmap 给导出来，然后查看图片的内容。
+
+
+<br>**第二，sPreloadDrawables属性。**
+
+　　在查看hprof文件时，经常会发现一些Bitmap最终会被`Resources`的`sPreloadDrawables`属性所引用，如果导出这些图片查看的话，会发现咱们根本没用到它们，既然如此，那如果能将它们给释放掉，岂不是能降低不少内存？
+　　其实不需要，这些图片是整个系统所有进程共有的，如果这些图片总共占25M内存的话，那这25M内存是由所有进程均摊的，所以说就算咱们把它给清了，最多也就能降低1M左右的内存。
+　　[这里](http://blog.csdn.net/dingjikerbo/article/details/50540268) 有个哥们去清理了，而且从DDMS上看内存也确实被清了，人家的结果和我说的不一样的原因是：
+
+	-  前面说过，进程真正占多少内存是由其Pss Total的值决定的，而不是Heap Size的值。
+	-  这是因为Heap Size是一个有点虚高的值，它也将sPreloadDrawables里的图片的一起统计了。
+	-  但是由于sPreloadDrawables里的图片所占的内存并不是当前进程一人承担，所以说它不是精确的值。
+	-  同时，从AS和DDMS中看到的其实是Heap Size的值，所以肉眼上看起来内存降低了很多，但实际上则不多。
+	-  如果各位不相信，可以按照他的方法清理试试，看看在清理之前和之后进程的Total Pss是否有很大差距。
+
+<br>**第三，遍历功能。**
+
+　　最常见的定位内存泄露的方法就是，手动遍历进程的所有界面，一边操作一边查看进程的内存信息，观察是否存在内存泄露。
+
+　　比如，如果我们想测试MiuiHome进程是否存在泄露，则可以往桌面上加Widgets，具体测试步骤为：
+
+	1、先把手机重启，让手机恢复到最低的内存状态（因为Home是系统进程没法杀，只有重启手机才能让Home重置内存）。
+	2、起来之后，在AS或DDMS中为Home进程手动触发几次GC，然后就不要做任何操作了。
+	3、接着使用dumpsys meminfo命令获取com.miui.home进程的内存信息，假设它叫log1，同时也导出Home进程的hprof文件，假设它叫hprof1，这两个文件稍后会用到。
+	4、在桌面多放置几个大一点尺寸的Widgets，接着再把它们都给删了。
+	5、手动触发几次GC，确保Home进程中此时包含尽可能少的垃圾对象。
+	6、再次dump出com.miui.home的内存信息log2和hprof2，并让log2和log1进行比较。
+	7、如果log2明显比log1多出很多内存，则就接着去比较hprof2比hprof1中多了哪些东西。
+	8、所谓的比较两个hprof，主要就是看看它们的Histogram列出的类，比如是否多了Bitmap等（至于如何比较，后面会有范例）。
+
+<br>**第四，比较两个hprof文件。**
+
+　　假设我们有如下图所示的两个hprof文件，a是初始内存，b是执行N次操作后的内存：
+<center>
+![](/img/android/android_BY_a03_03.png)
+</center>
+
+　　通过观察可以发现，b里的String[]对象的个数多出了将近100个，我们接着使用“with incoming references”，去看看多出了哪些String[]。
+
+	-  你可能会说String对象还多1000呢，你怎么不看？
+	-  当然是先挑少的看了，不优先追踪只有2200多个对象的String[]，反而去追踪有6W+对象的String？
+	-  不要搞事情，我跟你讲。
+
+<br>　　接着继续比较String[]，如下图所示：
+<center>
+![](/img/android/android_BY_a03_04.png)
+</center>
+
+　　可以发现b（右侧的）里多出一些大小为960字节的String[]，而a中并没有，继续追踪下去发现如下引用链：
+<center>
+![](/img/android/android_BY_a03_05.png)
+</center>
+
+　　其实走到这里就可以做出判断了：
+
+	-  首先在b.hprof中发现了大量的960字节的String[]数组。
+	-  然后通过查看String[]的引用链发现，这些String[]并不是共存在某个集合中的，而是一对一的被持有的。
+	-  因此内存中很有可能存在多个MusicListenerService对象，每个对象会间接引用一个String[]。
+
+　　于是分别打开两份日志的dominator tree视图，可以看到如下所示：
+<center>
+![](/img/android/android_BY_a03_06.png)
+</center>
+
+　　找到问题后，剩下的事情就交给SystemUI的人搞就好了。
+
+　　上面就是内存分析过程，干货就是定位问题的思路，希望对各位能有所帮助。
 
 <br><br>
