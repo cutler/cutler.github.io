@@ -5,7 +5,7 @@ categories: Android开发 - 不屈白银
 　　在应用开发过程中，最难的不是完成应用的开发工作，而是在后续的升级、维护过程中让应用系统能够在满足需求且不破坏系统稳定性的前提下，保持高可扩展性、高内聚、低耦合，在经历了各版本的变更后依然保持清晰、灵活、稳定。
 　　当然，这是一个比较理想的情况，但我们必须要朝着这个方向去努力。
 
-　　本章主要参考[《Android 源码设计模式解析与实战》](https://item.jd.com/11793928.html)，感谢二位作者的无私奉献。
+　　本章主要参考[《Android 源码设计模式解析与实战》](https://item.jd.com/11793928.html)，感谢二位作者的无私奉献。dd
 
 # 第一节 问题起源 #
 
@@ -447,10 +447,43 @@ public class Tenant {
 - [维基百科 - SOLID(面向对象设计)](https://zh.wikipedia.org/wiki/SOLID_(%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1))
 - [维基百科 - 得墨忒耳定律](https://zh.wikipedia.org/wiki/%E5%BE%97%E5%A2%A8%E5%BF%92%E8%80%B3%E5%AE%9A%E5%BE%8B)
 
-# 第三节 常用模式 #
+# 第三节 模式概述 #
 
-　　限于篇幅原因，本节只会介绍开发中常用的模式。
+<br>**发展历史**
 
+	建筑师克里斯托佛·亚历山大在1977/79年编制了一本汇集设计模式的书，但是这种设计模式的思想在建筑设计领域里的影响远没有后来在软件开发领域里传播的广泛。
+	肯特·贝克和沃德·坎宁安在1987年，利用克里斯托佛·亚历山大在建筑设计领域里的思想开发了设计模式并把此思想应用在Smalltalk中的图形用户接口（GUI）的生成中。
+    一年后埃里希·伽玛在他的苏黎世大学博士毕业论文中开始尝试把这种思想改写为适用于软件开发。Erich Gamma 得到了博士学位后去了美国，在那与Richard Helm, Ralph Johnson ,John Vlissides 合作出版了《设计模式：可复用面向对象软件的基础》（Design Patterns - Elements of Reusable Object-Oriented Software） 一书，在此书中共收录了23个设计模式。
+	这四位作者在软件开发领域里以“四人帮”（英语，Gang of Four，简称GoF）而闻名，并且他们在此书中的协作导致了软件设计模式的突破。有时，GoF也会用于代指《设计模式》这本书。
+
+<br>**类型划分**
+
+　　《设计模式》一书把23种设计模式分为`创建型模式`、`结构型模式`、`行为型模式`三大类。
+
+　　创建型模式：
+
+	-  我们知道在Java中使用new关键字就可以创建一个对象，但是可不要小瞧对象创建这件事，它有很多大学问。
+	-  创建型设计模式就是用来解决对象创建时遇到的各类问题的，让对象以适应工作环境的方式被创建。
+	-  属于创建模式的是：单例、建造者（Builder）、原型、工厂方法、抽象工厂。
+
+　　结构型模式：
+
+	-  结构型设计模式是从程序的结构上解决模块之间的耦合问题，该模式有助于在系统的某一部分发生改变的时候，整个系统结构不需要改变。
+	-  属于结构模式的是：适配器、桥接、组合、修饰、外观、享元、代理。
+
+　　行为型模式：
+
+	-  行为型设计模式用来识别对象之间的常用交流模式并加以实现，可在进行这些交流活动时增强弹性。
+	-  属于行为模式的是：责任连、命令、解释器、迭代器、中介者、备忘录、观察者、状态、策略、模板方法、访问者。
+
+<br>　　限于篇幅原因，本文只会介绍笔者认为的、开发中常用的模式，未介绍的请您自行搜索学习。
+
+<br>**本节参考阅读：**
+- [维基百科 - 设计模式 (计算机)](https://zh.wikipedia.org/wiki/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F_(%E8%AE%A1%E7%AE%97%E6%9C%BA))
+- [极客学院 - 设计模式的分类](http://wiki.jikexueyuan.com/project/javascript-design-patterns/classification.html)
+
+
+# 第四节 创建型模式 #
 
 ## 单例模式 ##
 
@@ -659,73 +692,78 @@ p.setName("Tome");
 p.setSex("M");
 ```
 　　遗憾的是，上面的代码有着很严重的缺点，因为构造过程被分到几个调用过程中，在构造过程中`JavaBean`可能处于不一致状态（需要线程同步安全）。
-　　不过还有第三种替代方法，既能保证构造方法那样的安全性，也能保证`JavaBean`模式的可读性，这就是`Builder`模式。
+　　不过还有另一种替代方法，既能保证构造方法那样的安全性，也能保证`JavaBean`模式的可读性，这就是`Builder`模式。
 
 <br>**模式介绍**
 
-　　由一个名为`Builder`的内部来来完成实例化的任务。
+　　Build模式在Android开发中也比较常用，通常作为配置类的构建器将配置的构建和表示分离开来，同时也是将配置从目标类中隔离出来。
+　　咱们还是以ImageLoader库为例，实际开发中还会有更多的需求，比如设置图片在加载时ImageView显示的图片，加载失败时显示的图片，加载时最大使用的线程数等。
 
-<br>　　范例1：`Person`类。
+　　通常情况下，新手写出来的代码可能是这样的：
 ``` java
-public class Person {
+public class ImageLoader {
 
-    private int id;
-    private int age;
-    private String sex;
-    private String name;
+    // 正在加载和加载失败的图片
+    int mLoadingImageId;
+    int mLoadingFailedImageId;
+    //  此处省略上面两个属性的get、set方法。
 
-    // 私有化构造方法。
-    private Person(Builder builder) {
-        id = builder.id;
-        age = builder.age;
-        sex = builder.sex;
-        name = builder.name;
-    }
-
-    public static class Builder {
-        private int id;
-        private int age;
-        private String sex;
-        private String name;
-
-        public Builder setId(int id){
-            this.id = id;
-            return this;
-        }
-
-        public Builder setAge(int age){
-            this.age = age;
-            return this;
-        }
-
-        public Builder setSex(String sex){
-            this.sex = sex;
-            return this;
-        }
-
-        public Builder setName(String name){
-            this.name = name;
-            return this;
-        }
-
-        // 执行实例化操作。
-        public Person build(){
-            return new Person(this);
-        }
-    }
+    // 省略其它代码
 }
 ```
     语句解释：
-    -  Builder类内的各个方法返回本身，以便可以连续调用。
+    -  直接在ImageLoader增加字段有好几个缺点：
+       -  随着配置项不断增加，ImageLoader类中的代码和get、set也会越来越多，有违单一职责原则。
+       -  用户的使用成本变大，方法增多，每次使用的时候都需要仔细选择。
+       -  新增的这些配置可以实时修改，那么当用户修改最大允许线程数时，岂不是得关掉之前的线程池，然后重新新开一个？那如果新开一个，是不是还得考虑把老池中的未执行任务转移到新池中？
+    -  针对这个场景最好的做法就是专门分配一个类去管理这些配置项，同时只允许ImageLoader在初始化的时候修改这些配置，初始化之后则不能再改。
 
-　　下面就是客户端代码：
+　　下面是使用Builder模式之后的代码：
 ``` java
-Person p = new Person.Builder()
-    .setId(1)
-    .setAge(30)
-    .setName("Tom")
-    .setSex("M")
-    .build(); // 执行构造
+public class ImageLoaderConfig {
+    // 正在加载和加载失败的图片
+    int mLoadingImageId;
+    int mLoadingFailedImageId;
+    // 私有化构造器，本类的对象只能通过Builder类创建。
+    private ImageLoaderConfig(){}
+
+    // 静态内部类，Builder模式
+    public static class Builder{
+        int mLoadingImageId;
+        int mLoadingFailedImageId;
+        public void setLoadingImageId(int id){
+            this.mLoadingImageId = id;
+            return this;
+        }
+        public void setLoadingFailedImageId(int id){
+            this.mLoadingFailedImageId = id;
+            return this;
+        }
+        public ImageLoaderConfig build(){
+            ImageLoaderConfig config = new ImageLoaderConfig();
+            config.mLoadingImageId = this.mLoadingImageId;
+            config.mLoadingFailedImageId = this.mLoadingFailedImageId;
+            return config;
+        }
+    }
+}
+
+public class ImageLoader {
+    private ImageLoaderConfig mConfig;
+    public void init(ImageLoaderConfig config){
+        this.mConfig = config;
+    }
+    // ……
+}
+```
+　　此时客户端的代码为：
+``` java
+private void initImageLoader(){
+    ImageLoaderConfig config = new ImageLoaderConfig.Builder()
+        .setLoadingImageId(R.drawable.loading)
+        .setLoadingFailedImageId(R.drawable.not_found).builder();
+    ImageLoader.getInstance().init(config)
+}
 ```
 
 <br>**Builder模式优缺点**
@@ -737,14 +775,123 @@ Person p = new Person.Builder()
 　　简而言之，如果类的构造器中有多个参数，设计这种类时，`Builder`模式就是种不错的选择，特别的是当大多数参数都是可选的时候。
 　　提示：`Android`中的`AlertDialog`、`NotificationCompat`等类都是使用了`Builder`模式。
 
-
-<br>**实战**
-
-
 <br>**本节参考阅读：**
 - [Java方法参数太多怎么办—Part3—Builder模式](http://www.importnew.com/6605.html)
 
 
+## 原型模式 ##
+
+　　原型模式（Prototype）是创建型模式的一种，其特点在于通过“复制”一个已经存在的实例来返回新的实例，而不是新建实例。被复制的实例就是我们所称的“原型”。
+
+　　应用场景：
+
+	-  创建复杂的或者耗时的实例，因为这种情况下，复制一个已经存在的实例使程序运行更高效。
+	-  你的对象需要提供给他人访问，为了防止访问者修改你的对象，可以复制出一个新的对象交给外界访问，即保护型拷贝。
+
+<br>　　原型模式在Java中可以很容易的实现，就是利用`Cloneable`接口即可，假设我们有如下代码：
+``` java
+public class Person implements Cloneable {
+    private int age;
+    private String name;
+
+    public Person(int age, String name) {
+            this.age = age;
+            this.name = name;
+    }
+
+    public void setAge(int age) {
+            this.age = age;
+    }
+
+    @Override
+    public String toString() {
+            return "Person [age=" + age + ", name=" + name + "]";
+    }
+
+    @Override
+    // 注意，默认情况下clone方法是protected，为了让外界可以访问，需要将其改为public的。
+    public Person clone() throws CloneNotSupportedException {
+            return (Person) super.clone();
+    }
+}
+
+// 客户端代码
+public class Test {
+    public static void main(String[] args) throws CloneNotSupportedException {
+        Person p1 = new Person(12, "Tom");
+        Person p2 = p1.clone();
+        System.out.println(p1);  //输出 Person [age=12, name=Tom]
+        System.out.println(p2);  //输出 Person [age=12, name=Tom]
+        p2.setAge(30);
+        System.out.println(p1);  //输出 Person [age=12, name=Tom]
+        System.out.println(p2);  //输出 Person [age=30, name=Tom]
+    }
+}
+```
+    语句解释：
+    -  首先要知道的是，Cloneable接口中没有任何方法，它只是起到一个标识作用，某个类实现了此接口就相当于告诉系统它启用了clone功能，其实clone方法是在Object定义的，对于未实现Cloneable接口的类来说，调用clone方法会抛异常。
+
+<br>　　上面的代码表面上看一切正常，但其实有一个隐藏的问题，现在我们给Person加一个属性：
+``` java
+public class Person implements Cloneable {
+    private int age;
+    private String name;
+    private ArrayList<String> images;
+
+    public Person(int age, String name) {
+            this.age = age;
+            this.name = name;
+            this.images = new ArrayList<String>();
+    }
+
+    @Override
+    public String toString() {
+            return "Person [age=" + age + ", name=" + name + ", images=" + images + "]";
+    }
+
+    public void addImage(String img) {
+            this.images.add(img);
+    }
+
+    @Override
+    public Person clone() throws CloneNotSupportedException {
+            return (Person) super.clone();
+    }
+}
+
+// 客户端代码
+public class Test {
+    public static void main(String[] args) throws CloneNotSupportedException {
+        Person p1 = new Person(12, "Tom");
+        Person p2 = p1.clone();
+        System.out.println(p1);  //输出 Person [age=12, name=Tom, images=[]]
+        System.out.println(p2);  //输出 Person [age=12, name=Tom, images=[]]
+        p2.addImage("c.jpg");
+        System.out.println(p1);  //输出 Person [age=12, name=Tom, images=[c.jpg]]
+        System.out.println(p2);  //输出 Person [age=12, name=Tom, images=[c.jpg]]
+    }
+}
+```
+    语句解释：
+    -  从代码中可以发现，我们往p2中加的字符串也出现在了p1中，原因是clone方法默认是进行浅复制，即只会复制属性的值。
+
+<br>　　解决的方法也很简单，修改一下clone方法即可：
+``` java
+public Person clone() throws CloneNotSupportedException {
+    // 先调用Object类的clone方法，复制当前对象。
+    Person p = (Person) super.clone();
+    // 再调用列表的clone方法。
+    p.images = (ArrayList<String>) this.images.clone();
+    return p;
+}
+```
+    语句解释：
+    -  上面的代码就是在进行深度复制。
+
+
+
+<br>**本节参考阅读：**
+- [维基百科 - 原型模式](https://zh.wikipedia.org/wiki/%E5%8E%9F%E5%9E%8B%E6%A8%A1%E5%BC%8F)
 
 
 <br><br>
