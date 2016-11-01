@@ -657,7 +657,7 @@ public class Main {
 - [单例模式的七种写法](http://cantellow.iteye.com/blog/838473)
 
 
-## Builder模式 ##
+## 建造者模式 ##
 
 <br>**问题描述**
 
@@ -692,7 +692,7 @@ p.setName("Tome");
 p.setSex("M");
 ```
 　　遗憾的是，上面的代码有着很严重的缺点，因为构造过程被分到几个调用过程中，在构造过程中`JavaBean`可能处于不一致状态（需要线程同步安全）。
-　　不过还有另一种替代方法，既能保证构造方法那样的安全性，也能保证`JavaBean`模式的可读性，这就是`Builder`模式。
+　　不过还有另一种替代方法，既能保证构造方法那样的安全性，也能保证`JavaBean`模式的可读性，这就是建造者（`Builder`）模式。
 
 <br>**模式介绍**
 
@@ -888,10 +888,140 @@ public Person clone() throws CloneNotSupportedException {
     语句解释：
     -  上面的代码就是在进行深度复制。
 
+<br>**本节参考阅读：**
+- [维基百科 - 原型模式](https://zh.wikipedia.org/wiki/%E5%8E%9F%E5%9E%8B%E6%A8%A1%E5%BC%8F)
+
+## 工厂模式 ##
+　　工厂模式根据抽象程度的不同，按照从低到高分为三种：简单工厂模式、工厂方法模式、抽象工厂模式，它们各自都有自己的应用场景，接下来就来依次介绍它们。
+
+### 简单工厂模式 ###
+
+　　简单工厂模式是属于创建型模式，又叫做静态工厂方法（Static Factory Method）模式，但不属于23种GOF设计模式之一，算是工厂方法模式的特殊实现。
+
+<br>　　假设现在有两辆车（奥迪和宝马），作为司机，如果要开其中一种车比如AodiCar，最直接的做法是直接创建AodiCar对象，并调用其drive方法，代码如下：
+``` java
+// 遵循开闭原则，定义一个Car接口
+public interface Car {
+    public void drive();
+}
+// 奥迪车
+class AodiCar implements Car {
+    public void drive() {
+        System.out.println("奥迪开车");
+    }
+}
+// 宝马车
+class BaomaCar implements Car {
+    public void drive() {
+        System.out.println("宝马开车");
+    }
+}
+// 客户端代码
+public class Driver {
+    public static void main(String[] args) {
+        Car car = new AodiCar();
+        car.drive();
+    }
+}
+```
+    语句解释：
+    -  这么写代码最大的问题就是，当需要司机想换车或者有新车时，需要修改客户端的代码。
+
+<br>　　为了解决这个问题，我们可以新增一个专门用来创建Car对象的类，代码如下：
+``` java
+public class CarFactory {
+    public static Car getCar() {
+        Car car = null;
+        // 从本地配置文件中读取类名。
+        String name = getCarNameFromFile();
+        switch (name) {
+        case "Aodi":
+            car = new AodiCar();
+            break;
+        case "Baoma":
+            car = new BaomaCar();
+            break;
+        default:
+            car = null;
+            break;
+        }
+        return car;
+    }
+    // 读取本地配置文件
+    private String getCarNameFromFile() { }
+}
+```
+    语句解释：
+    -  在上面的代码中，当需要换车或新增车时，客户端的代码也不需要改动，只需要修改配置文件就行。
+
+<br>　　还可以通过反射技术来进一步优化：
+``` java
+// 汽车工厂
+public class CarFactory {
+    public static Car getCar() {
+        Car car = null;
+        // 从本地配置文件中读取类名，然后通过反射的方式动态实例化出对应的Car。
+        String name = getCarNameFromFile();
+        try {
+            car = (Car) Class.forName(name).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) { }
+        return car;
+    }
+    // 读取本地配置文件
+    private String getCarNameFromFile() { }
+}
+// 客户端代码
+public class Driver {
+    public static void main(String[] args) {
+        CarFactory.getCar().drive();
+    }
+}
+```
+    语句解释：
+    -  这样一来，如果只是换车的话，不需要修改任何代码，只修改配置文件就行。
+
+<br>　　上面写的代码就是运用了简单工厂模式，也就是说：
+
+	-  如果对于一个任务，你提供了多种解决方案供客户端选择，那么最好不要让客户端直接去实例化这些方案的对象。
+	-  应该在客户端和解决方案之间增加一个中间层（工厂类），比如上面就是通过简单工厂模式来让客户端与具体业务解耦。
+
+<br>　　简单工厂模式角色划分：
+
+	-  工厂角色（CarFactory类），由它负责创建所有的类的内部逻辑，一般而言其内部会提供一个静态方法，外部程序通过该方法创建所需对象。
+	-  抽象产品角色（Car类），简单工厂模式所创建的是所有对象的父类，它可以是接口也可以是抽象类，它负责描述所创建实例共有的公共接口。
+	-  具体产品角色（AodiCar、BaomaCar类），简单工厂所创建的具体实例对象。
+
+<br>　　简单工厂模式缺点：
+
+	-  由于工厂类集中了所有实例的创建逻辑，这就直接导致一旦这个工厂出了问题，所有的客户端都会受到牵连。
+	-  由于简单工厂模式的产品是基于一个共同的抽象类或者接口，这样一来，产品的种类增加的时候，即有不同的产品接口或者抽象类的时候，工厂类就需要判断何时创建何种接口的产品，这就和创建何种种类的产品相互混淆在了一起，违背了单一职责原则，导致系统丧失灵活性和可维护性。
+
+### 工厂方法模式 ###
+<br>**工厂模式的定义**
+
+　　就像前面说的，创建对象的场景有很多，并不是一个简单的new关键字就能满足所有需求的，以Activity为例，它的创建被分成了好几步：
+
+	-  首先，系统通过反射来实例化它。
+	-  然后，系统回调onCreate方法，让用户初始化界面、设置控件的监听器等。
+	-  最后，将上一步初始化好的布局传递给framework层进行后续处理。
+
+　　上面三个步骤对于每个Activity来说都是必须的，那么如果系统把这三个操作交给客户端（就是程序员）自己来处理，就会导致不少问题（比如代码冗余是肯定的）。所以对于这类情况，推荐的做法就是写一个工具方法来创建Activity对象，用户可以通过方法的参数来做特殊处理。
+
+　　笔者用一句不严禁的话来概括工厂模式（Factory）：
+
+	-  当创建对象的同时还需要做一些附加操作时，就将这些操作封装到一个方法中，外界通过调用这个方法就可以轻松创建该对象。
+
+
+### 抽象工厂模式 ###
+
 
 
 <br>**本节参考阅读：**
-- [维基百科 - 原型模式](https://zh.wikipedia.org/wiki/%E5%8E%9F%E5%9E%8B%E6%A8%A1%E5%BC%8F)
+- [工厂方法模式](http://wiki.jikexueyuan.com/project/java-design-pattern/factory-pattern.html)
+- [Java设计模式（一） 简单工厂模式不简单](http://www.jasongj.com/design_pattern/simple_factory/)
+
+
+
 
 
 <br><br>
