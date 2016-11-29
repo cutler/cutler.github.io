@@ -30,7 +30,7 @@ categories: Android开发 - 倔强青铜
 # 第二节 适配哪些设备？ #
 　　但是在开始进入主题之前，我们再来探讨一件事情，那就是`Android`设备的屏幕尺寸，从几寸的智能手机，到`10`寸的平板电脑，再到几十寸的数字电视，我们应该适配哪些设备呢？
 
-　　其实这个问题不应该这么考虑，因为对于具有相同像素密度的设备来说，像素越高，尺寸就越大，所以我们可以换个思路，将问题从单纯的尺寸大小转换到像素大小和像素密度的角度来。
+　　其实这个问题不应该这么考虑，因为对于具有相同屏幕密度的设备来说，像素越高，尺寸就越大，所以我们可以换个思路，将问题从单纯的尺寸大小转换到像素大小和像素密度的角度来。
 
 　　下图是`2014`年初，友盟统计的占比`5%`以上的`6`个主流分辨率，可以看出，占比最高的是`480*800`（`宽*高`），`320*480`的设备竟然也占据了很大比例，但是和`2015`年的数据相比较，中低分辨率(`320*480`、`480*800`)的比例在减少，而中高分辨率的比例则在不断地增加。虽然每个分辨率所占的比例在变化，但是总的趋势没变，还是这六种，只是分辨率在不断地提高。
 
@@ -83,18 +83,11 @@ public static int px2dip(Context context, float pxValue) {
 
 <br>**用 dp 而不用 px **
 　　假如我们使用`px`为单位来画一条长度为`320`的横线，程序分别运行在`480*800`和`320*480`的手机上时，虽然线的长度都是`320px`，但是线的视觉效果却不一样：线在`480*800`上占据屏幕`2/3`的宽度，在`320*480`上占满了全屏。
-　　但是如果使用`dp`为单位画一条`160dp`的横线，无论你在`320*480`还`480*800`的设备上，线都是一样长（当屏幕尺寸不变时）。 
 
-　　也就是说：
-
-	-  使用px作为单位的特点： 
-	   -  第一，线最终绘制到屏幕上的长度是固定的。即设置线的长度为320px，那么屏幕上最终就会绘制320px长度的线。
-	   -  第二，线在高分辨率的设备上会显小，反之显大。
-	-  使用dp作为单位的特点：
-	   -  第一，线最终绘制到屏幕上的长度是变化的，即随着设备的屏幕密度而变化。即100dp在160dpi的设备上为100px，在320dpi的设备上为200px。
-	   -  第二，若两个设备的屏幕尺寸相同，那么不论二者的分辨率是否相同，100dp长的线在两个设备中看起来是一样长的，虽然它们实际占有的px是不同的。
-
-<br>　　正因为`dp`是变长的单位，且在相同尺寸的设备中显示的效果是一样的，所以在`Android`开发中，写布局的时候都使用`dp`而不是`px`。
+　　而使用dp作为单位时：
+	-  线最终绘制到屏幕上的长度是变化的，即随着设备的屏幕密度而变化。
+	-  即100dp在160dpi的设备上为100px，在320dpi的设备上为200px，若两个设备的屏幕尺寸相同，那么不论二者的分辨率是否相同，100dp长的线在两个设备中看起来是一样长的，虽然它们实际占有的px是不同的。
+　　正因为dp在相同尺寸的设备中显示的效果是一样的，所以在开发中都使用dp而不是px。
 
 <br>**dpi 的自动归一**
 　　值得注意的是，`px = dp * (dpi / 160)`中的`dpi`是归一化后的`dpi`，而不是手机的实际`dpi`值。目前常见的`dpi`有：
@@ -106,8 +99,7 @@ public static int px2dip(Context context, float pxValue) {
 	-  xxhdpi (extra-extra-high)        ~ 480dpi
 	-  xxxhdpi (extra-extra-extra-high) ~ 640dpi
 
-　　比如三星`Galaxy S5`的参数为`5.1寸、1920×1080、432dpi、3dppx`，假设我现在创建一个宽度为`360dp`的背景是红色的`TextView`，那么它换算成`px`后的宽度应该是`360 * (432 / 160) = 972`像素，按道理说`TextView`应该填充不满整个屏幕的宽度，但程序运行时却发现它填充满了。
-　　事实上`Android`系统并没有拿`432`来计算，而是将`S5`视作`xxhdpi`设备，并使用`480dpi`来计算，所以最终是：`360 * (480 / 160) = 1080`像素，刚好满屏。 
+　　比如三星`Galaxy S5`的参数为`5.1寸、1920×1080、432dpi、3dppx`，假设我现在创建一个宽度为`360dp`的背景是红色的`TextView`，那么它换算成`px`后的宽度应该是`360 * (432 / 160) = 972`像素，按道理说`TextView`应该填充不满整个屏幕的宽度，但程序运行时却发现它填充满了。这是因为`Android`系统并没有拿`432`来计算，而是将`S5`视作`xxhdpi`设备，并使用`480dpi`来计算，所以最终是：`360 * (480 / 160) = 1080`像素，刚好满屏。 
 
 <br>**drawable 的 mdpi、hdpi、xdpi、xxdpi**
 　　`Android`中的`drawable`文件夹后面可以跟随一些修饰符，如：`hdpi`、`mdpi`、`ldpi`，这三个文件夹分别放置高清分辨率、中分辨率、低分辨率的资源文件。
@@ -176,16 +168,11 @@ public class MainActivity extends Activity {
 }
 ```
     语句解释：
-    -  首先，我们在Galaxy S5上面运行这些代码，手机的屏幕密度是xxhdpi。
-    -  然后，m1所显示的图片icon1被放到了res\drawable目录。
-       -  在Androi中，“drawable”专门用来存放默认的资源，系统认为该目录下的资源都是基于normal屏幕大小和mdpi密度设计的。
-       -  由于当前的设备是xxhdpi密度的，但是图却是从drawable目录下找到的，为了显示统一系统会将图片放大3倍，导致图片的宽度和高度都是540。
-    -  接着，同样的道理，m2所显示的图片icon2被放到了res\drawable-xhdpi目录。
-       -  系统会从xhdpi目录下找到的图片，宽高放大1.5倍。
-    -  最后，你可能会疑问系统是怎么决定应该放大或缩小多少倍的？ 后面就会详细说明。
+    -  首先，m1所显示的图片icon1被放到了res\drawable目录。在Androi中，“drawable”专门用来存放默认的资源，系统认为该目录下的资源都是基于normal屏幕大小和mdpi密度设计的。由于当前的设备是xxhdpi密度的，但是图却是从drawable目录下找到的，为了显示统一系统会将图片放大3倍，导致图片的宽度和高度都是540。
+    -  同样的道理，m2所显示的图片icon2被放到了res\drawable-xhdpi目录，系统会从xhdpi目录下找到的图片，宽高放大1.5倍。
+    -  你可能会疑问系统是怎么决定应该放大或缩小多少倍的？ 后面就会详细说明。
 
-<br>　　事实上，`Android`自动缩放图片的机制有一个前提：系统只有在`drawable-当前屏幕密度`目录中没找到想要的图片，但是在其它目录下却找到了时，才会执行缩放。
-　　即如果系统在`drawable-当前屏幕密度`目录中找到了它想要的图片，那么就会把图片原样的显示出来，绝不会执行任何缩放。
+<br>　　事实上，`Android`自动缩放图片的机制有一个前提：系统只有在`drawable-当前屏幕密度`目录中没找到想要的图片，但是在其它目录下却找到了时，才会执行缩放。即如果系统在`drawable-当前屏幕密度`目录中找到了它想要的图片，那么就会把图片原样的显示出来，绝不会执行任何缩放。
 
 　　因此如果不想让系统自动帮我们缩放图片，我们可以自己来提供多套图片：
 
@@ -199,127 +186,20 @@ public class MainActivity extends Activity {
 　　上图表明，如果你在`mdpi`密度下有一张`48*48`尺寸的图，那么你在`hdpi`下的图的尺寸应该是`mdpi`的`1.5`倍(`72*72`)，在`xhdpi`下图片的尺寸应是`mdpi`的`2`倍(`96x96`)，依此类推。
 
 <br>**本节参考阅读：**
-- [【Android游戏开发二十七】讲解游戏开发与项目下的hdpi 、mdpi与ldpi资源文件夹以及游戏高清版本的设置](http://www.himigame.com/android-game/389.html)
+- [讲解游戏开发与项目下的hdpi 、mdpi与ldpi资源文件夹以及游戏高清版本的设置](http://www.himigame.com/android-game/389.html)
 
 # 第四节 开始适配 #
 　　我们已经知道屏幕适配要考虑很多问题，如`屏幕尺寸（手机/平板/电视）`、`屏幕密度`等，因而也就不可能只通过一种方法来实现所有的适配任务，也就是说我们需要针对不同的问题来使用不同的适配方法。
 　　本节将介绍一些常见的问题以及对应的解决方案。
-## 手机适配 ##
+
 ### 布局适配 ###
-<br>　　第一，对于布局文件里的`View`来说，能使用`wrap_content`和`match_parent`来设置尺寸，就尽量不写死尺寸，这样可让布局正确适应各种`屏幕尺寸`和`屏幕方向`。
+<br>　　第一，尽量使用`wrap_content`和`match_parent`来设置尺寸，而不是不写死尺寸，这样可让布局正确适应各种`屏幕尺寸`和`屏幕方向`。
 
-	-  wrap_content：系统就会将视图的宽度或高度设置成所需的最小尺寸以适应视图中的内容。
-	-  match_parent：在低于API别8的级别中称为“fill_parent”，则会展开组件以匹配其父视图的尺寸。
-
-<br>　　下面是一段示例代码：
-``` xml
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <LinearLayout android:layout_width="match_parent"
-        android:id="@+id/linearLayout1"  
-        android:gravity="center"
-        android:layout_height="50dp">
-        <ImageView android:id="@+id/imageView1"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:src="@drawable/logo"
-            android:paddingRight="30dp"
-            android:layout_gravity="left"
-            android:layout_weight="0" />
-        <View android:layout_height="wrap_content"
-            android:id="@+id/view1"
-            android:layout_width="wrap_content"
-            android:layout_weight="1" />
-        <Button android:id="@+id/categorybutton"
-            android:background="@drawable/button_bg"
-            android:layout_height="match_parent"
-            android:layout_weight="0"
-            android:layout_width="120dp"
-            style="@style/CategoryButtonStyle"/>
-    </LinearLayout>
-
-    <fragment android:id="@+id/headlines"
-        android:layout_height="fill_parent"
-        android:name="com.example.android.newsreader.HeadlinesFragment"
-        android:layout_width="match_parent" />
-</LinearLayout>
-```
-
-<br>　　下图是在横纵屏切换的时候的显示效果，我们可以看到这样可以很好的适配屏幕尺寸的变化。
-
-<center>
-![](http://i1.tietuku.com/dfd108386cb27572.png)
-</center>
-
-<br>　　第二，`LinearLayout`的子控件可以使用`android:layout_weight`属性来按照比例对界面进行分配，完成一些特殊的需求。
-
-　　看下面的例子，我们在布局中这样设置我们的界面：
-
-<center>
-![](http://i1.tietuku.com/0aa7782577bca94d.png)
-</center>
-
-<br>　　我们在布局里面设置为线性布局，横向排列，然后放置两个宽度为`0dp`的按钮，分别设置`weight`为`1`和`2`，在效果图中，我们可以看到两个按钮按照`1：2`的宽度比例正常排列，`Button1`的宽度就是`1/(1+2) = 1/3`，`Button2`的宽度则是`2/(1+2) = 2/3`。
+<br>　　第二，`LinearLayout`的子控件可以使用`android:layout_weight`属性来按照比例对界面进行分配。
 
 <br>　　第三，使用相对布局，禁用绝对布局。
-　　在开发中，我们大部分时候使用的都是`线性布局`、`相对布局`和`帧布局`，`绝对布局`由于适配性极差，所以极少使用。如果我们需要将子视图排列出各种效果而不是一条直线，通常更合适的解决方法是使用`RelativeLayout`。
 
-　　例如，我们可以将某个子视图对齐到屏幕左侧，同时将另一个视图对齐到屏幕右侧。
-``` xml
-<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <TextView
-        android:id="@+id/label"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Type here:"/>
-    <EditText
-        android:id="@+id/entry"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/label"/>
-    <Button
-        android:id="@+id/ok"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/entry"
-        android:layout_alignParentRight="true"
-        android:layout_marginLeft="10dp"
-        android:text="OK" />
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toLeftOf="@id/ok"
-        android:layout_alignTop="@id/ok"
-        android:text="Cancel" />
-</RelativeLayout>
-```
-　　在上面的代码中我们使用了相对布局，并且使用`alignXXX`等属性指定了子控件的位置，下面是这种布局方式在应对屏幕变化时的表现
-
-<center>
-![在小尺寸屏幕的显示](http://i1.tietuku.com/330dff8002435f49.png)
-</center>
-
-<center>
-![在平板的大尺寸上的显示效果](http://i1.tietuku.com/984c4d4b06e1baa4.png)
-</center>
-
-　　虽然控件的大小由于屏幕尺寸的增加而发生了改变，但是我们可以看到，由于使用了相对布局，所以控件之前的位置关系并没有发生什么变化，这说明我们的适配成功了。
-
-
-<br>　　第四，使用自动拉伸位图。
-
-	-  支持各种屏幕尺寸通常意味着您的图片资源还必须能适应各种尺寸。例如，无论要应用到什么尺寸的按钮上，按钮背景都必须能适应。
-	-  如果在可以更改尺寸的组件上使用了简单的图片，您很快就会发现显示效果多少有些不太理想，因为系统会在运行时平均地拉伸或收缩您的图片。解决方法为使用自动拉伸位图，这是一种格式特殊的PNG文件，其中会指明可以拉伸以及不可以拉伸的区域。
-　　下图是对`.9`图的四边的含义的解释，`左上边`代表`拉伸区域`，`右下边`代表`padding`，我们可以修改`View`的`padding`属性来覆盖掉`.9`图右下边画线的效果。
-
-<center>
-![](http://img.blog.csdn.net/20150121140154047?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvemhhb2thaXFpYW5nMTk5Mg==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
-</center>
+<br>　　第四，使用`.9`图片。
 
 <br>　　第五，提供备用位图。
 　　就像前面说的那样，如果不想让系统自动帮我们缩放图片，我们可以自己来提供多套图片：
@@ -329,6 +209,5 @@ public class MainActivity extends Activity {
 
 　　但是还有个问题需要注意下，`.9`图放在`drawable`文件夹即可，对应分辨率的图片要正确的放在合适的文件夹，否则会造成图片拉伸等问题。
 
-## 平板适配 ##
-　　由于笔者没适配过平板，所以本节暂缓，请移步[《Android屏幕适配全攻略(最权威的官方适配指导)》](http://blog.csdn.net/zhaokaiqiang1992/article/details/45419023)。
+<br>　　第六，更多内容请移步[《Android屏幕适配全攻略(最权威的官方适配指导)》](http://blog.csdn.net/zhaokaiqiang1992/article/details/45419023)。
 <br><br>

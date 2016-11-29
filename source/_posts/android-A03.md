@@ -64,8 +64,8 @@ public class MyService extends Service {
 	语句解释：
 	-  从onStartCommand方法中返回的值必须是以下常量，它们用来告诉系统当服务需要被杀死时，服务的重启策略：
 	   - START_NOT_STICKY：直到再次接收到新的Intent对象，这个服务才会被重新创建。
-	   - START_STICKY：立刻重新创建这个服务，但不会重新传递最后的Intent对象，而会用null来调用onStartCommand方法。
-	   - START_REDELIVER_INTENT：立刻重新创建这个服务，会重新传递最后的Intent对象给onStartCommand方法。
+	   - START_STICKY：立刻重启，但不会重新传递最后的Intent对象，而会用null来调用onStartCommand方法。
+	   - START_REDELIVER_INTENT：立刻重启，会重新传递最后的Intent对象给onStartCommand方法。
 	-  Service类的所有生命周期方法都是在主线程中被调用的，这意味着如果你需要执行耗时操作的话，就必须自己开启一个线程，然后在线程中去执行。
 
 <br>　　范例2：继承IntentService类。
@@ -75,7 +75,7 @@ import android.app.IntentService;
 import android.content.Intent;
 public class MyIntentService extends IntentService {
     public MyIntentService() {
-        // 由于IntentService类没有提供无参构造器，因此其子类必须显示调用无参构造器。
+        // 由于IntentService类没有提供无参构造器，因此其子类必须显示调用有参构造器。
         super("MyIntentService");
     }
 
@@ -121,8 +121,7 @@ public class MyIntentService extends IntentService {
 ```
 
     语句解释：
-    -  由于服务是Android四大组件之一，因此需要在<application>标签内配置，服务和Activity一样，可以指定意图过滤器。
-    -  当需要启动某个服务时，Android系统同样会依次和已在系统中注册的服务进行匹配，匹配成功的服务将会被启动。
+    -  由于服务是Android四大组件之一，因此需要在<application>标签内配置，服务和Activity一样，可以指定意图过滤器。当需要启动某个服务时，Android系统同样会依次和已在系统中注册的服务进行匹配，匹配成功的服务将会被启动。
 
 <br>　　范例4：有两种方法可以启动服务，分别是调用`startService()`和`bindService()`两个方法。
 
@@ -569,7 +568,7 @@ public class MainActivity extends Activity {
 	-  当系统内存低并且其它进程要求立即服务用户的时候，Android系统可以决定在某个时点关掉一个进程，运行在这个进程中的应用程序组件也会因进程被杀死而销毁。
 	-  当要决定要杀死哪个进程时，Android系统会权衡它们对用户的重要性，即依赖于那个进程的优先级。
 	-  按照优先级从高到底排列，系统将进程划分为六个级别：
-	   -  前台进程、可见进程、服务进程、后台进程、空进程、二逼进程。
+	   -  前台进程、可见进程、服务进程、后台进程、空进程。
 
 <br>**前台进程**
 　　一个进程满足以下任何条件都被认为是前台进程：

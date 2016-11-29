@@ -1016,6 +1016,9 @@ public class Driver {
 
 
 
+后面的内容暂缓，包括下一章，这两天就能搞完。  by 2016.11.1
+
+
 <br>**本节参考阅读：**
 - [工厂方法模式](http://wiki.jikexueyuan.com/project/java-design-pattern/factory-pattern.html)
 - [Java设计模式（一） 简单工厂模式不简单](http://www.jasongj.com/design_pattern/simple_factory/)

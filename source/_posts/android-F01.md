@@ -275,7 +275,7 @@ public class Person implements Parcelable {
 　　虽然我们一般都不会使用此方法来进行进程间通信，但是还是得注意一下，避免并发访问`SharedPreferences`文件。
 ## Messenger ##
 　　`Messenger`可以翻译为信使，通过它可以在不同进程中传递`Message`对象，在`Message`中放入我们需要传递的数据，就可以轻松的实现数据在进程间的传递了。
-　　学习`Messenger`需要了解`Handler`的用法，如果你还不知道`Handler`，请先阅读[《进阶篇　第四章 消息机制与线程池》](http://cutler.github.io/android-F04/)。
+　　学习`Messenger`需要了解`Handler`的用法，如果你还不知道`Handler`，请先阅读[《进阶篇　第三章 消息机制与线程池》](http://cutler.github.io/android-F03/)。
 
 　　以下是信使(`Messenger`)对象的使用概要：
 
@@ -367,9 +367,7 @@ public class MyService extends Service {
 	-  第一，信使一次只能处理一个消息，没法并发处理多个请求。
 	-  第二，信使是基于消息机制的，而消息机制又是异步的，因此如果你需要依据远程进程的返回值来执行后续操作，那就不得不将代码写在回调中。
 
-　　因此，如果你既不需要并发处理，也不需要实时响应，那么请使用`Messenger`，因为它是最简单的`IPC`实现方案。
-　　但是，如果你需要并发访问或者实时响应的话，那`Messenger`就无能为力了，不过我们还有其它IPC方案，比如`AIDL`。
-　　事实上，`Messenger`内部就是通过`AIDL`来实现`IPC`的，如果确定使用`AIDL`的话，你必须自己处理并发访问以及线程安全。
+　　因此，如果你既不需要并发处理，也不需要实时响应，那么请使用`Messenger`，因为它是最简单的`IPC`实现方案。但是，如果你需要并发访问或者实时响应的话，那`Messenger`就无能为力了，不过我们还有其它IPC方案，比如`AIDL`。事实上，`Messenger`内部就是通过`AIDL`来实现`IPC`的，如果确定使用`AIDL`的话，你必须自己处理并发访问以及线程安全。
 
 ## AIDL ##
 　　AIDL是基于`Binder`来实现的。
@@ -389,7 +387,7 @@ public class MyService extends Service {
 	-  第三步，在Server端，创建一个Service类，并在其onBind方法中返回接口A的实现类。
 	-  第四步，在Client端，依据不同的情况，执行下面的操作：
 	   -  若Client和Server端是同一个项目里的不同进程，则什么都不需要做。
-	   -  若Client和Server端完全不同的两个项目，则需要将Server端定义的AIDL文件原样copy到Client的项目中。
+	   -  否则，需要将Server端定义的AIDL文件原样copy到Client的项目中。
 	-  第五步，在Client端，通过绑定的方式启动服务端的Service，并在连接成功后持有服务端返回的引用。
 
 　　我们接下来就一步步的按照上面的步骤来吧。
@@ -400,8 +398,7 @@ public class MyService extends Service {
 
 	-  AIDL文件的后缀名为.aidl。
 	-  AIDL文件也保存在src目录下。
-	-  AIDL的语法和Java的interface高度相似，不过我们不能直接使用AIDL编写出来的代码，而是需要将它转为.java文件才行。
-	   -  这个工作由IDE来调用AndroidSDK里的工具来完成，最终会在gen目录下产生一个.java文件，以供我们使用。
+	-  AIDL的语法和Java的interface高度相似，不过我们不能直接使用AIDL编写出来的代码，而是需要将它转为.java文件才行。（这个工作由IDE来调用AndroidSDK里的工具来完成，最终会在gen目录下产生一个.java文件，以供我们使用）
 
 <br>　　首先创建`org.cutler.aidl`包，并在其内创建一个`IDAO.aidl`，内容如下：
 ``` java
@@ -417,7 +414,7 @@ interface IDAO {
     -  aidl的文件名必须和接口名一致。
     -  接口和方法前不能加访问权限修饰符和存在修饰符。如：public、static都不可以。
     -  如果你使用Eclipse开发，那么ADT会自动编译这个aidl文件，并为你生成一个IDAO.java文件。
-    -  如果你使用的Android Studio开发，那么在创建文件的时候，选择File -> New -> AIDL即可，具体请自行摸索。
+    -  如果你使用的Android Studio开发，那么在创建文件的时候，选择File -> New -> AIDL即可。
 
 <br>**创建服务**
 <br>　　按照刚才说的，Android SDK工具会依照`IDAO.aidl`来生成一个`IDAO.java`文件，它的内容如下所示：
@@ -922,9 +919,7 @@ public class MyService extends Service {
 ### 注意事项 ###
 　　到这里，AIDL的基本使用方法已经介绍完了，但是有几点还需要再次说明一下。
 
-	第一，客户端调用远程服务的方法时，被调用的方法运行在服务端的Binder线程池中，同时客户端会被挂起。
-	-  若你在主线程中调用远程方法，那么远程方法不应该去执行耗时操作，因为客户端会被挂起超过5秒就会抛出ANR。
-	-  若你在工作线程中调用远程方法，则远程方法内部可以执行耗时操作。
+	第一，客户端调用远程服务的方法时，被调用的方法运行在服务端的Binder线程池中，同时客户端会被挂起。若你在主线程中调用远程方法，那么远程方法不应该去执行耗时操作，因为客户端会被挂起超过5秒就会抛出ANR。若你在工作线程中调用远程方法，则远程方法内部可以执行耗时操作。
 	第二，客户端的onServiceConnected和onServiceDisconnected都在主线程中运行。
 	第三，远程服务调用客户端的方法时，被调用的方法也运行在Binder线程池中，只不过是客户端的线程池。
 	第四，默认情况下，我们的远程服务任何人都可以连接，可以通过下面三种方式进行权限验证：

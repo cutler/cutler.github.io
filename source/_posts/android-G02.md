@@ -103,8 +103,7 @@ public abstract boolean onTouch(View v, MotionEvent event)
 
 　　在继续向下进行之前，先介绍一个名词`“事件序列”`。
 <br>**事件序列**
-　　同一个事件序列是指从手指接触屏幕的那一刻起，到手指离开屏幕的那一刻结束，在这个过程中所产生的一系列事件。
-　　通常这个事件序列以`ACTION_DOWN`事件开始，中间含有数量不定的`ACTION_MOVE`事件，最终以`ACTION_UP`事件结束。
+　　同一个事件序列是指从手指接触屏幕的那一刻起，到手指离开屏幕的那一刻结束，在这个过程中所产生的一系列事件。通常这个事件序列以`ACTION_DOWN`事件开始，中间含有数量不定的`ACTION_MOVE`事件，最终以`ACTION_UP`事件结束。
 
 <br>　　范例1：MotionEvent类的常用方法：
 ``` java
@@ -253,7 +252,7 @@ button.setLayoutParams(params);
     public void scrollBy(int x, int y) {
         scrollTo(mScrollX + x, mScrollY + y);
     }
-```　
+```
 　　可以看出来，其中`scrollBy`转调用了`scrollTo`方法，它实现了基于当前位置的相对滑动，而`scrollTo`则实现了基于所传递参数的绝对滑动。
 
 <br>　　使用范例，如下所示：
@@ -936,9 +935,9 @@ public class MainActivity extends Activity {
 　　在介绍如何处理这三类冲突之前，要先知道如下几个知识点：
 
 	-  ViewGroup重写onInterceptTouchEvent方法可以拦截事件：
-	   -  若ViewGroup在ACTION_DOWN时返回true，则子View不会接到任何事件，事件将由ViewGroup的onTouchEvent处理。
-	   -  若ViewGroup在ACTION_MOVE时返回true，则子View会接到ACTION_CANCEL事件，后续事件将交给ViewGroup处理。
-	   -  若ViewGroup在ACTION_UP时返回true，则子View只会接到ACTION_CANCEL事件，不会接到ACTION_UP事件。
+	   -  若在ACTION_DOWN时返回true，则子View不会接到任何事件，事件将由ViewGroup的onTouchEvent处理。
+	   -  若在ACTION_MOVE时返回true，则子View会接到ACTION_CANCEL事件，后续事件将交给ViewGroup处理。
+	   -  若在ACTION_UP时返回true，则子View只会接到ACTION_CANCEL事件，不会接到ACTION_UP事件。
 	   -  也就是说，只要事件被ViewGroup拦截，那么本事件序列结束之前，都不会在将事件传递给子View。
 	   -  同时，即便子View处理了事件，只要它没有禁用ViewGroup的拦截事件功能，那么ViewGroup的onInterceptTouchEvent仍会被调用。
 	-  子View可以通过调用它父View的requestDisallowInterceptTouchEvent方法来禁止其父View拦截事件。

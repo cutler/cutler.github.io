@@ -716,7 +716,7 @@ public class MainActivity extends DLBasePluginActivity {
 <br>　　本节介绍的知识主要参考自[ 《Android插件化原理解析》 ](http://weishu.me/2016/01/28/understand-plugin-framework-overview/)，推荐大家去阅读该系列文章。
 
 	-  不过，如果你以为只看他写的博客就能日天的话，呵呵，那你就错了。
-	-  他写的知识我会写，他没写的我也会写，所以看我写的，才能日天！ 简单的说，哥就是抄，也能抄出自己的风格！
+	-  他写的知识我会写，他没写的我也会写，所以看我写的，才能日天！ 哥就是抄，也能抄出自己的风格！
 
 <br>　　代理是什么？为什么需要代理呢？
 
@@ -753,6 +753,7 @@ public class ShoppingImpl implements Shopping {
 ``` java
 public class ProxyShopping implements Shopping {
 
+    // 真正去执行购买的对象。
     Shopping base;
 
     ProxyShopping(Shopping base) {
@@ -775,16 +776,15 @@ public class ProxyShopping implements Shopping {
 }
 ```
     语句解释：
-    -  从上面可以看出，我们用代码所实现的代理，其实就是在真正的任务的开头或末尾加上一些操作。
-       -  换句话说，只要我们保证任务最终能被执行就可以，在任务执行之前和之后的事情没人会关注。
-       -  进而可以理解成，我们是不是可以将系统的startActivity方法给替换成我们的a方法呢？只要我们能保证最终在a方法中调用系统的startActivity即可，至于我们在a方法中还做了哪些事，谁会关心呢？
+    -  需要知道的是，用代码表示代理的概念时，其实就是在真正的任务的开头或末尾加上一些操作，最终执行购买任务的，仍然是本人（也就是base）。
+    -  猛地一看这么做也许没什么意义，但是换个思路可以想一下，我们是不是可以将系统的startActivity方法给替换成我们的a方法呢？只要我们能保证最终在a方法中调用系统的startActivity即可，至于我们在a方法中还做了哪些事，谁会关心呢？
     -  各位请先控制一下情绪，具体咱们稍后详述。
 
 <br>**动态代理**
 
 　　从上面的介绍可以知道，静态代理要为每一个需要代理的类写一个代理类。
 
-	-  如果需要代理的类有几百个，那就很蛋疼了；而且在使用的时候会发现，每个代理方法里的内容相似度很高。
+	-  如果需要代理的类有几百个，那就很蛋疼了；而且在使用的时候会发现，每个代理方法里的内容相似度很高（都是先在方法的开头或结尾做一些事情，然后再调用真正的业务类的方法）。
 	-  为此Java提供了动态代理方式，可以简单理解为，在运行时虚拟机会帮我们动态生成一系列的代理类，这样我们就不需要手写每一个静态的代理类了。
 
 　　依然以购物为例，用动态代理实现如下：
@@ -828,11 +828,9 @@ public void onClick(View view) {
 　　Hook的思路为：
 
 	-  首先，Hook操作的第一步就是寻找Hook点，即找到一个可以被我们替换的对象。
-	   -  查看startActivity的源码，发现最终会调用Activity的mInstrumentation属性的execStartActivity方法。
-	   -  这意味着，若能把Activity的mInstrumentation属性替换为我们的对象，那么启动Activity时调用的就是我们的对象了。
-	-  第二，通过代码搜索得知Activity的mInstrumentation属性是在它的attach方法中初始化的，即是由外界传递过来的。
-	-  第三，我们知道Activity的attch方法是由ActivityThread的performLaunchActivity方法调用的（你现在知道了）。
-	   -  这意味着，我们得继续看ActivityThread中的Instrumentation对象是哪来的。
+	   -  查看startActivity的源码，发现最终会调用Activity的mInstrumentation属性的execStartActivity方法。这意味着，若能把Activity的mInstrumentation属性替换为我们的对象，那么启动Activity时调用的就是我们的对象了。
+	-  第二，通过代码搜索得知Activity的mInstrumentation属性是在它的attach方法中初始化的。
+	-  第三，我们知道Activity的attch方法是由ActivityThread的performLaunchActivity方法调用的（你现在知道了），因此继续看ActivityThread中的Instrumentation对象是哪来的。
 	-  第四，通过阅读android-23版本的ActivityThread源码发现，Instrumentation对象是它的一个属性。
 	   -  这意味着，我们如果把ActivityThread的Instrumentation属性给Hook掉，那么就能完成任务了。
 	   -  同时也发现ActivityThread类的currentActivityThread方法可以获取它的对象。
@@ -926,8 +924,7 @@ public class CutlerInstrumentation extends Instrumentation {
 <br>　　还有一点需要注意的是：
 
 	-  Hook的作用于仅限于当前进程。
-	-  也就是说，如果你在A进程中hook了ActivityThread，那么B进程中调用的startActivity方法时，并不会弹出Toast。
-	   -  即便B进程和A进程是属于同一个项目的两个不同的进程也不行。
+	-  也就是说，如果你在A进程中hook了ActivityThread，那么B进程中调用的startActivity方法时，并不会弹出Toast，即便B进程和A进程是属于同一个项目的两个不同的进程也不行。
 	-  这很好理解，即ActivityThread等Framework层的API是运行在我们进程中的，它们与远程的系统进程中的服务进行IPC通信。无论我们对自己进程中的API做何种修改，都不会影响系统进程中服务的执行流程。
 
 <br>**DroidPlugin简介**
@@ -1064,7 +1061,7 @@ public class InstrumentationHook extends Hook {
     -  也就是说，当程序执行startActivity时，系统会调用PluginInstrumentation去处理。
     -  但是如果你打开PluginInstrumentation类看时会发现，它根本就没有重写execStartActivity方法，这是为什么呢？
        -  这是因为之前笔者为了方便讲解，才对Instrumentation进行Hook的。
-       -  其实更适合Hook对象是ActivityManagerNative类，只是怕大家迷糊才没对它Hook。
+       -  其实更适合Hook的对象是ActivityManagerNative类，只是怕大家迷糊才没对它Hook。
 
 <br>　　我们如果点开`Instrumentation`类的`execStartActivity`方法可以看到：
 ``` java
@@ -1160,8 +1157,7 @@ public class IActivityManagerHook extends ProxyHook {
 
 <br>　　继续深入的话，大家很容易迷失在代码里，所以如果真想看的话自己去看就行，总之：
 
-	-  当我们调用startActivity方法时，IActivityManagerHookHandle.startActivity类的beforeInvoke方法会被调用。
-	-  而在该方法中会修改Intent的内容，即让系统去启动代理Activity，同时该方法也处理了各个系统版本的兼容性问题。
+	-  当我们调用startActivity方法时，IActivityManagerHookHandle.startActivity类的beforeInvoke方法会被调用。而在该方法中会修改Intent的内容，即让系统去启动代理Activity，同时该方法也处理了各个系统版本的兼容性问题。
 
 <br>**DP的使用**
 
@@ -1182,7 +1178,7 @@ public class IActivityManagerHook extends ProxyHook {
 <br>　　笔者选择插件库时，会主要考虑如下几点：
 
 	-  成熟稳定。即经历了大量的用户测试、处理了各种兼容问题。 这一点DL和DP都符合。
-	-  易移植。　即API入侵低，可以方面的从该插件库移植到另一个插件库。这一点DP要更胜一筹。
+	-  易移植。　即API入侵低，可以方便的从该插件库移植到另一个插件库。这一点DP要更胜一筹。
 	-  代码性能。当然是越快越好、越少占内存越好。这一点DL要更胜一筹，毕竟DP里有很多反射和静态属性。
 	-  功能完备（可选）。即插件库提供了除“安装、卸载”以外的其他功能。
 

@@ -192,8 +192,8 @@ public boolean onCreateOptionsMenu(Menu menu) {
 ```
     语句解释：
     -  在MainActivity中重写此方法即可，当Activity检测到它自己没有创建过菜单时，就会调用此方法，此方法只会调用一次。系统会根据方法的返回值做出相应的反应：
-       -  若返回 true 则意味着菜单已经被初始化完毕。系统接到返回值后，会在ActionBar中显示出overflow按钮。
-       -  若返回 false 则意味着菜单没被初始化，此时ActionBar中则不会出现overflow按钮。
+       -  返回true意味着菜单已初始化完毕，系统会在ActionBar中显示出overflow按钮。
+       -  返回false意味着菜单没被初始化，此时ActionBar中则不会出现overflow按钮。
     -  MenuInflater类是一个用来将菜单文件加载并解析为一个Menu对象的工具类。调用Activity的getMenuInflater()方法可以获取一个MenuInflater对象。   
 
 <br>　　范例3：响应菜单项的点击事件。
@@ -219,7 +219,7 @@ public boolean onOptionsItemSelected(MenuItem item) {
     -  当用户选择了选项菜单中的一个菜单项（也包括ActionBar中的ActionButton），系统会调用Activity的onOptionsItemSelected()方法。这个方法把用户选择的菜单项作为参数来传递。你能够通过调用getItemId()方法来识别菜单项，这个方法返回了对象菜单项的唯一ID（这个ID是在菜单资源的android:id属性中定义的，或者是传递给add方法的一个整数）。你能够把这个ID与已知的菜单项匹配，让它执行对应的动作。
     -  在MainActivity中重写此方法即可。
 
-<br>　　前面说了，即使当前设备的系统版本高于`Android3.0`，也不保证在`ActionBar`中一定会显示出`overflow`按钮。
+<br>　　前面说了，即使手机系统版本高于`Android3.0`，也不保证在`ActionBar`中一定会显示出`overflow`按钮。
 　　[《Android ActionBar完全解析，使用官方推荐的最佳导航栏(上)》](http://blog.csdn.net/guolin_blog/article/details/18234477) 中解释了，即`overflow`按钮的显示情况和手机的硬件情况是有关系的，如果手机没有物理`Menu`键的话，`overflow`按钮就可以显示，如果有物理`Menu`键的话（比如Android模拟器都有物理`Menu`键），`overflow`按钮就不会显示出来。
 
 <br>　　范例4：显示出`overflow`按钮。

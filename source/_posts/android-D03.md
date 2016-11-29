@@ -425,7 +425,7 @@ public void onWindowFocusChanged(boolean hasFocus) {
 　　在介绍属性动画之前，笔者要先统一下“动画”的概念：
 
 	-  如果笔者说“让一个Button在3秒内放大两倍，其实就是在让它播放一个动画”，相信大家都不会有什么异议。
-	-  那么仔细想一下，可以总结出动画的本质其实就是，“让一个物体在指定时间内，从一个状态转变为另一个状态”。
+	-  那么仔细想一下，动画的本质其实就是，“让一个物体在指定时间内，从一个状态转变为另一个状态”。
 	-  进而可以得出：“让一个int变量的值在3秒内从0过度到100，其实也就是让int变量播放一个动画”。
 
 　　前面介绍的视图动画只支持四种（`缩放`、`平移`、`选择`、`透明`）操作，而且只能动画`View`对象。而接下来要介绍的属性动画可以对任何对象做动画，就像上面说的动画一个`int`变量。
@@ -723,9 +723,8 @@ animator.start();
 <br>　　此时你可能会有疑问，为什么要用到`TimeInterpolator`类呢？
 
 	-  按照我们熟悉的逻辑，动画的播放进度是需要和时间相关的，也就是说当动画播放到1秒的时候，translationX的值应该是25，执行到2秒的时候值应该是50。这个逻辑其实是一个线性的变化，即动画的播放进度随着时间的推移，均匀的改变。
-	-  但是在很多时候我们有更高的要求，比如希望动画以加速度或者减速度的形式播放，又或者希望动画在开始的部分加速播放，在结束的部分减速播放。这时候就需要用到TimeInterpolator类了。
-	-  当绘制任务被触发时，系统会调用TimeInterpolator的getInterpolation方法，并传递过去一个数值input，这个数值表示动画当前已经播放的比率。
-	-  然后，我们可以依据这个input来进行计算出我们想要的结果，并将结果返回。
+	-  但是在很多时候我们有更高的要求，比如希望动画以加速度或者减速度的形式播放，又或者希望动画在开始的部分加速播放，在结束的部分减速播放，这时候就需要用到TimeInterpolator类了。
+	-  当绘制任务被触发时，系统会调用TimeInterpolator的getInterpolation方法，并传递过去一个数值input，这个数值表示动画当前已经播放的比率，TimeInterpolator会依据这个比率计算出最终的比率。
 	-  最后，系统会把getInterpolation方法返回的结果当作动画最终的播放比例，进行后续的计算。
 
 <br>　　事实上，`TimeInterpolator`类有很多现有的子类，比如`LinearInterpolator`类：
@@ -782,7 +781,7 @@ public class IntEvaluator implements TypeEvaluator<Integer> {
 ```
     语句解释：
     -  在上面的代码中，如果把fraction替换成0.5的话，就可以很容易的计算出结果是什么。
-    -  大声的告诉我，结果是什么？ 是的！就是它！
+    -  大声的告诉我，结果是什么？ 没错！就是它！
 
 　　`TypeEvaluator`类的另一个子类`FloatEvaluator`的代码和`IntEvaluator`相仿，笔者就不再冗述了。
 
@@ -891,12 +890,14 @@ void doAnimationFrame(long frameTime) {
     // 此处省略若干代码...
     for (int i = 0; i < numAnims; ++i) {
         ValueAnimator anim = mTmpAnimations.get(i);
+        // 调用ValueAnimator的doAnimationFrame方法进行绘制
         if (mAnimations.contains(anim) && anim.doAnimationFrame(frameTime)) {
             mEndingAnims.add(anim);
         }
     }
     // 此处省略若干代码...
     if (!mAnimations.isEmpty() || !mDelayedAnims.isEmpty()) {
+        // 检测是否还有未绘制的帧，如果有则再次安排下一帧的事件到Choreographer中。
         scheduleAnimation();
     }
 }
@@ -904,8 +905,6 @@ void doAnimationFrame(long frameTime) {
     语句解释：
     -  在start方法内部会转调用scheduleAnimation方法，scheduleAnimation方法会将mAnimate安排到Choreographer中。
     -  Choreographer内部的代码我们不再继续深入了，因为它最终会回调mAnimate的run方法。
-    -  从上面的第20行代码可以看出，doAnimationFrame方法中会调用ValueAnimator的doAnimationFrame方法进行绘制。
-    -  最后，会检测是否还有未绘制的帧，如果有则再次安排下一帧的事件到Choreographer中。
 
 <br>　　在`ValueAnimator`的`doAnimationFrame`方法中又会依次调用`animationFrame`和`animateValue`方法。
 
@@ -1155,7 +1154,7 @@ private void startAnimation() {
 # 第四节 NineOldAndroids #
 　　前面说了，属性动画是在`Android3.0`中推出的，在`Android3.0`之前没法使用它。
 　　但是万事总有一线生机，现在有一个名为`NineOldAndroids`动画库，可以让低于`Android3.0(API Level 11)`的项目使用上属性动画。它的作者是非常牛逼的`JakeWharton`，好几个著名的开源库都是他的作品。
-　　项目的官网为：http://nineoldandroids.com/ ，`JakeWharton`的`Github`主页为：https://github.com/JakeWharton 。
+　　项目地址：http://nineoldandroids.com/ ，`JakeWharton`的主页为：https://github.com/JakeWharton 。
 
 　　`NineOldAndroids`的原理很简单，判断当前设备的`API Level`版本，如果大于等于`11`，那么就调用`官方的API`，否则就调用自己实现动画效果。在`API`的名称等方面，它与官方的属性动画基本一致（如`ObjectAnimator`、`ValueAnimator`等），这意味着你只需要修改一下包名就可以在官方和`NineOldAndroids`之间切换。
 　　比如说想要将一个值从`0`平滑过渡到`1`，时长`300`毫秒，写法与官方`API`完全一致：

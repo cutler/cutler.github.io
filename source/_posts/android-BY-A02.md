@@ -242,7 +242,7 @@ protected void onDraw(Canvas canvas) {
 <br>　　笔者在[《媒体篇　第二章 图片》](http://cutler.github.io/android-D02/#LruCache)中简单的介绍了`HashMap`的特点：
 
 	-  通过计算元素的hashCode码，实现高速存取元素。
-	-  内部使用数组来存储元素。
+	-  内部使用数组+链表来存储元素。
 	-  元素无序排列。如果你想让集合中元素按照插入的顺序排列可以使用LinkedHashMap类。
 　　
 　　下面继续来介绍一下`HashMap`，并从源码的角度来说明它的一个显著的缺点：浪费内存。
@@ -381,11 +381,10 @@ Object[] mArray;
 	-  第n个元素（n>=1）的key保存在mArray[n-1]的位置上。
 	-  第n个元素（n>=1）的value保存在mArray[n]的位置上。
 
-　　按照一般的思路，当我们向对`ArrayMap`执行存取的时候，是这样的流程：
+　　按照一般的思路，当我们调用`arrayMap.get(key)`时候，是这样的流程：
 
-	-  首先，我们调用arrayMap.get(key)。
-	-  然后，在ArrayMap中for循环，依次让key和每一个元素的key进行比较。
-	-  最后，当找到相同的key时，就把key所在位置的下一个位置上的value返回。
+	-  首先，在ArrayMap中for循环，依次让key和每一个元素的key进行比较。
+	-  然后，当找到相同的key时，就把key所在位置（n）的下一个（n+1）位置上的元素返回。
 
 　　这个过程是没有错误的，但是效率太低了，随着数据的增多，遍历的时间也就越久。
 
@@ -399,9 +398,8 @@ int[] mHashes;
 
 　　这样一来，执行`get`操作的步骤就变为了：
 
-	-  首先，我们调用arrayMap.get(key)。
-	-  然后，ArrayMap会计算出key的hashCode码，我们假设它是x。
-	-  接着，ArrayMap使用二分查找法从mHashes查找是否存在x，如果存在，则把x的下标记下来，我们假设它是index。
+	-  首先，ArrayMap会计算出key的hashCode码，我们假设它是x。
+	-  接着，使用二分查找法从mHashes查找是否存在x，如果存在，则把x的下标记下来，我们假设它是index。
 	-  最后，ArrayMap直接使用mArray[index<<1]和mArray[index<<1+1]就可以获得元素的key和value了。
 	   -  “<<”表示左移，每左移1位数字就变大2倍，而index<<1就表示左移一位。
 

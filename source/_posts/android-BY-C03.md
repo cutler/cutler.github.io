@@ -7,7 +7,7 @@ categories: Android开发 - 不屈白银
 　　在开始讲解知识之前，笔者有下面四点要说：
 
 	-  第一，本文只分析Java层的代码，不包含C++层的代码。
-	-  第二，请各位一定要跟随笔者描述的步骤去看一遍源码，否则你阅读本文时，会很不爽。
+	-  第二，请各位一定要跟随笔者描述的步骤去看一遍源码，否则阅读本文时会朦胧。
 	-  第三，由于篇幅有限以及阅读方便，本文中列出的源码都是笔者简化后的，请自行查看完整源码。
 	-  第四，如果您之前没接触过Framework层的话，那么本文您至少需要读两遍。
 
@@ -26,9 +26,9 @@ categories: Android开发 - 不屈白银
 <br>　　我们按照上图的顺序，看一下前四个操作：
 
 	-  首先，Android设备上电后，会先启动ROM，并寻找Bootloader代码，将它加载到内存。
-	-  然后，执行Bootloader，即先完成硬件的初始化，然后再找到Linux内核代码，并将它加载到内存。
+	-  然后，执行Bootloader，然后再找到Linux内核代码，并将它加载到内存。
 	-  接着，启动Linux内核，即初始化各种软硬件环境，加载驱动程序，挂载根文件系统。
-	-  最后，由内核启动init进程，它是整个系统第一个启动的进程，我们可以说它是root进程或者所有进程的父进程。
+	-  最后，由内核启动init进程，它是整个系统第一个启动的进程，也是所有进程的父进程。
 	   -  需要知道的是，init进程是Android启动过程中最核心的程序。
 	   -  Android系统以及各大Linux的发行版，内核部分启动过程都是差不多的，区别就在于init进程的不同。
 	   -  因为init进程决定了系统在启动过程中，究竟会启动哪些守护进程和服务，以及呈现出怎样的UI界面。
@@ -53,8 +53,6 @@ categories: Android开发 - 不屈白银
 	-  Android服务是指运行在Dalvik虚拟机进程中的服务。
 	-  init进程会创建Zygote进程，它是第一个Android进程，所有后续的Android应用程序都是由它fork出来的。
 
-<br>　　以上是为了防止笔者与您之间存在知识断层，而补充的一些基础知识，各位接下来就准备`“迎接风暴吧”`。
-
 ## Zygote进程 ##
 　　我们都知道，每一个App其实都是：
 
@@ -64,7 +62,7 @@ categories: Android开发 - 不屈白银
 
 	-  每当要为App启动新进程时，都会fork（拷贝）一下zygote进程，并把fork出来的新进程做为App进程。
 	-  也就是说，其他应用所在的进程都是Zygote的子进程。
-	-  这就是将Zygote进程称为“受精卵”的原因，因为他确实和受精卵一样，能快速的分裂，并且产生遗传物质一样的细胞！
+	-  这就是将Zygote进程称为“受精卵”的原因，因为它确实和受精卵一样，能快速的分裂，并且产生遗传物质一样的细胞！
 
 <br>　　既然`Zygote`进程这么重要，那么我们就来看看它是如何被系统启动的。
 
@@ -99,7 +97,7 @@ public static void main(String argv[]) {
 
         // 启动一些系统服务。
         if (startSystemServer) {
-            // 在操作系统中通常会提供一些公共的功能，让系统中的所有App共同访问，比如下面这些常见的系统服务：
+            // 在操作系统中通常会提供一些公共的功能，让系统中的所有App共同访问，比如：
             // ActivityManagerService（简称AMS）、PackageManagerService、WindowManagerService等。
             // 如果你没见过它们也没关系，暂时只需要知道它们都是公有的类就可以了，它们的功能稍后会介绍。
             // 既然是共用的，那么它们就应该存在一个单独的进程中，这样每个APP进程就可以通过IPC方式访问它们了。
@@ -268,7 +266,7 @@ private static void invokeStaticMain(String className, String[] argv, ClassLoade
 ```
     语句解释：
     -  在方法的最后抛出一个异常，并把m放到了异常中。
-    -  这个异常最终会被ZygoteInit.main方法捕获，然后再由ZygoteInit.main去调用SystemServer类的main函数。
+    -  这个异常最终会被ZygoteInit.main方法捕获，然后再去调用SystemServer类的main函数。
     -  为什么要这样做呢？注释里面已经讲得很清楚了，它是为了清理堆栈的，这样就会让SystemServer类的main函数觉得自己是进程的入口函数，而事实上，在执行它之前已经做了大量的工作了。
 
 <br>　　我们看看`ZygoteInit.main`函数在捕获到这个异常的时候做了什么事：
@@ -326,11 +324,7 @@ private void run() {
     语句解释：
     -  可以看到，SystemServer初始化完各类服务之后，自己也通过Looper进入无限循环了。
 
-<br>　　至此，整个开机流程算是被我们简单的过了一遍了，等我们进入`“黄金分段”`的时候，也许会进一步深入。
-
-　　最后请记住一句话：
-
-	-  妈的，我要用我手中的Q，拿回属于我的一切，操！
+<br>　　至此，整个开机流程算是简单的过了一遍了，等我们进入`“黄金分段”`的时候，也许会进一步深入。
 
 <br>**本节参考阅读：**
 - [【凯子哥带你学Framework】Activity启动过程全解析](http://blog.csdn.net/zhaokaiqiang1992/article/details/49428287)
@@ -345,7 +339,7 @@ private void run() {
 
 　　其中就有一个`Java`层的组件，它运行在`SystemServer`进程里的，名为`ActivityManagerService`（简称`AMS`）。
 
-	-  AMS有很多功能，后面我们会一一介绍，此处我们会涉及到它其中一个功能，就是为Android应用程序创建新的进程。
+	-  AMS有很多功能，后面我们会一一介绍，此处会涉及到它其中一个功能，就是为Android应用程序创建新的进程。
 	-  即当用户请求启动四大组件时，系统会先检测该组件所在的进程是否已经启动。
 	-  如果没有启动，则就会调用AMS去创建一个新的进程，然后在这个新的进程中启动该组件。
 
@@ -541,16 +535,11 @@ public void startActivityForResult(Intent intent, int requestCode, @Nullable Bun
     -  需要注意的是第10行中的“mMainThread.getApplicationThread()”：
        -  其中mMainThread就是我们的主线程ActivityThread，进程中的每个Activity对象都会持有它的引用。
        -  它的getApplicationThread方法返回的是一个IBinder对象。
-    -  你可能会疑惑，我们为何要注意这个参数呢？这是因为：
-       -  在startActivity这个操作中，稍后我们会经历一系列的方法调用，甚至于程序最终会跑到AMS的进程中去执行。
-          -  各位不用奇怪为什么启动一个Activity还需要跳来跳去的，因为启动Activity并不是简单的创建个对象就行的。
-          -  它还涉及到很多事物要处理，但遵循“单一职责”的原则每个类都只管一件事，所以只能跳来跳去。
-       -  但是无论如何，实例化Activity对象的任务最终还是由我们的进程完成的。
-       -  也就是说，这一些列的方法调用只是为了通知系统各个地方，我们要启动Activity了，最终执行启动还是我们自己。
+    -  你可能会疑惑，我们为何要注意这个参数呢？这是因为在startActivity这个操作中，会经历一系列方法调用，并且最终会跑到AMS的进程中去执行（因为启动Activity并不是简单的创建个对象就行的，它还涉及到很多事物要处理，但遵循“单一职责”的原则每个类都只管一件事，所以只能跳来跳去）。
+       -  但是无论如何，实例化Activity对象的任务最终还是由我们的进程完成的，这一些列的方法调用只是为了通知系统各个地方，我们要启动Activity了，最终执行启动还是我们自己。
        -  就像刚才说的，在这个过程中程序会跨进程进入到AMS中执行，那么“有去就得有回”才行。
-       -  所以，这个IBinder对象就是我们抛给AMS的一个IPC接口。
-       -  当AMS处理完毕所有的事情后，就通过这个IBinder对象来给我们发通知，也就是说，我们和AMS是互为Server端了。
-    -  如果你没明白我在说什么，那么就暂时先记得它是一个回调就可以了，看了后面的步骤你就慢慢理解。
+       -  所以，这个IBinder对象就是我们抛给AMS的一个IPC回调接口。
+       -  当AMS处理完毕所有的事情后，就通过这个IBinder对象来给我们发通知，我们去执行后续操作。
 
 ## Instrumentation ##
 
@@ -583,7 +572,7 @@ public ActivityResult execStartActivity(
 
     // 此处省略若干代码。
 
-    // 调用ActivityManagerNative去执行启动Activity，并将起返回值保存到result中。
+    // 调用ActivityManagerNative去执行启动Activity，并将其返回值保存到result中。
     int result = ActivityManagerNative.getDefault()
         .startActivity(whoThread, who.getBasePackageName(), intent,
                 intent.resolveTypeIfNeeded(who.getContentResolver()),
@@ -622,9 +611,9 @@ public static void checkStartActivityResult(int res, Object intent) {
     -  在checkStartActivityResult方法中我们看见了这个久违的异常。
 
 ## ActivityManager ##
-　　接下来的内容会涉及到`Binder`相关的知识，请先去阅读[《Framework篇　第一章 Binder机制》](http://cutler.github.io/android-BY-C01/)再继续往下阅读。
+　　接下来的内容会涉及到`Binder`相关的知识，请先去阅读[《Framework篇　第二章 Binder机制》](http://cutler.github.io/android-BY-C02/)再继续往下阅读。
 
-<br>　　通过上一章的学习，可以知道`ActivityManagerNative`只是一个中转类：
+<br>　　先来看一下`ActivityManagerNative.java`的源码：
 ``` java
 // ActivityManagerNative是一个抽象类。
 public abstract class ActivityManagerNative 
@@ -635,27 +624,13 @@ public abstract class ActivityManagerNative
 class ActivityManagerProxy implements IActivityManager{}
 ```
     语句解释：
-    -  我们知道IPC通信有四个角色：client、server、binder驱动、SM，其中前两者与我们经常打交道。
-    -  整个通信过程大致是这样的：
-       -  首先，由server端定义接口，并在server端为这个接口提供一个实现类。
-       -  然后，server端再通过Binder机制，把这个实现类返回给client。
-       -  接着，client接到server端发来的对象后，就可以调用server端的接口了。
-    -  将这上面说的过程转换到启动Activity的工作上时，它们各自对应的情况是：
-       -  client就是指我们的进程，而server端指的是AMS所在的SystemServer进程。
-       -  IActivityManager就是那个由server端定义的接口，而AMS就是那个接口在server端的具体实现类。
-    -  而ActivityManagerNative(简称AMN)则只是一个中转类，在client和server进程中，各有一份该类的代码：
-       -  server端的AMS继承了AMN，而AMN又继承了Binder类，也就是说AMN对server端的作用，就是用来将AMS发送到client端。
-       -  而AMN对于client的端的作用，就是client可以通过AMN来调用服务端的接口。
-       -  因为client接到的从server端传来的对象其实是ActivityManagerProxy类型的。
+    -  通过上一章的学习，我们可以得到如下对应关系：
+       -  IActivityManager与IDAO对应。
+       -  ActivityManagerNative与IDAO.Stub对应。
+       -  ActivityManagerProxy与IDAO.Stub.Proxy对应。
     -  另外，在IActivityManager里面定义各种操作三大组件（不包括内容提供者）的方法，同时AMS、AMN、AMP都实现这个接口。
 
-
-
-<br>　　为了便于理解，笔者在这里以`AMS`的调用过程为例，带大家再走一遍`Binder`机制。
-
-<br>　　接着上文，此时程序的流程还处于我们自己进程的`Instrumentation`的`execStartActivity`方法中。
-
-　　然后程序调用`ActivityManagerNative.getDefault`获取单例对象，源码如下：
+<br>　　接着上文，此时程序调用`ActivityManagerNative.getDefault`获取单例对象，源码如下：
 ``` java
 static public IActivityManager getDefault() {
     return gDefault.get();
@@ -916,7 +891,7 @@ public ComponentName startService(Intent service) {
 
 	-  就像我们知道的那样，当启动Activity时，最终会调用ActivityThread的performLaunchActivity方法执行创建。在该方法中会依次做如下三件事：
 	   -  第一，创建Activity对象。
-	   -  第二，创建Application对象。
+	   -  第二，创建Application对象（如果需要的话）。
 	   -  第三，调用Activity的attach方法。
 	-  而事实上，在第二步和第三步之间，还有一步操作：创建Context对象。
 	   -  此时会调用ActivityThread的createBaseContextForActivity方法。
@@ -1295,7 +1270,7 @@ public void connected(ComponentName name, IBinder service) {
 　　广播的注册分为静态注册和动态注册，其中静态注册的广播是在应用安装时由系统自动完成注册，具体来说是由`PMS`来完成整个注册过程的。
 
 	-  PMS就是PackageManagerService。
-	-  除了广播注册的过程外，其它三大组建只能在应用安装时由PMS解析并注册。
+	-  除了广播注册的过程外，其它三大组件只能在应用安装时由PMS解析并注册。
 
 <br>　　这里只分析广播的动态注册的过程，最先调用的同样是`ContextWrapper`类的`registerReceiver`方法。
 

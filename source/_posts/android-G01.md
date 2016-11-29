@@ -39,11 +39,10 @@ public Window getWindow() {
        -  笔者使用的源码版本是：Android-23 。
 
 <br>　　观察仔细点的话会发现Window是一个抽象类，为了能继续追踪源码，我们得先去查看`mWindow`是何时初始化的，进而找到实例化的是哪个类。
-　　查看的过程就不说了，直接说一下初始化的步骤吧：
+　　查看的过程以后再说，直接说结果吧：
 
 	-  首先，当我们请求启动某个Activity时，系统会调用它的无参构造方法实例化一个它的对象。
-	-  然后，会调用该对象的attach方法，执行初始化操作。
-	-  最后，mWindow的初始化操作，就是在attach方法中进行的。
+	-  然后，会调用该对象的attach方法，执行初始化操作，而它的mWindow属性就是在attach方法中初始化的。
 
 <br>　　那么就来看一下Activity的`attach`方法的代码：
 ``` java
@@ -69,7 +68,7 @@ final void attach(/*此处省略若干参数*/) {
 ```
     语句解释：
     -  其实Window类官方文档已经告诉我们了，该类只有一个唯一的子类android.view.PhoneWindow。
-    -  如果继续追踪上面第8行代码的话，就可以知道mWindowManager所指向的对象将是WindowManagerImpl类型的。
+    -  如果继续追踪上面第8行代码的话，还可以知道mWindowManager所指向的对象将是WindowManagerImpl类型的。
     -  用一句话概括：“当Activity被实例化之后，会接着初始化它的mWindow、mWindowManager属性”。
 
 <br>　　继续追踪就会发现，我们调用`setContentView`方法设置给Activity的布局，最终会由`PhoneWindow`类的`DecorView`管理。
@@ -82,7 +81,7 @@ final void attach(/*此处省略若干参数*/) {
 
 　　`DecorView`是`PhoneWindow`的内部类，继承自`FrameLayout`。还有一点需要知道的是：
 
-	-  我们之所以说Activity的控件是由DecorView管理的，而不说是由PhoneWindow管理的，是因为：
+	-  笔者之所以说Activity的控件是由DecorView管理的，而不说是由PhoneWindow管理的，是因为：
 	   -  DecorView是一个真正的View对象，我们设置给Activity的布局，最终会被放到DecorView里面。
 	   -  而PhoneWindow并不是一个View。
 
@@ -264,12 +263,13 @@ public class MainActivity extends Activity {
 
 	-  SdkClient部分表示Activity的内部结构，由PhoneWindow和DecorView组成。
 	-  FrameworkServer端用来完成整个Android系统的窗口、事件捕获和分发、输入法等的控制。
-	-  FrameworkClient用来连接SdkClient端和FrameworkServer端，它通过Binder机制让两者进行（跨进程）通信。
-	   -  也就是说，WindowManagerService（简称WMS）只会和ViewRoot类通信，DecorView也只会和ViewRoot通信。
+	-  FrameworkClient用来连接SdkClient端和FrameworkServer端，它通过Binder机制让两者跨进程通信。
+	-  从上图可以看出，WindowManagerService（简称WMS）只会和ViewRoot类通信，DecorView则是通过WindowManager类来与ViewRoot通信。
 
 <br>**添加Activity到屏幕**
+
 　　比如我们现在新建一个Activity，那么此时系统会这么执行：
-	-  第一，先实例化Activity对象，然后调用attach方法初始化，然后在setContentView被调用时初始化DecorView。
+	-  第一，先实例化Activity对象，然后调用attach方法、setContentView方法初始化。
 	-  第二，当需要显示Activity时，系统会使用WindowManager类来将DecorView添加到屏幕上。
 	-  第三，但WindowManager并不会执行添加操作，它会为DecorView创建一个ViewRoot对象，然后再请ViewRoot去添加。
 	-  第四，但ViewRoot实际上也不会执行添加操作，它会使用Binder机制（跨进程）访问远程的WMS类，也就是说添加操作会由WMS来完成。
@@ -362,10 +362,10 @@ public void setView(View view, WindowManager.LayoutParams attrs, View panelParen
 ```
     语句解释：
     -  此方法第4行代码，首先保存了DecorView的引用，因为以后会用到它。
-    -  然后调用addToDisplay方法来请求WMS执行一些初始化操作。
-    -  当然此时屏幕上还没有绘制任何内容，不过我们就不继续向下深入了，只需要知道控件的绘制等操作是在WMS那端完成的即可。
+    -  可以把WindowSession类理解为WMS抛给咱们进程的回调，第9行代码调用addToDisplay方法来请求WMS执行一些初始化操作。当然此时屏幕上还没有绘制任何内容，不过我们就不继续向下深入了，只需要知道控件的绘制等操作是在WMS那端完成的即可。
 
 <br>**分发输入事件**
+
 　　除了负责往屏幕上添加和删除控件外，WMS还会用来分发输入事件。
 
 　　以触摸事件为例：
@@ -424,14 +424,14 @@ public boolean dispatchTouchEvent(MotionEvent ev) {
 ```
     语句解释：
     -  这里的Callback是一个关键点，实际上它就是DecorView所属的Activity。
-    -  在Activity的attach方法中可以找到初始化的代码：
-       -  mWindow.setCallback(this);
+    -  在Activity的attach方法中可以找到初始化的代码：“mWindow.setCallback(this);”。
 
 <br>　　分析到此也就明白了，输入事件的传递顺序为：
 
 	WMS -> ViewRootImpl -> DecorView -> Activity 
 
 <br>**执行绘制操作**
+
 　　与分发输入事件的过程类似，当系统需要绘制Activity的界面时，也会执行下面的步骤：
 
 	-  首先，调用ViewRootImpl的performTraversals方法。
@@ -1007,7 +1007,7 @@ public static int getChildMeasureSpec(int spec, int padding, int childDimension)
 	-  第二，不论是DecorView还是普通的View，它们的MeasureSpec都是由它的上级传递过来的。
 	   -  对于DecorView来说，它的MeasureSpec是由屏幕的尺寸和它自身的LayoutParams决定的。
 	   -  对于普通View来说，它的MeasureSpec是由父View剩余空间和它自身的LayoutParams决定的。
-	      -  比如，若父ViewGroup的layout_height值为100，子View的值为200，则最终传入到子View的高度就是200。
+	      -  若父ViewGroup的layout_height值为100，子View的值为200，则最终传入到子View的高度就是200。
 	-  第三，当系统需要测量某个View时，会调用View类的onMeasure方法。
 	-  第四，MeasureSpec是一个复合的int值，在使用之前需要将它们拆解。
 
@@ -1196,7 +1196,7 @@ public void layout(int l, int t, int r, int b) {
 
 	-  当需要确定当前View的所有子View的位置时，才会调用onLayout方法。
 	-  对于普通的View类来说，由于它是没有子View的，因此View类的onLayout()只是一个空实现。
-	-  对于ViewGroup类来说，在它内部onLayout方法被改为抽象方法了，即要求所有ViewGroup的子类都必须重写它。
+	-  对于ViewGroup类来说，在它内部onLayout方法被改为抽象方法了，所有ViewGroup的子类都必须重写它。
 
 <br>　　接着我们来看下`ViewGroup.java`中的`layout()`和`onLayout()`方法的源码：
 ``` java
@@ -1216,7 +1216,7 @@ protected abstract void onLayout(boolean changed, int l, int t, int r, int b);
 ```
     语句解释：
     -  相比之下ViewGroup增加了LayoutTransition的处理：
-       -  若当前ViewGroup未添加LayoutTransition动画，或者动画此刻并未运行，那么调用super.layout(l, t, r, b)。
+       -  若当前ViewGroup未添加LayoutTransition动画，或动画未运行，则调用super.layout(l,t,r,b)。
        -  否则将mLayoutCalledWhileSuppressed设置为true，等待动画完成时再调用requestLayout()。
     -  除此之外，还有两个地方需要注意：
        -  layout()方法增加了final关键字，这意味着它的所有子类无法重写layout()方法。
@@ -1363,7 +1363,7 @@ public void postInvalidate() {
 ```
 
 ## 其它常用方法 ##
-###定位###
+### 定位 ###
 　　`View`的几何形状是`矩形`的，视图的`位置`使用`左上坐标系`表示，`尺寸`由`宽和高`表示，位置和尺寸以`像素`为单位。我们可以通过`getLeft()`和`getTop()`函数取得视图的位置：
 
 	-  前者返回视图的左侧位置（横坐标X）。
@@ -1372,8 +1372,8 @@ public void postInvalidate() {
 
 　　另外，为了避免不必要的计算，提供了一些便利的方法，它们是`getRight()`和`getBottom()`。这些方法返回代表视图的矩形的右侧和底边的坐标。例如，调用`getRight()`比调用`getLeft() + getWidth()`要简单。
 
-<br>
-###跳过绘制###
+
+### 跳过绘制 ###
 　　`View`类有一个特殊的方法setWillNotDraw，先来看一下的它的源码：
 ``` java
 /**
@@ -1394,20 +1394,20 @@ public void setWillNotDraw(boolean willNotDraw) {
     -  从注释可以看出来，如果一个View不需要绘制任何内容，那么设置这个标记位为true后，系统就会进行相应的优化。
     -  默认情况下，View没有启用这个优化标记位，但是ViewGroup会默认启用这个标记位。
 
-<br>
-###从窗口中添加和移除###
+
+### 从窗口中添加和移除 ###
 　　当View和其所在的Activity建立和断开连接时，系统会调用如下两个方法：
 
 	-  Activity关闭或者View从Activity中移除时，View的onDetachedFromWindow方法会被调用。
 	   -  通常在此方法中关闭线程和停止动画，从而避免内存泄漏。
 	-  View被添加到Activity中时，它的onAttachedToWindow方法会被调用。
 
-<br>
-###大小改变###
+
+### 大小改变 ###
 　　在`View`类中还有一个比较有用的方法是`onSizeChanged`，当`View`的尺寸改变时就会调用它。
 
 	-  一般情况下，我们在自定义控件的时候会依据View的尺寸来确定绘制的大小，但是程序在运行的时候不可避免的因为一些外力而导致View的尺寸发生变化（比如横竖屏切换、输入法弹出等）。
-　　因此通常的做法是重写`onSizeChanged`方法，并在其内部更新变量的值，并调用进行`invalidate`方法重绘。
+　　因此通常的做法是重写`onSizeChanged`方法，并在其内部更新变量的值，并调用`invalidate`方法进行重绘。
 <br>
 
 <br>**本章参考阅读：**

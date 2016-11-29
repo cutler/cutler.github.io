@@ -37,13 +37,14 @@ void checkThread() {
 	   -  第二，过多的同步操作会降低UI的访问效率，因为锁机制会阻塞某些线程的执行。
 	-  基于这两个缺点，最简单和高效的方法就是采用单线程来处理UI操作，而且对于开发者来说也不是很麻烦，只需要使用Handler切换一下线程即可。
 
-<br>　　这里再延伸一点，并不是所有的更新UI的操作都只能在主线程中完成的。
+　　另外，并不是所有的更新UI的操作都只能在主线程中完成的。
 
 	-  比如在子线程中可以简单的修改ProgressBar、SeekBar、ProgressDialog等控件。
-	-  所谓的简单的修改，就是只能调用这些控件的某些方法（如setProgress()等），若调用其他方法，则仍然会抛异常。
+	-  也就是只能调用这些控件的某些方法（如setProgress()等），若调用其他方法，则仍然会抛异常。
+	-  如果追踪源码的话，会发现setProgress等方法最终还是会通过Handler来更新。
 
 ## 基础应用 ##
-　　因为`Handler`的用法十分简单，所以笔者不打算过多介绍如何使用它，下面给出两个范例，如果不理解请自行搜索。
+　　`Handler`的用法十分简单，笔者不打算过多介绍如何使用它，下面给出两个范例，如果不理解请自行搜索。
 
 <br>　　范例1：发送消息。
 ``` java
@@ -125,7 +126,7 @@ public Handler mHandler = new Handler() {
 	-  用静态变量吗? 若是这个功能模块会被多个线程并发调用，那么静态变量很显然就不行了。
 　　此时可以使用`ThreadLocal`类来完成数据的传递。
 
-　　`ThreadLocal`可以将一些变量存放到某个线程对象中，那么只要是这个线程能走到的地方(代码)，都可以从线程对象中获取变量的值。
+　　`ThreadLocal`可以将一些变量存放到当前线程对象中，那么只要是这个线程能走到的地方(代码)，都可以获取该变量的值。
 
 <br>　　范例1：传送变量。
 ``` java
@@ -382,7 +383,7 @@ public class TestActivity extends Activity {
 }
 ```
     语句解释：
-	-  若想在子线程中创建Handler对象，则需要手工的调用Looper类的prepare方法在当前线程中创建一个Looper对象。 
+	-  想在子线程中创建Handler对象，需要先调用Looper.prepare方法在当前线程中创建一个Looper对象。 
 	-  创建完Looper对象后，还需要调用Looper对象的loop方法来启动它本身。
 	-  Looper提供了quit和quitSafely两个方法来退出loop循环，二者的区别是，quit会直接退出，quitSafely会设定一个退出标记，然后等消息队列中的所有消息都处理完毕后才安全退出。
 
@@ -392,9 +393,9 @@ public class TestActivity extends Activity {
 <br>　　首先，子线程A通过`Handler`类发送消息：
 
 	-  Handler类中提供的sendMessage等方法，可以将Message对象发送到MessageQueue中。
-	-  当消息被发送到MessageQueue中后，子线程A就直接返回，它接着就去执行sendMessage之后的代码。
-	   -  这类似于咱们去邮局寄信，当咱们把信放入信箱后，咱们就可以回去了，至于信如何被发送到目的地，咱们不需要关心。
-	-  事实上，每个Message对象都有一个Handler类型的target属性，它指出由哪个Handler对象来处理当前消息对象。
+	-  当消息被发送到MessageQueue中后，当前线程A就直接返回，它接着就去执行sendMessage之后的代码。
+	-  类似于去邮局寄信，当把信放入信箱后，就可以回去了，至于信如何被发送到目的地，不需要关心。
+	-  事实上，每个Message对象都有一个target属性，它指出由哪个Handler对象来处理当前消息对象。
 
 <br>　　然后，来看一下`Looper`类的`loop`方法：
 ``` java
@@ -423,8 +424,8 @@ public static void loop() {
 	-  从上面的代码可以看出：
 	   -  当Looper会使用无限for循环，不断的调用MessageQueue的next方法，读取消息。
 	   -  若MessageQueue当前没有需要处理的消息，则它的next方法就会被阻塞，一直不返回。
-	   -  当next方法返回Message时，Looper就会将Message发送给其target属性指向的Handler的dispatchMessage方法。
-	-  当Message被处理后，Looper会执行上面第18行代码，将该Message对象的所有属性清空，并将其加入到一个回收栈中。
+	   -  当next方法返回时，Looper就会将Message发送给其target属性指向的Handler的dispatchMessage方法。
+	-  当Message被处理后，Looper会执行上面第18行代码，清空Message的所有属性，并将其加入到回收栈中。
 	   -  当Handler调用obtainXxx()方法获取Message对象时，就从回收栈顶弹出一个Message对象。
 	   -  若回收栈栈中没有任何Message对象，则会new一个Message对象返回，但该Message不会被入栈。
 
@@ -469,23 +470,7 @@ public final void removeMessages(int what);
 ```
 
 ## HandlerThread ##
-　　我们已经知道了，如果想在子线程中使用Handler，那就得先在子线程中创建一个Looper对象。
-
-　　此时你可能会问：为什么要在子线程中使用Handler呢？
-
-	-  通常我们使用Handler是为了在主线程更新UI，但是这并不是Handler的唯一作用。
-	-  在以前，当需要执行耗时任务时就会开启一个线程，如果耗时任务比较多的话，那就会不断的创建和销毁大量的线程，这样就消耗过多的资源。
-	-  我们有两种方法解决这个问题：
-	   -  使用线程池。
-	   -  使用HandlerThread。
-
-　　那`HandlerThread`是如何解决这个问题的呢？ 通过阅读它的源码，可以得知：
-
-	-  继承自Thread类，本质上是一个线程对象。
-	-  内部封装了一个Looper对象，这样就省的我们自己去创建和管理了。
-	-  重写了run方法，并在其内执行Looper的创建和启动操作。
-
-<br>　　接下来通过一个范例来说明`HandlerThread`是如何解决这个问题的。
+　　通常我们使用Handler是为了在主线程更新UI，但是这并不是Handler的唯一作用，客观点说Handler可以实现线程间的通信，比如主线程给子线程发消息。
 
 <br>　　范例1：在子线程中使用`Handler`。
 ``` java
@@ -516,8 +501,9 @@ public class MainActivity extends Activity {
 }
 ```
     语句解释：
+	-  按照前面学的知识，为了让主线程给子线程发消息，我们得先创建一个子线程，并在其中创建Looper对象，然后才能通信。而系统已经帮我们封装好了一个类专门去做这件事，它叫HandlerThread类，它继承自Thread类，本质上是一个线程对象，其内部封装了一个Looper对象，同时它重写了run方法，并在其内执行Looper的创建和启动操作。
 	-  如果想停止HandlerThread，则可以调用它的quit或quitSafely方法。
-	-  HandlerThread是一个很有用的类，它在Android中的一个具体的使用场景是IntentService类，该类笔者在《入门篇　第三章 服务与广播接收者》中已经介绍过了。
+	-  HandlerThread是一个很有用的类，它在Android中的一个具体的使用场景是IntentService类。
 
 <br>**本节参考阅读：**
 - [Android HandlerThread用法](http://blog.csdn.net/qq_695538007/article/details/43376985)
@@ -811,11 +797,10 @@ private void finish(Result result) {
 # 第三节 线程池 #
 　　提到线程池就必须先说一下线程池的好处：
 
-	-  线程池最大的好处就是，可以维持其内线程不死，让线程重复使用，避免因为线程的创建和销毁所带来的性能开销。
+	-  它可以维持其内线程不死，让线程重复使用，避免因为线程的创建和销毁所带来的性能开销。
+	-  比较常用的一个场景是`http`请求，如果程序需要频繁的、大量的执行请求，那么推荐使用线程池。
 
-　　比较常用的一个场景是`http`请求，如果程序需要频繁的、大量的执行请求，那么推荐使用线程池。
-
-<br>　　Android中的线程池都是直接或者间接通过配置`ThreadPoolExecutor`来实现的，因此我们来看一下它的构造方法：
+<br>　　线程池都是直接或者间接通过配置`ThreadPoolExecutor`来实现的，因此我们来看一下它的构造方法：
 ``` java
 public ThreadPoolExecutor(int corePoolSize,
                               int maximumPoolSize,
