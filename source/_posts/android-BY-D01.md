@@ -50,7 +50,8 @@ public class ImageLoader {
     // 图片缓存
     LruCache<String, Bitmap> mImageCache;
     // 线程池，线程数量为CPU的数量
-    ExecutorService mExecutorService = Executors.newFixedThreadPool (Runtime.getRuntime().availableProcessors());
+    ExecutorService mExecutorService 
+          = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     public ImageLoader() {
         initImageCache();
@@ -111,7 +112,8 @@ public class ImageLoader {
     private ImageCache mImageCache = new ImageCache();
 
     // 线程池，线程数量为CPU的数量
-    ExecutorService mExecutorService = Executors.newFixedThreadPool (Runtime.getRuntime().availableProcessors());
+    ExecutorService mExecutorService = 
+          Executors.newFixedThreadPool (Runtime.getRuntime().availableProcessors());
 
     // 此方法只负责执行网络请求，接收一个url，返回一个Bitmap对象。
     private  Bitmap downloadImage(String imageUrl) { }
@@ -180,7 +182,8 @@ public class ImageLoader {
     // 使用双缓存
     boolean isUseDoubleCache = false;
     // 线程池,线程数量为CPU的数量
-    ExecutorService mExecutorService = Executors.newFixedThreadPool (Runtime.getRuntime().availableProcessors());
+    ExecutorService mExecutorService = 
+          Executors.newFixedThreadPool (Runtime.getRuntime().availableProcessors());
 
     public void displayImage(final String url, final ImageView imageView) {
         Bitmap bmp = null;
@@ -501,7 +504,8 @@ public class SingleClass {
     private static SingleClass instance = new SingleClass();
 
     private SingleClass() {
-        // 默认提供的构造方法是public的，因此在此需要自定义一个无参的构造，并将访问权限该为private的。
+        // 默认提供的构造方法是public的，因此在此需要自定义一个无参的构造。
+        // 将访问权限该为private的。
     }
 
     public static SingleClass getInstance() {
@@ -2627,7 +2631,8 @@ public void onClick(View view) {
             HttpRequest.class.getClassLoader(),
             real.getClass().getInterfaces(), new InvocationHandler() {
 
-                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                public Object invoke(Object proxy, 
+                              Method method, Object[] args) throws Throwable {
                     if ("doRequest".equals(method.getName())) {
                         // 调用正主执行请求
                         String json = method.invoke(real, args);
