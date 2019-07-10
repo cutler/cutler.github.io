@@ -562,12 +562,13 @@ public class MainActivity extends Activity {
        -  RunningAppProcessInfo.IMPORTANCE_BACKGROUND：400
        -  RunningAppProcessInfo.IMPORTANCE_EMPTY：500
        -  RunningAppProcessInfo.IMPORTANCE_GONE：1000
+    -  需要注意的是，不同Android版本的划分规则会有不同，比如8.1的源码中使用 IMPORTANCE_CACHED 来代替 IMPORTANCE_BACKGROUND 。
 
 <br>　　问：进程的优先级有什么用呢？
 
 	-  当系统内存低并且其它进程要求立即服务用户的时候，Android系统可以决定在某个时点关掉一个进程，运行在这个进程中的应用程序组件也会因进程被杀死而销毁。
 	-  当要决定要杀死哪个进程时，Android系统会权衡它们对用户的重要性，即依赖于那个进程的优先级。
-	-  按照优先级从高到底排列，系统将进程划分为六个级别：
+	-  通常情况下，按照优先级从高到底排列，系统将进程划分为五个级别：
 	   -  前台进程、可见进程、服务进程、后台进程、空进程。
 
 <br>**前台进程**
@@ -992,8 +993,7 @@ public class MyBroadcastReceiver2 extends BroadcastReceiver{
     -  在声明BroadcastReceiver时，可以在<receiver>标签中指定android:permission属性。此属性表明，当前广播接收者仅接收，来自于拥有org.cxy.permission.TEST权限的应用程序中发出的广播。
 
 ## 动态注册 ##
-　　从本质来说，Android系统的广播机制是一种消息`订阅/发布`机制，因此使用这种消息驱动模型的第一步便是订阅消息，而对Android应用程序来说，订阅消息其实就是注册广播接收器。
-　　注册的方法有两种，一种是静态注册，一种是动态注册：
+　　事实上，注册广播的方法有两种，一种是静态注册，一种是动态注册：
 
 	-  静态注册：通过在AndroidManifest.xml文件中添加<receiver>元素来将广播接收者注册到Android系统中。
 	-  动态注册：在程序运行的时候，先创建一个你的BroadcastReceiver的对象，然后通过调用ContextWrapper类的registerReceiver方法将该对象注册到Android系统中。
@@ -1030,10 +1030,78 @@ public class MainActivity extends Activity {
 <br>**本节参考阅读：**
 - [【Android】动态注册广播接收器 - CSDN博主 伊茨米可](http://blog.csdn.net/etzmico/article/details/7317528)
 
-## 应用范例 ##
-### 开机启动广播 ###
-<br>**最简单的用法：**
-　　开机广播需要监听`BOOT_COMPLETED`动作：
+## 本地广播 ##
+
+<br>　　在 Google 的[ 开发指南 ](https://developer.android.com/guide/components/broadcasts.html)中清楚的描述了，广播接受者是用于接受来自系统的消息，例如：系统启动、开始充电、应用安装等，但实际上，它被大量的误用于应用内部通信，这就违背了它最初的设计用途及理念。
+
+　　直接使用 BroadcastReceiver 进行应用内部通信有如下的问题：
+
+    -  广播接受者默认情况下是可以被任何第三方App唤醒的，数据的安全性不高。虽然可以通过设置权限等方式来禁止别人这么做。
+    -  广播接收者的运行机制需要进程间通信的，内部通信通常很频繁且不需要跨进程。
+
+　　基于这个现实的问题，Google 推出了一个新的API，叫做`LocalBroadcastManager`，专门用来实现应用内部通信。
+
+<br>　　范例1：基础用法。
+``` java
+public class MainActivity extends AppCompatActivity {
+
+    public static final String ACTION = "com.cutler.demo";
+    private MyBroadcastReceiver mBroadcastReceiver;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        // 像往常一样创建广播接受者对象
+        mBroadcastReceiver = new MyBroadcastReceiver();
+        // 将这个对象动态注册到LocalBroadcastManager中
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ACTION);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, intentFilter);
+    }
+
+    /**
+     * 界面中有个按钮，按钮被点击的时候会调用方法，发送一个广播
+     */
+    public void onClick(View view) {
+        Intent intent = new Intent();
+        intent.setAction(ACTION);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // 界面关闭的时候，解除注册
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+    }
+
+    class MyBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(context, "收到", Toast.LENGTH_SHORT).show();
+        }
+    }
+}
+```
+    语句解释：
+    -  LocalBroadcastManager内部没有什么高深的技术，一共就300多行代码，它其实就是观察者模式的实现。
+    -  它的应用场景和观察者模式一样，如果您不了解观察者模式，后续博文中会有介绍。
+    -  事实上Github上有一个名为EventBus的开源库，此类能实现的功能它都能实现，且更棒，所以此类并不常用，了解即可。
+
+
+<br>　　需要注意的是，Google官方已经不再推荐使用这个类了，原文如下：
+
+    LocalBroadcastManager is an application-wide event bus and embraces layer violations in your app: any component may listen events from any other.
+    You can replace usage of LocalBroadcastManager with other implementation of observable pattern, depending on your usecase suitable options may be LiveData or reactive streams.
+
+<br>**本节参考阅读：**
+- [为什么应该使用本地广播](http://effmx.com/articles/wei-shi-yao-ying-gai-shi-yong-ben-di-yan-bo-localbroadcastmanager/)
+- [Android本地广播和全局广播的区别及实现原理](https://blog.csdn.net/u010126792/article/details/82417190)
+
+## 监听系统广播 ##
+
+<br>　　范例1：以开机广播为例，我们需要监听`BOOT_COMPLETED`动作：
 ``` xml
 <receiver android:name="com.example.androidtest.BootReceiver" >
     <intent-filter>
@@ -1046,22 +1114,488 @@ public class MainActivity extends Activity {
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 ```
 
-<br>**但现实并非如此简单：**
-　　从`Android 3.1`开始的Android加入了一种保护机制，这个机制导致程序接收不到某些系统广播，其中就包含了开机启动广播。
+
+<br>　　范例2：时间改变广播：
+``` java
+public class MainActivity extends AppCompatActivity {
+
+    private IntentFilter intentFilter;
+
+    private TimeChangeReceiver timeChangeReceiver;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        intentFilter = new IntentFilter();
+        //每分钟变化
+        intentFilter.addAction(Intent.ACTION_TIME_TICK);
+        //设置了系统时区
+        intentFilter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
+        //设置了系统时间
+        intentFilter.addAction(Intent.ACTION_TIME_CHANGED);
+        timeChangeReceiver = new TimeChangeReceiver();
+        registerReceiver(timeChangeReceiver, intentFilter);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(timeChangeReceiver);
+    }
+
+    class TimeChangeReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case Intent.ACTION_TIME_TICK:
+                    //每过一分钟 触发
+                    System.out.println("____ 1 min passed");
+                    break;
+                case Intent.ACTION_TIME_CHANGED:
+                    //设置了系统时间
+                    System.out.println("____ system time changed");
+                    break;
+                case Intent.ACTION_TIMEZONE_CHANGED:
+                    //设置了系统时区的action
+                    System.out.println("____ system time zone changed");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+```
+    语句解释：
+    -  其中ACTION_TIME_TICK事件要求必须动态注册，另外两种事件可以静态注册。
+
+　　静态注册时，设置如下action即可：
+``` xml
+  <intent-filter>
+    <!-- 设置时间、时区时触发 -->
+    <action android:name="android.intent.action.TIME_SET"></action>
+    <action android:name="android.intent.action.TIMEZONE_CHANGED"></action>
+   </intent-filter>
+```
+
+<br>　　范例3：开屏、关屏、解锁广播：
+``` java
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        IntentFilter filter = new IntentFilter();
+        // 开屏
+        filter.addAction(Intent.ACTION_SCREEN_ON);
+        // 关屏
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        // 解锁屏幕，若用户没有设置任何方式的解锁，则会紧随开屏广播之后发出
+        filter.addAction(Intent.ACTION_USER_PRESENT);
+        receiver = new MyReceiver();
+        registerReceiver(receiver, filter);
+    }
+}
+```
+    语句解释：
+    -  其中开屏和关屏广播要求必须动态注册，ACTION_USER_PRESENT事件在Android O (8.0 api 26)以上则只能动态注册。
+    -  为了让动态注册的广播接收者有更长的生命周期，可以在Application里注册它。
+
+　　静态注册时，设置如下action即可：
+``` xml
+<intent-filter>
+    <action android:name="android.intent.action.USER_PRESENT" />
+</intent-filter>
+```
+
+
+<br>　　范例4：网络状态改变广播：
+``` java
+// WIFI总开关的打开和关闭事件
+filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+
+// 监听WIFI的连接状态即是否连上了一个有效无线路由
+filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+
+// 监听网络连接的设置，包括WIFI和移动数据的打开和关闭
+filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+```
+    语句解释：
+    -  其中CONNECTIVITY_ACTION在Android7.0(api 24)以后必须动态注册，另外两个则在8.0以后才需要。
+    -  另外需要注意的是，CONNECTIVITY_ACTION的最大弊端是比另外两个广播的反应要慢。
+    -  如果仅仅是接收系统的广播（比如用来做进程保活），是可以不用申请权限的。
+
+　　静态注册时，设置如下action即可：
+``` xml
+<intent-filter>
+    <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
+    <action android:name="android.net.wifi.STATE_CHANGE" />
+    <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+</intent-filter>
+```
+
+
+<br>　　范例5：安装、更新、卸载广播：
+``` java
+// 一个新应用已经安装在设备上（监听所在的app安装时，接不到此广播。）
+filter.addAction(Intent.ACTION_PACKAGE_ADDED);
+
+// 一个新版本的应用覆盖安装到设备上。会先收到remove的再收到replace的，监听所在的app的更新也能收到。
+// 所谓的更新就是versionCode或者versionName发生了变化
+filter.addAction(Intent.ACTION_PACKAGE_REPLACED);
+
+// 一个已存在的app已经从设备上卸载（卸载监听所在的app，监听不到自己的卸载）
+filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+```
+    语句解释：
+    -  这三个事件在Android O (8.0 api 26)以上则只能动态注册，8.0以下则可以静态注册。
+
+　　静态注册时，设置如下action即可：
+``` xml
+<intent-filter>
+    <action android:name="android.intent.action.PACKAGE_ADDED" />
+    <action android:name="android.intent.action.PACKAGE_REPLACED" />
+    <action android:name="android.intent.action.PACKAGE_REMOVED" />
+    <data android:scheme="package" />
+</intent-filter>
+```
+
+<br>　　范例6：充电状态广播：
+``` java
+// 每当设备连接或断开电源时，BatteryManager就会发送下面两个广播
+filter.addAction(Intent.ACTION_POWER_CONNECTED);
+filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+
+// 电量发生改变时会发出此广播，此事件只能动态注册
+filter.addAction(Intent.ACTION_BATTERY_CHANGED);
+
+// 每当设备电池电量不足或退出不足状态时，便会触发下面两个广播
+filter.addAction(Intent.ACTION_BATTERY_OKAY);
+filter.addAction(Intent.ACTION_BATTERY_LOW);
+```
+    语句解释：
+    -  前两个事件在Android O (8.0 api 26)以上则只能动态注册，8.0以下则可以静态注册。
+    -  需要注意的是，ACTION_BATTERY_CHANGED只能动态注册。
+    -  后两个广播不太好重现，估计和其它广播类似，8.0以后会受限制。
+
+　　静态注册时，设置如下action即可：
+``` xml
+<intent-filter>
+    <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
+    <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
+    <action android:name="android.intent.action.ACTION_BATTERY_LOW"/>
+    <action android:name="android.intent.action.ACTION_BATTERY_OKAY"/>
+</intent-filter>
+```
+
+# 第三节 各版本变化 #
+
+## 广播 ##
+
+　　本节将列出广播在各个Android版本中的表现。
+
+### Android 3.1 ###
+<br>　　从`Android 3.1`开始的Android加入了一种保护机制，这个机制导致程序接收不到系统广播。
+
 　　系统为Intent添加了两个flag，`FLAG_INCLUDE_STOPPED_PACKAGES`和`FLAG_EXCLUDE_STOPPED_PACKAGES`，用来控制Intent是否要对处于`stopped`状态的App起作用，如果一个App`安装后未启动过`或者`被用户在管理应用中手动停止`（强行停止）的话，那么该App就处于`stopped`状态了。
 
 　　顾名思义：
 
-	-  FLAG_INCLUDE_STOPPED_PACKAGES：表示包含stopped的App
-	-  FLAG_EXCLUDE_STOPPED_PACKAGES：表示不包含stopped的App
+    -  FLAG_INCLUDE_STOPPED_PACKAGES：表示包含stopped的App
+    -  FLAG_EXCLUDE_STOPPED_PACKAGES：表示不包含stopped的App
 
-　　对于系统开机启动广播来说则是添加了一个flag（`FLAG_EXCLUDE_STOPPED_PACKAGES`），这样的结果就是一个处于`stopped`状态的App就不能接收系统开机的广播。这样就可以防止病毒木马之类的恶意程序。
+　　从`Android 3.1`开始，系统会在所有广播上添加了一个flag（`FLAG_EXCLUDE_STOPPED_PACKAGES`），这样的结果就是一个处于`stopped`状态的App就不能接收系统的广播，这样就可以防止病毒木马之类的恶意程序。
 
-　　如果你的App没有处于`stopped`状态（被启动过并且没有在系统设置界面被强行停止）那么当用户重启手机的时候，你的App就可以接收到开机启动广播了。
+　　正常情况下，如果你的App没有处于`stopped`状态，那么当用户重启手机的时候，你的App就可以接收到开机启动广播了。
+　　但事实并非这么简单，国内的各大手机厂商对开机启动的权限，除了上面的限制外，还有自己的策略。
 
-<br>**小米手机：**
-　　小米自己维护了一个白名单，默认情况下只有白名单内的App才可以被设置为开机启动（即便你的应用程序没有处于stopped状态也不会接收到开机启动广播）。这个白名单中通常包含一些使用比较广泛的App，比如微信、QQ等。当然事情还是有转机的，小米针对每一个App都提供了一个设置，如果用户在小米手机中手动设置允许你的程序开机启动的话，那么你的App就可以接到开机广播了。
+    -  比如小米自己维护了一个白名单，默认情况下只有白名单内的App才可以被设置为开机启动（即便你的应用程序没有处于stopped状态也不会接收到开机启动广播）。这个白名单中通常包含一些使用比较广泛的App，比如微信、QQ等。当然事情还是有转机的，小米针对每一个App都提供了一个设置，如果用户在小米手机中手动设置允许你的程序开机启动的话，那么你的App就可以接到开机广播了。
+
+
+### Android 7.0 ###
+
+　　如果应用程序注册接收广播，则应用程序的接收器每次发送广播时都会消耗资源。如果有太多应用程序注册接收基于系统事件的广播，则会导致问题；触发广播的系统事件可能导致所有这些应用快速连续消耗资源，从而影响用户体验。
+　　为了缓解此问题Android 7.0（API级别24）应用以下限制：
+
+    -  从7.0开始应用在清单文件中静态注册的 CONNECTIVITY_ACTION 的广播接收器，不再会接到广播，但动态注册仍然可以。
+    -  应用无法发送，接收 ACTION_NEW_PICTURE 或 ACTION_NEW_VIDEO 广播。此优化会影响所有应用，而不仅仅是针对API级别24的应用。
+
+　　Android框架提供了多种解决方案来减轻对这些隐式广播的需求。例如`JobScheduler`或者`WorkManager`。
+
+
+### Android 8.0 ###
+
+　　为了进一步缓解资源消耗的问题，Android 8.0（API级别26）中实行了更加严格的限制：
+
+    -  除了有限的例外之外，应用无法使用清单注册（静态注册）的方式来接收大部分的隐式广播。
+　　但是：
+    -  这些隐式广播，依然可以通过运行时注册（动态注册）的方式注册。
+    -  对于显式广播，则依然可以通过清单注册（静态注册）的方式监听。
+
+　　在Android8.0上，除了以下隐式广播外，其他所有隐式广播均无法通过在`AndroidManifest.xml`中注册监听：
+``` java
+/**
+开机广播
+ Intent.ACTION_LOCKED_BOOT_COMPLETED
+ Intent.ACTION_BOOT_COMPLETED
+*/
+"保留原因：这些广播只在首次启动时发送一次，并且许多应用都需要接收此广播以便进行作业、闹铃等事项的安排。"
+
+/**
+增删用户
+Intent.ACTION_USER_INITIALIZE
+"android.intent.action.USER_ADDED"
+"android.intent.action.USER_REMOVED"
+*/
+"保留原因：这些广播只有拥有特定系统权限的app才能监听，因此大多数正常应用都无法接收它们。"
+    
+/**
+时区、ALARM变化
+"android.intent.action.TIME_SET"
+Intent.ACTION_TIMEZONE_CHANGED
+AlarmManager.ACTION_NEXT_ALARM_CLOCK_CHANGED
+*/
+"保留原因：时钟应用可能需要接收这些广播，以便在时间或时区变化时更新闹铃"
+
+/**
+语言区域变化
+Intent.ACTION_LOCALE_CHANGED
+*/
+"保留原因：只在语言区域发生变化时发送，并不频繁。 应用可能需要在语言区域发生变化时更新其数据。"
+
+/**
+Usb相关
+UsbManager.ACTION_USB_ACCESSORY_ATTACHED
+UsbManager.ACTION_USB_ACCESSORY_DETACHED
+UsbManager.ACTION_USB_DEVICE_ATTACHED
+UsbManager.ACTION_USB_DEVICE_DETACHED
+*/
+"保留原因：如果应用需要了解这些 USB 相关事件的信息，目前尚未找到能够替代注册广播的可行方案"
+
+/**
+蓝牙状态相关
+BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED
+BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED
+BluetoothDevice.ACTION_ACL_CONNECTED
+BluetoothDevice.ACTION_ACL_DISCONNECTED
+*/
+"保留原因：应用接收这些蓝牙事件的广播时不太可能会影响用户体验"
+
+/**
+Telephony相关
+CarrierConfigManager.ACTION_CARRIER_CONFIG_CHANGED
+TelephonyIntents.ACTION_*_SUBSCRIPTION_CHANGED
+TelephonyIntents.SECRET_CODE_ACTION
+TelephonyManager.ACTION_PHONE_STATE_CHANGED
+TelecomManager.ACTION_PHONE_ACCOUNT_REGISTERED
+TelecomManager.ACTION_PHONE_ACCOUNT_UNREGISTERED
+*/
+"保留原因：设备制造商 (OEM) 电话应用可能需要接收这些广播"
+
+/**
+账号相关
+AccountManager.LOGIN_ACCOUNTS_CHANGED_ACTION
+*/
+"保留原因：一些应用需要了解登录帐号的变化，以便为新帐号和变化的帐号设置计划操作"
+
+/**
+应用数据清除
+Intent.ACTION_PACKAGE_DATA_CLEARED
+*/
+"保留原因：只在用户显式地从 Settings 清除其数据时发送，因此广播接收器不太可能严重影响用户体验"
+    
+/**
+软件包被移除
+Intent.ACTION_PACKAGE_FULLY_REMOVED
+*/
+"保留原因：一些应用可能需要在另一软件包被移除时更新其存储的数据；对于这些应用，尚未找到能够替代注册此广播的可行方案"
+
+/**
+外拨电话
+Intent.ACTION_NEW_OUTGOING_CALL
+*/
+"保留原因：执行操作来响应用户打电话行为的应用需要接收此广播"
+    
+/**
+当设备所有者被设置、改变或清除时发出
+DevicePolicyManager.ACTION_DEVICE_OWNER_CHANGED
+*/
+"保留原因：此广播发送得不是很频繁；一些应用需要接收它，以便知晓设备的安全状态发生了变化"
+    
+/**
+日历相关
+CalendarContract.ACTION_EVENT_REMINDER
+*/
+"保留原因：由日历provider发送，用于向日历应用发布事件提醒。因为日历provider不清楚日历应用是什么，所以此广播必须是隐式广播。"
+    
+/**
+安装或移除存储相关广播
+Intent.ACTION_MEDIA_MOUNTED
+Intent.ACTION_MEDIA_CHECKING
+Intent.ACTION_MEDIA_EJECT
+Intent.ACTION_MEDIA_UNMOUNTED
+Intent.ACTION_MEDIA_UNMOUNTABLE
+Intent.ACTION_MEDIA_REMOVED
+Intent.ACTION_MEDIA_BAD_REMOVAL
+*/
+"保留原因：这些广播是作为用户与设备进行物理交互的结果：安装或移除存储卷或当启动初始化时（当可用卷被装载）的一部分发送的，因此它们不是很常见，并且通常是在用户的掌控下"
+
+/**
+短信、WAP PUSH相关
+Telephony.Sms.Intents.SMS_RECEIVED_ACTION
+Telephony.Sms.Intents.WAP_PUSH_RECEIVED_ACTION
+
+注意：需要申请以下权限才可以接收
+"android.permission.RECEIVE_SMS"
+"android.permission.RECEIVE_WAP_PUSH"
+*/
+"保留原因：SMS短信应用需要接收这些广播"
+
+```
+
+　　默认情况下，这个更改仅会影响`targetSDK >= 26`的应用。但是，用户可以从“设置”界面为任何应用启用这些限制，即使应用的目标是低于26的API级别。
+
 
 <br>**本节参考阅读：**
+- [咦，Oreo怎么收不到广播了？](https://juejin.im/post/5aefd27f6fb9a07ab45889cc)
+- [后台执行限制](https://developer.android.com/about/versions/oreo/background#broadcasts)
 - [Android 3.1 APIs](http://developer.android.com/about/versions/android-3.1.html)
-<br><br>
+
+
+## 服务 ##
+
+
+### Android 8.0 ###
+
+　　在后台中运行的服务会消耗设备资源，这可能降低用户体验。 为了缓解这一问题，系统对这些服务施加了一些限制:
+
+    -  第一，系统不再允许后台应用创建后台服务，当后台应用中尝试调用startService方法时会抛出IllegalStateException。
+    -  第二，而即使是在应用前台状态时启动的Service，在应用退到后台的一小段时间后（几分钟）也会被系统停止(等同于stopSelf方法被调用)，不过绑定服务不会受此影响。
+
+　　上面提到了`前台应用`和`后台应用`的概念，需要注意的是，用于服务限制目的的后台定义与用于内存管理目的的后台应用的定义不同；一个应用按照内存管理的定义可能处于后台，但按照能够启动服务的定义却可能处于前台。
+
+　　对于服务限制来说，如果满足以下任意条件，应用将被视为处于前台，否则视为处于后台：
+
+    -  具有可见 Activity（不管该 Activity 已启动还是已暂停）。
+    -  具有前台服务。
+    -  另一个前台应用已关联到该应用（不管是通过绑定到其中一个服务，还是通过使用其中一个内容提供程序）。 例如，如果另一个应用绑定到该应用的服务，那么该应用处于前台：
+       - IME、壁纸服务、通知侦听器、语音或文本服务
+
+
+　　现在就有一个问题了，如果想在后台应用中创建前台服务该怎么办？
+
+    -  因为，在8.0之前，创建前台服务的方式通常是先创建一个后台服务，然后将该服务推到前台。
+    -  但是，在8.0及其之后，如果后台应用startService将导致crash。
+
+　　现在 Android O 中提供了新的`startForegroundService`方法，该方法本质上和`startService`相同，只是要求`Service`中必须调用`startForeground()`，它和`startService`相比，可以随时进行调用，即使当前应用不在前台。
+　　我们可以这样来实现：
+ 
+    -  首先，调用 startForegroundService 并传入要执行 Service 的 Intent。这时会创建后台服务，我们需要马上将其提升到前台。
+    -  然后，在被启动的 Service 中创建一个通知，注意优先级需要至少是 PRIORITY_LOW。
+    -  最后，在服务内部调用 startForeground(id, notification)，注意在创建服务后，有五秒钟来调用 startForeground()，如果没有及时调用，系统将终止 Service 并声明应用 ANR。
+
+
+<br>　　接下来我们来验证一下：当应用被切到后台时，绑定方式启动的服务是否会在几分钟后被停止。验证的步骤为：
+
+    -  首先，创建一个BaseService，它只负责定时打印一些Log，和一些公用代码。
+    -  然后，创建两个继承了BaseService的Service类，一个接受普通方式启动，一个接受绑定方式启动。
+    -  接着，在Activity_A中分别通过两种方式启动它们。
+    -  最后，点击Home键将程序切到后台，观察Log输出。
+
+<br>　　范例1-1：创建一个父类
+``` java
+public class BaseService extends Service {
+    protected Handler handler;
+    public void onCreate() {
+        super.onCreate();
+        handler = new Handler();
+        System.out.println("______________ onCreate " + getName());
+    }
+    public String getName() {
+        return "BaseService";
+    }
+    protected Runnable runnable = new Runnable() {
+        public void run() {
+            System.out.println("______________ tick " + getName());
+            handler.postDelayed(this, 5000);
+        }
+    };
+    public void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacks(runnable);
+        System.out.println("______________ onDestroy " + getName());
+    }
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+}
+```
+
+<br>　　范例1-2：创建两个子Service
+``` java
+public class NormalService extends BaseService {
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        System.out.println("______________ onStartCommand " + getName());
+        handler.post(runnable);
+        return START_STICKY;
+    }
+    public String getName() {
+        return "普通服务";
+    }
+}
+
+public class BindService extends BaseService {
+    public IBinder onBind(Intent intent) {
+        handler.post(runnable);
+        System.out.println("______________ onBind " + getName());
+        return new MyBinder();
+    }
+    public class MyBinder extends Binder {
+        public BindService getService() {
+            return BindService.this;
+        }
+    }
+    public String getName() {
+        return "绑定服务";
+    }
+}
+```
+
+<br>　　范例1-3：启动两个服务
+``` java
+public class MainActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        startService(new Intent(this, NormalService.class));
+        bindService(new Intent(this, BindService.class), new ServiceConnection() {
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                System.out.println("_____ 链接建立");
+            }
+            public void onServiceDisconnected(ComponentName name) {
+                System.out.println("_____ 链接断开");
+            }
+        }, BIND_AUTO_CREATE);
+    }
+}
+```
+
+<br>　　通过观察输出得出结论：
+ 
+    -  程序切到后台1分钟后，普通方式启动的服务会被杀掉，绑定仍然存活。
+    -  绑定方式启动的服务会随着绑定它的组件销毁而销毁，除非是在Application中执行绑定。
+
+<br>　　所以如果想让你的Service在8.0上活的更久，该怎么做不用再说了吧？
+
+
+<br>**本节参考阅读：**
+- [后台服务限制](https://developer.android.google.cn/about/versions/oreo/background.html#services)
+- [内存管理](https://developer.android.google.cn/topic/performance/memory-overview.html)
+- [Android Oreo 中对后台任务的限制](https://zhuanlan.zhihu.com/p/29289780)
+
+
