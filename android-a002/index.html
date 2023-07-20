@@ -1,0 +1,883 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本章将详细介绍Android中数据存取相关的知识。 第一节 数据存储　　Android设备中，存在着各种各样的文件，它们被保存在手机内部存储或外部存储设备中。　　通过DDMS视图的FileExplorer就可以查看手机的文件系统的结构，其中下面三个目录比较重要： -  system：用于保存系统文件。 -  data ： 用于保存与应用程序有关的数据。 -  mnt ：是一个影射目录，一些手机">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第二章 数据存取">
+<meta property="og:url" content="http://yoursite.com/android-a002/index.html">
+<meta property="og:site_name" content="不只是看客">
+<meta property="og:description" content="本章将详细介绍Android中数据存取相关的知识。 第一节 数据存储　　Android设备中，存在着各种各样的文件，它们被保存在手机内部存储或外部存储设备中。　　通过DDMS视图的FileExplorer就可以查看手机的文件系统的结构，其中下面三个目录比较重要： -  system：用于保存系统文件。 -  data ： 用于保存与应用程序有关的数据。 -  mnt ：是一个影射目录，一些手机">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2022-11-11T15:47:01.568Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="第二章 数据存取">
+<meta name="twitter:description" content="本章将详细介绍Android中数据存取相关的知识。 第一节 数据存储　　Android设备中，存在着各种各样的文件，它们被保存在手机内部存储或外部存储设备中。　　通过DDMS视图的FileExplorer就可以查看手机的文件系统的结构，其中下面三个目录比较重要： -  system：用于保存系统文件。 -  data ： 用于保存与应用程序有关的数据。 -  mnt ：是一个影射目录，一些手机">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/android-a002/"/>
+
+  <title> 第二章 数据存取 | 不只是看客 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?53b4b0b5aeb5df5e4fb6263a58d8e1a9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">不只是看客</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-feedback">
+          <a href="/feedback" rel="section">
+            
+            留言
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                第二章 数据存取
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-03-05T16:19:10+08:00" content="2015-03-05">
+              2015-03-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                    <span itemprop="name">Android开发</span>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+          
+             <span id="/android-a002/" class="leancloud_visitors" data-flag-title="第二章 数据存取">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>　　本章将详细介绍<code>Android</code>中数据存取相关的知识。</p>
+<h1 id="第一节-数据存储"><a href="#第一节-数据存储" class="headerlink" title="第一节 数据存储"></a>第一节 数据存储</h1><p>　　Android设备中，存在着各种各样的文件，它们被保存在<code>手机内部存储</code>或<code>外部存储设备</code>中。<br>　　通过<code>DDMS</code>视图的<code>FileExplorer</code>就可以查看手机的文件系统的结构，其中下面三个目录比较重要：</p>
+<pre><code>-  system：用于保存系统文件。
+-  data ： 用于保存与应用程序有关的数据。
+-  mnt ：是一个影射目录，一些手机的外设(如SD卡)的存储数据的文件夹，都在其内部出现。
+</code></pre><p><br>　　应用程序在运行的时候会产生各种数据文件，它们通常被保存在<code>/data/data/packagename/</code>目录下面，每种类型的文件占据一个子目录：</p>
+<pre><code>-  普通文件：用于保存常见的文本、图片信息。如：txt、jpg等文件。
+   -  被保存在/data/data/packagename/files目录。
+-  配置文件：用于保存用户的个性化设置，配置文件是xml类型的。
+   -  被保存在/data/data/packagename/shared_prefs目录。
+-  数据库文件：用于保存结构化的数据。如：.db文件。
+   -  被保存在/data/data/packagename/databases目录。
+-  缓存文件：用于保存临时文件。当手机存储容量不足时，系统会删除一部分缓存文件。
+   -  被保存在/data/data/packagename/cache目录。
+</code></pre><p><br>　　下面就来介绍一下各种文件的读写方法。</p>
+<h2 id="普通文件"><a href="#普通文件" class="headerlink" title="普通文件"></a>普通文件</h2><p>　　在读写文件之前，我们需要先获取该文件的输入输出流，<code>Context</code>类就为我们提供了这样的方法。</p>
+<p><br>　　范例1：Context类。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 指定文件名称，从/data/data/packagename/files目录下获取该文件的输入流，若文件不存在则抛异常。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> FileInputStream <span class="title">openFileInput</span><span class="params">(String name)</span> </span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 指定文件名称，从/data/data/packagename/files目录下获取该文件的输出流，若文件不存在则创建一个空文件。</span></span></span><br><span class="line"><span class="function"><span class="comment">// 参数mode：指定文件的打开方式，取值有四种，后面将进行具体介绍：</span></span></span><br><span class="line"><span class="function"><span class="comment">// -  Context.MODE_PRIVATE</span></span></span><br><span class="line"><span class="function"><span class="comment">// -  Context.MODE_APPEND</span></span></span><br><span class="line"><span class="function"><span class="comment">// -  Context.MODE_WORLD_READABLE</span></span></span><br><span class="line"><span class="function"><span class="comment">// -  Context.MODE_WORLD_WRITEABLE </span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> FileOutputStream <span class="title">openFileOutput</span><span class="params">(String name, <span class="keyword">int</span> mode)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 返回当前应用程序的/data/data/packagename/cache目录。</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> File <span class="title">getCacheDir</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 返回当前应用程序的/data/data/packagename/files目录。如：/data/data/org.cxy.file/files。</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> File <span class="title">getFilesDir</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例2：文件打开方式。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">打开方式                     当前应用程序对文件的权限              其他应用程序对文件的权限</span><br><span class="line">MODE_PRIVATE                读/写                                无</span><br><span class="line">MODE_APPEND                 读/写 写的时候采用追加方式             无</span><br><span class="line">MODE_WORLD_READABLE         读/写                                只读</span><br><span class="line">MODE_WORLD_WRITEABLE        读/写                                只写，不会追加。</span><br></pre></td></tr></table></figure></p>
+<p>　　提示：若想让其他程序对当前应用程序的文件既可以写，又可以读，则可以这么做：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Context.MODE_WORLD_READABLE + Context.MODE_WORLD_WRITEABLE</span><br></pre></td></tr></table></figure></p>
+<p>　　也就是说其他程序可以通过指定某个文件的绝对路径（<code>/data/data/...</code>），来访问某个应用程序的文件，具体如何访问，后面会有详细描述。</p>
+<p><br>　　范例3：创建文件。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.main);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            OutputStream out = openFileOutput(<span class="string">"a.txt"</span>,Context.MODE_PRIVATE);</span><br><span class="line">            out.write(<span class="string">"Android 程序员"</span>.getBytes());</span><br><span class="line">            out.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span>(Exception e) &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  String类的getBytes方法将字符串转为byte[]时，会根据当前系统默认编码进行转换。
+   -  Android手机系统默认的编码为UTF-8 。
+   -  中文PC机的操作系统，系统的默认编码通常为GB2312或GBK。
+-  由于使用的是输出流，所以若文件不存在，则会自动创建。
+-  本范例中，a.txt会默认被创建在/data/data/packagename/files文件夹下。
+-  应用程序只能向自己的“数据目录或数据目录的子目录”中写文件，不可以向其他应用程序的数据目录中写数据。
+   -  数据目录就是：/data/data/packagename/。
+</code></pre><p><br>　　范例4：读入文件。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ViewTextActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.main);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 前往/data/data/packagename/files目录中查找a.txt</span></span><br><span class="line">            InputStream input = <span class="keyword">this</span>.openFileInput(<span class="string">"a.txt"</span>);</span><br><span class="line">            ByteArrayOutputStream bos = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">            <span class="keyword">int</span> len;</span><br><span class="line">            <span class="keyword">byte</span>[] array = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">            <span class="keyword">while</span>((len = input.read(array)) != -<span class="number">1</span>)&#123;</span><br><span class="line">                bos.write(array,<span class="number">0</span>,len);</span><br><span class="line">            &#125;</span><br><span class="line">            input.close();</span><br><span class="line">            Toast.makeText(<span class="keyword">this</span>, <span class="keyword">new</span> String(bos.toByteArray()), <span class="number">0</span>).show();</span><br><span class="line">            bos.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span>(Exception e) &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  使用new String(byte[] data)创建字符串时，同样会调用系统的默认编码，将byte[]转换成一个String对象。
+</code></pre><p><br>　　范例5：Linux下文件操作权限。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">在Linux中文件的操作权限由10位字符组成，如：-rw-rw-rw- 。</span><br><span class="line">-  第一位字符表示文件的类型：</span><br><span class="line">   -  若是一个文件，则使用‘-’表示。若是一个目录，则使用‘d’表示。</span><br><span class="line">-  第2~4个字符表示文件所有者对文件的权限。</span><br><span class="line">   -  r表示可读，w表示可写，x表示可执行。</span><br><span class="line">-  第5~7个字符表示与文件所有者处于同一个用户组的其他用户，对该文件的访问权限。</span><br><span class="line">   -  r表示可读，w表示可写，x表示可执行。</span><br><span class="line">-  第8~10个字符表示，其他用户对文件的访问权限。</span><br><span class="line">   -  r表示可读，w表示可写，x表示可执行。</span><br></pre></td></tr></table></figure></p>
+<p><br><strong>扩展：</strong><br>　　<code>Android</code>有一套自己的安全模型，在<code>.apk</code>被安装时系统就会分配给该应用程序一个<code>userid</code>。当它要去访问某个资源(比如文件)的时候，就需要与文件的<code>userid</code>匹配。默认情况下，任何应用创建的文件、<code>sharedpreferences</code>、数据库都应该是私有的，其他程序无法直接访问。<br>　　除非在创建时指定了<code>MODE_WORLD_READABLE</code>和<code>MODE_WORLD_WRITEABLE</code>，只有这样其他程序才能正确访问。</p>
+<h2 id="存储卡文件"><a href="#存储卡文件" class="headerlink" title="存储卡文件"></a>存储卡文件</h2><p>　　一般来说，手机本身的存储容量是很小的，但是手机中往往都会存储一些容量较大的音乐、视频等文件，此时可以单独购买一个SD卡。<br>　　所有兼容<code>Android</code>的设备都支持一个可共享的<code>“外部存储(external storage)”</code>，可用来保存文件。值得注意的是：</p>
+<pre><code>-  不同的手机情况会有所不同：
+   -  有的手机提供了一个卡槽，你可以自己购买一个SD卡插进去。
+   -  有的手机直接就集成了一个SD卡在手机里，你没法把它拆下来，比如小米手机。
+-  但是不论是哪种，它们都算是外部存储。
+</code></pre><p>　　注意：保存在外部存储的文件，没有强制的安全措施。所有的应用都可以读/写这些文件，用户也能够删除它们，因此重要的文件请不要保存在外部存储设备上。</p>
+<p><br>　　相应的，<code>Android</code>也为我们提供了操作外部存储设备上的文件的<code>API</code>。</p>
+<p><br>　　范例1：Environment类。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 获取当前系统，外部存储器的根目录。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> File <span class="title">getExternalStorageDirectory</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 获取当前系统，data目录。</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> File <span class="title">getDataDirectory</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 获取当前系统，system目录。</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> File <span class="title">getRootDirectory</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 获取当前系统存储卡的状态。在Environment类中定义了如下几个String类型的状态：</span></span></span><br><span class="line"><span class="function"><span class="comment">// -  MEDIA_MOUNTED ：已经安装到手机中，并可以对其进行读写操作。</span></span></span><br><span class="line"><span class="function"><span class="comment">// -  MEDIA_MOUNTED_READ_ONLY ：已经安装到手机中，只可以对其进行读操作。</span></span></span><br><span class="line"><span class="function"><span class="comment">// -  MEDIA_UNMOUNTABLE ：存储卡在手机中，但是没有装载到操作系统上。</span></span></span><br><span class="line"><span class="function"><span class="comment">// -  MEDIA_REMOVED ：存储卡不在手机中。</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">getExternalStorageState</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例2：向SDCard写文件。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 若sdcard已经装载到手机中。</span></span><br><span class="line"><span class="keyword">if</span>(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))&#123;  </span><br><span class="line">    File file = <span class="keyword">new</span> File(Environment.getExternalStorageDirectory(),<span class="string">"a.txt"</span>);</span><br><span class="line">    OutputStream out = <span class="keyword">new</span> FileOutputStream(file);</span><br><span class="line">    out.write(<span class="string">"Android开发!"</span>.getBytes(<span class="string">"UTF-8"</span>));   </span><br><span class="line">    out.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  向存储卡写数据之前应该先判断一下，用户手机是否成功安装了存储卡。
+-  文件会自动被写到SDCard的根目录下面。
+</code></pre><p>　　应用程序向存储卡写数据是需要权限的，因此需要在清单文件的根节点下面声明，如下权限：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 往SDCard写入数据权限 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">"android.permission.WRITE_EXTERNAL_STORAGE"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+<p><br>　　范例3：在SD卡上创建目录。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">File file = <span class="keyword">new</span> File(Environment.getExternalStorageDirectory(),<span class="string">"lib/file/about.txt"</span>);</span><br><span class="line">file.getParentFile().mkdirs();</span><br><span class="line">FileOutputStream out = <span class="keyword">new</span> FileOutputStream(file);</span><br><span class="line">String content = <span class="string">"Hi 汤姆!"</span>;</span><br><span class="line">out.write(content.getBytes());</span><br><span class="line">out.close();</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例4：从SD卡读文件。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))&#123;</span><br><span class="line">    File file = <span class="keyword">new</span> File(Environment.getExternalStorageDirectory(),<span class="string">"a.txt"</span>);</span><br><span class="line">    InputStream input = <span class="keyword">new</span> FileInputStream(file);</span><br><span class="line">    ByteArrayOutputStream bos = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">    <span class="keyword">int</span> len ;</span><br><span class="line">    <span class="keyword">byte</span>[] array = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">    <span class="keyword">while</span>( (len = input.read(array)) != -<span class="number">1</span>)&#123;</span><br><span class="line">        bos.write(array,<span class="number">0</span>,len);</span><br><span class="line">    &#125;</span><br><span class="line">    input.close();</span><br><span class="line">    System.out.println(<span class="keyword">new</span> String(bos.toByteArray(),<span class="string">"UTF-8"</span>));</span><br><span class="line">    bos.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  用户应用程序从存储卡中读取数据，是不需要权限的。
+</code></pre><p><br><strong>在媒体扫描器下隐藏你的文件</strong><br>　　在你的外部文件目录中放置一个空的文件，命名为<code>.nomedia</code>，这会阻止Android的媒体扫描器读取你的媒体文件，如<code>Gallery</code>或者<code>Music</code>这样的应用。</p>
+<h2 id="偏好设置"><a href="#偏好设置" class="headerlink" title="偏好设置"></a>偏好设置</h2><p>　　在<code>Android</code>中可以使用<code>SharedPreferences</code>类管理软件的偏好(<code>hào</code>)设置。所谓的偏好设置就是指用户对软件进行的一些个性化配置。如：软件使用的主题、皮肤等设置。</p>
+<p>　　<code>Andriod</code>偏好设置默认使用<code>xml</code>文件来保存用户数据，文件存储在<code>“/data/data/packagename/shared_prefs”</code>目录下。</p>
+<p><br>　　范例1：<code>SharedPreferences</code>接口。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 指定key从当前SharePreferences对象中，获取所对应的一个values 。</span></span><br><span class="line"><span class="comment">// -  若当前对象中没有指定的key，则返回defValue 。</span></span><br><span class="line"><span class="comment">// -  若当前对象中存在指定的key，但是value的值不是String类型的，则抛异常。</span></span><br><span class="line"><span class="comment">// -  除了此方法外，还有：getInt、getLong、getBoolean、getFloat四个方法，它们同样要求value的值与方法返回值的类型相同，否则就抛ClassCast Exception，并且终止程序执行。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> String <span class="title">getString</span><span class="params">(String key, String defValue)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取当前对象的SharedPreferences.Editor对象，该对象代表SharedPreferences对象的编辑器，可以向SharedPreferences文件中添加数据。</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> SharedPreferences.<span class="function">Editor <span class="title">edit</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 返回当前对象中的所有的key-value。</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> Map&lt;String, ?&gt; getAll();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 返回当前对象中是否包含指定的key。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">contains</span><span class="params">(String key)</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例2：<code>SharedPreferences.Editor</code>接口。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 向Editor对象中，添加一个Boolean类型的属性 。</span></span><br><span class="line"><span class="comment">// -  除了此方法外，还有：putInt、putLong、putString、putFloat四个方法。</span></span><br><span class="line"><span class="comment">// -  在Editor对象中key是唯一的，若重复添加多个相同的key，则会新值覆盖旧值。</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> SharedPreferences.<span class="function">Editor <span class="title">putBoolean</span><span class="params">(String key, <span class="keyword">boolean</span> value)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 你懂的。</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> SharedPreferences.<span class="function">Editor <span class="title">clear</span> <span class="params">()</span></span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> SharedPreferences.<span class="function">Editor <span class="title">remove</span> <span class="params">(String key)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将当前Editor对象中的数据，从手机内存持久化到SharedPreferences文件中。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">commit</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例3：Activity类。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 指定文件名称name ，系统会默认从&lt;当前应用&gt;/shared_prefs文件夹下，查找xml文件。</span></span><br><span class="line"><span class="comment">// -  mode：指定文件的打开方式。</span></span><br><span class="line"><span class="comment">// -  若未找到指定的文件，则创建该文件并返回该文件的SharedPreferences对象。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> SharedPreferences <span class="title">getSharedPreferences</span> <span class="params">(String name, <span class="keyword">int</span> mode)</span></span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例4：创建文件。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        <span class="keyword">this</span>.setContentView(R.layout.main); </span><br><span class="line">        <span class="comment">// 获取指定的xml文件，不用指定文件扩展名。</span></span><br><span class="line">        SharedPreferences shared = <span class="keyword">this</span>.getSharedPreferences(<span class="string">"shp"</span>, Context.MODE_PRIVATE);</span><br><span class="line">        <span class="comment">// 调用edit()，取得一个SharedPreferences.Editor。</span></span><br><span class="line">        Editor e = shared.edit();</span><br><span class="line">        <span class="comment">// 往SharedPreferences对象里添加值。</span></span><br><span class="line">        e.putString(<span class="string">"name"</span>, <span class="string">"jay_Cui"</span>);</span><br><span class="line">        <span class="comment">// 提交新值，更新本地文件。</span></span><br><span class="line">        e.commit();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  使用commit方法将SharedPreferences对象持久化向xml文件中。
+-  注意：不论您是否为文件指定了后缀名，系统都会自动在文件名后面加上.xml。
+</code></pre><p><br>　　范例5：读取文件。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        <span class="keyword">this</span>.setContentView(R.layout.main); <span class="comment">// 在程序中直接添加控件。</span></span><br><span class="line">        <span class="comment">// 获取指定的xml文件,不用指定文件扩展名。</span></span><br><span class="line">        SharedPreferences shared = <span class="keyword">this</span>.getSharedPreferences(<span class="string">"shp"</span>,Context.MODE_PRIVATE);</span><br><span class="line">        System.out.println(shared.getString(<span class="string">"name"</span>, <span class="string">"not find!"</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="数据库编程"><a href="#数据库编程" class="headerlink" title="数据库编程"></a>数据库编程</h2><p>　　关于数据库，有如下两点必须要知道：</p>
+<pre><code>-  首先，在Android手机中使用的数据库是SQLite，使用android.database.sqlite.SQLiteDatabase类来操作数据库。
+-  然后，在操作数据库之前，需要先创建一个数据库。
+</code></pre><p><br>　　在<code>Android</code>中使用<code>SQLiteOpenHelper</code>类来创建/打开数据库。</p>
+<p><br>　　范例1：SQLiteOpenHelper类。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// context ：上下文对象。</span></span><br><span class="line"><span class="comment">// name ：数据库的名称。</span></span><br><span class="line"><span class="comment">// factory：游标工厂，若为null，则使用Android系统默认的游标工厂。通常都为null 。</span></span><br><span class="line"><span class="comment">// version ：数据库的版本号，具体作用后述。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">SQLiteOpenHelper</span><span class="params">(Context context, String name, SQLiteDatabase.CursorFactory factory, <span class="keyword">int</span> version)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 以只读的方式打开当前对象所指向的数据库。前程序可以对打开的数据库进行读写操作。若数据库不存在，则创建数据库。 </span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> SQLiteDatabase <span class="title">getReadableDatabase</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 以读写的方式打开当前对象所指向的数据库。当前程序可以对打开的数据库进行读写操作。若数据库不存在，则创建数据库。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> SQLiteDatabase <span class="title">getWritableDatabase</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 数据库被创建出来后Android系统会自动调用此方法。一般会在此方法中创建表。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(SQLiteDatabase db)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 数据库更新(当前对象指定的版本号和已存在的数据库文件中的版本号不相同)时调用此方法。一般会在此方法中修改表结构。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">onUpgrade</span><span class="params">(SQLiteDatabase db, <span class="keyword">int</span> oldVersion, <span class="keyword">int</span> newVersion)</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例2：创建数据库。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SQLiteOpenHelper helper = <span class="keyword">new</span> SQLiteOpenHelper(<span class="keyword">this</span>,<span class="string">"data.db"</span>,<span class="keyword">null</span>,<span class="number">1</span>)&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(SQLiteDatabase db)</span> </span>&#123;</span><br><span class="line">        db.execSQL(<span class="string">"CREATE TABLE person(id int primary key,name varchar(20))"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onUpgrade</span><span class="params">(SQLiteDatabase db, <span class="keyword">int</span> oldVersion, <span class="keyword">int</span> newVersion)</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line">SQLiteDatabase db = helper.getReadableDatabase();</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  在Android中可以使用SQLiteDatabase类来执行SQL语句，该类具体用法，后述。
+-  只有在调用了SQLiteOpenHelper类的getReadableDatabase或getWritableDatabase方法时，虚拟机才会去执行打开数据库操作，若要打开的数据库不存在，则会创建数据库，并在创建完数据库之后调用SQLiteOpenHelper类的onCreate方法。
+-  数据库文件被保存在packagename/databases文件夹下面。
+</code></pre><p><br>　　范例3：它们的区别。</p>
+<pre><code>若只需要对数据库执行读操作，那么就应该调用getReadableDatabase方法来打开数据库。否则，则调用getWritableDatabase方法来打开数据库。这是因为：
+-  若数据库文件的容量未满，则在程序中调用getReadableDatabase方法打开数据库时，该方法会转调用getWritableDatabase方法。
+-  若数据库文件的容量满了，则在程序中调用getReadableDatabase方法打开数据库时，会以只读的方式打开数据库。
+-  若数据库文件的容量满了，且程序通过调用getWritableDatabase打开数据库，则就会抛异常。因为系统认为您可能会执行写操作。 即便您的目只是想执行读操作。
+</code></pre><p><br>　　范例4：数据库版本号。</p>
+<pre><code>-  构造SQLiteOpenHelper对象时，需要为其提供一个版本号(必须是大于0的正整数)，以供创建(若数据库不存在)或更新数据库时使用。
+-  系统最初创建数据库的时候，数据库的版本号为0，创建完成之后才会将数据库的版本号设置为SQLiteOpenHelper构造方法中指定的版本号。 
+-  若数据库文件在databases文件夹中已经存在了，但是数据库文件的版本号和构造方法给出的版本号不相同，则会调用SQLiteOpenHelper类的onUpgrade方法。因此可以在此方法中更新数据库的表结构。
+</code></pre><p><br>　　提示：</p>
+<pre><code>-  在SQLite数据库中表的列可以不指定数据类型，即便指定了也不起作用。
+-  若表的主键列是integer类型，则主键列的值会自动增长，主键不能重复。
+</code></pre><p><br>　　范例5：插入数据。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SQLiteDatabase db = helper.getReadableDatabase();</span><br><span class="line"><span class="comment">// 执行指定的sql语句。</span></span><br><span class="line">db.execSQL(<span class="string">"INSERT INTO person(name) VALUES(?)"</span>,<span class="keyword">new</span> Object[]&#123;<span class="string">"李四"</span>&#125;);</span><br><span class="line">db.close();</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  数据库删除和更新的做法和本范例类似。
+</code></pre><p><br>　　范例6：数据库查询操作。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">SQLiteDatabase db = helper.getReadableDatabase();</span><br><span class="line">Cursor c = db.rawQuery(<span class="string">"SELECT id,name FROM person"</span>, <span class="keyword">null</span>);</span><br><span class="line"><span class="keyword">while</span>(c.moveToNext())&#123;</span><br><span class="line">    <span class="keyword">int</span> id = c.getInt(c.getColumnIndex(<span class="string">"id"</span>));</span><br><span class="line">    String name = c.getString(c.getColumnIndex(<span class="string">"name"</span>));</span><br><span class="line">    System.out.println(<span class="string">"id = "</span>+id+<span class="string">",name = "</span>+name);</span><br><span class="line">&#125;</span><br><span class="line">c.close();</span><br><span class="line">db.close();</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  调用Cursor的get方法时也可以直接使用列的下标，下标从0开始。如在本范例中id列的下标为0，name列的下标为1 。
+-  若需要限定查询范围，则可以使用limit子句。
+-  若需要排序，则order by子句必须出现在limit之后。
+</code></pre><p><br>　　范例7：<code>SQLiteDatabase</code>类。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 执行指定的sql语句，在sql语句中可以使用占位符。</span></span><br><span class="line"><span class="comment">// -  table 要操作的表。 whereclause ：where子句的条件。 whereArgs子句的所用到的参数。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">delete</span><span class="params">(String table, String whereClause, String[] whereArgs)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行指定的sql语句，在sql语句中可以使用占位符。</span></span><br><span class="line"><span class="comment">// -  table 要操作的表。</span></span><br><span class="line"><span class="comment">// -  values：sql语句中的所用到的参数，参数名必须要和表中的列名一致。</span></span><br><span class="line"><span class="comment">// -  nullColumnHack ：后述。</span></span><br><span class="line"><span class="comment">// 返回值：</span></span><br><span class="line"><span class="comment">// -  返回行号。提示：每成功插入一条数据，行号+1。</span></span><br><span class="line"><span class="comment">// -  行号类似于Oracle的序列，若删除数据，也不会导致行号回退。</span></span><br><span class="line"><span class="comment">// -  若主键是integer类型的，则此方法返回，新插入的行的主键。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">insert</span><span class="params">(String table, String nullColumnHack, ContentValues values)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 执行指定的sql语句更新数据，在sql语句中可以使用占位符。</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">update</span><span class="params">(String table, ContentValues values, String whereClause, String[] whereArgs)</span></span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例8：更新操作。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SQLiteDatabase db = helper.getReadableDatabase();</span><br><span class="line">ContentValues values = <span class="keyword">new</span> ContentValues();</span><br><span class="line">values.put(<span class="string">"name"</span>, <span class="string">"周杰伦"</span>);</span><br><span class="line">db.insert(<span class="string">"person"</span>, <span class="string">"name"</span>, values);</span><br><span class="line">db.close();</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例9：SQLiteDatabase类。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 开启一个事务。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">beginTransaction</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 结束当前事务。</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">endTransaction</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 将当前事务标识设为true。</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setTransactionSuccessful</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例10：事务操作。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    SQLiteDatabase db = dbOpenHelper.getWritableDatabase();</span><br><span class="line">    db.beginTransaction();    <span class="comment">// 开启事务，默认情况下，事务标志为False 。</span></span><br><span class="line">    <span class="keyword">try</span>&#123;</span><br><span class="line">        db.execSQL(<span class="string">"update person set amount=amount-10 where personid=2"</span>);</span><br><span class="line">        db.execSQL(<span class="string">"update person set amount=amount+10 where personid=3"</span>);</span><br><span class="line">        db.setTransactionSuccessful();   <span class="comment">// 将事务标志，设置为true 意味着，事务成功。</span></span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">// 调用此方法结束事务，事务最终是提交还是回滚是由事务标志决定的。</span></span><br><span class="line">        <span class="comment">// 若事务的标志为True，就会提交事务，否则回滚事务。</span></span><br><span class="line">        db.endTransaction();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><br>　　提示：SQLite数据库单列数据容量要小于<code>1M</code>。</p>
+<h2 id="XML解析"><a href="#XML解析" class="headerlink" title="XML解析"></a>XML解析</h2><p><br>　　范例1：解析XML涉及API。</p>
+<pre><code>-  使用XMLPullParser接口来解析XML文档。
+-  使用Xml类来实例化XMLPullParser。
+-  XMLPullParser基于sax解析，它每读到一个东西时，会触发相应的事件，事件是int型的。XMLPullParser的解析方式被称为pull解析，pull解析比sax解析更灵活，因为它可以灵活的控制程序是否继续触发下一事件。
+-  常见的事件：
+   -  XmlPullParser.END_DOCUMENT 文档结束。
+   -  XmlPullParser.END_TAG  标签结束。
+   -  XmlPullParser.START_DOCUMENT 文档开始。
+   -  XmlPullParser.START_TAG标签结束。 
+</code></pre><p><br>　　范例2：XMLPullParser接口。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 指定属性的下标，获取当前元素的某个属性的值，下标从0开始。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> String <span class="title">getAttributeValue</span><span class="params">(<span class="keyword">int</span> index)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 返回当前元素的名称。 在开始标签和结束标签时调用此方法。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> String <span class="title">getName</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 若当前节点是开始节点，则返回开始节点之后的文本节点的内容。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> String <span class="title">nextText</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 返回当前事件的类型。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">int</span> <span class="title">getEventType</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 继续触发下一个事件，并返回下一个事件的类型。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">int</span> <span class="title">next</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例3：Xml类。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建一个XML解析器。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> XmlPullParser <span class="title">newPullParser</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例4：读取文件。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">xmlParse</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">    XmlPullParser parser = Xml.newPullParser();</span><br><span class="line">    InputStream input = getClassLoader().getResourceAsStream(<span class="string">"person.xml"</span>);</span><br><span class="line">    parser.setInput(input, <span class="string">"UTF-8"</span>);</span><br><span class="line">    </span><br><span class="line">    List&lt;Person&gt; list = <span class="keyword">null</span>;</span><br><span class="line">    Person p = <span class="keyword">null</span>;</span><br><span class="line">    <span class="comment">// 开始读取数据。</span></span><br><span class="line">    <span class="keyword">int</span> event = parser.getEventType();</span><br><span class="line">    <span class="keyword">while</span>(event != XmlPullParser.END_DOCUMENT)&#123;</span><br><span class="line">        <span class="keyword">if</span>(event == XmlPullParser.START_DOCUMENT)&#123;</span><br><span class="line">            list = <span class="keyword">new</span> ArrayList&lt;Person&gt;();</span><br><span class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span>(event == XmlPullParser.START_TAG)&#123;</span><br><span class="line">            <span class="keyword">if</span>(<span class="string">"person"</span>.equals(parser.getName()))&#123;</span><br><span class="line">                p = <span class="keyword">new</span> Person();</span><br><span class="line">                p.setId(parser.getAttributeValue(<span class="number">0</span>));</span><br><span class="line">            &#125;<span class="keyword">else</span> <span class="keyword">if</span>(<span class="string">"name"</span>.equals(parser.getName()))&#123;</span><br><span class="line">                p.setName(parser.nextText());</span><br><span class="line">            &#125;<span class="keyword">else</span> <span class="keyword">if</span>(<span class="string">"age"</span>.equals(parser.getName()))&#123;</span><br><span class="line">                p.setAge(Integer.parseInt(parser.nextText()));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span>(event == XmlPullParser.END_TAG)&#123;</span><br><span class="line">            <span class="keyword">if</span>(<span class="string">"person"</span>.equals(parser.getName()))&#123;</span><br><span class="line">                list.add(p);</span><br><span class="line">                p = <span class="keyword">null</span>;  </span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        event = parser.next();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(Person temp : list)</span><br><span class="line">        System.out.println(temp.toString());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  调用setInput方法时，parser就处于了start_document状态。
+-  文件person.xml保存在src文件夹下面。
+</code></pre><p><br>　　使用<code>XmlSerializer</code>接口来创建XML文档，使用<code>Xml</code>类来实例化<code>XmlSerializer</code>。</p>
+<p><br>　　范例6：XmlSerializer接口。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建一个文档开始标记。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">startDocument</span><span class="params">(String encoding, Boolean standalone)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个标签开始标记。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> XmlSerializer <span class="title">startTag</span> <span class="params">(String namespace, String name)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 为当前标签，添加一个属性。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> XmlSerializer <span class="title">attribute</span><span class="params">(String namespace, String name, String value)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 为当前标签，添加一个文本节点。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> XmlSerializer <span class="title">text</span><span class="params">(String text)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置当前XmlSerializer接口中的数据，输出的目的地以及编码。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">setOutput</span><span class="params">(OutputStream os, String encoding)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将数据刷新到OutputStream中，再由OutputStream对象将数据写入到目的地。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">flush</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例7：Xml类。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建一个XmlSerializer对象。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> XmlSerializer <span class="title">newSerializer</span> <span class="params">()</span></span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例8：代码。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">xmlWrite</span><span class="params">()</span><span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">    XmlSerializer serializer = Xml.newSerializer();</span><br><span class="line">    File file = <span class="keyword">new</span> File(<span class="keyword">this</span>.getContext().getFilesDir(),<span class="string">"cxy.xml"</span>);</span><br><span class="line">    OutputStream out = <span class="keyword">new</span> FileOutputStream(file);</span><br><span class="line">    serializer.setOutput(out, <span class="string">"UTF-8"</span>);</span><br><span class="line">        </span><br><span class="line">    List&lt;Person&gt; list = <span class="keyword">new</span> ArrayList&lt;Person&gt;();</span><br><span class="line">    Person p = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">3</span>;i++)&#123;</span><br><span class="line">        p = <span class="keyword">new</span> Person();</span><br><span class="line">        p.setId(i+<span class="string">""</span>);</span><br><span class="line">        p.setName(<span class="string">"周杰伦"</span>);</span><br><span class="line">        p.setAge(<span class="number">40</span>+i);</span><br><span class="line">        list.add(p);</span><br><span class="line">    &#125;</span><br><span class="line">        </span><br><span class="line">    serializer.startDocument(<span class="string">"UTF-8"</span>, <span class="keyword">true</span>);</span><br><span class="line">    serializer.startTag(<span class="string">""</span>, <span class="string">"persons"</span>);</span><br><span class="line">    <span class="keyword">for</span>(Person p1 : list)&#123;</span><br><span class="line">        serializer.startTag(<span class="string">""</span>, <span class="string">"person"</span>);</span><br><span class="line">        serializer.attribute(<span class="string">""</span>, <span class="string">"id"</span>, p1.getId());</span><br><span class="line">        serializer.startTag(<span class="string">""</span>, <span class="string">"name"</span>);</span><br><span class="line">        serializer.text(p1.getName());</span><br><span class="line">        serializer.endTag(<span class="string">""</span>, <span class="string">"name"</span>);</span><br><span class="line">        serializer.startTag(<span class="string">""</span>, <span class="string">"age"</span>);</span><br><span class="line">        serializer.text(p1.getAge()+<span class="string">""</span>);</span><br><span class="line">        serializer.endTag(<span class="string">""</span>, <span class="string">"age"</span>);</span><br><span class="line">        serializer.endTag(<span class="string">""</span>, <span class="string">"person"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    serializer.endTag(<span class="string">""</span>, <span class="string">"persons"</span>);</span><br><span class="line">    serializer.endDocument();</span><br><span class="line">        </span><br><span class="line">    serializer.flush();</span><br><span class="line">    out.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  也可以直接StringBuilder一个字符串，通过输出流将输出写出去。
+</code></pre><h1 id="第二节-数据访问"><a href="#第二节-数据访问" class="headerlink" title="第二节 数据访问"></a>第二节 数据访问</h1><p>　　<code>Android</code>项目中有三个比较重要的文件夹：<code>src</code>、<code>assets</code>、<code>res</code>，本节将依次介绍如何获取上述三个文件夹内的文件。</p>
+<h2 id="ClassLoader"><a href="#ClassLoader" class="headerlink" title="ClassLoader"></a>ClassLoader</h2><p>　　在JavaSE中通常都会使用<code>ClassLoader</code>（类加载器）来访问<code>src</code>文件夹下的某个文件，在Android中也是同样如此。</p>
+<p><br>　　问：什么是类加载器?<br>　　答：虚拟机若想运行某一个类，则必须先将其加载入内存，而加载类到内存的工具，就是<code>类加载器</code>。换句话说，每一个存在于虚拟机（不论是<code>JVM</code>还是<code>Dalvik</code>）中的类，都是被类加载器载入内存的。</p>
+<p><br>　　再问：类加载器的功能还有什么?<br>　　再答：类加载器除了可以加载字节码文件，还可以加载其他文件，只要该文件存在于类加载器所在的<code>工作目录</code>下面即可。</p>
+<p><br>　　还问：类加载器的工作目录是哪个目录?<br>　　还答：类加载器有多种，每种加载器的所加载的类是不同的。如：<code>boot</code>类加载器加载Java核心类库中的类(<code>String</code>类等)。 <code>app</code>类加载器：加载用户自定义的类。它们两个类加载器的工作目录是不一样的。 </p>
+<p><br>　　接着问：如何获取一个<code>ClassLoader</code>对象呢?<br>　　接着答：所有的类都是被类加载加载到内存的，在Java中使用<code>Class</code>类来代表字节码，通过某个类的<code>Class</code>对象就可以获取该类的加载器。</p>
+<p><br>　　范例1：<code>Class</code>类。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 返回当前Class对象所代表的类的类加载器。若此对象表示一个基本类型或void，则返回 null。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> ClassLoader <span class="title">getClassLoader</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例2：获取<code>int</code>的类加载器。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">System.out.println(<span class="keyword">int</span>.class.getClassLoader());  <span class="comment">// 输出null。</span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例3：加载文件。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AndroidTestActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.main);</span><br><span class="line">        <span class="comment">// 获取AndroidTestActivity的类加载器，由于该类是自定义的类，因此其类加载器是app。</span></span><br><span class="line">        InputStream input = getClassLoader().getResourceAsStream(<span class="string">"a.txt"</span>);</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"content="</span>+<span class="keyword">this</span>.readFile(input));</span><br><span class="line">        &#125;<span class="keyword">catch</span>(Exception e)&#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">readFile</span><span class="params">(InputStream input)</span><span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">        String resultStr = <span class="keyword">null</span>;</span><br><span class="line">        ByteArrayOutputStream out = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">        <span class="keyword">int</span> len;</span><br><span class="line">        <span class="keyword">byte</span>[] array = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">        <span class="keyword">while</span> ((len = input.read(array)) != -<span class="number">1</span>) &#123;</span><br><span class="line">            out.write(array,<span class="number">0</span>,len);</span><br><span class="line">        &#125;</span><br><span class="line">        resultStr = out.toString(<span class="string">"UTF-8"</span>); <span class="comment">// 可以不写UTF-8,默认就为UTF-8。</span></span><br><span class="line">        input.close();</span><br><span class="line">        out.close();</span><br><span class="line">        <span class="keyword">return</span> resultStr;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  首先在src根目录下面建立一个a.txt ，内容为：Hi Android世界。
+-  若程序执行的时候出现了乱码，请检查您Android项目的编码是否使用的UTF-8。
+</code></pre><p><br>　　范例4：加载文件2.0 。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">InputStream input=getClassLoader().getResourceAsStream(<span class="string">"org/cxy/test/b.txt"</span>);</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  首先在src目录下面的org.cxy.test包下面建立一个b.txt。
+-  若需要访问某个包中的文件，则需要将包名中的“.”换成路径分隔符“/”。但是文件后缀名中的“.”不需要换。 
+-  Andoird是基于Linus内核的，因此不可使用“\\”作为路径分隔符，因为那是Windows中使用的。
+</code></pre><p><br><strong>类装载器缺点</strong></p>
+<pre><code>-  第一，类装载器会将文件一次性全部读入内存后再处理。
+-  第二，类装载器对于一个文件只会装载一次，若文件的内容在程序运行的时候被更新，则程序无法及时获得新的数据。
+</code></pre><p><br>　　范例5：思考题，下面<code>File</code>对象的相对路径相对于谁?。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.cxy.test;</span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> android.app.Activity;</span><br><span class="line"><span class="keyword">import</span> android.os.Bundle;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AndroidTestActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.main);</span><br><span class="line">        </span><br><span class="line">        File file = <span class="keyword">new</span> File(<span class="string">"a.txt"</span>);</span><br><span class="line">        System.out.println(file.exists());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  答：相对于用户手机的根目录“/”，而不是apk包的根目录。
+-  前面已经说了，用户手机中存在有三个目录：system、data、mnt ，这三个目录就是存在于根目录“/”下面的。
+-  若File对象的构造方法中指定的路径是以“/”开头，则意味着该路径是绝对路径。
+-  若在某个应用程序中想访问其他应用程序的文件（前提是该文件允许你访问他），就可以使用绝对路径的方式：
+   -  如：/data/data/org.cxy.file/files/a.txt 。
+</code></pre><h2 id="AssetManager"><a href="#AssetManager" class="headerlink" title="AssetManager"></a>AssetManager</h2><p>　　在<code>Android</code>中可以使用<code>AssetManager</code>类来访问<code>assets</code>目录下的文件。<code>assets</code>目录的特点：</p>
+<pre><code>-  首先，assets文件夹内的文件不会被注册到R文件中。
+-  然后，assets文件夹内可以任意自定义子文件夹。
+-  最后，assets文件夹主要用于保存一些“容量小且固定不变”的文件，如：游戏音乐等。所谓的“固定不变”指的是在程序运行的时候，该文件仅会被程序读取而不会去修改其内容。
+</code></pre><p><br>　　范例1：获取输入流。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AndroidTestActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.main);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 获取一个AssetManager对象。</span></span><br><span class="line">            AssetManager manager = getAssets();</span><br><span class="line">            <span class="comment">// open方法用来从asset目录下获取指定文件的输入流。</span></span><br><span class="line">            System.out.println(<span class="keyword">this</span>.readFile(manager.open(<span class="string">"a.txt"</span>)));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  为了减少篇幅，笔者把readFile方法具体实现给省略了。
+</code></pre><p><br>　　范例2：遍历所有文件。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span></span>&#123;</span><br><span class="line">    String folder=<span class="string">"a"</span>;</span><br><span class="line">    AssetManager manager = getAssets();</span><br><span class="line">    <span class="keyword">for</span>(String name:manager.list(folder))&#123;</span><br><span class="line">        System.out.println(name);</span><br><span class="line">        System.out.println(readFile(manager.open(folder+File.separator+name)));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  本范例中“manager.list(folder)”的含义为：将&quot;assets/a&quot;目录下面的所有文件的文件名称列出来。
+-  将文件的路径path与list方法返回的文件的名称组合在一起后，就可以调用open方法获取该文件的输入流了。
+</code></pre><h1 id="第三节-App安装位置"><a href="#第三节-App安装位置" class="headerlink" title="第三节 App安装位置"></a>第三节 App安装位置</h1><p>　　从<code>API level 8</code>开始，可以通过在<code>manifest</code>中声明<code>android:installLocation</code>属性，来将应用程序安装到外部存储设备中，如果不使用该属性，则应用默认只会安装在手机内存中。</p>
+<p><br>　　例如：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">manifest</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:installLocation</span>=<span class="string">"preferExternal"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">...</span> &gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>　　如果该属性值设为<code>preferExternal</code>，表明用户要求应用程序优先安装在外部存储设备中，但是系统并不保证应用程序真的安装在外部存储设备中。如果外部存储设备的空间已满，系统仍然会将应用程序安装在内存中。用户也可以在两个位置之间移动应用程序。<br>　　如果该属性值设为<code>auto</code>，表明应用程序可能安装在外部存储设备中，但是用户本身对安装位置没有特殊要求。系统会根据多种因素决定将应用程序安装在哪里。用户也可以在两个位置之间移动应用程序。</p>
+<p><br>　　当应用程序安装在外部存储设备中时：</p>
+<pre><code>-  只要外部存储设备装载在设备上，应用程序的性能就不会受到影响。
+-  .apk文件是保存在外部存储设备中的，但是所有的私有用户数据、数据库、优化的.dex文件和提取的本地代码都是保存在设备的内存中的。
+-  保存应用程序的唯一容器经过一个随机产生的密钥进行加密。该密钥只能由最初安装该程序的设备解密。因此，安装在SD卡上的应用程序只能在某一个固定的设备上运行。
+-  用户可以通过系统设置将应用程序移动到内存上。
+</code></pre><p><br>　　注意：</p>
+<pre><code>-  当用户使用USB大容量存储器与计算机共享文件时，或通过系统设置卸载SD卡时，外部存储设备将从本设备卸载，并且所有在该外部存储设备中安装的应用程序将立刻被关闭。
+</code></pre><p><br><br></p>
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="android-a002/"
+           data-title="第二章 数据存取" data-url="http://yoursite.com/android-a002/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="键盘" />
+          <p class="site-author-name" itemprop="name">键盘</p>
+          <p class="site-description motion-element" itemprop="description">集大家之成，悟小家之道。</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">37</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="http://www.gov.cn/" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://weishu.me/" title="weishu" target="_blank">weishu</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://ryanhoo.github.io/" title="ryanhoo" target="_blank">ryanhoo</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#第一节-数据存储"><span class="nav-number">1.</span> <span class="nav-text">第一节 数据存储</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#普通文件"><span class="nav-number">1.1.</span> <span class="nav-text">普通文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#存储卡文件"><span class="nav-number">1.2.</span> <span class="nav-text">存储卡文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#偏好设置"><span class="nav-number">1.3.</span> <span class="nav-text">偏好设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库编程"><span class="nav-number">1.4.</span> <span class="nav-text">数据库编程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#XML解析"><span class="nav-number">1.5.</span> <span class="nav-text">XML解析</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二节-数据访问"><span class="nav-number">2.</span> <span class="nav-text">第二节 数据访问</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ClassLoader"><span class="nav-number">2.1.</span> <span class="nav-text">ClassLoader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AssetManager"><span class="nav-number">2.2.</span> <span class="nav-text">AssetManager</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第三节-App安装位置"><span class="nav-number">3.</span> <span class="nav-text">第三节 App安装位置</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">键盘</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"cutler"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("sGcgYofeKOFi2l1XvGrm0PcP-gzGzoHsz", "Sx0mWxj4pkXYm17zT0UnV5Ca");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>

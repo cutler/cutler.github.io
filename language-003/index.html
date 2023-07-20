@@ -1,0 +1,854 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本章介绍一下Windows中常用的批处理命令，在日后的开发中不免会使用到它，比如Android的多渠道打包。 第一节 概述　　批处理（Batch）通常被认为是一种简化的脚本语言，它应用于DOS和Windows系统中，它是由DOS或者Windows系统内嵌的直译器（通常是COMMAND.COM或者CMD.EXE）解释运行。它类似于Unix中的Shell脚本。 何为“脚本语言” 　　首先我们来看看">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第三章 Windows批处理">
+<meta property="og:url" content="http://yoursite.com/language-003/index.html">
+<meta property="og:site_name" content="不只是看客">
+<meta property="og:description" content="本章介绍一下Windows中常用的批处理命令，在日后的开发中不免会使用到它，比如Android的多渠道打包。 第一节 概述　　批处理（Batch）通常被认为是一种简化的脚本语言，它应用于DOS和Windows系统中，它是由DOS或者Windows系统内嵌的直译器（通常是COMMAND.COM或者CMD.EXE）解释运行。它类似于Unix中的Shell脚本。 何为“脚本语言” 　　首先我们来看看">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2022-11-11T03:21:23.423Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="第三章 Windows批处理">
+<meta name="twitter:description" content="本章介绍一下Windows中常用的批处理命令，在日后的开发中不免会使用到它，比如Android的多渠道打包。 第一节 概述　　批处理（Batch）通常被认为是一种简化的脚本语言，它应用于DOS和Windows系统中，它是由DOS或者Windows系统内嵌的直译器（通常是COMMAND.COM或者CMD.EXE）解释运行。它类似于Unix中的Shell脚本。 何为“脚本语言” 　　首先我们来看看">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/language-003/"/>
+
+  <title> 第三章 Windows批处理 | 不只是看客 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?53b4b0b5aeb5df5e4fb6263a58d8e1a9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">不只是看客</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-feedback">
+          <a href="/feedback" rel="section">
+            
+            留言
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                第三章 Windows批处理
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-01-09T15:21:49+08:00" content="2015-01-09">
+              2015-01-09
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                    <span itemprop="name">编程语言</span>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+          
+             <span id="/language-003/" class="leancloud_visitors" data-flag-title="第三章 Windows批处理">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>　　本章介绍一下<code>Windows</code>中常用的批处理命令，在日后的开发中不免会使用到它，比如<code>Android</code>的多渠道打包。</p>
+<h1 id="第一节-概述"><a href="#第一节-概述" class="headerlink" title="第一节 概述"></a>第一节 概述</h1><p>　　批处理（Batch）通常被认为是一种简化的<code>脚本语言</code>，它应用于<code>DOS</code>和<code>Windows</code>系统中，它是由<code>DOS</code>或者<code>Windows</code>系统内嵌的直译器（通常是<code>COMMAND.COM</code>或者<code>CMD.EXE</code>）解释运行。它类似于<code>Unix</code>中的<code>Shell</code>脚本。</p>
+<p><br><strong>何为“脚本语言”</strong></p>
+<pre><code>　　首先我们来看看“脚本”这个概念是如何产生的。使用Unix系统的人都会敲入一些命令，而命令貌似都是“一次性”或者“可抛弃”的。然而不久，人们就发现这些命令其实并不是那么的“一次性”，自己其实一直在重复的敲入类似的命令，所以有人就发明了“脚本”这东西。它的设计初衷是“批量式”的执行命令，你在一个文件里把命令都写进去，然后执行这个文件。可是不久人们就发现，这些命令行其实可以用更加聪明的方法构造，比如定义一些变量，或者根据系统类型的不同执行不同的命令。于是，人们为这脚本语言加入了变量，条件语句，数组等构造。“脚本语言”就这样产生了。
+</code></pre><p>　　以上摘自王垠《<a href="http://www.yinwang.org/blog-cn/2013/03/29/scripting-language/" target="_blank" rel="noopener">什么是“脚本语言”</a>》， 批处理 就是一种脚本语言。</p>
+<p><br><strong>目前有哪些批处理？</strong></p>
+<p>　　目前比较常见的批处理包含两类：<code>DOS批处理</code>和<code>PS批处理</code>。</p>
+<pre><code>-  PS批处理是基于强大的图片编辑软件Photoshop的，用来批量处理图片的脚本。
+-  DOS批处理则是基于DOS命令的，用来自动地批量地执行DOS命令以实现特定操作的脚本。
+</code></pre><p>　　我们本章将要讲解的就是<code>DOS</code>批处理。</p>
+<p><br><strong>批处理文件及其特点</strong><br>　　批处理文件是扩展名为<code>.bat</code>或<code>.cmd</code>的文本文件，包含一条或多条命令，由<code>DOS</code>或<code>Windows</code>系统内嵌的命令解释器来解释运行。<br>　　批处理文件是无格式的文本文件。在命令提示下键入批处理文件的名称，或者双击该批处理文件，系统就会调用<code>cmd.exe</code>按照该文件中各个命令出现的顺序来逐个运行它们。使用批处理文件（也被称为批处理程序或脚本），可以简化日常或重复性任务。</p>
+<p>　　批处理文件的本质是，<code>一堆DOS命令按一定顺序排列而形成的集合</code>。</p>
+<p>　　批处理文件特点有：</p>
+<pre><code>-  每一行可视为一个命令，每个命令里可以含多条子命令。
+-  从文件的第一行开始执行，直到最后一行结束。
+-  支持if、for、goto等命令控制程式的运行过程。  
+-  批处理程序虽然是在命令行环境中运行，但不仅仅能使用命令行软件，任何当前系统下可运行的程序都可以放在批处理文件中运行。
+</code></pre><p><br><br><strong>本节参考阅读：</strong></p>
+<ul>
+<li><a href="http://www.yinwang.org/blog-cn/2013/03/29/scripting-language/" target="_blank" rel="noopener">什么是“脚本语言”</a></li>
+<li><a href="http://zh.wikipedia.org/zh/%E6%89%B9%E5%A4%84%E7%90%86" target="_blank" rel="noopener">维基百科 - 批处理</a></li>
+<li><a href="http://baike.baidu.com/view/80110.htm" target="_blank" rel="noopener">百度百科 - 批处理</a></li>
+<li><a href="http://baike.baidu.com/view/295769.htm" target="_blank" rel="noopener">百度百科 - 批处理文件</a></li>
+</ul>
+<h1 id="第二节-批处理命令"><a href="#第二节-批处理命令" class="headerlink" title="第二节 批处理命令"></a>第二节 批处理命令</h1><p>　　本节将详细介绍各种常用批处理命令。</p>
+<p>　　首先，按下键盘上的<code>Win+R</code>键（Win键在<code>Ctrl</code>和<code>Alt</code>旁边，微软标志），打开运行对话框，在里面输入<code>cmd</code>后，按下回车键。</p>
+<p><br>　　范例1：Hello World。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo Hello World</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  echo命令有两个作用：
+   -  显示一行消息。
+   -  打开回显或关闭请求回显功能。
+-  如果没有任何参数echo命令将显示当前回显设置。
+</code></pre><h2 id="目录命令"><a href="#目录命令" class="headerlink" title="目录命令"></a>目录命令</h2><p><br>　　范例1：盘符切换。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Microsoft Windows [版本 6.1.7601]</span><br><span class="line">版权所有 (c) 2009 Microsoft Corporation。保留所有权利。</span><br><span class="line"></span><br><span class="line">C:\Users\cutler&gt;D:</span><br><span class="line"></span><br><span class="line">D:\&gt;D:</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  直接在命令行中输入磁盘的名称即可进行切换。
+</code></pre><p><br>　　范例2：查看目录里的文件。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">D:\&gt;dir</span><br><span class="line"> 驱动器 D 中的卷没有标签。</span><br><span class="line"> 卷的序列号是 4410-5037</span><br><span class="line"></span><br><span class="line"> D:\ 的目录</span><br><span class="line"></span><br><span class="line">2014/12/11  14:45    &lt;DIR&gt;          360Downloads</span><br><span class="line">2015/01/04  11:59    &lt;DIR&gt;          360安全浏览器下载</span><br><span class="line">2015/01/09  13:04                 6 a.txt</span><br><span class="line">2014/12/03  13:19    &lt;DIR&gt;          cuihu</span><br><span class="line">2014/06/07  19:24    &lt;DIR&gt;          MyDrivers</span><br><span class="line">2014/12/08  13:38    &lt;DIR&gt;          Program Files</span><br><span class="line">2014/12/08  18:10    &lt;DIR&gt;          Program Files (x86)</span><br><span class="line">2014/11/11  10:55    &lt;DIR&gt;          QMDownload</span><br><span class="line">2015/01/09  11:17    &lt;DIR&gt;          test</span><br><span class="line">2015/01/04  12:50    &lt;DIR&gt;          workspace</span><br><span class="line">               1 个文件              6 字节</span><br><span class="line">               9 个目录 47,979,810,816 可用字节</span><br><span class="line"></span><br><span class="line">D:\&gt;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  使用dir命令可以查看当前目录下的所有内容（文件、子目录）。
+-  上面输出的每行数据的信息依次为：最后修改日期，类型，大小，名称。
+   -  类型为&lt;DIR&gt;表示该项是一个目录。
+</code></pre><p><br>　　范例3：目录切换。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">D:\&gt;cd test</span><br><span class="line"></span><br><span class="line">D:\test&gt;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  使用cd命令可以切换当前目录。
+-  如果当前处于D盘，但想进入C:\Users目录，则必须得先切换到C盘后，再执行cd Users命令才行。
+</code></pre><h2 id="文件命令"><a href="#文件命令" class="headerlink" title="文件命令"></a>文件命令</h2><p><br>　　范例1：创建文件。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">D:\test&gt;echo channel=360&gt;common.txt</span><br><span class="line"></span><br><span class="line">D:\test&gt;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  使用echo命令与重定向符号结合来实现输入一些内容到特定的文件中。
+-  本范例就是将“channel=360”，输出到当前目录下的common.txt中，如果文件不存在则会自动创建它。
+</code></pre><p><br>　　范例2：往文件中追加内容。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">D:\test&gt;echo language=en&gt;&gt;common.txt</span><br><span class="line"></span><br><span class="line">D:\test&gt;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  使用两个“&gt;&gt;”符号即可以追加内容到文件中。
+</code></pre><p><br>　　范例3：修改文件名称。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">D:\test&gt;rename common.txt common.properties</span><br><span class="line"></span><br><span class="line">D:\test&gt;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  使用rename命令即可修改文件的名称。格式为：rename 要修改的文件 文件的新名。 
+</code></pre><p><br>　　范例4：删除文件。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">D:\test&gt;del common.properties</span><br><span class="line"></span><br><span class="line">D:\test&gt;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  使用del命令即可删除一个文件。 
+</code></pre><p><br>　　范例5：复制文件-1。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">D:\test&gt;copy D:\common.properties D:\test</span><br><span class="line">已复制         1 个文件。</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  使用copy命令即可复制一个文件。格式为：copy 要复制的文件 目标路径。
+</code></pre><p><br>　　范例6：复制文件-2。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">D:\test&gt;copy D:\common.properties D:\test\a.txt</span><br><span class="line">已复制         1 个文件。</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  复制的同时为文件改名。
+</code></pre><p><br>　　范例7：创建目录。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">D:\test&gt;md hiDir</span><br><span class="line"></span><br><span class="line">D:\test&gt;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  使用copy命令即可创建一个目录。
+</code></pre><h2 id="流程控制命令"><a href="#流程控制命令" class="headerlink" title="流程控制命令"></a>流程控制命令</h2><h3 id="选择结构"><a href="#选择结构" class="headerlink" title="选择结构"></a>选择结构</h3><p>　　<code>if</code>命令实现条件判断，包括字符串比较、存在判断、定义判断等。通过条件判断，<code>if</code>命令即可以实现选择功能。</p>
+<p><br>　　范例1：if命令比较字符串的语法格式为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">IF [not] string1 compare-op string2 command1 [else command2]</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  “[not]”：是可选的，用来对表达式的结果进行取反操作。
+-  “compare-op”：比较的操作符，常用的有如下几种：
+   -  == 或者 EQU 都表示“等于”。
+   -  NEQ 表示“不等于”。
+   -  LSS 表示“小于”。
+   -  LEQ 表示“小于或等于”。
+   -  GTR 表示“大于”。
+   -  GEQ 表示“大于或等于”。
+-  “[else command2]”：是可选的，用来指定else子句。
+</code></pre><p><br>　　范例2：比较字符串：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@echo off </span><br><span class="line">set str1=abcd1233</span><br><span class="line">set str2=ABCD1234</span><br><span class="line">if not %str1% NEQ %str2% (</span><br><span class="line">    echo yes!</span><br><span class="line">) else (</span><br><span class="line">    echo no!</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  程序最终输出“no!”。
+</code></pre><h3 id="循环结构"><a href="#循环结构" class="headerlink" title="循环结构"></a>循环结构</h3><p>　　<code>for</code>命令可以实现类似于<code>C</code>语言里面的循环结构，当然<code>for</code>命令的功能要更强大一点，通过不同的参数可以实现更多的功能。</p>
+<p><br>　　范例1：for命令语法格式为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">for 参数 %%变量名 in (set) do 循环体</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  “参数”：for命令支持多种参数，后面会具体介绍，也可以不指定任何参数。
+-  “set”：表示待遍历的集合，它可以是一个文件、一组数据等。
+-  “变量名”：迭代变量。
+   -  即for命令会将集合中的每一个数据都赋值给它。
+</code></pre><p><br>　　范例2：无参数的for命令。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">for %%i in (a,&quot;b c&quot;,d) do echo %%i</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  需要将这段代码放到一个bat文件中才可能正常运行。
+-  本范例将循环3次，依次将“a”、“&quot;b c&quot;”、“d”给输出到cmd窗口中。
+</code></pre><p><br>　　范例3：<code>\L</code>参数。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">for /l %%i in (1,2,10) do md %%i</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  参数使用大小写均可。
+-  使用/L参数的for语句，可以根据set里面的设置进行循环，从而实现对循环次数的直接控制。其命令格式为：
+   -  for /L %%变量名 IN (start,step,end) DO 循环体
+-  其中，start为开始计数的初始值，step为每次递增的值（可以是负数），end为结束值。
+</code></pre><p><br>　　范例4：<code>\F</code>参数。<br>　　含有<code>/F</code>参数的<code>for</code>有很大的用处，在批处理中使用的最多，它可以用来遍历字符串、文件、命令。格式如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">FOR /F [&quot;options&quot;] %%i IN (file) DO command</span><br><span class="line">FOR /F [&quot;options&quot;] %%i IN (&quot;string&quot;) DO command</span><br><span class="line">FOR /F [&quot;options&quot;] %%i IN (&apos;command&apos;) DO command</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  [&quot;options&quot;]：是可选的。
+</code></pre><p><br>　　假设我们有一个<code>a.txt</code>文件（GBK编码），内容为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1-1号,1-2号,1-3号</span><br><span class="line">2-1号,2-2号,2-3号</span><br><span class="line">3-1号,3-2号,3-3号</span><br></pre></td></tr></table></figure></p>
+<p>　　我们可以使用如下语句进行遍历：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">@echo off</span><br><span class="line">for /f %%i in (a.txt) do echo %%i</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  第一行代码用来关闭echo，即不会把for命令给输出到窗口中，而只是将for命令循环体的执行结果输出。
+-  for命令会先从括号执行，因为含有参数/f，所以for会先打开a.txt，然后读出a.txt里面的所有内容，把它作为一个集合，并且以每一行作为一个元素，所以最终会循环3遍。
+-  如果把\f参数去掉的话，则for命令不会去读取a.txt中的内容，而只会将文件名输出。
+</code></pre><p><br>　　通过上面的范例，我们发现<code>for /f</code>会默认以每一行来作为一个元素，但是如果我们还想把每一行再分解更小的内容，该怎么办呢？不用担心，<code>for</code>命令还为我们提供了更详细的参数，使我们将每一行分为更小的元素成为可能。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@echo off</span><br><span class="line">for /f &quot;delims=,&quot; %%i in (a.txt) do echo %%i</span><br><span class="line"></span><br><span class="line"># 执行结果</span><br><span class="line">D:\test&gt;D:\test\test.bat</span><br><span class="line">1-1号</span><br><span class="line">2-1号</span><br><span class="line">3-1号</span><br></pre></td></tr></table></figure>
+<pre><code>语句解释：
+-  delims用来告诉for每一行应该拿什么作为分隔符，默认的分隔符是空格。
+-  之所以每行只输出一个数据，是因为for命令将每个元素以空格分割，默认是只取分割之后的第一个元素。
+</code></pre><p><br>　　但是这样还是有局限的，如果我们想要每一行的第二列元素，那又如何呢？这时候，<code>tokens</code>跳出来说，我能做到。它的作用就是当你通过<code>delims</code>将每一行分为更小的元素时，由它来控制要取哪一个或哪几个。<br>　　还是上面的例子，执行如下命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@echo off</span><br><span class="line">for /f &quot;tokens=2 delims=,&quot; %%i in (a.txt) do echo %%i</span><br><span class="line"></span><br><span class="line"># 执行结果</span><br><span class="line">D:\test&gt;D:\test\test.bat</span><br><span class="line">1-2号</span><br><span class="line">2-2号</span><br><span class="line">3-2号</span><br></pre></td></tr></table></figure>
+<pre><code>语句解释：
+-  如果要显示第三列，那就将tokens设置为3。
+</code></pre><p><br>　　如果要显示第二列和第三列，则换成<code>tokens=2,3</code>或<code>tokens=2-3</code>,如果还有更多的则为：<code>tokens=2-10</code>之类的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@echo off</span><br><span class="line">for /f &quot;tokens=1-3 delims=,&quot; %%i in (a.txt) do echo %%i,%%j,%%k</span><br><span class="line"></span><br><span class="line"># 执行结果</span><br><span class="line">D:\test&gt;D:\test\test.bat</span><br><span class="line">1-1号,1-2号,1-3号</span><br><span class="line">2-1号,2-2号,2-3号</span><br><span class="line">3-1号,3-2号,3-3号</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  怎么多出j、k两个变量？这是因为tokens后面要取每一行的前三列的值，用i来替换第一列，并且按照英文字母顺序排列，第二、三列的数据被放到了j、k变量中。
+</code></pre><p><br>　　范例5：for命令中更新局部变量的值。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@echo off </span><br><span class="line">for /l %%i in (1,1,5) do ( </span><br><span class="line">    set var=Hi-%%i </span><br><span class="line">    echo %var% </span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  如果for命令的循环体中包含多行代码，那么需要使用括号将它们括起来。
+-  从表面上来看这段代码是没问题的，但是程序运行后却输出5遍Hi-5，为了解决这个问题，我们需要引入 延迟环境变量扩展 的概念。
+</code></pre><p>　　代码修改为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@echo off </span><br><span class="line">setlocal ENABLEDELAYEDEXPANSION </span><br><span class="line">for /l %%i in (1,1,5) do ( </span><br><span class="line">    set var=Hi-%%i </span><br><span class="line">    echo !var! </span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  这样输出就正常了。
+</code></pre><p><br><br><strong>本节参考阅读：</strong></p>
+<ul>
+<li><a href="http://blog.csdn.net/mfx1986/article/details/5606228" target="_blank" rel="noopener">批处理读取文本中的每一行</a></li>
+<li><a href="http://inching.org/2014/03/31/windows-bat/" target="_blank" rel="noopener">Windows Bat</a></li>
+</ul>
+<h2 id="其他命令"><a href="#其他命令" class="headerlink" title="其他命令"></a>其他命令</h2><p><br>　　范例1：清屏。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">D:\test&gt;cls</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  使用cls命令可以将cmd窗口中的所有文本都给清空。
+</code></pre><p><br>　　范例2：调用其他批处理文件。<br>　　假设我们现在有一个<code>test.bat</code>文件，里面的内容为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo Hello World</span><br></pre></td></tr></table></figure></p>
+<p>　　那么我们可以在另一个批处理文件中这么调用它：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">D:\test&gt;call test.bat</span><br><span class="line"></span><br><span class="line">D:\test&gt;echo Hello World</span><br><span class="line">Hello World</span><br><span class="line"></span><br><span class="line">D:\test&gt;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  call命令可以从一个批处理程序调用另一个批处理程序，并且不终止父批处理程序。
+</code></pre><p><br><br></p>
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="language-003/"
+           data-title="第三章 Windows批处理" data-url="http://yoursite.com/language-003/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="键盘" />
+          <p class="site-author-name" itemprop="name">键盘</p>
+          <p class="site-description motion-element" itemprop="description">集大家之成，悟小家之道。</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">37</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="http://www.gov.cn/" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://weishu.me/" title="weishu" target="_blank">weishu</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://ryanhoo.github.io/" title="ryanhoo" target="_blank">ryanhoo</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#第一节-概述"><span class="nav-number">1.</span> <span class="nav-text">第一节 概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二节-批处理命令"><span class="nav-number">2.</span> <span class="nav-text">第二节 批处理命令</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#目录命令"><span class="nav-number">2.1.</span> <span class="nav-text">目录命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件命令"><span class="nav-number">2.2.</span> <span class="nav-text">文件命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#流程控制命令"><span class="nav-number">2.3.</span> <span class="nav-text">流程控制命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#选择结构"><span class="nav-number">2.3.1.</span> <span class="nav-text">选择结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#循环结构"><span class="nav-number">2.3.2.</span> <span class="nav-text">循环结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他命令"><span class="nav-number">2.4.</span> <span class="nav-text">其他命令</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">键盘</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"cutler"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("sGcgYofeKOFi2l1XvGrm0PcP-gzGzoHsz", "Sx0mWxj4pkXYm17zT0UnV5Ca");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>

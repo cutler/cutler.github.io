@@ -1,0 +1,756 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="第一节 起源概述　　TypeScript是微软开发的一个开源的编程语言：  1、由于JavaScript本身局限性，难以胜任大型项目的开发和维护，因此微软推出了TypeScript。2、TS是JS的超集，它本质上向JS语言添加了可选的静态类型和基于类的面向对象编程。3、任何现有的JavaScript程序可以运行在TypeScript环境中。4、TS通过TypeScript编译器或Babel转译为J">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第七章 TypeScript">
+<meta property="og:url" content="http://yoursite.com/language-007/index.html">
+<meta property="og:site_name" content="不只是看客">
+<meta property="og:description" content="第一节 起源概述　　TypeScript是微软开发的一个开源的编程语言：  1、由于JavaScript本身局限性，难以胜任大型项目的开发和维护，因此微软推出了TypeScript。2、TS是JS的超集，它本质上向JS语言添加了可选的静态类型和基于类的面向对象编程。3、任何现有的JavaScript程序可以运行在TypeScript环境中。4、TS通过TypeScript编译器或Babel转译为J">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2023-03-13T16:38:01.594Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="第七章 TypeScript">
+<meta name="twitter:description" content="第一节 起源概述　　TypeScript是微软开发的一个开源的编程语言：  1、由于JavaScript本身局限性，难以胜任大型项目的开发和维护，因此微软推出了TypeScript。2、TS是JS的超集，它本质上向JS语言添加了可选的静态类型和基于类的面向对象编程。3、任何现有的JavaScript程序可以运行在TypeScript环境中。4、TS通过TypeScript编译器或Babel转译为J">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/language-007/"/>
+
+  <title> 第七章 TypeScript | 不只是看客 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?53b4b0b5aeb5df5e4fb6263a58d8e1a9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">不只是看客</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-feedback">
+          <a href="/feedback" rel="section">
+            
+            留言
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                第七章 TypeScript
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2023-03-11T22:07:15+08:00" content="2023-03-11">
+              2023-03-11
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                    <span itemprop="name">编程语言</span>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+          
+             <span id="/language-007/" class="leancloud_visitors" data-flag-title="第七章 TypeScript">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="第一节-起源概述"><a href="#第一节-起源概述" class="headerlink" title="第一节 起源概述"></a>第一节 起源概述</h1><p><br>　　TypeScript是微软开发的一个开源的编程语言：</p>
+<blockquote>
+<p>1、由于JavaScript本身局限性，难以胜任大型项目的开发和维护，因此微软推出了TypeScript。<br>2、TS是JS的超集，它本质上向JS语言添加了可选的静态类型和基于类的面向对象编程。<br>3、任何现有的JavaScript程序可以运行在TypeScript环境中。<br>4、TS通过TypeScript编译器或Babel转译为JavaScript代码，可运行在任何浏览器、操作系统。</p>
+</blockquote>
+<p><br>　　时间线：</p>
+<pre><code>2012年10月，微软发布了首个公开版本的TypeScript。
+2013年6月19日，在经历了一个预览版之后微软正式发布了正式版TypeScript。
+2023年1月26日，TypeScript 5.0的测试版发布！
+</code></pre><p><br>　　为什么要学它？</p>
+<pre><code>因为开发抖音、微信小游戏需要用到CocosCreator
+而CocosCreator开发时，脚本语言就是TypeScript。
+</code></pre><p><br>　　开发IDE是什么？</p>
+<pre><code>微软官方推荐的编辑器是Visual Studio，但是若你只是为了学习和测试，可以直接使用在线网站：
+https://www.typescriptlang.org/play
+</code></pre><p><br><strong>本节参考阅读：</strong></p>
+<ul>
+<li><a href="https://baike.baidu.com/item/typescript?fromModule=lemma_search-box" target="_blank" rel="noopener">百度百科 - typescript</a></li>
+</ul>
+<h1 id="第二节-TypeScript入门"><a href="#第二节-TypeScript入门" class="headerlink" title="第二节 TypeScript入门"></a>第二节 TypeScript入门</h1><h2 id="基础语法"><a href="#基础语法" class="headerlink" title="基础语法"></a>基础语法</h2><p><br>　　范例1：Hello World。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// TS的注释与Java语言一样，使用“//”表示单行注释，使用“/**/”表示多行注释</span></span><br><span class="line"><span class="comment">// 使用“let”关键字定义一个变量str，语句末尾可以不用写“;”</span></span><br><span class="line"><span class="keyword">let</span> str1 = <span class="string">"Hello World"</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    往控制台输出log</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="built_in">console</span>.log(str1)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义一个常量</span></span><br><span class="line"><span class="keyword">const</span> str2 = <span class="string">"你好"</span></span><br><span class="line"><span class="comment">// 常量一旦赋值后，不可以修改，因此下面的代码会报错</span></span><br><span class="line"><span class="comment">// str2 = "你好2"</span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例2：未定义。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> str1 </span><br><span class="line"><span class="comment">// 输出：undefined</span></span><br><span class="line"><span class="built_in">console</span>.log(str1)</span><br><span class="line"><span class="keyword">let</span> str2 = <span class="literal">null</span></span><br><span class="line"><span class="comment">// 输出：null</span></span><br><span class="line"><span class="built_in">console</span>.log(str2)</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例1：定义变量。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 数字类型</span></span><br><span class="line"><span class="keyword">let</span> n1:<span class="built_in">number</span> = <span class="number">1</span></span><br><span class="line"><span class="keyword">let</span> n2:<span class="built_in">number</span> = <span class="number">-1.4</span></span><br><span class="line"><span class="comment">// 与Java一样，使用“+”号进行字符串连接，最终输出：n1 = 1, n2 = -1.4</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">"n1 = "</span>+n1+<span class="string">", n2 = "</span>+n2)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 字符串类型</span></span><br><span class="line"><span class="keyword">let</span> userName:<span class="built_in">string</span> = <span class="string">"张三"</span></span><br><span class="line"><span class="comment">// 布尔类型</span></span><br><span class="line"><span class="keyword">let</span> isBoy:<span class="built_in">boolean</span> = <span class="literal">true</span></span><br><span class="line"><span class="comment">// 使用“`”符号也可以引用字符串，在此种情况下，可以使用“$&#123;表达式&#125;”的方式来进行字符串连接</span></span><br><span class="line"><span class="comment">// 输出：你好，我的名字叫张三，我是男孩：true</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`你好，我的名字叫<span class="subst">$&#123;userName&#125;</span>，我是男孩：<span class="subst">$&#123;isBoy&#125;</span>`</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 数组类型</span></span><br><span class="line"><span class="keyword">let</span> names : <span class="built_in">string</span>[] = [<span class="string">"1"</span>,<span class="string">"2"</span>,<span class="string">"3"</span>]</span><br><span class="line"><span class="comment">// 输出：数组第一个元素：1</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`数组第一个元素：<span class="subst">$&#123;names[0]&#125;</span>`</span>)</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例2：任意类型与联合类型。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 任意类型</span></span><br><span class="line"><span class="keyword">let</span> n1 : <span class="built_in">any</span> = <span class="number">1</span></span><br><span class="line"><span class="built_in">console</span>.log(n1)</span><br><span class="line">n1 = <span class="string">"张三"</span></span><br><span class="line"><span class="built_in">console</span>.log(n1)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 变量n2的类型是一个联合类型</span></span><br><span class="line"><span class="keyword">let</span> n2 : <span class="built_in">number</span> | <span class="built_in">boolean</span> = <span class="number">2</span></span><br><span class="line"><span class="built_in">console</span>.log(n2)</span><br><span class="line"><span class="comment">// 下面的代码会编译报错</span></span><br><span class="line"><span class="comment">// n2 = "李四"</span></span><br><span class="line"><span class="built_in">console</span>.log(n2)</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例3：自动类型推算和类型省写。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义的时候省写了类型，但编译器会自动推断出str1的类型为string</span></span><br><span class="line"><span class="keyword">let</span> str1 = <span class="string">"张三"</span></span><br><span class="line"><span class="built_in">console</span>.log(str1)</span><br><span class="line"><span class="comment">// 下面代码编译报错，因为类型不匹配</span></span><br><span class="line"><span class="comment">// str1 = 3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 单纯的定义变量，不为其赋值，那么这个变量就是any类型的，后续可以给它赋任何值</span></span><br><span class="line"><span class="keyword">let</span> str2 </span><br><span class="line">str2 = <span class="number">1</span></span><br><span class="line"><span class="built_in">console</span>.log(str2)</span><br><span class="line">str2 = <span class="string">"李四"</span></span><br><span class="line"><span class="built_in">console</span>.log(str2)</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例4：枚举类型。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义一个枚举类型，语法与Java高度类似</span></span><br><span class="line"><span class="keyword">enum</span> Color&#123;</span><br><span class="line">    <span class="comment">// 定义三个枚举常量，逗号间隔</span></span><br><span class="line">    <span class="comment">// 枚举常量都有一个序号，默认从0开始，依次加一，因而后面输出RED时，会输出0。</span></span><br><span class="line">    <span class="comment">// 如果给某个常量明确指定序号，那么其后的枚举常量也会跟着变</span></span><br><span class="line">    RED, BLUE = <span class="number">19</span>, GREEN</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义一个枚举变量</span></span><br><span class="line"><span class="keyword">let</span> c1 : Color = Color.RED</span><br><span class="line"><span class="keyword">let</span> c2 : Color = Color.BLUE</span><br><span class="line"><span class="keyword">let</span> c3 : Color = Color.GREEN</span><br><span class="line"><span class="comment">// 输出：0</span></span><br><span class="line"><span class="built_in">console</span>.log(c1)</span><br><span class="line"><span class="comment">// 输出：19</span></span><br><span class="line"><span class="built_in">console</span>.log(c2)</span><br><span class="line"><span class="comment">// 输出：20</span></span><br><span class="line"><span class="built_in">console</span>.log(c3)</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例5：类型别名。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> Color&#123;</span><br><span class="line">    RED, BLUE = <span class="number">19</span>, GREEN</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义一个枚举变量</span></span><br><span class="line"><span class="keyword">let</span> c1 : Color = Color.RED</span><br><span class="line"><span class="comment">// 使用“typeof”关键词可以获取变量的真实类型</span></span><br><span class="line"><span class="comment">// 输出：number</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">typeof</span> c1)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用“type”关键字，给“Color”类型定义一个别名，后续就可以使用别名来创建对象了</span></span><br><span class="line"><span class="keyword">type</span> NewColor = Color</span><br><span class="line"><span class="keyword">let</span> c2 : NewColor  = Color.BLUE</span><br><span class="line"><span class="built_in">console</span>.log(c2)</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例6：运算符。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    与其它高级语言一样，也支持各类操作符：</span></span><br><span class="line"><span class="comment">    + - * / %</span></span><br><span class="line"><span class="comment">    ++ --</span></span><br><span class="line"><span class="comment">    &gt; &lt; &gt;= &lt;= == !=</span></span><br><span class="line"><span class="comment">    &amp;&amp; || !</span></span><br><span class="line"><span class="comment">    += -= *= /= %=</span></span><br><span class="line"><span class="comment">    ?:</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">let</span> n1 = <span class="number">2</span></span><br><span class="line"><span class="keyword">let</span> n2 = <span class="string">"2"</span></span><br><span class="line"><span class="comment">// 输出：true。因为“==”只会比较值，不会比较类型</span></span><br><span class="line"><span class="built_in">console</span>.log(n1 == n2)</span><br><span class="line"><span class="comment">// 输出：false。“===”既会比较值，也会比较类型</span></span><br><span class="line"><span class="built_in">console</span>.log(n1 === n2)</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例7：条件控制语句。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 和Java一样</span></span><br><span class="line"><span class="keyword">let</span> age = <span class="number">5</span></span><br><span class="line"><span class="keyword">if</span>(age &gt; <span class="number">10</span>) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"大于10"</span>)</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span>(age &gt; <span class="number">5</span>) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"大于5"</span>)</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"小于等于5"</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 相应的也有switch语句，和Java中的一致，也有“case”、“default”和“break”的概念</span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例8：循环控制语句。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 和Java一样</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++)&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(i)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 相应的也有while语句，也和Java中的一致</span></span><br><span class="line"><span class="comment">// for循环也支持foreach写法，关键词是“of”，for(let i of arrays)</span></span><br><span class="line"><span class="comment">// 循环体内同样可以使用break和continue</span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例9：函数。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sayHello</span>(<span class="params">name :<span class="built_in">string</span></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`你好啊，<span class="subst">$&#123;name&#125;</span>`</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 输出：你好啊，张三</span></span><br><span class="line">sayHello(<span class="string">"张三"</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sum</span>(<span class="params">a : <span class="built_in">number</span>, b : <span class="built_in">number</span></span>) : <span class="title">number</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a + b</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(sum(<span class="number">5</span>, <span class="number">10</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment">// 函数的另一种写法，sum2的调用方法和sum一样</span></span><br><span class="line"><span class="keyword">let</span> sum2 = <span class="function"><span class="keyword">function</span>(<span class="params">a : <span class="built_in">number</span>, b : <span class="built_in">number</span></span>): <span class="title">number</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a + b</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 函数的第三种写法，sum3的调用方法和sum一样</span></span><br><span class="line"><span class="keyword">let</span> sum3 = (a : <span class="built_in">number</span>, b : <span class="built_in">number</span>): <span class="function"><span class="params">number</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> a + b</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 使用function关键词来定义一个函数，函数可以独立存在（不在任何类中）</span></span><br><span class="line"><span class="comment">// 函数的返回值需要写在参数列表后面</span></span><br><span class="line"><span class="comment">// 无返回值函数可以写“void”，也可以不写</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="面向对象"><a href="#面向对象" class="headerlink" title="面向对象"></a>面向对象</h2><p><br>　　范例1：类和对象。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> Student&#123;</span><br><span class="line">    <span class="comment">// 属性不需要使用“let”修饰，但需要提供默认值</span></span><br><span class="line">    name : <span class="built_in">string</span> = <span class="string">""</span>;</span><br><span class="line">    age : <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// 使用constructor关键字来创建构造方法</span></span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params">name : <span class="built_in">string</span>, age : <span class="built_in">number</span></span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name</span><br><span class="line">        <span class="keyword">this</span>.age = age</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 下面这个是实例方法，不用使用“function”修饰</span></span><br><span class="line">    say()&#123;</span><br><span class="line">        <span class="comment">// 使用this来引用成员属性</span></span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">`你好，我叫<span class="subst">$&#123;this.name&#125;</span>，今年<span class="subst">$&#123;this.age&#125;</span>岁了`</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 使用static来修饰静态属性和静态方法</span></span><br><span class="line">    <span class="keyword">static</span> desc : <span class="built_in">string</span> = <span class="string">"我是静态属性"</span></span><br><span class="line">    <span class="keyword">static</span> printDesc()&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">`你好，<span class="subst">$&#123;Student.desc&#125;</span>`</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 使用new关键字创建对象</span></span><br><span class="line"><span class="keyword">let</span> stu = <span class="keyword">new</span> Student(<span class="string">"张三"</span>, <span class="number">18</span>)</span><br><span class="line"><span class="comment">// 输出：你好，我叫张三，今年18岁了</span></span><br><span class="line">stu.say()</span><br><span class="line"><span class="comment">// 输出：你好，我是静态属性</span></span><br><span class="line">Student.printDesc()</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例2：继承和重写。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> Person&#123;</span><br><span class="line">    name : <span class="built_in">string</span> = <span class="string">""</span>;</span><br><span class="line">    age : <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params">name : <span class="built_in">string</span>, age : <span class="built_in">number</span></span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name</span><br><span class="line">        <span class="keyword">this</span>.age = age</span><br><span class="line">    &#125;</span><br><span class="line">    say()&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">`你好，我是Person类的say方法`</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 使用extends关键字进行继承</span></span><br><span class="line"><span class="keyword">class</span> Student <span class="keyword">extends</span> Person&#123;</span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params">name : <span class="built_in">string</span>, age : <span class="built_in">number</span></span>) &#123;</span><br><span class="line">        <span class="comment">// 调用父类构造方法</span></span><br><span class="line">        <span class="keyword">super</span>(name, age)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 方法重写</span></span><br><span class="line">    say()&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">`你好，我是Student类的say方法`</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 使用new关键字创建对象</span></span><br><span class="line"><span class="keyword">let</span> stu = <span class="keyword">new</span> Student(<span class="string">"张三"</span>, <span class="number">18</span>)</span><br><span class="line"><span class="comment">// 输出：你好，我是Student类的say方法</span></span><br><span class="line">stu.say()</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例3：抽象类。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义抽象类</span></span><br><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> Person&#123;</span><br><span class="line">    name : <span class="built_in">string</span> = <span class="string">""</span>;</span><br><span class="line">    age : <span class="built_in">number</span> = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params">name : <span class="built_in">string</span>, age : <span class="built_in">number</span></span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name</span><br><span class="line">        <span class="keyword">this</span>.age = age</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 定义抽象方法</span></span><br><span class="line">    <span class="keyword">abstract</span> say() : <span class="built_in">void</span> </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> Student <span class="keyword">extends</span> Person&#123;</span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params">name : <span class="built_in">string</span>, age : <span class="built_in">number</span></span>) &#123;</span><br><span class="line">        <span class="keyword">super</span>(name, age)</span><br><span class="line">    &#125;</span><br><span class="line">    say()&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">`你好，我是Student类的say方法`</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> stu = <span class="keyword">new</span> Student(<span class="string">"张三"</span>, <span class="number">18</span>)</span><br><span class="line"><span class="comment">// 输出：你好，我是Student类的say方法</span></span><br><span class="line">stu.say()</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例4：接口。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> Fly &#123;</span><br><span class="line">    doFly() : <span class="built_in">void</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">interface</span> Jump &#123;</span><br><span class="line">    doJump() : <span class="built_in">void</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> Bird <span class="keyword">implements</span> Fly, Jump &#123;</span><br><span class="line"></span><br><span class="line">    doJump() &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">`我要起跳了`</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    doFly()&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">`我要起飞了`</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> bird = <span class="keyword">new</span> Bird()</span><br><span class="line">bird.doFly()</span><br><span class="line">bird.doJump()</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例5：命名空间。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用namespace关键字来定义命名空间，这Java中的package概念类似</span></span><br><span class="line"><span class="comment">// 我们可以将类写到命名空间里</span></span><br><span class="line"><span class="keyword">namespace</span> aa&#123;</span><br><span class="line">    <span class="comment">// 若想让你的类在命名空间外面被访问，则需要使用“export”关键字</span></span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">class</span> Person &#123;</span><br><span class="line">        sayHello()&#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">"aa.Person"</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> bb&#123;</span><br><span class="line">    <span class="keyword">class</span> Person &#123;</span><br><span class="line">         sayHello()&#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">"bb.Person"</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 使用“命名空间.类名”的方式来引用类</span></span><br><span class="line"><span class="keyword">let</span> p = <span class="keyword">new</span> aa.Person()</span><br><span class="line">p.sayHello()</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例6：元组。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义一个元组，其内包含两个值</span></span><br><span class="line"><span class="keyword">let</span> person:[<span class="built_in">string</span>,<span class="built_in">number</span>] = [<span class="string">"张三"</span>, <span class="number">18</span>]</span><br><span class="line"><span class="comment">// 通过下标的方式访问元组里的值</span></span><br><span class="line"><span class="built_in">console</span>.log(person[<span class="number">0</span>])</span><br><span class="line"><span class="comment">// 也可以修改</span></span><br><span class="line">person[<span class="number">1</span>] = <span class="number">22</span></span><br><span class="line"><span class="built_in">console</span>.log(person[<span class="number">1</span>])</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例7：数组。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义一个数组</span></span><br><span class="line"><span class="keyword">let</span> person:<span class="built_in">string</span>[] = [<span class="string">"张三"</span>, <span class="string">"李四"</span>, <span class="string">"王五"</span>]</span><br><span class="line"><span class="comment">// length属性表示数组的长度</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">let</span> i=<span class="number">0</span>; i&lt;person.length; i++)&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(person[i])</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 往数组的末尾添加一个元素</span></span><br><span class="line">person.push(<span class="string">"赵六"</span>)</span><br><span class="line"><span class="comment">// 删除最前面的元素</span></span><br><span class="line">person.shift()</span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">let</span> i=<span class="number">0</span>; i&lt;person.length; i++)&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(person[i])</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 查找元素</span></span><br><span class="line"><span class="keyword">let</span> index = person.indexOf(<span class="string">"李四"</span>)</span><br><span class="line"><span class="built_in">console</span>.log(index)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 也可以使用Array&lt;string&gt;来定义一个变长数组，和Java中的ArrayList类似。</span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例8：字典。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 字典相当于Java中的map</span></span><br><span class="line"><span class="keyword">let</span> person:&#123;[key:<span class="built_in">string</span>]:<span class="built_in">string</span>&#125; = &#123;</span><br><span class="line">    <span class="string">"person1"</span> : <span class="string">"张三"</span>,</span><br><span class="line">    <span class="string">"person2"</span> : <span class="string">"李四"</span>,</span><br><span class="line">    <span class="string">"person3"</span> : <span class="string">"王五"</span>,</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(person[<span class="string">"person1"</span>])</span><br><span class="line"><span class="comment">// 输出：undefined</span></span><br><span class="line"><span class="built_in">console</span>.log(person[<span class="string">"person4"</span>])</span><br><span class="line">person[<span class="string">"person4"</span>] = <span class="string">"赵六"</span></span><br><span class="line"><span class="comment">// 输出：赵六</span></span><br><span class="line"><span class="built_in">console</span>.log(person[<span class="string">"person4"</span>])</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例9：回调函数。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义一个按钮类</span></span><br><span class="line"><span class="keyword">class</span> Button &#123;</span><br><span class="line">    <span class="comment">// 定义一个name属性</span></span><br><span class="line">    name : <span class="built_in">string</span> = <span class="string">"我是一个按钮"</span></span><br><span class="line">    <span class="comment">// 定义一个回调属性，属性的类型是联合类型，Function表示函数类型</span></span><br><span class="line">    <span class="comment">// 定义为联合类型后，就可以不给callback立刻赋值了</span></span><br><span class="line">    callback : <span class="built_in">Function</span>|<span class="literal">undefined</span> </span><br><span class="line">    <span class="comment">// 当按钮被点击时，调用此方法</span></span><br><span class="line">    click()&#123;</span><br><span class="line">        <span class="comment">// 若外界设置了回调，则调用回调</span></span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">this</span>.callback != <span class="literal">undefined</span>) &#123;</span><br><span class="line">           <span class="keyword">this</span>.callback(<span class="keyword">this</span>)</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">"未设置监听器"</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 设置回调函数</span></span><br><span class="line">    setOnClickListener(callback:<span class="built_in">Function</span>)&#123;</span><br><span class="line">        <span class="keyword">this</span>.callback = callback</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> btn = <span class="keyword">new</span> Button()</span><br><span class="line">btn.setOnClickListener(<span class="function"><span class="keyword">function</span>(<span class="params">button:Button</span>)</span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"按钮被点击 "</span> + button.name)</span><br><span class="line">&#125;)</span><br><span class="line">btn.click()</span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例10：访问修饰符。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对于类中的属性、方法，支持三种修饰符private、protected、public。</span></span><br><span class="line"><span class="comment">// 它们的作用和Java一样。</span></span><br><span class="line"><span class="comment">// 测试发现，这些访问修饰符不可以修饰class</span></span><br></pre></td></tr></table></figure></p>
+<p><br>　　范例11：单例模式。<br><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> LoginUserManager &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> INSTANCE : LoginUserManager</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">constructor</span>(<span class="params"></span>) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> getInstance() : LoginUserManager &#123;</span><br><span class="line">        <span class="comment">// 若单例对象未创建，则执行创建</span></span><br><span class="line">        <span class="comment">// 若INSTANCE没有值，则表达式为false</span></span><br><span class="line">        <span class="keyword">if</span>(!LoginUserManager.INSTANCE) &#123;</span><br><span class="line">            LoginUserManager.INSTANCE = <span class="keyword">new</span> LoginUserManager()</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> LoginUserManager.INSTANCE</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">"单例对象 "</span> + LoginUserManager.getInstance())</span><br></pre></td></tr></table></figure></p>
+<p><br><br></p>
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="language-007/"
+           data-title="第七章 TypeScript" data-url="http://yoursite.com/language-007/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="键盘" />
+          <p class="site-author-name" itemprop="name">键盘</p>
+          <p class="site-description motion-element" itemprop="description">集大家之成，悟小家之道。</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">37</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="http://www.gov.cn/" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://weishu.me/" title="weishu" target="_blank">weishu</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://ryanhoo.github.io/" title="ryanhoo" target="_blank">ryanhoo</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#第一节-起源概述"><span class="nav-number">1.</span> <span class="nav-text">第一节 起源概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二节-TypeScript入门"><span class="nav-number">2.</span> <span class="nav-text">第二节 TypeScript入门</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基础语法"><span class="nav-number">2.1.</span> <span class="nav-text">基础语法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#面向对象"><span class="nav-number">2.2.</span> <span class="nav-text">面向对象</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">键盘</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"cutler"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("sGcgYofeKOFi2l1XvGrm0PcP-gzGzoHsz", "Sx0mWxj4pkXYm17zT0UnV5Ca");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>
