@@ -1,8 +1,8 @@
 ---
-title: 语言篇 第三章 Windows批处理
+title: 第三章 Windows批处理
 date: 2015-1-9 15:21:49
 author: Cutler
-categories: 计算机基础
+categories: 编程语言
 ---
 　　本章介绍一下`Windows`中常用的批处理命令，在日后的开发中不免会使用到它，比如`Android`的多渠道打包。
 
