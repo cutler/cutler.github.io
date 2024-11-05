@@ -222,3 +222,7 @@ video.unrulymedia.com, 322585001, RESELLER
 xandr.com, 13799, RESELLER
 xandr.com, 14082, RESELLER
 zmaticoo.com, 5135655, RESELLER
+improvedigital.com, 2451, RESELLER
+lijit.com, 516975, RESELLER, fafdf38b16bf6b2b
+sonobi.com, d2b13d1c36, RESELLER, d1a215d9eb5aee9e
+yieldmo.com, 3591550211052216798, RESELLER, 6a92c77cfc3d2258
