@@ -6,15 +6,15 @@
 
 
 <html class="theme-next mist use-motion">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -29,7 +29,7 @@
 
   
   
-  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
 
 
 
@@ -63,23 +63,23 @@
 
 
 
-<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
 
-<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
-
-
-  <meta name="keywords" content="Hexo, NexT" />
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
 
 
-
-
-
-  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml" />
+  <meta name="keywords" content="Hexo, NexT">
 
 
 
 
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
 
 
 
@@ -148,7 +148,7 @@
 <meta property="og:image" content="http://yoursite.com/img/android/android_g03_16.png">
 <meta property="og:image" content="http://yoursite.com/img/android/android_g03_17.png">
 <meta property="og:image" content="http://yoursite.com/img/android/android_g03_18.png">
-<meta property="og:updated_time" content="2022-11-14T03:33:48.584Z">
+<meta property="og:updated_time" content="2025-04-09T03:23:37.204Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="第三章 UI篇">
 <meta name="twitter:description" content="第一节 基础知识　　在Android的framework中已经提供了很多控件，每一个控件也都提供了很多的API接口，由于篇幅关系，在“UI篇”中只会列举出这些控件的基本用法，更复杂的用法请自行搜索。 概述　　在Android应用程序中，使用View和ViewGroup类来创建用户界面。 -  View对象是用户界面的基础单元，如文本框和按钮等。 -  ViewGroup对象是一个容器，可以包含Vi">
@@ -173,7 +173,7 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/android-a003/"/>
+  <link rel="canonical" href="http://yoursite.com/android-a003/">
 
   <title> 第三章 UI篇 | 不只是看客 </title>
 </head>
@@ -214,7 +214,7 @@
   
 
   <div class="custom-logo-site-title">
-    <a href="/"  class="brand" rel="start">
+    <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
       <span class="site-title">不只是看客</span>
       <span class="logo-line-after"><i></i></span>
@@ -333,7 +333,7 @@
           </span>
 
           
-            <span class="post-category" >
+            <span class="post-category">
               &nbsp; | &nbsp;
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -383,7 +383,7 @@
 -  ViewGroup对象是一个容器，可以包含View对象在其内部，各个View会按照不同的规则进行排列，像线性布局、相对布局。
 -  ViewGroup类是View类的子类，它内部既可以包含View对象，也可以包含另一个ViewGroup。 
 </code></pre><p><br><strong>View的层次结构</strong><br>　　通常，<code>Activity</code>的界面会众多控件组成，它们的组织结构是这样的：</p>
-<center><br><img src="/img/android/android_3_1.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_1.png" alt><br></center>
 
 <p><br>　　我们把这个结构，称为一个<code>“View hierarchy tree”</code>（View树）。</p>
 <p>　　提示：</p>
@@ -400,7 +400,7 @@
 </code></pre><p>　　当引用一个Android内部的资源<code>id</code>时，不需要<code>“+”</code>号，但必须像下例那样添加<code>android</code>包命名空间：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">android:id="@android:id/empty"</span><br></pre></td></tr></table></figure></p>
 <p>　　带有<code>android</code>包命名空间的地方，说明我们应用的是来自<code>android.R</code>资源类的一个<code>id</code>，而不是本地资源类。</p>
 <p><br><strong>布局参数</strong><br>　　每个<code>ViewGroup</code>类都实现了一个嵌套类，这个类继承了<code>ViewGroup.LayoutParams</code>。<br>　　这个子类封装了<code>ViewGroup</code>类的每个子<code>View</code>的布局信息（尺寸、位置等）。如下图所示：</p>
-<center><br><img src="/img/android/android_3_2.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_2.png" alt><br></center>
 
 <p>　　每个子元素都应该要定义适合它的父元素的<code>LayoutParam</code>子类：</p>
 <pre><code>比如被放入到LinearLayout的View对象应该为它指定一个LinearLayout.LayoutParams对象。
@@ -555,10 +555,10 @@
 <h3 id="EditText"><a href="#EditText" class="headerlink" title="EditText"></a>EditText</h3><p>　　文本框允许用户在应用程序中输入文本，在XML布局文件中添加<code>&lt;EditText&gt;</code>元素。</p>
 <p><br><strong>指定键盘类型</strong><br>　　<code>EditText</code>可以限制用户不同的输入类型，如数字，日期，密码，或电子邮件地址。<br>　　你可以使用<code>EditText</code>对象的<code>android:inputType</code>属性指定输入类型的键盘，例如：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">EditText</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:id</span>=<span class="string">"@+id/email_address"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"fill_parent"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:inputType</span>=<span class="string">"textEmailAddress"</span> /&gt;</span></span><br></pre></td></tr></table></figure></p>
 <p>　　默认类型的软键盘：</p>
-<center><br><img src="/img/android/android_3_5.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_5.png" alt><br></center>
 
 <p>　　textEmailAddress类型的软键盘：</p>
-<center><br><img src="/img/android/android_3_6.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_6.png" alt><br></center>
 
 <p>　　针对不同的情况有几种不同的输入类型。你可以找到所有的文件中列出的<code>android:inputType</code>属性值：</p>
 <pre><code>-  text：普通的文本键盘。
@@ -601,7 +601,7 @@
 <p><br>　　范例4：Editable接口。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  向当前对象中添加指定CharSequence对象。修改了Editable对象中的数据，会导致文本框中的数据同步改变。</span></span><br><span class="line"><span class="comment">//  若想获取EditText中的内容，可以调用Editable的toString方法。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> Editable <span class="title">append</span><span class="params">(CharSequence text)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">//  清空文本框中的数据。 </span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span></span></span><br></pre></td></tr></table></figure></p>
 <p><br>　　范例5：密码的显示和隐藏。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 明文显示密码。</span></span><br><span class="line">editText.setTransformationMethod(HideReturnsTransformationMethod.getInstance());</span><br><span class="line"><span class="comment">// 密文显示密码。</span></span><br><span class="line">editText.setTransformationMethod(PasswordTransformationMethod.getInstance());</span><br></pre></td></tr></table></figure></p>
 <h3 id="CheckBox"><a href="#CheckBox" class="headerlink" title="CheckBox"></a>CheckBox</h3><p>　　复选框（俗称<code>多选按钮</code>）允许用户从列表中选择一个或多个选项。通常，你应该在垂直的列表中显示每一个选项。</p>
-<center><br><img src="/img/android/android_3_8.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_8.png" alt><br></center>
 
 <p>　　当你要创建一个复选框时，你就必须要在你的布局文件中创建一个<code>CheckBox</code>字段。因为一组复选框选项允许用户选择多个选项，而且每个复选框分开管理，你必须为每一个选项注册点击监听器。</p>
 <p>　　在XML文件中使用<code>&lt;CheckBox&gt;</code>标签定义一个多选按钮，每个<code>&lt;CheckBox&gt;</code>标签都对应于<code>CheckBox</code>类的一个实例。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">CheckBox</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:id</span>=<span class="string">"@+id/java"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:text</span>=<span class="string">"Java"</span>/&gt;</span></span><br></pre></td></tr></table></figure></p>
@@ -612,7 +612,7 @@
 <p><br>　　<code>CheckBox</code>和<code>RadioButton</code>都继承自<code>TextView</code> ，因此它们都具有<code>TextView</code>类提供的方法。</p>
 <p><br>　　范例4：监听onClick事件。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCheckboxClicked</span><span class="params">(View view)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> isChecked = ((CheckBox) view).isChecked();</span><br><span class="line">    <span class="keyword">switch</span>(view.getId()) &#123;</span><br><span class="line">        <span class="keyword">case</span> R.id.checkbox_meat:</span><br><span class="line">            <span class="keyword">if</span> (isChecked)</span><br><span class="line">                <span class="comment">// Put some meat on the sandwich</span></span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="comment">// Remove the meat</span></span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> R.id.checkbox_cheese:</span><br><span class="line">            <span class="keyword">if</span> (isChecked)</span><br><span class="line">                <span class="comment">// Cheese me</span></span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="comment">// I'm lactose intolerant</span></span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="comment">// <span class="doctag">TODO:</span> Veggie sandwich</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <h3 id="RadioButton"><a href="#RadioButton" class="headerlink" title="RadioButton"></a>RadioButton</h3><p>　　复选框允许用户从一系列选项中选择其中某个选项。<br>　　如果认为有必要让用户看到所有并列的可选项，并且各个选项中只能有一个被选择，那么单选框是个好选择。 </p>
-<center><br><img src="/img/android/android_3_9.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_9.png" alt><br></center>
 
 <p>　　创建单个选项之前，需要在布局文件中创建选项按钮<code>RadioButton</code>。然而，因为复选按钮之间是互斥的，它们需要被放在同一个选项组框<code>RadioGroup</code>里。这样系统会认为在同一个选项组里每次只能有一个选项被选择。</p>
 <p>　　即：</p>
@@ -628,7 +628,7 @@
 -  一般来说会在RadioGroup对象上添加事件监听器，当RadioGroup中的某个按钮的状态被改变了，就会触发onCheckedChanged方法。
 -  当然直接在RadioButton上进行监听也是可以的，选择哪种方案就看具体情况了。
 </code></pre><h3 id="ToggleButton"><a href="#ToggleButton" class="headerlink" title="ToggleButton"></a>ToggleButton</h3><p>　　<code>ToggleButton</code>是一个开关按钮，与普通<code>Button</code>的区别在于它有两种状态，选中和未选中。<br>　　Android有两种开关按钮，在<code>Android4.0</code>之前，你可以添加一个基本的<code>ToggleButton</code>开关按钮对象到布局文件。 <code>Android 4.0</code>（API 级别14）中介绍了另外一种叫做<code>Switch</code>的切换按钮，这个按钮提供一个滑动控件，可以通过添加<code>Switch</code>对象来实现。</p>
-<center><br><img src="/img/android/android_3_10.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_10.png" alt><br></center>
 
 <p>　　<code>Toggle Button</code>和<code>Switch</code>控件都是<code>CompoundButton</code>的子类并且有着相同的功能，所以你可以用同样的方法来实现他们功能。</p>
 <p><br>　　范例1：开关按钮。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"fill_parent"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"fill_parent"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ToggleButton</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:textOn</span>=<span class="string">"开"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:textOff</span>=<span class="string">"关"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:checked</span>=<span class="string">"true"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:paddingRight</span>=<span class="string">"20dp"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:onClick</span>=<span class="string">"onClick"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:background</span>=<span class="string">"@drawable/toggle_btn_bg"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
@@ -728,7 +728,7 @@
 -  它的后缀名为“.9.png”。
 </code></pre><p>　　你可以使用<code>sdk\tools\draw9patch.bat</code>工具来将普通的<code>png</code>图片修改为<code>*.9.png</code>的图片，该工具非常直观的展示了图片在上下或左右拉伸时的效果以及作为背景时其内容显示的位置。<br>　　虽然<code>.9.png</code>图片是在<code>.png</code>基础上制作出来的，但它的引用方式和<code>png</code>图片完全一样。<br>　　<code>NinePatchDrawable</code>也可以在<code>XML</code>文件中定义，使用<code>&lt;nine-patch&gt;</code>标签即可，它支持的属性与<code>BitmapDrawable</code>一致。</p>
 <h3 id="LayerDrawable"><a href="#LayerDrawable" class="headerlink" title="LayerDrawable"></a>LayerDrawable</h3><p>　　<code>LayerDrawable</code>表示一种层次化的图像，它可以将多张图片叠加成一张图片，效果如下：</p>
-<center><br><img src="/img/android/android_4_7.png" alt=""><br></center>
+<center><br><img src="/img/android/android_4_7.png" alt><br></center>
 
 <p><br>　　语法：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">layer-list</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span> &gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:drawable</span>=<span class="string">"@[package:]drawable/drawable_resource"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">"@[+][package:]id/resource_name"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:top</span>=<span class="string">"dimension"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:right</span>=<span class="string">"dimension"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:bottom</span>=<span class="string">"dimension"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:left</span>=<span class="string">"dimension"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">layer-list</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
 <p><br>　　范例1：在<code>res/drawable</code>目录下建立<code>icon.xml</code>。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">layer-list</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">"@drawable/b"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">"@drawable/a"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">layer-list</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
@@ -737,7 +737,7 @@
 -  当layer-list下有多个&lt;item&gt;时，先出现的&lt;item&gt;元素会被放在下面。如：在本范例中a图片会放在b的图片的上面。
 </code></pre><p><br>　　范例2：其他属性。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">layer-list</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:drawable</span>=<span class="string">"@drawable/icon"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:top</span>=<span class="string">"140dp"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:right</span>=<span class="string">"150dp"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:left</span>=<span class="string">"150dp"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:bottom</span>=<span class="string">"20dp"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">layer-list</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
 <p>　　效果图：</p>
-<center><br><img src="/img/android/android_4_8.png" alt=""><br></center>
+<center><br><img src="/img/android/android_4_8.png" alt><br></center>
 
 <p>　　<code>&lt;item&gt;</code>标签：</p>
 <pre><code>-  top、right、left、bottom属性，
@@ -754,7 +754,7 @@
 <pre><code>语句解释：
 -  动态更新图片后，需要重新设置LayerDrawable对象。
 </code></pre><p><br>　　范例5：实现如下效果。</p>
-<center><br><img src="/img/android/android_4_9.png" alt=""><br></center>
+<center><br><img src="/img/android/android_4_9.png" alt><br></center>
 
 <p>　　代码为：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">layer-list</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">bitmap</span> <span class="attr">android:src</span>=<span class="string">"@drawable/android_red"</span> <span class="attr">android:gravity</span>=<span class="string">"center"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">item</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:top</span>=<span class="string">"10dp"</span> <span class="attr">android:left</span>=<span class="string">"10dp"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">bitmap</span> <span class="attr">android:src</span>=<span class="string">"@drawable/android_green"</span> <span class="attr">android:gravity</span>=<span class="string">"center"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">item</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:top</span>=<span class="string">"20dp"</span> <span class="attr">android:left</span>=<span class="string">"20dp"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">bitmap</span> <span class="attr">android:src</span>=<span class="string">"@drawable/android_blue"</span> <span class="attr">android:gravity</span>=<span class="string">"center"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">item</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">layer-list</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
 <pre><code>语句解释：
@@ -834,12 +834,12 @@
 <pre><code>语句解释：
 -  各个标签书写的顺序是任意的。
 </code></pre><p>　　效果图：</p>
-<center><br><img src="/img/android/android_4_10.png" alt=""><br></center>
+<center><br><img src="/img/android/android_4_10.png" alt><br></center>
 
 <p><br>　　范例3：各标签的介绍。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">corners</span>&gt;</span>标签：为形状创建圆角，只有当形状为矩形时才有用。</span><br><span class="line">-  android:radius：尺寸数，所有的角的半径，优先级比较低，会被下面四个属性的值覆盖。</span><br><span class="line">-  android:topLeftRadius尺寸数，左上角的半径。</span><br><span class="line">-  android:topRightRadius尺寸数，右上角的半径。</span><br><span class="line">-  android:bottomLeftRadius尺寸数，左下角的半径。</span><br><span class="line">-  android:bottomRightRadius尺寸数，右下角的半径。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">size</span>&gt;</span>标签：指定shape的大小。</span><br><span class="line">但一般来说它并不是shape最终显示的大小，因为当shape被作为View的背景显示时，还是会被拉伸或缩小。</span><br><span class="line">-  android:height：形状的高。</span><br><span class="line">-  android:width：形状的宽。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">solid</span>&gt;</span>标签：固定颜色填充形状。</span><br><span class="line">-  android:color：颜色，用到形状上的颜色，作为一个十六进制值或颜色资源。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">stroke</span>&gt;</span>标签：指出图形的边缘线的粗细、颜色、间隔等。</span><br><span class="line">-  android:width：线的宽度(粗细)，单位：尺寸值或尺寸资源。</span><br><span class="line">-  android:color：线的颜色，单位：十六进制值或者颜色资源。</span><br><span class="line">-  android:dashGap：虚线与虚线之前的间隔距离，单位：尺寸值或尺寸资源。</span><br><span class="line">-  android:dashWidth：每段虚线的长度，单位：尺寸值或尺寸资源。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">gradient</span>&gt;</span>标签：可以设置图形内部的渐变色。</span><br><span class="line">-  android:angle：渐变的角度，0度为从左到右，90度是从底到上，必须是45度的倍数，默认为0。</span><br><span class="line">-  android:centerX：距离渐变中心的X坐标的相对位置(0 ~ 1.0)。</span><br><span class="line">-  android:centerY：距离渐变中心的Y坐标的相对位置(0 ~ 1.0)。</span><br><span class="line">-  android:gradientRadius：渐变的半径，只有当android:type="radial"才使用</span><br><span class="line">-  android:startColor：开始颜色，作为一个十六进制值或者颜色资源。</span><br><span class="line">-  android:endColor：结束颜色，作为一个十六进制值或颜色资源。</span><br><span class="line">-  android:centerColor：可选择开始到结束之间的颜色，作为一个十六进制值或颜色资源。</span><br><span class="line">-  android:type：渐变模式，有效值如下：</span><br><span class="line">   -  linear：线性渐变，默认选择。</span><br><span class="line">   -  radial：辐射渐变，开始颜色也是结束颜色。</span><br><span class="line">   -  sweep：卷曲线渐变。</span><br></pre></td></tr></table></figure></p>
 <p><br>　　范例4：渐变色。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">shape</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:shape</span>=<span class="string">"oval"</span> &gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">size</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:height</span>=<span class="string">"100dp"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:width</span>=<span class="string">"160dp"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">stroke</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:width</span>=<span class="string">"1dp"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:color</span>=<span class="string">"#f00"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">gradient</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:angle</span>=<span class="string">"45"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:endColor</span>=<span class="string">"#80FF00FF"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:startColor</span>=<span class="string">"#FFFF0000"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">shape</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
 <p>　　效果图：</p>
-<center><br><img src="/img/android/android_4_11.png" alt=""><br></center>
+<center><br><img src="/img/android/android_4_11.png" alt><br></center>
 
 <p><br>　　值得注意的是，只有当<code>android:shape=&quot;ring&quot;</code>时<code>&lt;shape&gt;</code>标签的下面的属性才能使用：</p>
 <pre><code>-  android:innerRadius：内环半径。
@@ -912,7 +912,7 @@
 <p>　　在Android中提供了三种不同的技术来通知用户事件的发生： </p>
 <pre><code>Toast、Dialog、Notification
 </code></pre><h2 id="Toast"><a href="#Toast" class="headerlink" title="Toast"></a>Toast</h2><p>　　土司是在屏幕上弹出一个消息，它在显示1~3秒后会消失，而且不接受交互事件，如下图所示：</p>
-<center><br><img src="/img/android/android_3_21.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_21.png" alt><br></center>
 
 <p>　　<code>Toast</code>仅填充了消息要求的空间大小，并且依然保留当前Activity的可见性和交互性。</p>
 <p>　　应用场景：</p>
@@ -936,7 +936,7 @@
 <p>　　应用场景：</p>
 <pre><code>它通常用来显示一个需要用户确认的短消息（例如带有“确定”按钮的提醒），除非用户响应，否则对话框不会自动消失。
 </code></pre><p><br>　　常见的对话框如下图所示：</p>
-<center><br><img src="/img/android/android_3_24.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_24.png" alt><br></center>
 
 <p><br>　　<code>Dialog</code>类是所有对话框的基类，但你应该避免直接实例化<code>Dialog</code>。相反，应该使用以下子类：</p>
 <pre><code>-  AlertDialog：可以显示0~3个按钮的对话框，并且能够包含一个单选或多选按钮列表。
@@ -948,10 +948,10 @@
 -  Toast对象则没有这个要求，它可以接收任何Context对象，因为它不依赖于某个Activity。
 -  在非main线程中是不可以Toast和显示Dialog的。
 </code></pre><h3 id="AlertDialog"><a href="#AlertDialog" class="headerlink" title="AlertDialog"></a>AlertDialog</h3><p>　　警告对话框<code>AlertDialog</code>是Dialog最常用的一个子类。一个警告对话框有三个地区，如下图所示：</p>
-<center><br><img src="/img/android/android_3_25.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_25.png" alt><br></center>
 
 <p>　　<strong>1. 标题</strong><br>　　这是可选的。如果你需要显示一个简单的信息（如下图），则就不需要使用标题。</p>
-<center><br><img src="/img/android/android_3_26.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_26.png" alt><br></center>
 
 <p>　　<strong>2. 内容区域。 </strong><br>　　对话框的正文部分。这里可以显示一个文本消息，一个列表，或其他自定义布局。</p>
 <p>　　<strong>3. 动作按钮。 </strong><br>　　用户可点击的按钮，在<code>AlertDialog</code>对话框中最多只支持三个按钮。</p>
@@ -969,7 +969,7 @@
 -  单选列表(包含多个单选按钮)。
 -  多选列表(包含多个多选按钮)。
 </code></pre><p>　　创建一个像下图所示的传统的单一选择列表需要调用<code>setItems()</code>方法：</p>
-<center><br><img src="/img/android/android_3_27.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_27.png" alt><br></center>
 
 <p>　　由于这个列表显示在对话框的内容区域中，所以你不可以同时显示文本消息和列表，也就是说<code>AlertDialog.Builder</code>类的<code>setItems()</code>方法和<code>setMessage()</code>方法不可以同时使用。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View view)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> String[] array = &#123; <span class="string">"A"</span>, <span class="string">"B"</span>, <span class="string">"C"</span>, <span class="string">"D"</span> &#125;;</span><br><span class="line">    <span class="comment">// 创建一个事件监听器。</span></span><br><span class="line">    OnClickListener listener = <span class="keyword">new</span> OnClickListener() &#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(DialogInterface dialog, <span class="keyword">int</span> which)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (AlertDialog.BUTTON_POSITIVE == which) &#123;</span><br><span class="line">                Toast.makeText(getApplicationContext(), <span class="string">"POSITIVE "</span>, <span class="number">0</span>).show();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            Toast.makeText(getApplicationContext(), <span class="string">"您点击的 "</span> + array[which], <span class="number">0</span>).show();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">int</span> i = AlertDialog.BUTTON_NEGATIVE;</span><br><span class="line">    <span class="comment">// 创建一个对话框。</span></span><br><span class="line">    AlertDialog.Builder dialog = <span class="keyword">new</span> AlertDialog.Builder(<span class="keyword">this</span>);</span><br><span class="line">    dialog.setIcon(R.drawable.icon);</span><br><span class="line">    dialog.setTitle(R.string.title);</span><br><span class="line">    dialog.setCancelable(<span class="keyword">false</span>);</span><br><span class="line">    dialog.setPositiveButton(<span class="string">"哈哈,知道了!"</span>, listener);</span><br><span class="line">    dialog.setItems(array, listener);</span><br><span class="line">    dialog.show();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <pre><code>语句解释：
@@ -1035,7 +1035,7 @@
 </code></pre><p><br>　　范例1：自定义布局文件(<code>layout.xml</code>)。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:orientation</span>=<span class="string">"vertical"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">"fill_parent"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">"fill_parent"</span> &gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">EditText</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">"@+id/text"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Button</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:text</span>=<span class="string">"点击"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">"@+id/btn"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
 <p><br>　　范例2：自定义对话框的内容。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Dialog dialog = <span class="keyword">new</span> Dialog(<span class="keyword">this</span>);</span><br><span class="line"><span class="comment">// 初始化对话框。</span></span><br><span class="line">dialog.setTitle(<span class="string">"对话框的标题"</span>);</span><br><span class="line">dialog.setCancelable(<span class="keyword">false</span>);</span><br><span class="line"><span class="comment">// 获取布局文件的根节点。</span></span><br><span class="line">LayoutInflater inflater = LayoutInflater.from(getApplicationContext());;</span><br><span class="line">LinearLayout layout = (LinearLayout) inflater.inflate(R.layout.layout, <span class="keyword">null</span>);</span><br><span class="line"><span class="comment">// 获取布局中的控件。</span></span><br><span class="line">Button okBtn = (Button) layout.findViewById(R.id.btn);</span><br><span class="line">EditText input_psw = (EditText) layout.findViewById(R.id.text);</span><br><span class="line"><span class="comment">// 在下面可以为按钮添加OnClickListener 、为TextView设置文本信息。</span></span><br><span class="line"><span class="comment">// ......</span></span><br><span class="line"><span class="comment">// 最后，将布局的根节点添加到View中。</span></span><br><span class="line">dialog.addContentView(layout, <span class="keyword">new</span> LinearLayout.LayoutParams(<span class="number">220</span>,<span class="number">150</span>));</span><br><span class="line"><span class="comment">// 显示对话框。</span></span><br><span class="line">dialog.show();</span><br></pre></td></tr></table></figure></p>
 <h2 id="Pickers"><a href="#Pickers" class="headerlink" title="Pickers"></a>Pickers</h2><p>　　Android给用户提供了选择<code>时间</code>（小时，分钟，上午/下午）或<code>日期</code>（月，日，年）的控件，使用这些选择器有助于确保用户可以选择一个有效的、格式正确的时间或日期，并自动调整到用户的所在区域。</p>
-<center><br><img src="/img/android/android_3_28.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_28.png" alt><br></center>
 
 <p><br>　　范例1：创建一个时间选择器。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> <span class="keyword">implements</span> <span class="title">OnTimeSetListener</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        <span class="keyword">final</span> Calendar c = Calendar.getInstance();</span><br><span class="line">        <span class="keyword">int</span> hour = c.get(Calendar.HOUR_OF_DAY);</span><br><span class="line">        <span class="keyword">int</span> minute = c.get(Calendar.MINUTE);</span><br><span class="line">        <span class="comment">//  创建一个TimePickerDialog对象。构造方法：</span></span><br><span class="line">        <span class="comment">//  TimePickerDialog(Context context, TimePickerDialog.OnTimeSetListener callBack, int hourOfDay, int minute, boolean is24HourView)</span></span><br><span class="line">        <span class="comment">//  参数：</span></span><br><span class="line">        <span class="comment">//  -  callBack：当用户选择完时间后，会调用此接口中定义的回调方法。</span></span><br><span class="line">        <span class="comment">//  -  hourOfDay、minute ：时间选择器默认的小时、分钟。</span></span><br><span class="line">        <span class="comment">//  -  is24HourView：是否按24小时制。</span></span><br><span class="line">        Dialog d = <span class="keyword">new</span> TimePickerDialog(<span class="keyword">this</span>, <span class="keyword">this</span>, hour, minute, DateFormat.is24HourFormat(<span class="keyword">this</span>));</span><br><span class="line">        d.show();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onTimeSet</span><span class="params">(TimePicker view, <span class="keyword">int</span> hourOfDay, <span class="keyword">int</span> minute)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// TODO Auto-generated method stub</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p><br>　　范例2：创建一个日期选择器。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line"></span><br><span class="line">        Dialog d = <span class="keyword">new</span> DatePickerDialog(<span class="keyword">this</span>, <span class="keyword">new</span> OnDateSetListener() &#123;</span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onDateSet</span><span class="params">(DatePicker view, <span class="keyword">int</span> year, <span class="keyword">int</span> monthOfYear, <span class="keyword">int</span> dayOfMonth)</span> </span>&#123;</span><br><span class="line">                Toast.makeText(getApplicationContext(), year + <span class="string">"年"</span> + monthOfYear + <span class="string">"月"</span> + dayOfMonth + <span class="string">"日"</span>, <span class="number">1</span>).show();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, <span class="number">2011</span>, <span class="number">10</span>, <span class="number">28</span>);</span><br><span class="line">        d.show();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
@@ -1045,9 +1045,9 @@
 -  使用java.util包中的Calendar类可以截取出当前Date对象的各个部分。
 </code></pre><p><br>　　提示：系统自带的Pickers会依据系统的版本不同而拥有不同的外观，我们可以使用开源项目：<a href="https://github.com/aizhang/Android-Holo-DateTimePicker" target="_blank" rel="noopener"> Android-Holo-DateTimePicker </a>来统一风格。</p>
 <h2 id="Notification"><a href="#Notification" class="headerlink" title="Notification"></a>Notification</h2><p>　　<code>Notification</code>（通知）是一个被放到系统状态栏中的消息：</p>
-<center><br><img src="/img/android/android_3_22.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_22.png" alt><br></center>
 
-<center><br><img src="/img/android/android_3_23.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_23.png" alt><br></center>
 
 <p>　　它与对话框一样都是用来告诉用户有事件发生了，不同的是，对话框需要用户立刻处理事件，而通知由于被放到了状态栏中，所以用户可以自己选择在适当的时候处理此事件。</p>
 <p>　　应用场景：</p>
@@ -1064,7 +1064,7 @@
 <p><br>　　<strong>3. PendingIntent</strong><br>　　对于一个通知而言，它能显示的消息是有限的（仅显示一些概要信息），所以我们需要给它设置一个事件回调，当用户点击它的时候，就打开一个Activity（或其它组件）来显示详细的内容。<br>　　这个点击回调就用<code>PendingIntent</code>类表示：</p>
 <pre><code>PendingIntent是对Intent的包装，通过名称可以看出PendingIntent可以译为“延期意图”，它用于表示即将发生的意图，而Intent用来表示马上发生的意图，对于通知来说，它是系统级的全局通知，并不确定这个意图被执行的时间。
 </code></pre><h3 id="标准视图"><a href="#标准视图" class="headerlink" title="标准视图"></a>标准视图</h3><p>　　从官方文档了解到，一个标准视图显示的大小要保持在<code>64dp</code>高，宽度为屏幕标准。标准视图的通知主体内容有一下几个：</p>
-<center><br><img src="/img/android/android_3_30.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_30.png" alt><br></center>
 
 <pre><code>1. 通知标题（contentTitle）。
 2. 大图标（largeIcon）。
@@ -1074,13 +1074,13 @@
 6. 通知的时间，一般为系统时间，也可以使用setWhen()设置。
 </code></pre><p>　　下面通过一个示例，模仿上面效果的通知。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line"></span><br><span class="line">        NotificationCompat.Builder mBuilder = <span class="keyword">new</span> NotificationCompat.Builder(MainActivity.<span class="keyword">this</span>);</span><br><span class="line">        mBuilder.setSmallIcon(R.drawable.ic_launcher);</span><br><span class="line">        mBuilder.setContentTitle(<span class="string">"5 new message"</span>);</span><br><span class="line">        mBuilder.setContentText(<span class="string">"twain@android.com"</span>);</span><br><span class="line">        <span class="comment">//  状态栏通知区域上一闪而过的文本消息。</span></span><br><span class="line">        mBuilder.setTicker(<span class="string">"New message"</span>);</span><br><span class="line">        mBuilder.setNumber(<span class="number">12</span>);</span><br><span class="line">        <span class="comment">//  设置大图标。如果不设置大图标，则小图标会被显示到大图标所在的位置上。</span></span><br><span class="line">        Bitmap btm = BitmapFactory.decodeResource(getResources(),R.drawable.ic_action_download);</span><br><span class="line">        mBuilder.setLargeIcon(btm);</span><br><span class="line">        <span class="comment">//  当通知被点击后，通知会自动从状态栏中删除。</span></span><br><span class="line">        mBuilder.setAutoCancel(<span class="keyword">true</span>);</span><br><span class="line">        <span class="comment">//  构建一个Intent</span></span><br><span class="line">        Intent resultIntent = <span class="keyword">new</span> Intent(MainActivity.<span class="keyword">this</span>, MainActivity.class);</span><br><span class="line">        <span class="comment">//  当用户点击了通知栏上的通知时，系统会触发执行这个PendingIntent对象。</span></span><br><span class="line">        <span class="comment">//  相应的PendingIntent类还提供了getService、getBroadcas两个方法。</span></span><br><span class="line">        PendingIntent resultPendingIntent = PendingIntent.getActivity(</span><br><span class="line">                MainActivity.<span class="keyword">this</span>, <span class="number">0</span>, resultIntent,</span><br><span class="line">                PendingIntent.FLAG_UPDATE_CURRENT);</span><br><span class="line">        <span class="comment">//  设置通知主题的意图</span></span><br><span class="line">        mBuilder.setContentIntent(resultPendingIntent);</span><br><span class="line">        <span class="comment">//  获取通知管理器对象</span></span><br><span class="line">        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);</span><br><span class="line">        mNotificationManager.notify(<span class="number">0</span>, mBuilder.build());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>　　显示效果：</p>
-<center><br><img src="/img/android/android_3_31.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_31.png" alt><br></center>
 
 <p><br><strong>更新与移除通知</strong><br>　　在使用<code>NotificationManager.notify()</code>发送通知的时候，需要同时传递一个标识符，用于唯一标识这个通知。</p>
 <p>　　对于一个通知，当展示在状态栏之后，如何取消呢？Android为我们提供两种方式移除通知：<br>　　第一种是<code>Notification</code>自己维护，使用<code>setAutoCancel()</code>方法设置是否维护。<br>　　第二种是使用<code>NotificationManager</code>通知管理器对象来维护，它通过<code>notify()</code>发送通知的时候，指定的通知标识<code>id</code>来操作通知，可以使用<code>cancel(int)</code>来移除一个指定的通知，也可以使用<code>cancelAll()</code>移除所有的通知。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  使用NotificationManager移除指定通知示例。</span></span><br><span class="line">NotificationManager mNotificationManager = (NotificationManager) </span><br><span class="line">              getSystemService(Context.NOTIFICATION_SERVICE);</span><br><span class="line">mNotificationManager.cancel(<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
 <h3 id="大视图"><a href="#大视图" class="headerlink" title="大视图"></a>大视图</h3><p>　　而对于大视图（Big View）而言，它的细节区域只能显示<code>256dp</code>高度的内容，并且只对<code>Android4.1+</code>之后（但在之前的版本中也不会报错）的设备才支持，它比标准视图不一样的地方，均需要使用<code>setStyle()</code>方法设定，它大致的效果如下：</p>
-<center><br><img src="/img/android/android_3_32.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_32.png" alt><br></center>
 
 <p>　　<code>setStyle()</code>传递一个<code>NotificationCompat.Style</code>对象，它是一个抽象类，Android为我们提供了三个实现类，用于显示不同的场景。分别是：</p>
 <pre><code>-  NotificationCompat.BigPictureStyle，在细节部分显示一个256dp高度的位图。
@@ -1088,7 +1088,7 @@
 -  NotificationCompat.InboxStyle，在细节部分显示多行文本。
 </code></pre><p><br>　　下面会以一个示例来展示<code>InboxStyle</code>的使用，模仿上面图片的显示。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        </span><br><span class="line">        Bitmap btm = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);</span><br><span class="line">        Intent intent = <span class="keyword">new</span> Intent(<span class="keyword">this</span>, MainActivity.class);</span><br><span class="line">        PendingIntent pendingIntent = PendingIntent.getActivity(<span class="keyword">this</span>, <span class="number">0</span>, intent,PendingIntent.FLAG_CANCEL_CURRENT);</span><br><span class="line">        Notification noti = <span class="keyword">new</span> NotificationCompat.Builder(<span class="keyword">this</span>)</span><br><span class="line">            .setSmallIcon(R.drawable.ic_launcher)</span><br><span class="line">            .setLargeIcon(btm)</span><br><span class="line">            .setNumber(<span class="number">13</span>)</span><br><span class="line">            .setContentText(<span class="string">"ContentText"</span>)</span><br><span class="line">            .setContentTitle(<span class="string">"ContentTitle"</span>)</span><br><span class="line">            .setContentIntent(pendingIntent)</span><br><span class="line">            <span class="comment">// 设置通知被展开时，所显示的内容。</span></span><br><span class="line">            .setStyle(<span class="keyword">new</span> NotificationCompat.InboxStyle()</span><br><span class="line">                <span class="comment">// 一行行的增加文本。</span></span><br><span class="line">                .addLine(<span class="string">"M.Twain (Google+) Haiku is more than a cert..."</span>)</span><br><span class="line">                .addLine(<span class="string">"M.Twain Reminder"</span>)</span><br><span class="line">                .addLine(<span class="string">"M.Twain Lunch?"</span>)</span><br><span class="line">                .addLine(<span class="string">"M.Twain Revised Specs"</span>)</span><br><span class="line">                .addLine(<span class="string">"M.Twain "</span>)</span><br><span class="line">                .addLine(<span class="string">"Google Play Celebrate 25 billion apps with Goo.."</span>)</span><br><span class="line">                .addLine(<span class="string">"Stack Exchange StackOverflow weekly Newsl..."</span>)</span><br><span class="line">                .setBigContentTitle(<span class="string">"6 new message"</span>)</span><br><span class="line">                .setSummaryText(<span class="string">"mtwain@android.com"</span>))</span><br><span class="line">        .build();</span><br><span class="line">        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);</span><br><span class="line">        mNotificationManager.notify(<span class="number">0</span>, noti);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>　　显示效果：</p>
-<center><br><img src="/img/android/android_3_33.png" alt=""><br></center>
+<center><br><img src="/img/android/android_3_33.png" alt><br></center>
 
 <p>　　值得注意的是，不同厂家的手机对大视图风格的通知有不同的展现形式，比如：</p>
 <pre><code>-  在三星S5手机上，当程序向状态栏中添加大视图风格的通知时，默认情况该通知会被折叠起来（即和正常通知的大小一样），用户可以通过滑动来展开通知，通知一旦被展开则无法重新折叠回去。
@@ -1266,7 +1266,7 @@
 -  如果你是小米手机则默认是无法在屏幕上添加View的，去应用程序设置里，把权限给打开即可。
 </code></pre><p><br><strong>优先级</strong><br>　　事实上<code>WindowManager</code>中可以放置很多个<code>View</code>（控件），控件之间有优先级之分，<code>优先级高的将被放到优先级低的上面</code>。若最高优先级控件的宽高是<code>“MATCH_PARENT”</code>，则其下面的控件都将被完全遮住，<code>若优先级相同则后加入的会被放到上面显示</code>。<br><br>　　我们来看一下下面的代码：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_PHONE, <span class="string">"Phone1"</span>);</span><br><span class="line">        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_PHONE, <span class="string">"Phone2"</span>);</span><br><span class="line">        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY, <span class="string">"Overlay"</span>);</span><br><span class="line">        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, <span class="string">" Alert "</span>);</span><br><span class="line">        addTextViewToScreen(getApplication(), WindowManager.LayoutParams.TYPE_PHONE, <span class="string">"Phone3"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> offsetY;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">addTextViewToScreen</span><span class="params">(Context context, <span class="keyword">int</span> type, String text)</span></span>&#123;</span><br><span class="line">        WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);</span><br><span class="line">        WindowManager.LayoutParams params = <span class="keyword">new</span> WindowManager.LayoutParams();</span><br><span class="line">        params.width = WindowManager.LayoutParams.WRAP_CONTENT;</span><br><span class="line">        params.height = <span class="number">70</span>;</span><br><span class="line">        params.type = type;</span><br><span class="line">        <span class="comment">// 设置View在y轴上的坐标值，相应的也可以设置x值。</span></span><br><span class="line">        params.y = offsetY;</span><br><span class="line">        offsetY += <span class="number">60</span>;</span><br><span class="line">        TextView textView = <span class="keyword">new</span> TextView(context);</span><br><span class="line">        textView.setText(text);</span><br><span class="line">        manager.addView(textView, params);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p><br>　　程序的运行效果为：</p>
-<center><br><img src="/img/android/android_b09_01.png" alt=""><br></center>
+<center><br><img src="/img/android/android_b09_01.png" alt><br></center>
 
 <p><br>　　从上图可以看出：</p>
 <pre><code>-  Phone2与Phone1是同级别的，但是Phone2却在Phone1上面。
@@ -1280,7 +1280,7 @@
 -  这里所说的更新控件，其实就是更新控件的LayoutParams对象。
 </code></pre><p><br></p>
 <h4 id="百度安全卫士"><a href="#百度安全卫士" class="headerlink" title="百度安全卫士"></a>百度安全卫士</h4><p>　　如果你基础不错的话，通过上面学的知识，就可以模仿<code>360的小火箭特效</code>了（具体请参考郭霖的博客），笔者仿写了一个百度安全卫士内存清理动画的<code>Demo</code>，程序运行效果如下：</p>
-<center><br><img src="http://img.blog.csdn.net/20150602150418233?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvZ2l0aHViXzI4NTU0MTgz/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt=""><br></center>
+<center><br><img src="http://img.blog.csdn.net/20150602150418233?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvZ2l0aHViXzI4NTU0MTgz/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt><br></center>
 
 <p>　　从上图中可以看出，仿写的效果和正牌还是有一些差距的，但是通过这个<code>Demo</code>可以让大家更深刻的理解<code>WindowManager</code>类可以做哪些事情。</p>
 <p>　　<a href="http://download.csdn.net/detail/github_28554183/8764099" target="_blank" rel="noopener">点击下载源码</a></p>
@@ -1306,7 +1306,7 @@
 -  使用自定义控件时，控件的名称要包含包名。
 -  由于笔者将MyView放到了com.cutler.demo.common.view包中，所以才这么写。
 </code></pre><p><br>　　最后，程序的运行效果如下图所示：</p>
-<center><br><img src="/img/android/android_b08_05.png" alt=""><br></center>
+<center><br><img src="/img/android/android_b08_05.png" alt><br></center>
 
 <p><br>　　提示：</p>
 <pre><code>-  在Android中，View类占据了屏幕上一个“矩形区域”，并负责绘制和处理事件。
@@ -1498,7 +1498,7 @@
 </code></pre><p>　　千言万语汇成一句话：想创新，先模仿！</p>
 <p>　　在绘制<code>View</code>时会涉及到两个类：<code>Paint</code>和<code>Canvas</code>，这两个类分别代表<code>画笔</code>和<code>画布</code>。<br>　　我们需要调用<code>Canvas</code>对象所提供的方法进行绘制，其中<code>Canvas</code>对象由系统创建，在View的<code>onDraw()</code>方法被调用时，系统会同时将<code>Canvas</code>对象以形参的形式传递给该方法。</p>
 <p>　　<code>Canvas</code>对象提供的绘制图形的方法都是以<code>draw</code>开头的，我们可以查看<code>API</code>：</p>
-<center><br><img src="/img/android/android_b08_03.jpg" alt=""><br></center>
+<center><br><img src="/img/android/android_b08_03.jpg" alt><br></center>
 
 <p>　　从上面方法的名字看来我们可以知道<code>Canvas</code>可以绘制的对象有：弧线(<code>arcs</code>)、填充颜色(<code>argb</code>和<code>color</code>)、 <code>Bitmap</code>、圆(<code>circle</code>和<code>oval</code>)、点(<code>point</code>)、线(<code>line</code>)、矩形(<code>Rect</code>)、图片(<code>Picture</code>)、圆角矩形 (<code>RoundRect</code>)、文本(<code>text</code>)、顶点(<code>Vertices</code>)、路径(<code>path</code>)。</p>
 <p>　　通过组合这些对象我们可以画出一些简单有趣的界面出来，但是光有这些功能还是不够的，如果我们要画一个钟表呢？<br>　　幸好Android还提供了一些对<code>Canvas</code>位置转换的方法：<code>rorate</code>、<code>scale</code>、<code>translate</code>、<code>skew</code>等，而且它允许你通过获得它的矩阵对象（<code>getMatrix</code>方法，不知道什么是矩阵？以后会介绍）直接操作它。</p>
@@ -1508,7 +1508,7 @@
 <pre><code>语句解释：
 -  调用drawPosText方法时，float数组的长度必须是text.length*2。
 </code></pre><p><br>　　范例2：测量文字宽度，运行效果如下图所示：</p>
-<center><br><img src="/img/android/android_g03_01.png" alt=""><br></center>
+<center><br><img src="/img/android/android_g03_01.png" alt><br></center>
 
 <p>　　代码：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDraw</span><span class="params">(Canvas canvas)</span> </span>&#123;</span><br><span class="line">    String s = <span class="string">"Hello. I'm some text!"</span>;</span><br><span class="line"></span><br><span class="line">    Paint p = <span class="keyword">new</span> Paint();</span><br><span class="line">    p.setTextSize(<span class="number">60</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 也可以使用TypedValue类来计算字体的大小，比如设置字体为24sp：</span></span><br><span class="line">    <span class="comment">// DisplayMetrics dm = getResources().getDisplayMetrics();</span></span><br><span class="line">    <span class="comment">// p.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24, dm));</span></span><br><span class="line"></span><br><span class="line">    drawText(s, <span class="number">100</span>, <span class="number">100</span>, p, canvas);</span><br><span class="line">    p.setTextSkewX(-<span class="number">0.6f</span>);</span><br><span class="line">    drawText(s, <span class="number">100</span>, <span class="number">400</span>, p, canvas);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">drawText</span><span class="params">(String s, <span class="keyword">int</span> x, <span class="keyword">int</span> y, Paint p, Canvas canvas)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 使用measureText方法测量字符串宽度</span></span><br><span class="line">    canvas.drawText(s, x, y, p);</span><br><span class="line">    canvas.drawLine(x, y, x + p.measureText(s), y, p);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用getTextBounds方法测量字符串宽度</span></span><br><span class="line">    y += <span class="number">100</span>;</span><br><span class="line">    canvas.drawText(s, x, y, p);</span><br><span class="line">    Rect bounds = <span class="keyword">new</span> Rect();</span><br><span class="line">    <span class="comment">// 字符串的宽高会为放到bounds里面。</span></span><br><span class="line">    p.getTextBounds(s, <span class="number">0</span>, s.length(), bounds);</span><br><span class="line">    canvas.drawLine(x, y, x + bounds.width(), y, p);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <pre><code>语句解释：
@@ -1961,8 +1961,7 @@
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="android-a003/"
-           data-title="第三章 UI篇" data-url="http://yoursite.com/android-a003/">
+      <div class="ds-thread" data-thread-key="android-a003/" data-title="第三章 UI篇" data-url="http://yoursite.com/android-a003/">
       </div>
     
   </div>
@@ -1987,7 +1986,7 @@
 
       
         <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
             文章目录
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
@@ -1998,9 +1997,7 @@
 
       <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <img class="site-author-image" itemprop="image"
-               src="/images/avatar.jpg"
-               alt="键盘" />
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="键盘">
           <p class="site-author-name" itemprop="name">键盘</p>
           <p class="site-description motion-element" itemprop="description">集大家之成，悟小家之道。</p>
         </div>
@@ -2087,7 +2084,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright" >
+        <div class="copyright">
   
   &copy;  2014 - 
   <span itemprop="copyrightYear">2025</span>

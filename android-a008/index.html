@@ -6,15 +6,15 @@
 
 
 <html class="theme-next mist use-motion">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -29,7 +29,7 @@
 
   
   
-  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
 
 
 
@@ -63,23 +63,23 @@
 
 
 
-<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
 
-<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
-
-
-  <meta name="keywords" content="Hexo, NexT" />
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
 
 
-
-
-
-  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml" />
+  <meta name="keywords" content="Hexo, NexT">
 
 
 
 
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
 
 
 
@@ -121,7 +121,7 @@
 <meta property="og:image" content="http://yoursite.com/img/android/android_architecture002_04.jpg">
 <meta property="og:image" content="http://yoursite.com/img/android/android_architecture002_05.png">
 <meta property="og:image" content="http://yoursite.com/img/android/android_architecture002_06.png">
-<meta property="og:updated_time" content="2022-11-17T08:27:27.499Z">
+<meta property="og:updated_time" content="2025-04-09T03:23:37.207Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="第八章 架构篇">
 <meta name="twitter:description" content="第一节 设计模式　　在应用开发过程中，最难的不是完成应用的开发工作，而是在后续的升级、维护过程中让应用系统能够在满足需求且不破坏系统稳定性的前提下，保持高可扩展性、高内聚、低耦合，在经历了各版本的变更后依然保持清晰、灵活、稳定。　　当然，这是一个比较理想的情况，但我们必须要朝着这个方向去努力。 　　本章主要参考《Android 源码设计模式解析与实战》，感谢二位作者的无私奉献。 问题起源什么是设计">
@@ -146,7 +146,7 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/android-a008/"/>
+  <link rel="canonical" href="http://yoursite.com/android-a008/">
 
   <title> 第八章 架构篇 | 不只是看客 </title>
 </head>
@@ -187,7 +187,7 @@
   
 
   <div class="custom-logo-site-title">
-    <a href="/"  class="brand" rel="start">
+    <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
       <span class="site-title">不只是看客</span>
       <span class="logo-line-after"><i></i></span>
@@ -306,7 +306,7 @@
           </span>
 
           
-            <span class="post-category" >
+            <span class="post-category">
               &nbsp; | &nbsp;
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -627,7 +627,7 @@
 </code></pre><p>　　针对这种情况，一种常规的方法是将多种算法写在一个工具类中，每个方法对应一个算法，这种方式我们可以称为硬编码。然后当很多个算法集中在一个类中时，这个类就会变得很臃肿，维护成本变高，也容易引发错误，同时当需要新增一种排序算法时，需要修改那个工具类的源代码，违反了我们之前说的单一职责和开闭原则。</p>
 <p>　　如果将这些算法或者策略抽象出来，提供一个统一的接口，不同的算法或策略有不同的实现类，这样在程序客户端就可以通过注入不同的实现对象来实现算法或者策略的动态替换，这种模式的可扩展性、可维护性也就更高，也就是我们本节要说的策略模式。</p>
 <p><br><strong>UML类图</strong></p>
-<center><br><img src="/img/android/android_BY_d01_02.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_d01_02.png" alt><br></center>
 
 <p>　　角色介绍：</p>
 <pre><code>-  Context：用来操作策略的上下文环境。
@@ -664,7 +664,7 @@
 </code></pre><h3 id="责任链模式"><a href="#责任链模式" class="headerlink" title="责任链模式"></a>责任链模式</h3><p><br><strong>模式介绍</strong></p>
 <p>　　责任链模式（Chain of Responsibility）中维护了一个链表，链表里的每个元素都是一个可以处理特定事件的对象，当某个事件发生时，会从表头元素开始检测是否能处理该事件，若能则处理，若不能则将事件传递给下一个节点，以此类推，直到有对象处理这个请求为止。</p>
 <p><br><strong>UML类图</strong></p>
-<center><br><img src="/img/android/android_BY_d01_03.jpg" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_d01_03.jpg" alt><br></center>
 
 <p>　　角色介绍：</p>
 <pre><code>-  Handler：抽象处理者角色，声明一个处理请求的方法，并在其中持有下一个Handler对象的引用。
@@ -711,7 +711,7 @@
 <pre><code>语句解释：
 -  至此我们就完成了需求，同时这个代码就是传说中的命令模式。
 </code></pre><p><br><strong>UML类图</strong></p>
-<center><br><img src="/img/android/android_BY_d01_04.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_d01_04.png" alt><br></center>
 
 <p>　　角色介绍：</p>
 <pre><code>-  Invoke：维护一个命令列表，用于执行撤销等操作。
@@ -750,7 +750,7 @@
 -  使用Application对象的缺点： 如果处理不当，Map中的对象会不断累积，导致内存泄露。
 </code></pre><p>　　其实，这个问题本质上就是<code>“一对多的问题”（一就是User对象，多就是ABC三个界面）</code>，我们可以使用<code>“观察者模式”</code>来解决数据刷新的问题，同时不会存在上面这三种方案带来的弊端。</p>
 <p><br><strong>UML类图</strong></p>
-<center><br><img src="/img/android/android_BY_d01_05.jpg" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_d01_05.jpg" alt><br></center>
 
 <p>　　角色介绍：</p>
 <pre><code>-  Subject：抽象的主题类，也就是被观察（Observable）的对象，其内维护一个被观察的数据（如User对象）以及一个观察者列表，当数据发生变化时，就去通知列表中的所有观察者。
@@ -799,7 +799,7 @@
 -  此时可以看出，Activity的代码变清晰了。
 </code></pre><p><br>　　上面代码就是使用了备忘录模式，我们接下来看一下这个模式的UML图。</p>
 <p><br><strong>UML类图</strong></p>
-<center><br><img src="/img/android/android_BY_d01_06.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_d01_06.png" alt><br></center>
 
 <p>　　角色介绍：</p>
 <pre><code>-  Originator：被备份的目标，它需要提供备份和还原数据的方法，比如上面的NoteEditText。
@@ -822,7 +822,7 @@
 <pre><code>-  提供一种方法顺序访问一个容器对象中的各个元素，而又不需要暴露该对象的内部表示。
 -  很显然，当需要遍历一个容器对象时，就是使用迭代器模式之日。
 </code></pre><p><br><strong>UML类图</strong></p>
-<center><br><img src="/img/android/android_BY_d01_07.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_d01_07.png" alt><br></center>
 
 <p>　　角色介绍：</p>
 <pre><code>-  Iterator：迭代器接口，定义迭代器所必备的公共方法，如hasNext、next等。
@@ -843,7 +843,7 @@
 <pre><code>语句解释：
 -  从本范例可以看出来，模版设计模式就是把共用的代码提取到父类中，并定义若干方法供子类重写，这些方法不一定要是抽象的。
 </code></pre><p><br><strong>UML类图</strong></p>
-<center><br><img src="/img/android/android_BY_d01_08.jpg" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_d01_08.jpg" alt><br></center>
 
 <p>　　角色介绍：</p>
 <pre><code>-  AbstractClass：模版类，其内封装公用的代码。
@@ -870,7 +870,7 @@
 -  复杂的网状结构，是一种过度耦合的架构，即不利于类的复用，也不稳定。
 -  引入中介者模式后，同事类之间的关系将变为星型结构，任何一个类的变动，只会影响的类本身，以及中介者，这样就减小了系统的耦合。
 </code></pre><p><br><strong>UML类图</strong></p>
-<center><br><img src="/img/android/android_BY_d01_10.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_d01_10.png" alt><br></center>
 
 <p>　　角色介绍：</p>
 <pre><code>-  Mediator：抽象中介者角色，定义了同事对象到中介者对象的接口，一般以抽象类的方式实现。
@@ -894,7 +894,7 @@
 -  坏处是：由于我们不是和最终商家沟通，而是和代理者沟通，因此代理可以提高商品的价格、或者将购买的正品留下，换成次品再发给我们等。
 </code></pre><p>　　在程序中也有很多场景会用到“代理”的概念，接下来先来学习一下代理模式的基本写法。</p>
 <p><br><strong>UML类图</strong></p>
-<center><br><img src="/img/android/android_BY_d01_12.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_d01_12.png" alt><br></center>
 
 <p>　　角色介绍：</p>
 <pre><code>-  Subject：抽象主题类，其内定义了公共的抽象方法。
@@ -911,7 +911,7 @@
 <pre><code>语句解释：
 -  代理模式其实就是在真正的任务的开头或末尾加上一些操作，最终执行任务的，仍然是客户本人。
 </code></pre><p><br>　　再举个例子：假设现在有A、C两个对象，但是A和C不在一个服务器上，且A会频繁的调用C。<br>　　此时就可以做一个代理类Proxy，把访问C的工作交给Proxy（处理网络请求等），这样对于A来说，就好像在直接访问C的对象，在对A的开发中我们可以把注意力完全放在业务的实现上。如下图所示：</p>
-<center><br><img src="/img/android/android_BY_d01_11.jpg" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_d01_11.jpg" alt><br></center>
 
 <p><br>　　另外，在《Framework篇》中也可以看到代理模式的应用范例，在IPC时客户端和服务端分别存在一个Proxy对象，用来帮助对象在跨进程传递时的封包和拆包。</p>
 <p><br><strong>动态代理</strong></p>
@@ -934,7 +934,7 @@
 <p>　　适配器模式的定义为：</p>
 <pre><code>-  适配器模式把一个类的接口变成客户端所期望的另一个接口，从而使原本因接口不匹配而无法在一起工作的两个类能够在一起工作。
 </code></pre><p><br><strong>UML类图</strong></p>
-<center><br><img src="/img/android/android_BY_d01_13.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_d01_13.png" alt><br></center>
 
 <p>　　角色介绍：</p>
 <pre><code>-  Target：目标角色，也就是客户端所期望的接口。
@@ -957,7 +957,7 @@
 <pre><code>装饰模式（Decorator）也称为包装模式（Wrapper），是结构型设计模式之一，它可以动态的给一个对象添加一些额外的职责，就增加功能来说，装饰模式相比生成子类更为灵活。
 </code></pre><p><br><strong>UML类图</strong></p>
 <p>　　我们先来看看装饰模式的UML图，然后去学习一下装饰模式的基础写法，最后再去看它的应用场景。</p>
-<center><br><img src="/img/android/android_BY_d01_14.jpg" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_d01_14.jpg" alt><br></center>
 
 <p>　　角色介绍：</p>
 <pre><code>-  Component：抽象组件，就是被装饰的对象所实现的接口。
@@ -972,7 +972,7 @@
 </code></pre><p><br><strong>应用范例1</strong><br><br>　　装饰模式在Java语言中的最著名的应用莫过于Java I/O标准库的设计了。</p>
 <pre><code>由于Java I/O库需要很多性能的各种组合，如果这些性能都是用继承的方法实现的，那么每一种组合都需要一个类，这样就会造成大量性能重复的类出现。而如果采用装饰模式，那么类的数目就会大大减少，性能的重复也可以减至最少。因此装饰模式是Java I/O库的基本模式。
 </code></pre><p>　　Java I/O库的对象结构图如下，由于Java I/O的对象众多，因此只画出InputStream的部分。</p>
-<center><br><img src="/img/android/android_BY_d01_15.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_d01_15.png" alt><br></center>
 
 <p>　　根据上图可以看出：</p>
 <pre><code>-  Component：由InputStream扮演。这是一个抽象类，为各种子类型提供统一的接口。
@@ -1125,7 +1125,7 @@
 </blockquote>
 <h3 id="Android-中的-MVVM"><a href="#Android-中的-MVVM" class="headerlink" title="Android 中的 MVVM"></a>Android 中的 MVVM</h3><p>　　事实上， MVVM 是目前 Google 官方比较推崇的架构模式，Jetpack 里提供的 DataBinding 、 ViewModel 等库都非常适用于实现 MVVM ，本节会着重介绍这些库的用法。</p>
 <p>　　首先来看一下下面这张图，该图显示了基于 MVVM 架构的项目应该是什么样的：</p>
-<center><br><img src="/img/android/android_architecture002_02.png" alt=""><br></center>
+<center><br><img src="/img/android/android_architecture002_02.png" alt><br></center>
 
 <p>　　请注意，<font color="red">每个组件仅依赖于其下一级的组件</font>。例如，Activity 和 Fragment 仅依赖于视图模型， Repository 是唯一依赖于其他多个类的类。</p>
 <p>　　小提示：</p>
@@ -1146,7 +1146,7 @@
 <pre><code>语句解释：
 -  需要注意的是不同版本的 ViewModel 库实例化的方法不一样，本范例是基于 viewmodel-2.2.0 版本的。 
 </code></pre><p><br>　　下图展示了 ViewModel 与 Activity 之间的生命周期对应关系。</p>
-<center><br><img src="/img/android/android_architecture002_03.png" alt=""><br></center>
+<center><br><img src="/img/android/android_architecture002_03.png" alt><br></center>
 
 <p>　　也就是说 Activity 因为配置改变（比如屏幕旋转）而导致的销毁重建并不会让 ViewModel 销毁。另外，如果你想在多个 Fragment 中共享数据的话，可以在 Fragment 中这么写代码：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UserViewModel model = <span class="keyword">new</span> ViewModelProvider(getActivity()).get(UserViewModel.class);</span><br></pre></td></tr></table></figure>
@@ -1169,7 +1169,7 @@
 <p>　　简单的说，如果你需要监听组件的生命周期方法，且需要在生命周期方法里编写大量的代码，那么就可以考虑将代码从组件中抽离，并配合 Lifecycle 来实现。</p>
 <p>　　另外，可以通过下面的代码来获取“被观察者”当前的状态：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lifecycle.getCurrentState().isAtLeast(Lifecycle.State.STARTED);</span><br></pre></td></tr></table></figure></p>
 <p>　　下图包含了构成 Activity 生命周期的状态和事件：</p>
-<center><br><img src="/img/android/android_architecture002_04.svg" alt=""><br></center>
+<center><br><img src="/img/android/android_architecture002_04.svg" alt><br></center>
 
 <p>　　当然，你也可以自定义自己的“被观察者”，如果你想知道 Lifecycle 的更多用法，请阅读 <a href="https://developer.android.google.cn/topic/libraries/architecture/lifecycle?hl=zh-cn#java" target="_blank" rel="noopener">《使用生命周期感知型组件处理生命周期》</a> 。</p>
 <p>　　小提示：</p>
@@ -1322,7 +1322,7 @@
 </ul>
 <h4 id="Retrofit"><a href="#Retrofit" class="headerlink" title="Retrofit"></a>Retrofit</h4><p>　　在 Android 平台中，Retrofit 是当下最热的一个网络请求库。</p>
 <p>　　更准确的说，Retrofit 是对 OkHttp 的二次封装，网络请求的工作本质上仍然是 OkHttp 完成。如下图所示：</p>
-<center><br><img src="/img/android/android_architecture002_04.jpg" alt=""><br></center>
+<center><br><img src="/img/android/android_architecture002_04.jpg" alt><br></center>
 
 <p><br>　　<strong>1、为什么要用 Retrofit ？</strong></p>
 <p>　　虽然 OkHttp 已经很方便、强大了，但是使用 Retrofit 可以进一步的方便我们进行网络请求。</p>
@@ -1352,7 +1352,7 @@
 </code></pre><p><br>　　由于篇幅有限，笔者就不再继续了，如果你想知道 Retrofit 的更多用法，请参阅：<a href="https://blog.csdn.net/carson_ho/article/details/73732076" target="_blank" rel="noopener">《这是一份很详细的 Retrofit 2.0 使用教程（含实例讲解）》</a> </p>
 <h4 id="Room"><a href="#Room" class="headerlink" title="Room"></a>Room</h4><p>　　Android 采用 SQLite 作为数据库存储，但 SQLite 提供的 API 很强大也很低级，使用起来麻烦且容易出错，所以开源社区里出现了各种 ORM（Object Relational Mapping ）库，常见的有 ORMLite ，GreenDAO 等。<br>　　而 Room 数据库就是 Google 做的，本质上来说 Room 是在 SQLite 上提供了一层抽象。</p>
 <p>　　在 Room 中有三个主要的组件，如下图所示：</p>
-<center><br><img src="/img/android/android_architecture002_05.png" alt=""><br></center>
+<center><br><img src="/img/android/android_architecture002_05.png" alt><br></center>
 
 <blockquote>
 <p>Entity：这是一个 Model 类，对应于数据库中的一张表。Entity 类是 SQLite 表结构在 Java 中的映射。<br>DAO（Data Access Objects，数据访问对象）：负责定义访问数据库的方法，我们可以通过它来访问数据。<br>RoomDatabase：数据库管理类，通常让它来负责创建数据库、管理各个 DAO 、处理数据库升级等任务，它也是 App 层访问数据库的主要入口类。</p>
@@ -1419,7 +1419,7 @@
 <p>1、程序从 MainActivity 中跳转到一个新界面 UserDetailsActivity 。<br>2、新界面需要接收一个参数“ id ”，它依据“ id ”去查询并显示对应的用户信息。</p>
 </blockquote>
 <p>　　由于篇幅有限，笔者就不提供源码了，下面是笔者画的类图，希望对大家有帮助。</p>
-<center><br><img src="/img/android/android_architecture002_06.png" alt=""><br></center>
+<center><br><img src="/img/android/android_architecture002_06.png" alt><br></center>
 
 <p><br>　　最后笔者需要说一句：<font color="red">要时刻警惕过渡架构！</font></p>
 <blockquote>
@@ -1449,8 +1449,7 @@
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="android-a008/"
-           data-title="第八章 架构篇" data-url="http://yoursite.com/android-a008/">
+      <div class="ds-thread" data-thread-key="android-a008/" data-title="第八章 架构篇" data-url="http://yoursite.com/android-a008/">
       </div>
     
   </div>
@@ -1475,7 +1474,7 @@
 
       
         <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
             文章目录
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
@@ -1486,9 +1485,7 @@
 
       <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <img class="site-author-image" itemprop="image"
-               src="/images/avatar.jpg"
-               alt="键盘" />
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="键盘">
           <p class="site-author-name" itemprop="name">键盘</p>
           <p class="site-description motion-element" itemprop="description">集大家之成，悟小家之道。</p>
         </div>
@@ -1575,7 +1572,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright" >
+        <div class="copyright">
   
   &copy;  2014 - 
   <span itemprop="copyrightYear">2025</span>

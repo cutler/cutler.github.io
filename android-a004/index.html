@@ -6,15 +6,15 @@
 
 
 <html class="theme-next mist use-motion">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -29,7 +29,7 @@
 
   
   
-  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
 
 
 
@@ -63,23 +63,23 @@
 
 
 
-<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
 
-<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
-
-
-  <meta name="keywords" content="Hexo, NexT" />
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
 
 
-
-
-
-  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml" />
+  <meta name="keywords" content="Hexo, NexT">
 
 
 
 
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
 
 
 
@@ -97,7 +97,7 @@
 <meta property="og:image" content="http://yoursite.com/img/android/android_7_1.png">
 <meta property="og:image" content="http://yoursite.com/img/android/android_7_2.png">
 <meta property="og:image" content="http://yoursite.com/img/android/android_7_3.png">
-<meta property="og:updated_time" content="2022-11-14T10:23:51.044Z">
+<meta property="og:updated_time" content="2025-04-09T03:23:37.205Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="第四章 通讯篇">
 <meta name="twitter:description" content="第一节 线程间通信Handler概述　　Android的消息机制主要是指Handler的运行机制，因此本章会围绕着Handler的工作过程来分析消息机制。　　整个过程主要涉及到了如下5个类： -  Handler、Message、MessageQueue、Looper、ThreadLocal Handler的作用　　对于任何一个线程来说，同一时间只能做一件事，主线程也不例外。　　因此，若我们让主线">
@@ -122,7 +122,7 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/android-a004/"/>
+  <link rel="canonical" href="http://yoursite.com/android-a004/">
 
   <title> 第四章 通讯篇 | 不只是看客 </title>
 </head>
@@ -163,7 +163,7 @@
   
 
   <div class="custom-logo-site-title">
-    <a href="/"  class="brand" rel="start">
+    <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
       <span class="site-title">不只是看客</span>
       <span class="logo-line-after"><i></i></span>
@@ -282,7 +282,7 @@
           </span>
 
           
-            <span class="post-category" >
+            <span class="post-category">
               &nbsp; | &nbsp;
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -771,7 +771,7 @@
 -  若在系统中注册了多个android:authorities属性具有相同值的ContentProvider ，则Android系统会调用第一个被找到的ContentProvider。
 </code></pre><p><br><strong>查询数据</strong><br>　　例如，要从提供者中查询出数据，你要调用<code>ContentResolver.query()</code>方法：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Cursor mCursor = getContentResolver().query(mUri, mProjection, mSelection, mSelectionArgs, mSortOrder);</span><br></pre></td></tr></table></figure></p>
 <p>　　下图显示了<code>ContentResolver.query()</code>方法的参数是如何跟<code>SQL</code>的<code>select</code>语句进行匹配的：</p>
-<center><br><img src="/img/android/android_2_15.png" alt=""><br></center>
+<center><br><img src="/img/android/android_2_15.png" alt><br></center>
 
 <p><br><strong>显示查询结构</strong><br>　　<code>ContentResolver.query()</code>方法返回一个<code>Cursor</code>对象，这个对象包含了跟查询条件匹配的行和列。</p>
 <p>　　范例1：Cursor接口。<br>　　此接口代表一个游标，即一个行集，最初游标指向第一个实体之前的位置。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Cursor</span> <span class="keyword">implements</span> <span class="title">Closeable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 将游标移动到下一个实体所在的位置。</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> </span></span><br><span class="line"><span class="comment">     *     若移动成功，则返回true 。</span></span><br><span class="line"><span class="comment">     *     若当前游标移动到最后一个实体的后面，则返回false 。</span></span><br><span class="line"><span class="comment">     *     若数据库已经被关闭，此方法会返回false。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">boolean</span> <span class="title">moveToNext</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 指定列号，查询出当前行中的指定列上的数据。</span></span><br><span class="line"><span class="comment">     * 除了getString()外还有对应的重载方法用来获取int、long、float、double、short 类型的值。</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> columnIndex: 列的编号，列号从0开始。</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 以String类型返回查询结果。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> String <span class="title">getString</span><span class="params">(<span class="keyword">int</span> columnIndex)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 指定列名，查询出该列在本行中所对应的列号。</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> columnName: 列的名称。</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 以int类型返回结果。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">int</span> <span class="title">getColumnIndex</span><span class="params">(String columnName)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 关闭游标，释放其所占的资源，并将其标记为无效。当不需要使用Cursor对象你应该调用此方法。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
@@ -802,7 +802,7 @@
 <h2 id="HTTP协议"><a href="#HTTP协议" class="headerlink" title="HTTP协议"></a>HTTP协议</h2><p>　　本节简单的介绍一些<code>http</code>协议的基础知识，如果你没有任何网络编程的经验，那么你不适合阅读本文。</p>
 <h3 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h3><p>　　超文本传送协议 (<code>HTTP-Hypertext transfer protocol</code>) 是一个基于请求与响应模式的、无状态的、应用层的通信协议，它工作在<code>TCP/IP</code>协议体系中的<code>TCP</code>协议上。 </p>
 <p>　　如图所示：</p>
-<center><br><img src="/img/android/android_7_1.png" alt=""><br></center>
+<center><br><img src="/img/android/android_7_1.png" alt><br></center>
 
 <p>　　<code>http</code>协议是万维网（<code>world wide web</code>）交换信息的基础，它允许将超文本标记语言(<code>HTML</code>)网页从服务器传送到<code>Web</code>浏览器(如<code>IE</code>等)。</p>
 <p><br><strong>特点</strong><br>　　<code>http</code>协议是无状态的。</p>
@@ -845,11 +845,11 @@ HTTP 1.1 还通过增加更多的请求头和响应头来改进和扩充HTTP 1.0
 </code></pre><p><br><strong>请求行</strong><br>　　请求行由三部分组成：请求的方式，请求的资源名称，请求使用的协议以及版本。<br>　　HTTP请求的方式有：<code>POST</code>、<code>GET</code>、<code>HEAD</code>、<code>OPTIONS</code>、<code>DELETE</code>、<code>TRACE</code>、<code>PUT</code>、<code>CONNECT</code>。其中<code>GET</code>和<code>POST</code>最常用。</p>
 <p><br>　　范例1：请求行。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET / books/java.html  HTTP/1.1</span><br></pre></td></tr></table></figure></p>
 <p><br>　　<code>GET</code>方式：将需要传递给服务器的数据直接写在URL后面。</p>
-<center><br><img src="/img/android/android_7_2.png" alt=""><br></center>
+<center><br><img src="/img/android/android_7_2.png" alt><br></center>
 
 <p>　　如：<code>GET / cxy/a.html?name=tomcat&amp;password=123 HTTP/1.1</code><br>　　含义：请求查看<code>a.html</code>文件，并向服务器中传递两个参数，<code>name</code>和<code>password</code>，多个参数之间使用<code>&amp;</code>间隔。 文件名与参数之间使用<code>?</code> 间隔。<br>　　缺点：由于浏览器地址栏的长度有限，因此若参数过多，则就不要使用此方式。</p>
 <p><br>　　<code>POST</code>方式：参数将通过“请求正文”发送给服务器，因此参数的数量、长度是无限制。</p>
-<center><br><img src="/img/android/android_7_3.png" alt=""><br></center>
+<center><br><img src="/img/android/android_7_3.png" alt><br></center>
 
 <p><br><strong>请求报头</strong><br>　　请求报头是客户端向服务器端发送请求时，请求中附加的信息以及客户端自身的信息。</p>
 <p><br>　　范例1：请求头中的常见信息。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Accept: image/gif, image/jpeg, image/pjpeg, image/pjpeg, application/x-shockwave-flash, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword, */*</span><br><span class="line">Referer: http://localhost/cxy/a.html?name=tomcat&amp;password=123</span><br><span class="line">Accept-Language: zh-CN,en-US;q=0.5</span><br><span class="line">User-Agent: Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727)</span><br><span class="line">Content-Type: application/x-www-form-urlencoded</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Host: localhost</span><br><span class="line">Content-Length: 24</span><br><span class="line">Connection: Keep-Alive</span><br><span class="line">Cache-Control: no-cache</span><br></pre></td></tr></table></figure></p>
@@ -1059,8 +1059,7 @@ HTTP 1.1 还通过增加更多的请求头和响应头来改进和扩充HTTP 1.0
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="android-a004/"
-           data-title="第四章 通讯篇" data-url="http://yoursite.com/android-a004/">
+      <div class="ds-thread" data-thread-key="android-a004/" data-title="第四章 通讯篇" data-url="http://yoursite.com/android-a004/">
       </div>
     
   </div>
@@ -1085,7 +1084,7 @@ HTTP 1.1 还通过增加更多的请求头和响应头来改进和扩充HTTP 1.0
 
       
         <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
             文章目录
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
@@ -1096,9 +1095,7 @@ HTTP 1.1 还通过增加更多的请求头和响应头来改进和扩充HTTP 1.0
 
       <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <img class="site-author-image" itemprop="image"
-               src="/images/avatar.jpg"
-               alt="键盘" />
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="键盘">
           <p class="site-author-name" itemprop="name">键盘</p>
           <p class="site-description motion-element" itemprop="description">集大家之成，悟小家之道。</p>
         </div>
@@ -1185,7 +1182,7 @@ HTTP 1.1 还通过增加更多的请求头和响应头来改进和扩充HTTP 1.0
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright" >
+        <div class="copyright">
   
   &copy;  2014 - 
   <span itemprop="copyrightYear">2025</span>

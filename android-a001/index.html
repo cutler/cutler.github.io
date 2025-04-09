@@ -6,15 +6,15 @@
 
 
 <html class="theme-next mist use-motion">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -29,7 +29,7 @@
 
   
   
-  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
 
 
 
@@ -63,23 +63,23 @@
 
 
 
-<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
 
-<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
-
-
-  <meta name="keywords" content="Hexo, NexT" />
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
 
 
-
-
-
-  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml" />
+  <meta name="keywords" content="Hexo, NexT">
 
 
 
 
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
 
 
 
@@ -103,7 +103,7 @@
 <meta property="og:image" content="http://yoursite.com/img/android/android_2_6.png">
 <meta property="og:image" content="http://yoursite.com/img/android/android_2_11.png">
 <meta property="og:image" content="http://yoursite.com/img/android/android_2_12.png">
-<meta property="og:updated_time" content="2022-11-14T08:51:32.033Z">
+<meta property="og:updated_time" content="2025-04-09T03:23:37.202Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="第一章 四大组件">
 <meta name="twitter:description" content="第一节 Activity　　Activity是提供给用户的用于与程序进行交互的界面组件，如打电话、拍照片、发邮件、看地图等。它通过一个窗口来描画它的用户界面，通常这个窗口是全屏的，但是也可以比屏幕小，并且可以浮动在其他窗口的上面。 　　本章会略过Activity的基础知识（创建、配置、传参等），请您自行搜索学习。 生命周期　　Activity从创建到销毁会经历多个阶段，每个阶段都会回调不同的生命周">
@@ -128,7 +128,7 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/android-a001/"/>
+  <link rel="canonical" href="http://yoursite.com/android-a001/">
 
   <title> 第一章 四大组件 | 不只是看客 </title>
 </head>
@@ -169,7 +169,7 @@
   
 
   <div class="custom-logo-site-title">
-    <a href="/"  class="brand" rel="start">
+    <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
       <span class="site-title">不只是看客</span>
       <span class="logo-line-after"><i></i></span>
@@ -288,7 +288,7 @@
           </span>
 
           
-            <span class="post-category" >
+            <span class="post-category">
               &nbsp; | &nbsp;
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -454,7 +454,7 @@
 <p>　　需要注意的是：<code>singleInstance</code>模式也会使用<code>taskAffinity</code>属性。</p>
 <pre><code>-  假设我们有A、B两个Activity，其中A是standard模式，B是singleInstance模式的，并且它俩都没有指定taskAffinity属性，同时我们的包名为com.cutler.androidtest。
 -  由于B是singleInstance模式，所以它必须单独占据一个栈，那么当我们在A中启动B时会发生什么呢？ 如下图所示。
-</code></pre><center><br><img src="/img/android/android_2_13.png" alt=""><br></center>
+</code></pre><center><br><img src="/img/android/android_2_13.png" alt><br></center>
 
 <p>　　从上面可以看出<code>BActivity</code>仍然会被放到<code>com.cutler.androidtest</code>中，但是它和<code>AActivity</code>却分别处在不同的两个栈中。从上图中可以看出来，系统中可以存在多个同名的Task。</p>
 <p><br></p>
@@ -668,10 +668,10 @@
 -  由于FragmentA是ListFragment的子类，因此每次用户点击一个列表项，系统调用在Fragment中的onListItemClick()，然后后者调用onArticleSelected()来分配事件给Activity。
 </code></pre><h3 id="生命周期-1"><a href="#生命周期-1" class="headerlink" title="生命周期"></a>生命周期</h3><p>　　<code>Fragment</code>有自己的生命周期，并且生命周期直接被其所属的宿主<code>Activity</code>的生命周期影响。当<code>Activity</code>被暂停，那么在其中的所有<code>Fragment</code>也被暂停，当<code>Activity</code>被销毁，所有隶属于它的<code>Fragment</code>也被销毁。</p>
 <p>　　管理<code>Fragment</code>的生命周期，大多数地方和管理<code>Activity</code>生命周期很像，和<code>Activity</code>一样。<br>　　<code>Fragment</code>生命周期各个阶段回调的方法如下图所示：</p>
-<center><br><img src="/img/android/android_2_4.png" alt=""><br></center>
+<center><br><img src="/img/android/android_2_4.png" alt><br></center>
 
 <p>　　<code>Fragment</code>和<code>Activity</code>的生命周期方法对应关系图：</p>
-<center><br><img src="/img/android/android_2_5.png" alt=""><br></center>
+<center><br><img src="/img/android/android_2_5.png" alt><br></center>
 
 <p>　　和<code>Activity</code>一样，你可以使用<code>Bundle</code>保持<code>Fragment</code>的状态，万一<code>Activity</code>的进程被干掉，并且当<code>Activity</code>被重新创建的时候，你需要恢复<code>Fragment</code>的状态时就可以用到。<br>　　在<code>Fragment</code>的<code>onSaveInstanceState()</code>期间保存状态，并可以在<code>onCreate()</code>，<code>onCreateView()</code>或<code>onActivityCreated()</code>期间恢复它。</p>
 <p><br><strong>各生命周期方法的调用</strong></p>
@@ -1110,8 +1110,7 @@ B.  进程持有一个Service对象，该对象被一个正在跟用户交互的
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="android-a001/"
-           data-title="第一章 四大组件" data-url="http://yoursite.com/android-a001/">
+      <div class="ds-thread" data-thread-key="android-a001/" data-title="第一章 四大组件" data-url="http://yoursite.com/android-a001/">
       </div>
     
   </div>
@@ -1136,7 +1135,7 @@ B.  进程持有一个Service对象，该对象被一个正在跟用户交互的
 
       
         <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
             文章目录
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
@@ -1147,9 +1146,7 @@ B.  进程持有一个Service对象，该对象被一个正在跟用户交互的
 
       <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <img class="site-author-image" itemprop="image"
-               src="/images/avatar.jpg"
-               alt="键盘" />
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="键盘">
           <p class="site-author-name" itemprop="name">键盘</p>
           <p class="site-description motion-element" itemprop="description">集大家之成，悟小家之道。</p>
         </div>
@@ -1236,7 +1233,7 @@ B.  进程持有一个Service对象，该对象被一个正在跟用户交互的
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright" >
+        <div class="copyright">
   
   &copy;  2014 - 
   <span itemprop="copyrightYear">2025</span>

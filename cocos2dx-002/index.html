@@ -6,15 +6,15 @@
 
 
 <html class="theme-next mist use-motion">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -29,7 +29,7 @@
 
   
   
-  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
 
 
 
@@ -63,23 +63,23 @@
 
 
 
-<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
 
-<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
-
-
-  <meta name="keywords" content="Hexo, NexT" />
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
 
 
-
-
-
-  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml" />
+  <meta name="keywords" content="Hexo, NexT">
 
 
 
 
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
 
 
 
@@ -111,7 +111,7 @@
 <meta property="og:image" content="http://yoursite.com/img/quick-cocos2d-x/quick_5_12.png">
 <meta property="og:image" content="http://yoursite.com/img/quick-cocos2d-x/quick_5_13.png">
 <meta property="og:image" content="http://yoursite.com/img/quick-cocos2d-x/quick_6_1.png">
-<meta property="og:updated_time" content="2023-03-11T10:57:18.301Z">
+<meta property="og:updated_time" content="2025-04-09T03:23:37.211Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="第二章 Cocos2dx - Lua">
 <meta name="twitter:description" content="本文写自2014年，现在是2023年3月11日，很显然文中使用的技术已经落伍了，甚至于网上都找不到quick-cocos2d-x v3的安装文件了，本文被保留的唯一原因，就是留作纪念。 第一节 Hello World　　　　quick-cocos2d-x v3是在cocos2dx 3.x的最新版本基础之上，移植了原来quick-cocos2d-x的核心框架、强大的player、丰富的示例等，并">
@@ -136,7 +136,7 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/cocos2dx-002/"/>
+  <link rel="canonical" href="http://yoursite.com/cocos2dx-002/">
 
   <title> 第二章 Cocos2dx - Lua | 不只是看客 </title>
 </head>
@@ -177,7 +177,7 @@
   
 
   <div class="custom-logo-site-title">
-    <a href="/"  class="brand" rel="start">
+    <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
       <span class="site-title">不只是看客</span>
       <span class="logo-line-after"><i></i></span>
@@ -296,7 +296,7 @@
           </span>
 
           
-            <span class="post-category" >
+            <span class="post-category">
               &nbsp; | &nbsp;
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -800,7 +800,7 @@
 <p><br><strong>触摸区域</strong><br>　　在Cocos2d-x里，只有<code>Layer</code>对象才能接受触摸事件。而<code>Layer</code>总是响应整个屏幕范围内的触摸，这就要求开发者在拿到触摸事件后，再做进一步的处理。</p>
 <p>　　例如有一个需求是在玩家触摸屏幕上的方块时，人物角色做一个动作。那么使用<code>Layer</code>接受到触摸事件后，开发者需要自行判断触摸位置是否在方块之内。当屏幕上有很多东西需要响应玩家交互时，程序结构就开始变得复杂了。<br>　　所以Cocos2dx-lua允许开发者将任何一个<code>Node</code>设置为接受触摸事件。并且触摸事件一开始只会出现在这个<code>Node</code>的触摸区域内。</p>
 <p>　　所谓触摸区域，就是一个<code>Node</code>及其所有子<code>Node</code>显示内容占据的屏幕空间。要注意的是这个屏幕空间包含了图片的透明部分。下图中，<code>节点A</code>是一个<code>Sprite</code>对象，它的触摸区域就是图片大小；而<code>节点B</code>是一个Node对象，其中包含了三个<code>Sprite</code>对象，那么<code>节点B</code> 的触摸区域就是三个<code>Sprite</code>对象触摸区域的合集。</p>
-<center><br><img src="/img/quick-cocos2d-x/quick_4_2.png" alt=""><br></center>
+<center><br><img src="/img/quick-cocos2d-x/quick_4_2.png" alt><br></center>
 
 <p>　　为了简化实现，触摸区域都是一个矩形，所以<code>节点B</code>的触摸区域实际上是一个“包含三个 Sprite 对象触摸区域合集的矩形”，可以参考上图中的红色边框线。</p>
 <p><br><strong>用法示例</strong><br>　　下面列出触摸事件的用法示例，更详细的示例请参考<code>quick-3.3rc1/quick/samples/touch</code>示例。</p>
@@ -954,7 +954,7 @@
 <p><br><strong>已经废弃</strong><br>　　在<code>Cocos2d-x 3.x</code>版本中，已经废弃了<code>2.x</code>里的<code>LabelTTF</code>、<code>LabelAtlas</code>、<code>LabelBMFont</code>三个字体类，取而代之的是全新的字体标签<code>Label</code>。<br>　　实际上<code>Label</code>是将三个字体类进行了融合，进行统一的管理与渲染，这使得创建字体标签<code>Label</code>的方式更加统一，更加方便。</p>
 <p>　　本节就来学习一下<code>3.x</code>中新的标签类<code>Label</code>，但是刚才也说了，Label只是将上面三个类进行了融合，因此我们还是得需要了解这三个类的特点，不然开发的时候就不会知道何时该用哪个类了。</p>
 <h4 id="TTF类型标签"><a href="#TTF类型标签" class="headerlink" title="TTF类型标签"></a>TTF类型标签</h4><p>　　TTF（TrueTypeFont）是由美国苹果公司和微软公司共同开发的一种电脑轮廓字体类型标准。这种类型字体文件的扩展名是<code>.ttf</code>。随着windows的流行，已经变成最常用的一种字体文件表示方式。<br>　　<code>LabelTTF</code>就是Cocos2d-x引擎中使用<code>TTF</code>字体的文字标签。 下图展示了它的继承关系：</p>
-<center><br><img src="/img/quick-cocos2d-x/quick_5_2.png" alt=""><br></center>
+<center><br><img src="/img/quick-cocos2d-x/quick_5_2.png" alt><br></center>
 
 <p>　　通过此图可以看到，此类的另一个父类就是<code>Node</code>，因而它可以执行<code>Node</code>所支持的各种动作以及变化效果。</p>
 <p>　　TTF类型标签的优缺点有以下几点：</p>
@@ -986,16 +986,16 @@
 -  cc.VERTICAL_TEXT_ALIGNMENT_CENTER 垂直居中对齐
 -  cc.VERTICAL_TEXT_ALIGNMENT_BOTTOM 垂直底部对齐
 </code></pre><p><br>　　效果图预览：</p>
-<center><br><img src="/img/quick-cocos2d-x/quick_5_3.png" alt=""><br></center>
+<center><br><img src="/img/quick-cocos2d-x/quick_5_3.png" alt><br></center>
 
 <p><br>　　在<code>cc.ui.UILabel</code>中提供了一个<code>setString()</code>函数，用来修改其显示的文本。<br>　　对于<code>TTF</code>类型的文本标签来说<code>setString()</code>函数会创建一个新的<code>OpenGL</code>纹理，这意味着<code>setString()</code>和创建一个新的标签一样慢。<br>　　所以，当需要频繁的更新文本内容（比如1秒钟更新几十次，而且每次更新的文本都很长）的时候，尽可能的不用去使用<code>LabelTTF</code>对象，而应该使用<code>LabelAtlas</code>或者是<code>LabelBMFont</code>。如果不需要频繁更新文本的则使用<code>LabelTTF</code>是最好的选择。</p>
 <h4 id="BMFont类型标签"><a href="#BMFont类型标签" class="headerlink" title="BMFont类型标签"></a>BMFont类型标签</h4><p>　　<code>BMFont(bitmapfont)</code>标签类是引擎当中最快速最自由的字体类。不过，这也意味着它是使用起来最麻烦的字体。想在游戏中使用<code>LabelBMFont</code>类来绘制文字，开发者至少要有一个编辑器。下图展示了此类的继承关系：</p>
-<center><br><img src="/img/quick-cocos2d-x/quick_5_4.png" alt=""><br></center>
+<center><br><img src="/img/quick-cocos2d-x/quick_5_4.png" alt><br></center>
 
 <p><br><strong>是什么</strong></p>
 <p>　　<code>LabelBMFont</code>是Cocos2d-x支持的一种文本字体类型。</p>
 <p>　　源文件预览图：</p>
-<center><br><img src="/img/quick-cocos2d-x/quick_5_5.png" alt=""><br></center>
+<center><br><img src="/img/quick-cocos2d-x/quick_5_5.png" alt><br></center>
 
 <p>　　它由两个文件组成：</p>
 <pre><code>-  一个png图片文件。里面包含一些用户自定义的字符（上图中的test.png）。
@@ -1009,7 +1009,7 @@
 </code></pre><p><br>　　使用BMFont标签的关键在于如何创建自定义的字体文件，而BMFont本身的使用则十分简单。比较推荐的创建字体文件的工具是<code>Hiero</code>，它是一个可执行<code>java</code>程序，因此<code>Hiero</code>需要计算机安装<code>JDK</code>。</p>
 <p>　　<a href="http://www.n4te.com/hiero/hiero.jnlp" target="_blank" rel="noopener">点击下载：http://www.n4te.com/hiero/hiero.jnlp</a></p>
 <p><br><strong>Hiero界面预览</strong></p>
-<center><br><img src="/img/quick-cocos2d-x/quick_5_6.jpg" alt=""><br></center>
+<center><br><img src="/img/quick-cocos2d-x/quick_5_6.jpg" alt><br></center>
 
 <p><br>　　整个Hiero软件分为<code>Font</code>、<code>SampleText</code>、<code>Effects</code>、<code>Padding</code>、<code>Rendering</code>五个模块，它们的作用分别为：</p>
 <pre><code>-  Font：基准字体相关的设置。 
@@ -1037,7 +1037,7 @@
 -  UILabel会从res目录下查找字体文件。
 -  同样可以调用setString方法来修改内容。
 </code></pre><p><br>　　效果图：</p>
-<center><br><img src="/img/quick-cocos2d-x/quick_5_7.png" alt=""><br></center>
+<center><br><img src="/img/quick-cocos2d-x/quick_5_7.png" alt><br></center>
 
 <p><br><strong>本节参考阅读：</strong></p>
 <ul>
@@ -1202,7 +1202,7 @@
 <h1 id="第七节-动画"><a href="#第七节-动画" class="headerlink" title="第七节 动画"></a>第七节 动画</h1><h2 id="动作"><a href="#动作" class="headerlink" title="动作"></a>动作</h2><p>　　游戏的世界是一个动态的世界，无论是主角精灵还是<code>NPC</code>精灵都处于不断的运动当中，甚至是背景中漂流的树叶，随风而动的小草。这些明显的或者不明显的运动构成了我们栩栩如生的游戏世界。<br>　　而精灵移动的动态效果（<code>缩放</code>、<code>闪烁</code>和<code>旋转</code>等），它们每一种效果都可以看成是精灵的一个<code>Action</code>(动作)。从技术上来说，<code>Action</code>的本质就是改变某个图形对象的位置，角度，大小等属性。</p>
 <h3 id="Action"><a href="#Action" class="headerlink" title="Action"></a>Action</h3><p>　　和之前介绍的<code>Node</code>等显示对象不同，<code>Cocos2d-x</code>的动作类<code>Action</code>并不是一个在屏幕中显示的对象，动作必须要依托于<code>Node</code>类及它的子类的实例才能发挥作用。</p>
 <p>　　<code>Action</code>类的继承关系如下图所示：</p>
-<center><br><img src="/img/quick-cocos2d-x/quick_6_1.png" alt=""><br></center>
+<center><br><img src="/img/quick-cocos2d-x/quick_6_1.png" alt><br></center>
 
 <p><br>　　<code>Action</code>类是所有动作类的基类，我们后面将要学习到的所有动作类都是它的子类。而且<code>Cocos2d-x</code>提供的动作，并不是只有<code>Sprite</code>可以使用，只要是<code>Node</code>对象都是可以进行动作操作的。</p>
 <p>　　从上图可以看出，<code>Action</code>类有四个子类：</p>
@@ -1392,8 +1392,7 @@
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="cocos2dx-002/"
-           data-title="第二章 Cocos2dx - Lua" data-url="http://yoursite.com/cocos2dx-002/">
+      <div class="ds-thread" data-thread-key="cocos2dx-002/" data-title="第二章 Cocos2dx - Lua" data-url="http://yoursite.com/cocos2dx-002/">
       </div>
     
   </div>
@@ -1418,7 +1417,7 @@
 
       
         <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
             文章目录
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
@@ -1429,9 +1428,7 @@
 
       <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <img class="site-author-image" itemprop="image"
-               src="/images/avatar.jpg"
-               alt="键盘" />
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="键盘">
           <p class="site-author-name" itemprop="name">键盘</p>
           <p class="site-description motion-element" itemprop="description">集大家之成，悟小家之道。</p>
         </div>
@@ -1518,7 +1515,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright" >
+        <div class="copyright">
   
   &copy;  2014 - 
   <span itemprop="copyrightYear">2025</span>

@@ -6,15 +6,15 @@
 
 
 <html class="theme-next mist use-motion">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -29,7 +29,7 @@
 
   
   
-  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
 
 
 
@@ -63,23 +63,23 @@
 
 
 
-<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
 
-<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
-
-
-  <meta name="keywords" content="Hexo, NexT" />
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
 
 
-
-
-
-  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml" />
+  <meta name="keywords" content="Hexo, NexT">
 
 
 
 
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
 
 
 
@@ -98,7 +98,7 @@
 <meta property="og:image" content="http://yoursite.com/img/quick-cocos2d-x/quick_3_3.jpg">
 <meta property="og:image" content="http://yoursite.com/img/quick-cocos2d-x/quick_3_4.png">
 <meta property="og:image" content="http://yoursite.com/img/quick-cocos2d-x/quick_3_6.png">
-<meta property="og:updated_time" content="2023-03-11T10:38:00.818Z">
+<meta property="og:updated_time" content="2025-04-09T03:23:37.210Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="第一章 Cocos2dx 入门">
 <meta name="twitter:description" content="第一节 游戏引擎起源　　在游戏发展的初期，游戏开发者关心的只是如何尽量多地开发出新的游戏并把它们推销给玩家。尽管那时的游戏大多简单粗糙，但每款游戏的平均开发周期也要达到8到10个月以上，这一方面是由于技术的原因，另一方面则是因为几乎每款游戏都要从头编写代码，造成了大量的重复劳动。　　渐渐地，一些有经验的开发者摸索出了一条偷懒的方法，他们借用上一款类似题材的游戏中的部分代码作为新游戏的基本框架，以节">
@@ -123,7 +123,7 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/cocos2dx-001/"/>
+  <link rel="canonical" href="http://yoursite.com/cocos2dx-001/">
 
   <title> 第一章 Cocos2dx 入门 | 不只是看客 </title>
 </head>
@@ -164,7 +164,7 @@
   
 
   <div class="custom-logo-site-title">
-    <a href="/"  class="brand" rel="start">
+    <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
       <span class="site-title">不只是看客</span>
       <span class="logo-line-after"><i></i></span>
@@ -283,7 +283,7 @@
           </span>
 
           
-            <span class="post-category" >
+            <span class="post-category">
               &nbsp; | &nbsp;
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -369,7 +369,7 @@
 </code></pre><p>　　那么不同的场景是如何实现不同的功能的呢？每个场景都是通过不同的层（<code>Layer</code>）的叠加和组合协作来实现不同的功能的。因此，通常每个场景都是由一个或者几个层组成的。</p>
 <p>　　通常，当我们需要完成一个场景时候，会创建一个<code>Scene</code>的子类，并在子类中实现我们需要的功能。比如，我们可以在子类的初始化中载入游戏资源，为场景添加层，启动音乐播放等等。<br><br></p>
 <h3 id="层（Layer）"><a href="#层（Layer）" class="headerlink" title="层（Layer）"></a>层（Layer）</h3><p>　　每个游戏场景中都可以有很多层，每一层有各自的职责任务，例如专门负责显示背景，专门负责显示道具，专门负责显示任务角色等。层是我们写游戏的重点，我们大约<code>99%</code>以上的时间是在层上实现我们游戏内容。如下图所示，一个简单的主菜单画面是由3个层叠加实现的：</p>
-<center><br><img src="/img/quick-cocos2d-x/quick_3_2.png" alt=""><br></center>
+<center><br><img src="/img/quick-cocos2d-x/quick_3_2.png" alt><br></center>
 
 <p><br>　　本图描述的是<code>主菜单画面场景</code>中所包含的三个层：图像背景层、运动精灵层、菜单选项层。</p>
 <p>　　细心的读者可能已经注意到，为了让不同的层可以组合产生统一的效果，这些层基本上都是透明或者半透明的（否则我们只能看到最上面的一个层了）。<br>　　层的叠加是有顺序的，如图所示：编号为1的图像背景层在最下面，2号中间，3号最上面，处于最上面的层内部的不透明的内容将覆盖下面层的内容。<br>　　这个次序同样用于编程模型中的事件响应机制。即编号3的层最先接收到系统事件（手指单击屏幕事件），然后是编号2，最后编号1。在事件的传递过程中，如果有一个层处理了该事件，则排在后面的层将不再接收到该事件。<br>　　在每一层上面可以放置不同的元素，包括文本（<code>Label</code>）、链接（<code>HTMLLabel</code>）、精灵（<code>Sprite</code>）、地图等等，其中，精灵是重点。<br>　　通过层与层之间的组合关系，我们可以很容易的控制和显示各种各样的界面了。</p>
@@ -438,8 +438,7 @@
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="cocos2dx-001/"
-           data-title="第一章 Cocos2dx 入门" data-url="http://yoursite.com/cocos2dx-001/">
+      <div class="ds-thread" data-thread-key="cocos2dx-001/" data-title="第一章 Cocos2dx 入门" data-url="http://yoursite.com/cocos2dx-001/">
       </div>
     
   </div>
@@ -464,7 +463,7 @@
 
       
         <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
             文章目录
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
@@ -475,9 +474,7 @@
 
       <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <img class="site-author-image" itemprop="image"
-               src="/images/avatar.jpg"
-               alt="键盘" />
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="键盘">
           <p class="site-author-name" itemprop="name">键盘</p>
           <p class="site-description motion-element" itemprop="description">集大家之成，悟小家之道。</p>
         </div>
@@ -564,7 +561,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright" >
+        <div class="copyright">
   
   &copy;  2014 - 
   <span itemprop="copyrightYear">2025</span>

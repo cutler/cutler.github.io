@@ -6,15 +6,15 @@
 
 
 <html class="theme-next mist use-motion">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -29,7 +29,7 @@
 
   
   
-  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
 
 
 
@@ -63,23 +63,23 @@
 
 
 
-<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
 
-<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
-
-
-  <meta name="keywords" content="Hexo, NexT" />
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
 
 
-
-
-
-  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml" />
+  <meta name="keywords" content="Hexo, NexT">
 
 
 
 
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
 
 
 
@@ -134,7 +134,7 @@
 <meta property="og:image" content="http://yoursite.com/img/android/android_BY_a03_04.png">
 <meta property="og:image" content="http://yoursite.com/img/android/android_BY_a03_05.png">
 <meta property="og:image" content="http://yoursite.com/img/android/android_BY_a03_06.png">
-<meta property="og:updated_time" content="2022-11-16T03:00:10.089Z">
+<meta property="og:updated_time" content="2025-04-09T03:23:37.206Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="第六章 优化篇">
 <meta name="twitter:description" content="第一节 性能优化　　本章先结合Google官方的优化教程以及笔者自己的经验，来说一下应用开发时常见的性能优化手段，随后则会介绍一些内存优化的技巧。 界面优化基础知识　　刷新率和帧率 -  屏幕刷新率：代表了屏幕一秒内刷新的次数，60Hz就是屏幕一秒内刷新60次。 -  帧率：代表了GPU在一秒内绘制的帧数，例如60fps就是指GPU一秒钟能生成60张画面，即每秒60帧。 　　绘制原理 -  And">
@@ -159,7 +159,7 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/android-a006/"/>
+  <link rel="canonical" href="http://yoursite.com/android-a006/">
 
   <title> 第六章 优化篇 | 不只是看客 </title>
 </head>
@@ -200,7 +200,7 @@
   
 
   <div class="custom-logo-site-title">
-    <a href="/"  class="brand" rel="start">
+    <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
       <span class="site-title">不只是看客</span>
       <span class="logo-line-after"><i></i></span>
@@ -319,7 +319,7 @@
           </span>
 
           
-            <span class="post-category" >
+            <span class="post-category">
               &nbsp; | &nbsp;
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -425,7 +425,7 @@
 -  绿色：2倍过度绘制，即一个像素点绘制了3次；
 -  浅红色：3倍过度绘制，即一个像素点绘制了4次；
 -  深红色：4倍过度绘制及以上，即一个像素点绘制了5次及以上；
-</code></pre><center><br><img src="/img/android/android_BY_a01_02.jpg" alt=""><br></center>
+</code></pre><center><br><img src="/img/android/android_BY_a01_02.jpg" alt><br></center>
 
 <p><br>　　设备的硬件性能是有限的，当过度绘制导致应用需要消耗更多资源（超过了可用资源）的时候性能就会降低，表现为卡顿、不流畅、ANR等。</p>
 <p>　　尽管大部分情况下，App 的过度绘制不可避免，但是在开发中，我们还是应该尽可能去减少过度绘制。</p>
@@ -433,7 +433,7 @@
 <pre><code>-  应用所有界面以及分支界面均不存在超过4X过度绘制（深红色区域）；
 -  应用所有界面以及分支界面下，3X过度绘制总面积（浅红色区域）不超过屏幕可视区域的1/4；
 </code></pre><p><br>　　过度绘制很大程度上来自于视图相互重叠的问题，其次还有不必要的背景重叠。</p>
-<center><br><img src="/img/android/android_BY_a01_03.jpg" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_a01_03.jpg" alt><br></center>
 
 <p><br>　　比如一个应用所有的View都有背景的话，就会看起来像第一张图中那样，而在去除这些不必要的背景之后（指的是Window的默认背景、Layout的背景、文字以及图片的可能存在的背景），效果就像第二张图那样，基本没有过度绘制的情况。</p>
 <p><br><strong>自定义控件</strong><br>　　在自定义控件的时候也会遇到过度绘制的问题，比如我们连续绘制3遍同样的图片，效果如下图所示：</p>
@@ -466,7 +466,7 @@
 <p><br><strong>追踪渲染性能</strong></p>
 <p>　　通过在手机的<code>开发者选项</code>里打开<code>GPU 呈现模式分析</code>，来查看应用所有界面及分支界面下的渲染性能，方便进行优化。</p>
 <p>　　这个工具会在屏幕上实时显示当前界面的最近<code>128</code>帧的GPU绘制图形数据，包括<code>StatusBar</code>、<code>NavBar</code>，以及我们最关心的<code>当前界面的GPU绘制</code>图形柱状图数据。</p>
-<center><br><img src="/img/android/android_BY_a01_04.jpg" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_a01_04.jpg" alt><br></center>
 
 <p>　　中间有一条绿线，代表<code>16ms</code>，保持动画流畅的关键就在于让这些垂直的柱状条尽可能地保持在绿线下面，任何时候超过绿线，你就有可能丢失一帧的内容。</p>
 <p><br><strong>布局变化的问题</strong></p>
@@ -633,7 +633,7 @@
 <h3 id="遍历列表"><a href="#遍历列表" class="headerlink" title="遍历列表"></a>遍历列表</h3><p>　　在Java语言中<code>Iterator</code>是一个比较常见的遍历方法，但是在Android中大家却尽量避免使用<code>Iterator</code>来遍历。</p>
 <p>　　下面我们看下三种不同的遍历方法：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// for index，即下标遍历</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; list.size(); i++) &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// for simple</span></span><br><span class="line"><span class="keyword">for</span>(String i : list)&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Iterator遍历</span></span><br><span class="line">Iterator&lt;String&gt; iterator = list.iterator();</span><br><span class="line"><span class="keyword">while</span> (iterator.hasNext())&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p><br>　　使用上面三种方式在同一台手机上，使用相同的数据集做测试，它们的表现性能如下所示：</p>
-<center><br><img src="/img/android/android_BY_a01_08.jpg" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_a01_08.jpg" alt><br></center>
 
 <p>　　从上面可以看到<code>for index</code>的方式有更好的效率，但是因为不同平台编译器优化各有差异，我们最好还是针对实际的方法做一下简单的测量比较好，拿到数据之后，再选择效率最高方式。</p>
 <h3 id="图片处理"><a href="#图片处理" class="headerlink" title="图片处理"></a>图片处理</h3><p><br>　　<strong>调整解码率</strong></p>
@@ -720,7 +720,7 @@
    -  如果位图的配置使用ARGB_8888(Android 2.3的默认配置)那么加载这个图像到内存需要19MB的存储空间(2592*1936*4bytes)，直接超过了许多低端设备上的单应用限制。
 </code></pre><h2 id="JVM内存结构"><a href="#JVM内存结构" class="headerlink" title="JVM内存结构"></a>JVM内存结构</h2><p>　　接着再来看一下JVM的内存结构。</p>
 <p>　　JVM会把它所管理的内存会分为若干个不同的数据区域，这些区域都有各自的用途、创建和销毁的时间，有的区域随着虚拟机进程的启动而存在，有些区域则是依赖用户线程的启动和结束而建立和销毁。<br>　　根据<a href="https://book.douban.com/subject/25792515/" target="_blank" rel="noopener">《Java虚拟机规范》</a>，包括以下几个运行时数据区域：</p>
-<center><br><img src="/img/android/android_BY_a02_01.jpg" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_a02_01.jpg" alt><br></center>
 
 <p><br>　　我们先抛开上图不看，而是基于自己现有的Java知识来想象一下内存应该是什么样的。</p>
 <p><br>　　首先，Java程序是多线程的。</p>
@@ -835,7 +835,7 @@
 <p>　　推荐使用adb命令来查看进程的内存（要把手机连接到电脑上不用我说了吧？）：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb shell dumpsys meminfo com.android.systemui</span><br></pre></td></tr></table></figure>
 <p><br>　　下图是输出的内容摘要：</p>
-<center><br><img src="/img/android/android_BY_a03_01.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_a03_01.png" alt><br></center>
 
 <p>　　这些字段的含义为：</p>
 <pre><code>-  Native Heap行和Dalvik Heap行，分别表示当前进程的Native堆和Dalvik堆的大小，这些数字的单位都是KB。
@@ -846,7 +846,7 @@
 <p>　　整个系统的已用内存就是各进程的Total Pss的总和，执行如下命令可以查看所有进程的内存和系统总内存：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb shell dumpsys meminfo</span><br></pre></td></tr></table></figure>
 <p><br>　　下图是输出的内容摘要：</p>
-<center><br><img src="/img/android/android_BY_a03_02.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_a03_02.png" alt><br></center>
 
 <p>　　这些字段的含义为：</p>
 <pre><code>-  Total RAM表示手机的总内存，我的手机是3G的；另外三项也很容易理解，分别是：空闲内存、已使用内存、丢失内存。
@@ -871,7 +871,7 @@
 不过，今天我们要介绍的MAT被认为是一个“傻瓜式”的堆转储文件分析工具，你只需要轻轻点击一下鼠标就可以生成一个专业的分析报告。
 和其他内存泄露分析工具相比，MAT的使用非常容易，基本可以实现一键到位，即使是新手也能够很快上手使用。
 </code></pre><p><br>　　先来看看MAT工具的预览界面：</p>
-<center><br><img src="/img/android/android_8_11.png" alt=""><br></center>
+<center><br><img src="/img/android/android_8_11.png" alt><br></center>
 
 <p>　　红框括起来了是一些快捷键和功能按钮，如果不小心把某个窗口给关掉后，可以通过这些按钮重新打开对应的界面。</p>
 <p><br>　　接下来我们有两个任务要做：</p>
@@ -883,10 +883,10 @@
 -  每当新建立一个Activity的时候就开启一个线程，并让这个线程运行600秒。
 </code></pre><h4 id="发现问题"><a href="#发现问题" class="headerlink" title="发现问题"></a>发现问题</h4><p>　　若我们的项目运行一段时间后就变得很慢，那么不出意外的话是有内存泄漏了，但是由于不知道具体在哪里泄漏的，所以可能无从下手，应该怎么办呢？<br>　　在<code>DDMS</code>视图中的<code>Heap</code>选项卡中部有一个<code>Type</code>叫做<code>data object</code>，即数据对象。<br>　　在<code>data object</code>一行中有一列是<code>“Total Size”</code>，其值就是当前进程中所有<code>Java</code>数据对象的内存总量，一般情况下，这个值的大小决定了是否会有内存泄漏。</p>
 <p>　　以我们上面的问题代码为例，程序刚启动时内存的信息为：</p>
-<center><br><img src="/img/android/android_o02_12.png" alt=""><br></center>
+<center><br><img src="/img/android/android_o02_12.png" alt><br></center>
 
 <p>　　然后我们不断的横竖屏切换<code>5~10</code>次后，内存的信息为：</p>
-<center><br><img src="/img/android/android_o02_13.png" alt=""><br></center>
+<center><br><img src="/img/android/android_o02_13.png" alt><br></center>
 
 <p>　　很明显可以看到，随着我们横竖屏切换的次数增加，<code>“Count”</code>和<code>“Total Size”</code>两列下的数值也不断的增加，并且不会减少。这基本就可以断定这个界面存在内存泄漏了。</p>
 <p>　　因此我们可以这样判断是否存在内存泄漏：</p>
@@ -901,7 +901,7 @@
 <pre><code>-  如果你是使用MAT单机版（而不是AS或者Eclipse插件），那么你需要手动把hprof转换一下格式。
 </code></pre><p><br>　　当使用<code>MAT</code>打开<code>.hprof</code>文件时，会默认打开一个名为<code>“Leak suspects”（泄露疑点）</code>的视图，并且生成报告给用户。<br>　　<code>“泄露疑点”</code>会列出当前内存中的个头大的对象，在这里列出的对象并不一定是真正的内存泄露，但它仍然是检查内存泄露的一个绝佳起点。</p>
 <p>　　如下图所示：</p>
-<center><br><img src="/img/android/android_o02_14.png" alt=""><br></center>
+<center><br><img src="/img/android/android_o02_14.png" alt><br></center>
 
 <p>　　图释：</p>
 <pre><code>-  android.content.res.Resources：类名称。
@@ -918,11 +918,11 @@
 <p>　　笔者计算<code>Person2</code>对象的浅堆是<code>36</code>字节，就算在你的机器上计算的值与笔者计算的有偏差也不必在乎它们，因为误差不是我们关注重点。事实上，我们只是借助<code>Person2</code>类来理解浅堆和保留堆的概念，至于<code>Person2</code>类会占多少字节<code>Who cares?</code>，只要不是很离谱就可以了。</p>
 <p>　　如果程序中有这样的代码：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    Person p ;</span><br><span class="line">    Person2 p2 ;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        p = <span class="keyword">new</span> Person();</span><br><span class="line">        p2 = <span class="keyword">new</span> Person2(<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>　　则计算出<code>Person</code>和<code>Person2</code>的浅堆与保留堆的大小如图所示：</p>
-<center><br><img src="/img/android/android_8_13.png" alt=""><br></center>
+<center><br><img src="/img/android/android_8_13.png" alt><br></center>
 
 <p><br>　　若是有如下代码：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    Person2 p2 ;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        p2 = <span class="keyword">new</span> Person2(<span class="keyword">new</span> Person());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>　　则计算出<code>Person</code>和<code>Person2</code>的浅堆与保留堆的大小如图所示：</p>
-<center><br><img src="/img/android/android_8_14.png" alt=""><br></center>
+<center><br><img src="/img/android/android_8_14.png" alt><br></center>
 
 <p>　　即<code>Person2</code>的保留堆为：<code>Person2</code>的浅堆+<code>Person</code>的浅堆。</p>
 <p>　　这里要说一下的是，<code>Retained Heap</code>并不总是那么有效：</p>
@@ -937,7 +937,7 @@
 -  第二，使用Dominator Tree视图来继续追踪。
 -  第三，使用Histogram视图来继续追踪。
 </code></pre><h4 id="Dominator-Tree"><a href="#Dominator-Tree" class="headerlink" title="Dominator Tree"></a>Dominator Tree</h4><p>　　MAT提供了一个称为<code>支配树</code>（Dominator Tree）的对象图。支配树体现了对象实例间的支配关系。在对象引用图中，所有指向对象<code>B</code>的路径都经过对象<code>A</code>，则认为对象<code>A</code>支配对象<code>B</code>。<br>　　简单的说，之所以提出支配树这个概念，就是为了计算对象的<code>Retained Heap</code>。</p>
-<center><br><img src="/img/android/android_8_17.png" alt=""><br></center>
+<center><br><img src="/img/android/android_8_17.png" alt><br></center>
 
 <p>　　比如我们可以从上图左侧的引用图（对象<code>A</code>引用<code>B</code>和<code>C</code>，<code>B</code>和<code>C</code>又都引用到<code>D</code>）构造出右侧的<code>Dominator Tree</code>，计算出来的<code>Retained Memory</code>为：</p>
 <pre><code>-  A的Retained Heap包括A本身和B，C，D，E。
@@ -952,12 +952,12 @@
 <p><br><strong>界面介绍</strong></p>
 <p>　　支配树可以算是<code>MAT</code>中第二有用的工具，它依据我们设置的关键字来列出符合条件的、堆中较大的（不是所有的）对象以及它们之间的引用关系，我们可以直接在<code>“Overview”</code>选项页中点击<code>“Dominator Tree”</code>进入该工具，或者从菜单栏中也可以进入。</p>
 <p><br>　　支配树的界面如下图所示：</p>
-<center><br><img src="/img/android/android_8_18.png" alt=""><br></center>
+<center><br><img src="/img/android/android_8_18.png" alt><br></center>
 
 <p>　　表头依次代表：<code>类名</code>、<code>浅堆大小</code>、<code>保留堆大小</code>、<code>百分比</code>，可以通过点击某个表头来按特定的字段进行排序。<br>　　第一行用于输入查找条件，支持正则表达式，如需要查找出<code>MainActivity</code>相关的类，则可以在<code>ClassName</code>列的第一行输入<code>“MainActivity”</code>关键字。<br>　　<br><br><strong>检索出相关对象</strong></p>
 <p>　　如果你泄漏的对象所占据的内存比较大的话，那么通常在打开<code>Dominator Tree</code>时就可以看到它被排在前列。<br>　　但是，由于前面的范例中只是在<code>onCreate</code>方法里创建了线程，并没有执行显示图片等耗内存的操作，因此即便是运行时多执行几次横竖屏切换，泄漏的内存也不会很大，还不至于在<code>Dominator Tree</code>视图打开的时候就被列出来，所以我们得通过输入关键字<code>“MainActivity”</code>查找后才能看到。</p>
 <p>　　如下图所示：</p>
-<center><br><img src="/img/android/android_o02_15.png" alt=""><br></center>
+<center><br><img src="/img/android/android_o02_15.png" alt><br></center>
 
 <p>　　上图列出了当前内存中存在的、所有符合筛选条件（<code>*.MainActivity.*</code>）的对象，可以看出明显存在多个<code>Thread</code>对象，这显然是不正常的。</p>
 <p>　　当然，在实际操作的时候情况肯定会比上面的要复杂的多。比如我们有这样一段代码：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> Leaky leak = <span class="keyword">null</span>;</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Leaky</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">doSomething</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            System.out.println(<span class="string">"Wheee!!!"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        <span class="keyword">if</span> (leak == <span class="keyword">null</span>) &#123;</span><br><span class="line">            leak = <span class="keyword">new</span> Leaky();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 此处省略了其它代码（加载图片等）。</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
@@ -965,33 +965,33 @@
 -  本范例是通过Leaky泄露了MainActivity对象，并且我们在MainActivity中显示了一些图片。
 -  接下来我们就演示一下如何通过Bitmap对象来定位出内存泄露的根源。
 </code></pre><p>　　依然是打开<code>Dominator Tree</code>视图，由于Bitmap比较大，所以在打开<code>Dominator Tree</code>的第一眼就能看到它，于是我们按照下图所示的操作，来查看Bitmap的引用连：</p>
-<center><br><img src="/img/android/android_8_21.png" alt=""><br></center>
+<center><br><img src="/img/android/android_8_21.png" alt><br></center>
 
 <p>　　上图中排在第一的是<code>Resources</code>类型对象，由于一般是系统用于加载资源的，所以<code>Retained heap</code>较大是个比较正常的情况。但我们注意到下面有一个<code>Retained heap</code>很大的<code>Bitmap</code>对象，为了防止存在内存泄露的问题，我们就去看看它被谁引用了（如果没人引用，那这个Bitmap就被回收了，不会出现在hprof中）。<br>　　所以我们右键点击这行，选择<code>Path To GC Roots -&gt; exclude weak references</code>：</p>
 <pre><code>-  Path To GC Roots 选项用来告诉MAT将当前对象到某个GC根对象之间的所有引用链给列出来。
 -  exclude weak references选项用来告诉MAT，不用列出weak类型的引用，如果你只想查看强引用的话，可以直接选倒数第二项。
 </code></pre><p><br>　　然后可以看到下图的情形：</p>
-<center><br><img src="/img/android/android_8_22.png" alt=""><br></center>
+<center><br><img src="/img/android/android_8_22.png" alt><br></center>
 
 <p>　　<code>Bitmap</code>最终被<code>leak</code>变量引用到，这应该是一种不正常的现象，内存泄漏很可能就在这里了。</p>
 <p>　　也就是说，<code>MAT</code>不会告诉哪里是内存泄漏，需要你自行分析，由于这是<code>Demo</code>，是我们特意造成的内存泄漏，因此比较容易就能看出来，真实的应用场景可能需要你仔细的进行分析。</p>
 <p>　　如果我们<code>Path To GC Roots -&gt; with all references</code>，我们可以看到下图的情形：</p>
-<center><br><img src="/img/android/android_8_23.png" alt=""><br></center>
+<center><br><img src="/img/android/android_8_23.png" alt><br></center>
 
 <p>　　可以看到还有另外一个对象在引用着这个<code>Bitmap</code>对象，了解<code>weak references</code>的同学应该知道<code>GC</code>是如何处理<code>weak references</code>，因此在内存泄漏分析的时候我们可以把<code>weak references</code>排除掉。</p>
 <h4 id="Histogram"><a href="#Histogram" class="headerlink" title="Histogram"></a>Histogram</h4><p>　　支配树用来把当前内存中的、符合筛选条件的对象，按照保留堆从大到小的顺序列出来。如果你希望根据某种类型的对象个数来分析内存泄漏，则可以使用<code>Histogram</code>视图。<br>　　与<code>Dominator Tree</code>一样，较小的对象可以通过在第一行的<code>“ClassName”</code>列中输入关键字进行查找。</p>
 <p>　　我们在<code>Overview</code>视图中选择<code>Actions -&gt; Histogram</code>，可以看到类似下图的情形：</p>
-<center><br><img src="/img/android/android_8_24.png" alt=""><br></center>
+<center><br><img src="/img/android/android_8_24.png" alt><br></center>
 
 <p>　　在上图中，<code>Objects</code>列表示内存中该类型的对象个数。<br>　　我们看到<code>byte[]</code>占用<code>Shallow heap</code>最多，那是因为<code>Honeycomb</code>之后<code>Bitmap Pixel Data</code>的内存分配在<code>Dalvik heap</code>中。</p>
 <p>　　接下来，我们右键选中<code>byte[]</code>数组，选择<code>List Objects -&gt; with incoming references</code>，然后可以看到<code>byte[]</code>具体的对象列表：</p>
-<center><br><img src="/img/android/android_8_25.png" alt=""><br></center>
+<center><br><img src="/img/android/android_8_25.png" alt><br></center>
 
 <p><br>　　提示：</p>
 <pre><code>-  With Outgoing References表示该对象的出节点（被该对象引用的对象）。
 -  With Incoming References表示该对象的入节点（引用到该对象的对象）。
 </code></pre><p>　　从上图中我们发现第一个<code>byte[]</code>的<code>Retained heap</code>较大，内存泄漏的可能性较大。<br>　　右键选中这行，<code>Path To GC Roots -&gt; exclude weak references</code>，同样可以看到上文所提到的情况，我们的<code>Bitmap</code>对象被<code>leak</code>所引用到（如下图所示），这里存在着内存泄漏。</p>
-<center><br><img src="/img/android/android_8_27.png" alt=""><br></center>
+<center><br><img src="/img/android/android_8_27.png" alt><br></center>
 
 <p><br>　　也可以在<code>Histogram</code>视图中第一行输入<code>MainActivity</code>，来过滤出我们自己应用中的类型。</p>
 <p><br><strong>本章参考阅读：</strong></p>
@@ -1023,24 +1023,24 @@
 8、所谓的比较两个hprof，主要就是看看它们的Histogram列出的类，比如是否多了Bitmap等（至于如何比较，后面会有范例）。
 </code></pre><p><br>　　<strong>4、比较两个hprof文件。</strong></p>
 <p>　　假设我们有如下图所示的两个hprof文件，a是初始内存，b是执行N次操作后的内存：</p>
-<center><br><img src="/img/android/android_BY_a03_03.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_a03_03.png" alt><br></center>
 
 <p>　　通过观察可以发现，b里的String[]对象的个数多出了将近100个，我们接着使用“with incoming references”，去看看多出了哪些String[]。</p>
 <pre><code>-  你可能会说String对象还多1000呢，你怎么不看？
 -  当然是先挑少的看了，不优先追踪只有2200多个对象的String[]，反而去追踪有6W+对象的String？
 -  不要搞事情，我跟你讲。
 </code></pre><p><br>　　接着继续比较String[]，如下图所示：</p>
-<center><br><img src="/img/android/android_BY_a03_04.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_a03_04.png" alt><br></center>
 
 <p>　　可以发现b（右侧的）里多出一些大小为960字节的String[]，而a中并没有，继续追踪下去发现如下引用链：</p>
-<center><br><img src="/img/android/android_BY_a03_05.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_a03_05.png" alt><br></center>
 
 <p>　　其实走到这里就可以做出判断了：</p>
 <pre><code>-  首先在b.hprof中发现了大量的960字节的String[]数组。
 -  然后通过查看String[]的引用链发现，这些String[]并不是共存在某个集合中的，而是一对一的被持有的。
 -  因此内存中很有可能存在多个MusicListenerService对象，每个对象会间接引用一个String[]。
 </code></pre><p>　　于是分别打开两份日志的dominator tree视图，可以看到如下所示：</p>
-<center><br><img src="/img/android/android_BY_a03_06.png" alt=""><br></center>
+<center><br><img src="/img/android/android_BY_a03_06.png" alt><br></center>
 
 <p>　　从图中可看出<code>MusicListenerService</code>对象泄漏了，既然找到了问题，那事情就好办了。<br><br><br></p>
 <p>　　上面就是内存分析过程，干货就是定位问题的思路，希望对各位能有所帮助。</p>
@@ -1068,8 +1068,7 @@
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="android-a006/"
-           data-title="第六章 优化篇" data-url="http://yoursite.com/android-a006/">
+      <div class="ds-thread" data-thread-key="android-a006/" data-title="第六章 优化篇" data-url="http://yoursite.com/android-a006/">
       </div>
     
   </div>
@@ -1094,7 +1093,7 @@
 
       
         <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
             文章目录
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
@@ -1105,9 +1104,7 @@
 
       <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <img class="site-author-image" itemprop="image"
-               src="/images/avatar.jpg"
-               alt="键盘" />
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="键盘">
           <p class="site-author-name" itemprop="name">键盘</p>
           <p class="site-description motion-element" itemprop="description">集大家之成，悟小家之道。</p>
         </div>
@@ -1194,7 +1191,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright" >
+        <div class="copyright">
   
   &copy;  2014 - 
   <span itemprop="copyrightYear">2025</span>

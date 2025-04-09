@@ -6,15 +6,15 @@
 
 
 <html class="theme-next mist use-motion">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -29,7 +29,7 @@
 
   
   
-  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
 
 
 
@@ -63,23 +63,23 @@
 
 
 
-<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
 
-<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
-
-
-  <meta name="keywords" content="Hexo, NexT" />
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
 
 
-
-
-
-  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml" />
+  <meta name="keywords" content="Hexo, NexT">
 
 
 
 
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
 
 
 
@@ -96,7 +96,7 @@
 <meta property="og:image" content="http://yoursite.com/img/base/base001_01.png">
 <meta property="og:image" content="http://yoursite.com/img/base/base001_02.png">
 <meta property="og:image" content="http://yoursite.com/img/base/base001_03.png">
-<meta property="og:updated_time" content="2022-11-11T03:09:21.437Z">
+<meta property="og:updated_time" content="2025-04-09T03:23:37.209Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="第三章 操作系统">
 <meta name="twitter:description" content="我此时正在准备考程序员，所以关于操作系统的很多细节部分，没有时间仔细研究，而且本书写的有点散乱，您多多包涵。 第一节 操作系统概述计算机系统的组成　　计算机系统资源由 硬件资源 和 软件资源 两部分组成。  硬件资源：是咱们能看的到、摸得到的物理装备。如：显示器、鼠标、CPU等。软件资源：是计算机内部程序、数据、相关文档的集合。如：QQ、360杀毒等等。 而软件资源又可以分为： 系统软件：是最">
@@ -121,7 +121,7 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/c-base-003/"/>
+  <link rel="canonical" href="http://yoursite.com/c-base-003/">
 
   <title> 第三章 操作系统 | 不只是看客 </title>
 </head>
@@ -162,7 +162,7 @@
   
 
   <div class="custom-logo-site-title">
-    <a href="/"  class="brand" rel="start">
+    <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
       <span class="site-title">不只是看客</span>
       <span class="logo-line-after"><i></i></span>
@@ -281,7 +281,7 @@
           </span>
 
           
-            <span class="post-category" >
+            <span class="post-category">
               &nbsp; | &nbsp;
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -593,7 +593,7 @@
 <p>　　<strong>信号量机制</strong></p>
 <p>　　前面说进程间关系有：<font color="red">互斥关系和同步关系</font>，接下来简单的介绍一下当两个进程处于这两种关系时，系统解决他们的大致思路。</p>
 <p>　　首先我们来看一下<font color="red">互斥关系</font>，假设现在系统中有个临界资源，以及A、B两个进程。<br>　　如下图所示：</p>
-<center><br><img src="/img/base/base001_01.png" alt=""><br></center>
+<center><br><img src="/img/base/base001_01.png" alt><br></center>
 
 <p>　　设一个整型变量S，用来保存当前系统中剩余的资源数量，P操作表示申请一个资源，V操作表示释放一个资源，对S进行P操作，记作P(S)，相应的也有V(S)，PV操作是由进程来控制完成的。</p>
 <p>　　进行P操作时S减去1，执行完P操作后(也就是S-1之后)，进行如下判断：</p>
@@ -609,7 +609,7 @@
 <blockquote>
 <p>有一张桌子，桌子上只能存放5盘菜。<br>有一个厨师不断的做菜，然后将菜放到桌子上，如果桌子满5盘，则就停止做菜。<br>有一个食客不断的吃菜,如果桌子空了，则就歇会。<br>吃菜和放菜不能同时进行。</p>
 </blockquote>
-<center><br><img src="/img/base/base001_02.png" alt=""><br></center>
+<center><br><img src="/img/base/base001_02.png" alt><br></center>
 
 <p>　　若厨师先执行，则厨师一开始检测一下，桌子上的菜是否为5：</p>
 <blockquote>
@@ -768,7 +768,7 @@
 <p>先将进程的逻辑地址空间分成若干个大小相等的片，称为页，并为各页加以编号，从0开始。<br>再将内存空间分成与页面相同大小的若干存储块，称为（物理）块或<font color="red">页框</font>，同样从0开始编号。<br>在为进程分配内存时，将进程中的若干个页分别装入到多个可以不相邻接的物理块中。</p>
 </blockquote>
 <p>　　<strong>页表</strong><br>　　系统将进程的每一页离散地分配到内存的多个页框中，应该保证能在内存中快速找到每个页面所对应的物理地址，页表的作用是实现从页号到物理块号的地址映射。</p>
-<center><br><img src="/img/base/base001_03.png" alt=""><br></center>
+<center><br><img src="/img/base/base001_03.png" alt><br></center>
 
 <p>　　每个进程都具有一个页表，在CPU中存在一个页表寄存器，在页表寄存器中存放页表在内存的始址和页表的长度。</p>
 <blockquote>
@@ -823,8 +823,7 @@
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="c-base-003/"
-           data-title="第三章 操作系统" data-url="http://yoursite.com/c-base-003/">
+      <div class="ds-thread" data-thread-key="c-base-003/" data-title="第三章 操作系统" data-url="http://yoursite.com/c-base-003/">
       </div>
     
   </div>
@@ -849,7 +848,7 @@
 
       
         <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
             文章目录
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
@@ -860,9 +859,7 @@
 
       <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <img class="site-author-image" itemprop="image"
-               src="/images/avatar.jpg"
-               alt="键盘" />
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="键盘">
           <p class="site-author-name" itemprop="name">键盘</p>
           <p class="site-description motion-element" itemprop="description">集大家之成，悟小家之道。</p>
         </div>
@@ -949,7 +946,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright" >
+        <div class="copyright">
   
   &copy;  2014 - 
   <span itemprop="copyrightYear">2025</span>

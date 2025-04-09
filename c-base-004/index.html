@@ -6,15 +6,15 @@
 
 
 <html class="theme-next mist use-motion">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -29,7 +29,7 @@
 
   
   
-  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
 
 
 
@@ -63,23 +63,23 @@
 
 
 
-<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
 
-<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
-
-
-  <meta name="keywords" content="Hexo, NexT" />
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
 
 
-
-
-
-  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml" />
+  <meta name="keywords" content="Hexo, NexT">
 
 
 
 
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
 
 
 
@@ -97,7 +97,7 @@
 <meta property="og:image" content="http://yoursite.com/img/base/base003_02.png">
 <meta property="og:image" content="http://yoursite.com/img/base/base003_03.png">
 <meta property="og:image" content="http://yoursite.com/img/base/base003_04.png">
-<meta property="og:updated_time" content="2022-10-28T10:49:35.626Z">
+<meta property="og:updated_time" content="2025-04-09T03:23:37.209Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="第四章 数据库">
 <meta name="twitter:description" content="概述　　数据管理的三个阶段 　　人工管理阶段：此阶段程序员的源代码都写在卡片上（程序处理的数据也完全与程序写在一起），执行程序时将卡片送进计算机，计算机运算完毕后，将结果返回给程序员。程序执行期间，程序员不能和计算机交互，也没有磁盘的概念，数据根本没法共享，依赖于程序存在。  硬件：无磁盘，数据无法长期存储。软件：无操作系统和DBMS。数据处理方式：批处理，中途无交互。特点：数据不共享，不具有独立">
@@ -122,7 +122,7 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/c-base-004/"/>
+  <link rel="canonical" href="http://yoursite.com/c-base-004/">
 
   <title> 第四章 数据库 | 不只是看客 </title>
 </head>
@@ -163,7 +163,7 @@
   
 
   <div class="custom-logo-site-title">
-    <a href="/"  class="brand" rel="start">
+    <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
       <span class="site-title">不只是看客</span>
       <span class="logo-line-after"><i></i></span>
@@ -282,7 +282,7 @@
           </span>
 
           
-            <span class="post-category" >
+            <span class="post-category">
               &nbsp; | &nbsp;
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -359,7 +359,7 @@
 </blockquote>
 <h1 id="Oracle数据库"><a href="#Oracle数据库" class="headerlink" title="Oracle数据库"></a>Oracle数据库</h1><p>　　<code>Oracle</code>数据库由美国的<code>Oracle</code>公司生产的，<code>Oracle</code>原本的含义是“<font color="red">神谕</font>”，指的是神说的话，在中国的商代，人们把一些刻在龟壳上的文字当成是上天的指示，所以在中国将<code>Oracle</code>也译成“<font color="red">甲骨文</font>”，目前Oracle公司已经收购了SUN公司。</p>
 <h2 id="数据查询"><a href="#数据查询" class="headerlink" title="数据查询"></a>数据查询</h2><h3 id="简单查询"><a href="#简单查询" class="headerlink" title="简单查询"></a>简单查询</h3><p>　　从本节开始，所有介绍的SQL语句都是基于如下两张表的。</p>
-<center><br><img src="/img/base/base003_01.png" alt=""><br></center>
+<center><br><img src="/img/base/base003_01.png" alt><br></center>
 
 <p><br>　　范例1：基本查询语句。<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> empno,ename,job,hiredate,mgr,sal,comm,deptno </span><br><span class="line"><span class="keyword">FROM</span>  emp;</span><br></pre></td></tr></table></figure></p>
 <pre><code>语句解释：
@@ -466,7 +466,7 @@
 <p>表     基本的数据存储集合，由行和列组成。<br>视图   从表中抽出的逻辑上相关的数据集合。<br>序列   提供有规律的数值。<br>索引   提高查询的效率。</p>
 </blockquote>
 <h3 id="表"><a href="#表" class="headerlink" title="表"></a>表</h3><p>　　在Oracle中想要创建一个表，必须要知道Oracle的常用数据类型。</p>
-<center><br><img src="/img/base/base003_02.png" alt=""><br></center>
+<center><br><img src="/img/base/base003_02.png" alt><br></center>
 
 <p><br>　　范例1：常见操作。<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--  student是表名，表中每个字段之间用逗号间隔，最后一个字段不需要用逗号。</span></span><br><span class="line"><span class="comment">--  default关键字可以为字段指定默认值，insert语句没有为sex列提供数据时，则使用默认值。 </span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> student(</span><br><span class="line">    <span class="keyword">sid</span>    <span class="built_in">number</span>(<span class="number">5</span>) ,</span><br><span class="line">    sname <span class="built_in">varchar</span>(<span class="number">10</span>),</span><br><span class="line">    sex   <span class="built_in">varchar</span>(<span class="number">2</span>)  <span class="keyword">default</span> <span class="string">'男'</span>,</span><br><span class="line">    age   <span class="built_in">number</span> (<span class="number">3</span>) ,</span><br><span class="line">    birthday <span class="built_in">date</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 使用子查询的结果来创建一张表，表所具有的列，就是子查询返回的列。</span></span><br><span class="line"><span class="comment">-- 也可以在表名的后面为表中的列自定义列名。</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> emp20</span><br><span class="line"><span class="keyword">AS</span></span><br><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line"><span class="keyword">FROM</span> emp</span><br><span class="line"><span class="keyword">WHERE</span> deptno=<span class="number">20</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 增加列</span></span><br><span class="line"><span class="keyword">Alter</span> <span class="keyword">table</span> Student </span><br><span class="line"><span class="keyword">add</span>(school <span class="built_in">varchar</span>(<span class="number">20</span>)  <span class="keyword">default</span>  ’美国二中’ , height <span class="built_in">number</span>(<span class="number">3</span>) <span class="keyword">default</span> <span class="number">170</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 修改列</span></span><br><span class="line"><span class="comment">-- 修改列的长度但不改变列的类型，如将varchar(20)改成varchar(10)。若表中有一个记录的长度为15，此时新列的长度必须&gt;=15。</span></span><br><span class="line"><span class="comment">-- 修改列的类型时，若新旧类型不兼容，则只有在该列中无数据的时候，列的类型才能被修改。</span></span><br><span class="line"><span class="comment">-- 修改列时，对默认值的修改只影响今后插入到表中的行。</span></span><br><span class="line"><span class="keyword">Alter</span> <span class="keyword">table</span> Student</span><br><span class="line"><span class="keyword">Modify</span>(school <span class="built_in">varchar</span>(<span class="number">10</span>) <span class="keyword">default</span> (’英国二中’));</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 删除列</span></span><br><span class="line"><span class="keyword">Alter</span> <span class="keyword">table</span> student <span class="keyword">drop</span> <span class="keyword">column</span> sex;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 重命名列</span></span><br><span class="line"><span class="keyword">Alter</span> <span class="keyword">table</span> sstudent <span class="keyword">rename</span> <span class="keyword">column</span> sex <span class="keyword">to</span> fuck;</span><br></pre></td></tr></table></figure></p>
 <h3 id="视图"><a href="#视图" class="headerlink" title="视图"></a>视图</h3><p>　　一个视图实际上就是封装了一个复杂的查询语句。</p>
@@ -524,11 +524,11 @@
 <p>　　范例2： 插入数据。<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">or</span> <span class="keyword">replace</span> <span class="keyword">trigger</span> <span class="keyword">test</span></span><br><span class="line"><span class="comment">-- 当用户向emp表中插入数据之时，会触发此触发器。</span></span><br><span class="line"><span class="comment">-- 若触发器被顺利执行完毕，则Oracle会将用户的数据插入到emp表中去。</span></span><br><span class="line"><span class="comment">-- 若触发器中抛出了异常，则Oracle不会将用户的数据插入到emp表中去。</span></span><br><span class="line"><span class="keyword">before</span> <span class="keyword">insert</span> <span class="keyword">on</span> emp</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  dbms_output.put_line(<span class="string">'Oracle：爷,您来了! 您随便插入数据吧!'</span>);</span><br><span class="line">  <span class="comment">-- 使用raise_application_error来抛出一个异常，其内有两个参数：</span></span><br><span class="line">  <span class="comment">-- 第一个参数：错误码，取值在-20000 ~ -20999之间即可。</span></span><br><span class="line">  <span class="comment">-- 第二个参数：错误的信息。</span></span><br><span class="line">  raise_application_error(-20000,'Oracle：哟，爷，您看，真不巧，没空间了！');</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure></p>
 <h1 id="MySql数据库"><a href="#MySql数据库" class="headerlink" title="MySql数据库"></a>MySql数据库</h1><p>　　MySQL是一个免费的中型的数据库，可以方便的建立数据库，很早以前MySQL 数据库就被Sun公司收购了，现在属于Oracle公司。</p>
 <p>　　数据库结构图：</p>
-<center><br><img src="/img/base/base003_03.png" alt=""><br></center>
+<center><br><img src="/img/base/base003_03.png" alt><br></center>
 
 <p>　　MySQL就是一个DBMS，其内部存在有多个数据库，每个数据库中又存放多张表，用户的数据是存放在表中的，用户通过DBMS来获取数据。</p>
 <h2 id="数据库管理"><a href="#数据库管理" class="headerlink" title="数据库管理"></a>数据库管理</h2><p><br>　　范例1： 常用命令。<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 登录mysql。语法：mysql –u用户名 –p密码</span></span><br><span class="line">mysql -uroot -pcxy</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 创建一个名为Test的数据库</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span> <span class="keyword">Test</span>;</span><br><span class="line"><span class="comment">-- 若Test不存在，则执行创建操作，否则不执行任何操作</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span> <span class="keyword">IF</span> <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> <span class="keyword">Test</span>;</span><br><span class="line"><span class="comment">-- 指定数据库的编码</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span> <span class="keyword">Test</span> <span class="built_in">CHARACTER</span> <span class="keyword">SET</span> utf8;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 列出服务器中所有数据库</span></span><br><span class="line"><span class="keyword">show</span> <span class="keyword">databases</span>;</span><br><span class="line"><span class="comment">-- 删除数据库</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">database</span> <span class="keyword">test</span>;</span><br></pre></td></tr></table></figure></p>
-<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><center><br><img src="/img/base/base003_04.png" alt=""><br></center>
+<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><center><br><img src="/img/base/base003_04.png" alt><br></center>
 
 <h2 id="表管理"><a href="#表管理" class="headerlink" title="表管理"></a>表管理</h2><p><br>　　范例1： 常用命令。<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建表</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span>  Person(</span><br><span class="line">   <span class="keyword">id</span>  <span class="built_in">int</span> ,</span><br><span class="line">   <span class="keyword">name</span>  <span class="built_in">varchar</span> (<span class="number">30</span>),</span><br><span class="line">   <span class="keyword">password</span> <span class="built_in">varchar</span>(<span class="number">30</span>) </span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 添加列</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> person <span class="keyword">ADD</span> birthday <span class="built_in">date</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 查看表中所有列</span></span><br><span class="line">DESC person;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 修改某一列</span></span><br><span class="line"><span class="comment">-- 修改时若表中已经存在数据，且新类型与原有类型不兼容，则无法修改成功。</span></span><br><span class="line"><span class="comment">-- 应该先将表中所有的数据删掉后，再修改列。</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> person <span class="keyword">MODIFY</span> birthday <span class="built_in">int</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 删除列</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> person <span class="keyword">DROP</span> birthday;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 修改表名</span></span><br><span class="line"><span class="keyword">rename</span> <span class="keyword">table</span> person <span class="keyword">to</span> student;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 查看当前数据库的所有表</span></span><br><span class="line"><span class="keyword">show</span> <span class="keyword">tables</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 插入一行数据，相应的更新、删除也都和Oracle一样</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> Person(<span class="keyword">id</span>,<span class="keyword">name</span>) <span class="keyword">VALUES</span>(<span class="number">1</span>,<span class="string">'张三'</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> Person(<span class="keyword">id</span>,<span class="keyword">name</span>) <span class="keyword">VALUES</span>(<span class="number">1</span>,<span class="string">'李四'</span>);</span><br></pre></td></tr></table></figure></p>
 <p><br>　　范例2： 其它命令。<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 使用auto_increment来设置id的编号自动增长。</span></span><br><span class="line"><span class="comment">-- auto_increment需要使用在主键上。</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span>  Person(</span><br><span class="line">   <span class="keyword">id</span>  <span class="built_in">int</span> primary <span class="keyword">key</span> auto_increment,</span><br><span class="line">   <span class="keyword">name</span>  <span class="built_in">varchar</span> (<span class="number">30</span>)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 限定查询</span></span><br><span class="line"><span class="comment">-- “limit 起点,个数”，起点的下标从0开始计算，起点可以省略，若省略则默认为0。</span></span><br><span class="line"><span class="keyword">SELECT</span>  *  <span class="keyword">FROM</span>  Person  <span class="keyword">LIMIT</span> <span class="number">0</span>,<span class="number">1</span></span><br></pre></td></tr></table></figure></p>
@@ -555,8 +555,7 @@
           
   <div class="comments" id="comments">
     
-      <div class="ds-thread" data-thread-key="c-base-004/"
-           data-title="第四章 数据库" data-url="http://yoursite.com/c-base-004/">
+      <div class="ds-thread" data-thread-key="c-base-004/" data-title="第四章 数据库" data-url="http://yoursite.com/c-base-004/">
       </div>
     
   </div>
@@ -581,7 +580,7 @@
 
       
         <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
             文章目录
           </li>
           <li class="sidebar-nav-overview" data-target="site-overview">
@@ -592,9 +591,7 @@
 
       <section class="site-overview sidebar-panel ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <img class="site-author-image" itemprop="image"
-               src="/images/avatar.jpg"
-               alt="键盘" />
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="键盘">
           <p class="site-author-name" itemprop="name">键盘</p>
           <p class="site-description motion-element" itemprop="description">集大家之成，悟小家之道。</p>
         </div>
@@ -681,7 +678,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright" >
+        <div class="copyright">
   
   &copy;  2014 - 
   <span itemprop="copyrightYear">2025</span>
