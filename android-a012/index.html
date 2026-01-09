@@ -1,0 +1,770 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="Hexo, NexT">
+
+
+
+
+
+  <link rel="alternate" href="http://www.gov.cn/" title="不只是看客" type="application/atom+xml">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1">
+
+
+
+
+
+
+<meta name="description" content="第一节 概述什么是「中台」？　　在企业架构里： 前台：具体业务系统（APP、Web、H5、后台管理等） 中台：沉淀的通用业务能力（用户、订单、商品、支付、风控、权限等） 后台：底层基础设施（数据库、消息、云资源） 　　也就是说，中台SDK把全球化、多渠道、合规、稳定性这些复杂问题，统一封装给前台直接用，在移动出海场景下，中台SDK通常会包含： 账号登录 变现 支付内购 数据统计与事件埋点 Push">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第十二章 海外中台SDK架构">
+<meta property="og:url" content="http://yoursite.com/android-a012/index.html">
+<meta property="og:site_name" content="不只是看客">
+<meta property="og:description" content="第一节 概述什么是「中台」？　　在企业架构里： 前台：具体业务系统（APP、Web、H5、后台管理等） 中台：沉淀的通用业务能力（用户、订单、商品、支付、风控、权限等） 后台：底层基础设施（数据库、消息、云资源） 　　也就是说，中台SDK把全球化、多渠道、合规、稳定性这些复杂问题，统一封装给前台直接用，在移动出海场景下，中台SDK通常会包含： 账号登录 变现 支付内购 数据统计与事件埋点 Push">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/img/android/android_12_1.png">
+<meta property="og:image" content="http://yoursite.com/img/android/android_12_3.png">
+<meta property="og:image" content="http://yoursite.com/img/android/android_12_2.png">
+<meta property="og:updated_time" content="2026-01-09T07:33:21.382Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="第十二章 海外中台SDK架构">
+<meta name="twitter:description" content="第一节 概述什么是「中台」？　　在企业架构里： 前台：具体业务系统（APP、Web、H5、后台管理等） 中台：沉淀的通用业务能力（用户、订单、商品、支付、风控、权限等） 后台：底层基础设施（数据库、消息、云资源） 　　也就是说，中台SDK把全球化、多渠道、合规、稳定性这些复杂问题，统一封装给前台直接用，在移动出海场景下，中台SDK通常会包含： 账号登录 变现 支付内购 数据统计与事件埋点 Push">
+<meta name="twitter:image" content="http://yoursite.com/img/android/android_12_1.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/android-a012/">
+
+  <title> 第十二章 海外中台SDK架构 | 不只是看客 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?53b4b0b5aeb5df5e4fb6263a58d8e1a9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">不只是看客</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-feedback">
+          <a href="/feedback" rel="section">
+            
+            留言
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                第十二章 海外中台SDK架构
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2026-01-08T17:39:35+08:00" content="2026-01-08">
+              2026-01-08
+            </time>
+          </span>
+
+          
+            <span class="post-category">
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                    <span itemprop="name">Android开发</span>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+          
+             <span id="/android-a012/" class="leancloud_visitors" data-flag-title="第十二章 海外中台SDK架构">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="第一节-概述"><a href="#第一节-概述" class="headerlink" title="第一节 概述"></a>第一节 概述</h1><h2 id="什么是「中台」？"><a href="#什么是「中台」？" class="headerlink" title="什么是「中台」？"></a>什么是「中台」？</h2><p>　　在企业架构里：</p>
+<pre><code>前台：具体业务系统（APP、Web、H5、后台管理等）
+中台：沉淀的通用业务能力（用户、订单、商品、支付、风控、权限等）
+后台：底层基础设施（数据库、消息、云资源）
+</code></pre><p>　　也就是说，中台SDK把全球化、多渠道、合规、稳定性这些复杂问题，统一封装给前台直接用，在移动出海场景下，中台SDK通常会包含：</p>
+<pre><code>账号登录
+变现
+支付内购
+数据统计与事件埋点
+Push消息
+远程配置与AB实验
+崩溃与性能监控
+隐私合规
+</code></pre><h2 id="整体架构图"><a href="#整体架构图" class="headerlink" title="整体架构图"></a>整体架构图</h2><center><br><img src="/img/android/android_12_1.png" alt><br></center>
+
+<p>　　我们假设这个中台SDK名为“Global SDK”，它也是我们代码仓库的名称，其内各个文件夹的作用为：</p>
+<pre><code>Docs：存放SDK的全部文档，包含SDK现有功能/用法介绍、版本迭代进度等信息。
+Android、IOS、Unity、Web：存放各个前端平台依据Docs的文档实现的具体SDK的代码。
+</code></pre><p><br>　　<strong>sdk-api</strong><br>　　是一个Android Module库，保存基于Docs的需求来给各个功能定义对应接口和基础数据类。<br>　　其内只提供定义，具体的实现由后面会介绍的各个Module库来实现，宿主App开发者通过阅读sdk-api库的接口，就可以知道提供了哪些功能，功能需要什么参数等信息。</p>
+<p><br>　　<strong>sdk-common</strong><br>　　是一个Android Module库，存放通用的工具类（文件读写、网络请求、文本处理等）。</p>
+<p><br>　　<strong>sdk-modules</strong><br>　　是一个普通文件夹，存放各个具体的Module库，之所以创建此文件夹是为了美观，让业务Module集中存放。</p>
+<p><br>　　<strong>sdk-core</strong><br>　　是一个Android Module库，它是宿主 App 与 SDK 交互的唯一合法通道，在其内部负责隐私政策检测、业务Module加载与获取等操作，其需要依赖sdk-api库。</p>
+<p><br>　　<strong>Module Layer</strong><br>　　包含了各个具体的业务Module库，每个库都需要依赖sdk-api库，每个库都会提供对应功能的接口实现。</p>
+<p><br>　　<strong>为什么要拆分这么多库？</strong></p>
+<p>　　代码架构的本质是通过“各司其职”，让项目在变大的时候，不至于变成一团乱麻。理论上可以把sdk-common、sdk-api的代码都融入到sdk-core中，若真这么做了，日后就难搞了。</p>
+<pre><code>sdk-api： 就像商场门口的导购手册和店面的招牌。顾客（宿主 App）进店前，只需要看手册就知道有什么服务（比如有“登录”、有“支付”）。他不需要知道店里的空调怎么走线，也不需要知道厨师是谁。
+sdk-common： 是商场后台的工具间，里面放着扳手、螺丝刀和电钻。商场里不管是卖奶茶的还是卖衣服的，都要用到这些工具。如果不拆出来，每个店都要自己买一套扳手。
+sdk-core： 是商场的物业经理，负责开门、关门和安检，所有的店（业务模块）都得听经理的。经理不点头（用户没点同意隐私协议），任何店都不准开门营业，哪怕店就在那里（AAR 已经下载了）。
+</code></pre><p><br>　　<strong>为什么要放到一个Git项目里？</strong></p>
+<p>　　是否放到一个项目里取决于你的实际情况，如果团队认为Android SDK的研发人员不应该有权限阅读Unity SDK的代码，则就可以将他们拆分成多个项目。</p>
+<center><br><img src="/img/android/android_12_3.png" alt><br></center>
+
+<p>　　一般情况下，多项目的优势主要体现在安全与行政隔离上，而单项目便于调试。</p>
+<h1 id="第二节-核心实现"><a href="#第二节-核心实现" class="headerlink" title="第二节 核心实现"></a>第二节 核心实现</h1><h2 id="代码交互图"><a href="#代码交互图" class="headerlink" title="代码交互图"></a>代码交互图</h2><center><br><img src="/img/android/android_12_2.png" alt><br></center>
+
+<pre><code>宿主App直接依赖sdk-core和各种Module库，其主要与sdk-core内提供的方法进行交互。
+sdk-api库定义了所有Module库需要实现的接口，不同的Module库只需要实现sdk-api库里的对应接口即可。
+sdk-core也需要依赖sdk-api库，其内需要对各个库进行初始化操作。
+sdk-common库可以被任何库使用。
+</code></pre><h2 id="sdk-api"><a href="#sdk-api" class="headerlink" title="sdk-api"></a>sdk-api</h2><p>　　其内除了各个Module所需要的接口外，还可以将整个SDK内的通用接口定义到本库中。</p>
+<p>　　下面是一个示例：<br><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 统一的异步回调接口</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">SDKCallback</span>&lt;<span class="type">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">onSuccess</span><span class="params">(result: <span class="type">T</span>)</span></span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">onError</span><span class="params">(code: <span class="type">Int</span>, message: <span class="type">String</span>)</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 此处也可以定义整个SDK的错误码</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 模块初始化接口</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">IModuleLifeCycle</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 模块初始化逻辑</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> context 全局上下文，避免内存泄漏</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">onModuleInit</span><span class="params">(context: <span class="type">Context</span>)</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 模块类型定义</span></span><br><span class="line"><span class="comment"> * 放在 sdk-api 中，确保宿主 App 在配置时可见</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">enum</span> <span class="class"><span class="keyword">class</span> <span class="title">ModuleType</span> </span>&#123;</span><br><span class="line">    AUTH,    <span class="comment">// 登录</span></span><br><span class="line">    PAY,     <span class="comment">// 支付</span></span><br><span class="line">    ADS,     <span class="comment">// 广告</span></span><br><span class="line">    PUSH,    <span class="comment">// 推送</span></span><br><span class="line">    COMPLIANCE <span class="comment">// 隐私合规模块（如 UMP）</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 用户信息模型</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">data</span> <span class="class"><span class="keyword">class</span> <span class="title">UserInfo</span></span>(<span class="keyword">val</span> uid: String, <span class="keyword">val</span> userName: String, <span class="keyword">val</span> token: String)</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 订单信息模型</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">data</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderInfo</span></span>(<span class="keyword">val</span> orderId: String, <span class="keyword">val</span> amount: <span class="built_in">Long</span>, <span class="keyword">val</span> currency: String)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">IAuthApi</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 调起登录界面</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">login</span><span class="params">(activity: <span class="type">Activity</span>, callback: <span class="type">SDKCallback</span>&lt;<span class="type">UserInfo</span>&gt;)</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 退出登录</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">logout</span><span class="params">(callback: <span class="type">SDKCallback</span>&lt;<span class="type">Unit</span>&gt;)</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取当前用户信息（同步）</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getCurrentUser</span><span class="params">()</span></span>: UserInfo?</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">IPayApi</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 发起支付请求</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">purchase</span><span class="params">(activity: <span class="type">Activity</span>, order: <span class="type">OrderInfo</span>, callback: <span class="type">SDKCallback</span>&lt;<span class="type">String</span>&gt;)</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 查询未完成的补单逻辑（内部自动处理常见，但也提供接口）</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">queryPurchases</span><span class="params">(callback: <span class="type">SDKCallback</span>&lt;<span class="type">List</span>&lt;<span class="type">String</span>&gt;&gt;)</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<pre><code>语句解释：
+-  UserInfo 类在 Modules Layer 的 auth 库中被使用。
+-  OrderInfo 类在 Modules Layer 的 biling 库中被使用。
+</code></pre><h2 id="sdk-core"><a href="#sdk-core" class="headerlink" title="sdk-core"></a>sdk-core</h2><p>　　宿主App只与sdk-core库交互，其内提供（不限于）如下功能：</p>
+<pre><code>统一的隐私政策管理逻辑，用户未同意隐私政策之前，不执行任何SDK初始化
+拉取在线配置（如果你有的话），依据配置做出不同的反应
+依据宿主提供的参数，依次初始化各个Module SDK
+</code></pre><p>　　下面是一个示例：<br><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 宿主App能访问到的单例对象</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">object</span> GlobalSDK &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 由宿主App实例化这个对象，用于初始化的各个参数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> currentConfig: SDKConfig? = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 第一步：宿主在 Application.onCreate 调用，传入参数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">init</span><span class="params">(context: <span class="type">Context</span>, config: <span class="type">SDKConfig</span>)</span></span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.currentConfig = config</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 尝试加载模块（如果隐私已经同意过，这里直接就全开了）</span></span><br><span class="line">        ModuleLoader.load(context, config)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 第二步：隐私弹窗确认后，调用此方法“激活”SDK</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">onPrivacyAccepted</span><span class="params">(context: <span class="type">Context</span>)</span></span> &#123;</span><br><span class="line">        PrivacyManager.updatePrivacyStatus(context, <span class="literal">true</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 激活后，重新触发模块加载</span></span><br><span class="line">        currentConfig?.let &#123;</span><br><span class="line">            ModuleLoader.load(context, it)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 第三步：获取业务接口</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> <span class="title">getService</span><span class="params">(serviceClass: <span class="type">Class</span>&lt;<span class="type">T</span>&gt;)</span></span>: T? &#123;</span><br><span class="line">        <span class="keyword">return</span> ModuleRegistry.<span class="keyword">get</span>(serviceClass)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 位于 sdk-core（或 sdk-api），用于定义初始化行为。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SDKConfig</span> <span class="keyword">private</span> <span class="keyword">constructor</span></span>(</span><br><span class="line">    <span class="keyword">val</span> appId: String,</span><br><span class="line">    <span class="keyword">val</span> debugMode: <span class="built_in">Boolean</span>,</span><br><span class="line">    <span class="keyword">val</span> enabledModules: List&lt;ModuleType&gt;</span><br><span class="line">) &#123;</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">var</span> appId: String = <span class="string">""</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">var</span> modules = mutableListOf&lt;ModuleType&gt;()</span><br><span class="line">        </span><br><span class="line">        <span class="function"><span class="keyword">fun</span> <span class="title">setAppId</span><span class="params">(id: <span class="type">String</span>)</span></span> = apply &#123; <span class="keyword">this</span>.appId = id &#125;</span><br><span class="line">        <span class="function"><span class="keyword">fun</span> <span class="title">addModule</span><span class="params">(type: <span class="type">ModuleType</span>)</span></span> = apply &#123; modules.add(type) &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="function"><span class="keyword">fun</span> <span class="title">build</span><span class="params">()</span></span> = SDKConfig(appId, <span class="literal">false</span>, modules)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 负责记录用户是否点过“同意”。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">object</span> PrivacyManager &#123;</span><br><span class="line">    <span class="keyword">private</span> const <span class="keyword">val</span> PREF_NAME = <span class="string">"sdk_privacy_prefs"</span></span><br><span class="line">    <span class="keyword">private</span> const <span class="keyword">val</span> KEY_AGREED = <span class="string">"is_privacy_agreed"</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只有用户在 UMP 弹窗点了同意，这里才会被设为 true</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">updatePrivacyStatus</span><span class="params">(context: <span class="type">Context</span>, agreed: <span class="type">Boolean</span>)</span></span> &#123;</span><br><span class="line">        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)</span><br><span class="line">            .edit().putBoolean(KEY_AGREED, agreed).apply()</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">isAgreed</span><span class="params">(context: <span class="type">Context</span>)</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)</span><br><span class="line">            .getBoolean(KEY_AGREED, <span class="literal">false</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 负责“反射+参数过滤”逻辑。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">object</span> ModuleLoader &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 映射表：将枚举与具体的实现类全路径关联</span></span><br><span class="line">    <span class="comment">// 这样 core 只需要知道 API 枚举，通过反射去寻找 implementation 里的类</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> MODULE_MAP = mapOf(</span><br><span class="line">        ModuleType.AUTH to <span class="string">"com.globalsdk.module.auth.AuthImpl"</span>,</span><br><span class="line">        ModuleType.ADS  to <span class="string">"com.globalsdk.module.ads.AdsImpl"</span>,</span><br><span class="line">        ModuleType.PAY  to <span class="string">"com.globalsdk.module.pay.PayImpl"</span></span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 核心加载方法</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">loadEnabledModules</span><span class="params">(context: <span class="type">Context</span>, config: <span class="type">SDKConfig</span>)</span></span> &#123;</span><br><span class="line">        <span class="comment">// 1. 隐私政策一票否决权</span></span><br><span class="line">        <span class="keyword">if</span> (!PrivacyManager.isAgreed(context)) &#123;</span><br><span class="line">            Log.e(<span class="string">"GlobalSDK"</span>, <span class="string">"Privacy not agreed! Modules loading aborted."</span>)</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2. 遍历宿主 App 开启的模块</span></span><br><span class="line">        config.enabledModules.forEach &#123; type -&gt;</span><br><span class="line">            <span class="keyword">val</span> className = MODULE_MAP[type]</span><br><span class="line">            <span class="keyword">if</span> (className == <span class="literal">null</span>) &#123;</span><br><span class="line">                Log.w(<span class="string">"GlobalSDK"</span>, <span class="string">"No implementation found for module: <span class="variable">$type</span>"</span>)</span><br><span class="line">                <span class="keyword">return</span><span class="symbol">@forEach</span></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 3. 执行反射加载</span></span><br><span class="line">            performReflectiveLoad(context, type, className)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">performReflectiveLoad</span><span class="params">(context: <span class="type">Context</span>, type: <span class="type">ModuleType</span>, className: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">        <span class="comment">// 如果已经加载过了，就不再重复加载</span></span><br><span class="line">        <span class="keyword">if</span> (ModuleRegistry.isModuleLoaded(type)) <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 反射实例化</span></span><br><span class="line">            <span class="keyword">val</span> clazz = Class.forName(className)</span><br><span class="line">            <span class="keyword">val</span> instance = clazz.getDeclaredConstructor().newInstance()</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 4. 自动处理生命周期初始化</span></span><br><span class="line">            <span class="keyword">if</span> (instance <span class="keyword">is</span> IModuleLifeCycle) &#123;</span><br><span class="line">                instance.onModuleInit(context.applicationContext)</span><br><span class="line">                Log.i(<span class="string">"GlobalSDK"</span>, <span class="string">"Module [<span class="variable">$type</span>] initialized successfully."</span>)</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 5. 存入仓库供 getService 使用</span></span><br><span class="line">            ModuleRegistry.register(type, instance)</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (e: ClassNotFoundException) &#123;</span><br><span class="line">            <span class="comment">// 宿主可能在配置里写了该模块，但 Gradle 没依赖 AAR，这里静默处理</span></span><br><span class="line">            Log.e(<span class="string">"GlobalSDK"</span>, <span class="string">"Module [<span class="variable">$type</span>] AAR not found in project. Did you add the dependency?"</span>)</span><br><span class="line">        &#125; <span class="keyword">catch</span> (e: Exception) &#123;</span><br><span class="line">            Log.e(<span class="string">"GlobalSDK"</span>, <span class="string">"Critical error loading module [<span class="variable">$type</span>]"</span>, e)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 模块注册表（仓库）</span></span><br><span class="line"><span class="comment"> * 职责：内部存储所有已初始化的业务模块实例。</span></span><br><span class="line"><span class="comment"> * 作用：确保单例模式，避免重复反射创建对象。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">object</span> ModuleRegistry &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用 ConcurrentHashMap 保证在多线程环境下（如异步初始化）存取实例的安全</span></span><br><span class="line">    <span class="comment">// Key: 接口的 Class 对象 (例如 IAuthApi::class.java)</span></span><br><span class="line">    <span class="comment">// Value: 具体的实现类对象 (例如 AuthImpl 实例)</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> instances = ConcurrentHashMap&lt;Class&lt;*&gt;, Any&gt;()</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 存入实例</span></span><br><span class="line"><span class="comment">     * 由 ServiceFetcher 在反射创建成功后调用</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T : Any&gt;</span> <span class="title">register</span><span class="params">(serviceClass: <span class="type">Class</span>&lt;<span class="type">T</span>&gt;, instance: <span class="type">T</span>)</span></span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (!instances.containsKey(serviceClass)) &#123;</span><br><span class="line">            instances[serviceClass] = instance</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 取出实例</span></span><br><span class="line"><span class="comment">     * 由 GlobalSDK.getService 调用并返回给宿主 App</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Suppress(<span class="meta-string">"UNCHECKED_CAST"</span>)</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> <span class="title">get</span><span class="params">(serviceClass: <span class="type">Class</span>&lt;<span class="type">T</span>&gt;)</span></span>: T? &#123;</span><br><span class="line">        <span class="keyword">return</span> instances[serviceClass] <span class="keyword">as</span>? T</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 判断某个模块是否已经加载</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">isModuleLoaded</span><span class="params">(serviceClass: <span class="type">Class</span>&lt;*&gt;)</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> instances.containsKey(serviceClass)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 彻底清空仓库（通常用于 SDK 重置或注销逻辑）</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">clear</span><span class="params">()</span></span> &#123;</span><br><span class="line">        instances.clear()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="module-auth"><a href="#module-auth" class="headerlink" title="module-auth"></a>module-auth</h2><p>　　需要注意的是 module-auth 必须依赖 sdk-api，但它不需要依赖 sdk-core 。</p>
+<p>　　下面是示意代码：<br><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 登录模块的真正实现</span></span><br><span class="line"><span class="comment"> * 注意：这个类通常被标记为 internal，防止外部直接 new 它</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">internal</span> <span class="class"><span class="keyword">class</span> <span class="title">AuthImpl</span> : <span class="type">IAuthApi</span>, <span class="type">IModuleLifeCycle &#123;</span></span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onModuleInit</span><span class="params">(context: <span class="type">Context</span>)</span></span> &#123;</span><br><span class="line">        <span class="comment">// 在这里初始化真正的三方 SDK</span></span><br><span class="line">        <span class="comment">// 例如：GoogleSignIn.getClient(context, gso)</span></span><br><span class="line">        Log.d(<span class="string">"AuthModule"</span>, <span class="string">"三方登录 SDK 已在此处完成初始化"</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">login</span><span class="params">(activity: <span class="type">android</span>.<span class="type">app</span>.<span class="type">Activity</span>, callback: <span class="type">SDKCallback</span>&lt;<span class="type">UserInfo</span>&gt;)</span></span> &#123;</span><br><span class="line">        Log.d(<span class="string">"AuthModule"</span>, <span class="string">"Starting login process..."</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 这里模拟调用三方 SDK (比如 Google 或 Facebook 登录)</span></span><br><span class="line">        <span class="comment">// 只有 onModuleInit 执行过，这里的逻辑才是安全的</span></span><br><span class="line">        <span class="keyword">val</span> isSuccess = <span class="literal">true</span> </span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (isSuccess) &#123;</span><br><span class="line">            <span class="keyword">val</span> mockUser = UserInfo(</span><br><span class="line">                uid = <span class="string">"user_12345"</span>,</span><br><span class="line">                userName = <span class="string">"Gemini Partner"</span>,</span><br><span class="line">                token = <span class="string">"ey...token_data"</span></span><br><span class="line">            )</span><br><span class="line">            callback.onSuccess(mockUser)</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            callback.onError(<span class="number">1001</span>, <span class="string">"User cancelled login"</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">logout</span><span class="params">(callback: <span class="type">SDKCallback</span>&lt;<span class="type">Unit</span>&gt;)</span></span> &#123;</span><br><span class="line">        Log.d(<span class="string">"AuthModule"</span>, <span class="string">"Logging out..."</span>)</span><br><span class="line">        <span class="comment">// 执行清除 Token、断开连接等逻辑</span></span><br><span class="line">        callback.onSuccess(<span class="built_in">Unit</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getCurrentUser</span><span class="params">()</span></span>: UserInfo? &#123;</span><br><span class="line">        <span class="comment">// 实际开发中可以从 SharedPreferences 或内存中读取</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span> </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>　　别忘了需要在 module-auth 的混淆规则里加上：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 保护实现类不被重命名，否则核心库反射找不到它</span><br><span class="line">-keep <span class="class"><span class="keyword">class</span> <span class="title">com</span>.<span class="title">globalsdk</span>.<span class="title">module</span>.<span class="title">auth</span>.<span class="title">AuthImpl</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> &lt;init&gt;();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>　　在 module-auth 的 build.gradle 中的依赖大概这么写：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    <span class="comment">// 1. 只依赖契约</span></span><br><span class="line">    <span class="function">implementation <span class="title">project</span><span class="params">(<span class="string">':sdk-api'</span>)</span></span></span><br><span class="line"><span class="function">    </span></span><br><span class="line"><span class="function">    <span class="comment">// 2. 只依赖通用工具 (如 LogUtil, Network)</span></span></span><br><span class="line"><span class="function">    implementation <span class="title">project</span><span class="params">(<span class="string">':sdk-common'</span>)</span></span></span><br><span class="line"><span class="function">    </span></span><br><span class="line"><span class="function">    <span class="comment">// 3. 这里引入真正的三方 SDK 依赖</span></span></span><br><span class="line"><span class="function">    <span class="comment">// implementation 'com.google.android.gms:play-services-auth:20.x.x'</span></span></span><br><span class="line"><span class="function">&#125;</span></span><br></pre></td></tr></table></figure></p>
+<p><br><br></p>
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="android-a012/" data-title="第十二章 海外中台SDK架构" data-url="http://yoursite.com/android-a012/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="键盘">
+          <p class="site-author-name" itemprop="name">键盘</p>
+          <p class="site-description motion-element" itemprop="description">集大家之成，悟小家之道。</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="http://www.gov.cn/" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://weishu.me/" title="weishu" target="_blank">weishu</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://ryanhoo.github.io/" title="ryanhoo" target="_blank">ryanhoo</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#第一节-概述"><span class="nav-number">1.</span> <span class="nav-text">第一节 概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是「中台」？"><span class="nav-number">1.1.</span> <span class="nav-text">什么是「中台」？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#整体架构图"><span class="nav-number">1.2.</span> <span class="nav-text">整体架构图</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二节-核心实现"><span class="nav-number">2.</span> <span class="nav-text">第二节 核心实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#代码交互图"><span class="nav-number">2.1.</span> <span class="nav-text">代码交互图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sdk-api"><span class="nav-number">2.2.</span> <span class="nav-text">sdk-api</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sdk-core"><span class="nav-number">2.3.</span> <span class="nav-text">sdk-core</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#module-auth"><span class="nav-number">2.4.</span> <span class="nav-text">module-auth</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">键盘</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"cutler"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("sGcgYofeKOFi2l1XvGrm0PcP-gzGzoHsz", "Sx0mWxj4pkXYm17zT0UnV5Ca");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>
