@@ -1,8 +1,8 @@
 ---
-title: 第十章 技巧篇 
+title: 第一章 技巧篇 
 date: 2015-3-12 16:44:50
 author: Cutler
-categories: Android开发
+categories: 其它技术
 ---
 
 # 第一节 设备唯一标识符 #

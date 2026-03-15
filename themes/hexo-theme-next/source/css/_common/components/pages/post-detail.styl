@@ -3,4 +3,32 @@
   .sidebar-toggle-line { background: $sidebar-highlight; }
 
   .comments { overflow: hidden; }
+
+  // 正文页首屏即展示侧边栏，不等待 JS，无延迟（配合下方 body padding）
+  .sidebar {
+    width: 320px;
+    display: block;
+  }
+}
+
+// 正文页一打开就为侧边栏留出空间，避免布局跳动
+body:has(.sidebar-position-left.page-post-detail) {
+  padding-left: 320px;
+}
+body:has(.sidebar-position-right.page-post-detail) {
+  padding-right: 320px;
+}
+
+// 正文页不播放入场动画，进入时直接展示全部内容（与 bootstrap.js 中跳过 motion 逻辑配合）
+// use-motion 在 html 上，page-post-detail 在 container 上，故用后代选择器
+.use-motion .page-post-detail {
+  .motion-element { opacity: 1; }
+  .menu-item { opacity: 1; }
+  .brand, .logo, .site-title, .site-subtitle {
+    opacity: 1;
+    top: 0;
+  }
+  .post { opacity: 1; }
+  .logo-line-before i { left: 0; }
+  .logo-line-after i { right: 0; }
 }

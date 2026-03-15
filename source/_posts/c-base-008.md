@@ -1,8 +1,8 @@
 ---
-title: 第四章 Git
+title: 第七章 Git
 date: 2016-05-19 14:43:49
 author: Cutler
-categories: 编程语言
+categories: 计算机基础
 ---
 　　首先推荐大家先去看[《Git教程-廖雪峰》](http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000)，笔者也是跟随该作者入门的，之所以还要在此重复造轮子，主要是因为：
 

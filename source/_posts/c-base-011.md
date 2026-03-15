@@ -1,8 +1,8 @@
 ---
-title: 第七章 TypeScript
+title: 第十章 TypeScript
 date: 2023-3-11 22:07:15
 author: Cutler
-categories: 编程语言
+categories: 计算机基础
 ---
 
 # 第一节 起源概述 #

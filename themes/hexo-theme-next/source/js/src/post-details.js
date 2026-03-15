@@ -141,6 +141,15 @@ $(document).ready(function () {
     }
   };
 
+  // 正文页一进入就立刻展示侧边栏，不等待 bootstrap 等后续脚本
+  (function () {
+    if (CONFIG.sidebar.display !== 'post' && CONFIG.sidebar.display !== 'always') return;
+    var $tocContent = $('.post-toc-content');
+    if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+      NexT.utils.displaySidebar();
+    }
+  })();
+
   // 根据鼠标位置分配滚轮：在左侧栏内时只滚动侧栏，否则只滚动正文
   (function () {
     var sidebar = document.getElementById('sidebar');

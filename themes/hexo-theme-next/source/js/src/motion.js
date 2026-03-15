@@ -123,6 +123,23 @@ $(document).ready(function () {
       this.sidebarEl.removeClass('sidebar-is-hiding');
       sidebarToggleLines.close();
 
+      // 正文页侧边栏直接展示，无动画
+      var isPostDetail = $('.page-post-detail').length > 0;
+      if (isPostDetail) {
+        this.sidebarEl.velocity('stop').css({ width: SIDEBAR_WIDTH, display: 'block' });
+        this.sidebarEl.find('.motion-element').velocity('stop').css({ display: '', opacity: 1 });
+        this.sidebarEl.addClass('sidebar-active');
+        if (NexT.utils.isDesktop()) {
+          var paddingProp = (CONFIG.sidebar && CONFIG.sidebar.position === 'left') ? 'paddingLeft' : 'paddingRight';
+          var bodyPadding = {};
+          bodyPadding[paddingProp] = SIDEBAR_WIDTH;
+          $('body').css(bodyPadding);
+        }
+        this.sidebarEl.trigger('sidebar.isShowing');
+        this.sidebarEl.trigger('sidebar.didShow');
+        return;
+      }
+
       this.sidebarEl.velocity('stop').velocity({
           width: SIDEBAR_WIDTH
         }, {

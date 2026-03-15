@@ -1,8 +1,8 @@
 ---
-title: 第五章 Lua
+title: 第八章 Lua
 date: 2014-09-03 22:07:06
 author: Cutler
-categories: 编程语言
+categories: 计算机基础
 ---
 
 　　本章主要参考《Programming in Lua》中文版一书，并添加了书中未写到的细节知识。<br>

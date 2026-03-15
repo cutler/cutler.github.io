@@ -14,17 +14,17 @@
 
       {% if display_toc %}
         <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-all-posts" data-target="post-all-posts-wrap">
+          <li class="sidebar-nav-all-posts sidebar-nav-active" data-target="post-all-posts-wrap">
             {{ __('sidebar.all_posts') }}
           </li>
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+          <li class="sidebar-nav-toc" data-target="post-toc-wrap" >
             {{ __('sidebar.toc') }}
           </li>
         </ul>
       {% endif %}
 
       {% if display_toc %}
-        <section class="post-all-posts-wrap motion-element sidebar-panel">
+        <section class="post-all-posts-wrap motion-element sidebar-panel sidebar-panel-active">
           <div class="post-all-posts">
             <ul class="post-all-posts-list">
               {% for category in sidebar_categories_sorted() %}
@@ -133,7 +133,7 @@
       </section>
 
       {% if display_toc %}
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+        <section class="post-toc-wrap motion-element sidebar-panel">
           <div class="post-toc">
             {% if page.toc_number === undefine %}
               {% set toc = toc(page.content, { "class": "nav", list_number: theme.toc.number }) %}

@@ -1,8 +1,8 @@
 ---
-title: 第十二章 海外中台SDK架构
+title: 第三章 海外中台SDK架构
 date: 2026-1-8 17:39:35
 author: Cutler
-categories: Android开发
+categories: 其它技术
 ---
 
 # 第一节 概述 #

@@ -1,8 +1,8 @@
 ---
-title: 第十一章 老旧的技术
+title: 第二章 Maven、Android Studio
 date: 2015-4-15 21:44:35
 author: Cutler
-categories: Android开发
+categories: 其它技术
 ---
 
 # 第一节 Maven #

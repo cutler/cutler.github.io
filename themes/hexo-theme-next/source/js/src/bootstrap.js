@@ -37,8 +37,12 @@ $(document).ready(function () {
 
   $(document).trigger('motion:before');
 
-  // Bootstrap Motion.
-  CONFIG.motion && NexT.motion.integrator.bootstrap();
+  // Bootstrap Motion. 正文页不播放入场动画，直接展示全部内容。
+  var isPostDetail = $('.page-post-detail').length > 0;
+  if (CONFIG.motion && !isPostDetail) {
+    NexT.motion.integrator.bootstrap();
+  }
+  // 正文页侧边栏已在 post-details.js 中立即展示，此处不再调用
 
   $(document).trigger('bootstrap:after');
 });
