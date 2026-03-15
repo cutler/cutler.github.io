@@ -33,6 +33,16 @@ menu:
   # about: /about
   # tags: /tags
 
+# 分类在侧栏「所有文章」中的显示顺序（按此列表顺序；未列出的分类会追加在末尾）
+# 分类下文章顺序：在每篇文章的 front matter 里加 order: 数字 或 weight: 数字，数值小的靠前
+category_order:
+  - 人工智能
+  - Android开发
+  - 编程语言
+  - 游戏开发
+  - 计算机基础
+  - 路漫漫其修远兮
+
 
 # Enable/Disable menu icons.
 # Icon Mapping:

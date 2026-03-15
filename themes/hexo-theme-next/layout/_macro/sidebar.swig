@@ -27,7 +27,7 @@
         <section class="post-all-posts-wrap motion-element sidebar-panel">
           <div class="post-all-posts">
             <ul class="post-all-posts-list">
-              {% for category in site.categories %}
+              {% for category in sidebar_categories_sorted() %}
                 <li class="post-all-posts-cat">
                   <span class="post-all-posts-cat-name">{{ category.name }}</span>
                   <ul class="post-all-posts-sublist">
