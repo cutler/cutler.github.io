@@ -11,7 +11,7 @@ keywords: "Hexo, NexT"
 # Set rss to false to disable feed link.
 # Leave rss as empty to use site's feed link.
 # Set rss to specific value if you have burned your feed already.
-rss: http://www.gov.cn/
+rss: ''
 
 # Specify the date when the site was setup
 since: 2014
@@ -315,7 +315,7 @@ facebook_comments_plugin:
 # Show number of visitors to each article.
 # You can visit https://leancloud.cn get AppID and AppKey.
 leancloud_visitors:
-  enable: true
+  enable: false
   app_id: sGcgYofeKOFi2l1XvGrm0PcP-gzGzoHsz
   app_key: Sx0mWxj4pkXYm17zT0UnV5Ca
 
