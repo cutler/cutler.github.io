@@ -14,8 +14,8 @@
   &:hover { color: $sidebar-nav-hover-color; }
 }
 
+.page-post-detail .sidebar-nav-all-posts { padding: 0 5px 0 0; }
 .page-post-detail .sidebar-nav-toc { padding: 0 5px; }
-
 .page-post-detail .sidebar-nav-overview { margin-left: 10px; }
 
 .sidebar-nav .sidebar-nav-active {
@@ -25,5 +25,16 @@
   &:hover { color: $sidebar-highlight; }
 }
 
-.sidebar-panel { display: none; }
-.sidebar-panel-active { display: block; }
+// 正文页侧栏：同一时间只显示一个面板（默认仅显示本文目录）
+.sidebar-inner .sidebar-panel {
+  display: none !important;
+}
+.sidebar-inner .sidebar-panel.sidebar-panel-active {
+  display: block !important;
+}
+
+// 关闭侧栏时：Tab 与目录内容一起立即隐藏（避免 !important 导致目录延迟消失）
+.sidebar.sidebar-is-hiding .sidebar-inner .sidebar-panel,
+.sidebar.sidebar-is-hiding .sidebar-inner .motion-element {
+  display: none !important;
+}

@@ -91,10 +91,12 @@ $(document).ready(function () {
 
       $(document)
         .on('sidebar.isShowing', function () {
-          NexT.utils.isDesktop() && $('body').velocity('stop').velocity(
-            {paddingRight: SIDEBAR_WIDTH},
-            SIDEBAR_DISPLAY_DURATION
-          );
+          if (NexT.utils.isDesktop()) {
+            var paddingProp = (CONFIG.sidebar && CONFIG.sidebar.position === 'left') ? 'paddingLeft' : 'paddingRight';
+            var bodyPadding = {};
+            bodyPadding[paddingProp] = SIDEBAR_WIDTH;
+            $('body').velocity('stop').velocity(bodyPadding, SIDEBAR_DISPLAY_DURATION);
+          }
         })
         .on('sidebar.isHiding', function () {
         });
@@ -118,6 +120,7 @@ $(document).ready(function () {
     showSidebar: function () {
       var self = this;
 
+      this.sidebarEl.removeClass('sidebar-is-hiding');
       sidebarToggleLines.close();
 
       this.sidebarEl.velocity('stop').velocity({
@@ -147,7 +150,13 @@ $(document).ready(function () {
       this.sidebarEl.trigger('sidebar.isShowing');
     },
     hideSidebar: function () {
-      NexT.utils.isDesktop() && $('body').velocity('stop').velocity({paddingRight: 0});
+      this.sidebarEl.addClass('sidebar-is-hiding');
+      if (NexT.utils.isDesktop()) {
+        var paddingProp = (CONFIG.sidebar && CONFIG.sidebar.position === 'left') ? 'paddingLeft' : 'paddingRight';
+        var bodyPadding = {};
+        bodyPadding[paddingProp] = 0;
+        $('body').velocity('stop').velocity(bodyPadding);
+      }
       this.sidebarEl.find('.motion-element').velocity('stop').css('display', 'none');
       this.sidebarEl.velocity('stop').velocity({width: 0}, {display: 'none'});
 

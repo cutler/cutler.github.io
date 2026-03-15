@@ -30,11 +30,8 @@ canonical: true
 menu:
   home: /
   archives: /archives
-  categories: /categories
   # about: /about
-  feedback: /feedback
   # tags: /tags
-  commonweal: /404.html
 
 
 # Enable/Disable menu icons.
@@ -47,10 +44,8 @@ menu_icons:
   #KeyMapsToMenuItemKey: NameOfTheIconFromFontAwesome
   home: home
   about: user
-  categories: th
   tags: tags
   archives: archive
-  commonweal: heartbeat
 
 
 

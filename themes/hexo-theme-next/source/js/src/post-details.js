@@ -92,18 +92,21 @@ $(document).ready(function () {
 
     hasVelocity ?
       currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+        currentTarget.removeClass(activePanelClassName);
+        currentTarget.css({ display: '', opacity: '', transform: '' });
         target
           .velocity('stop')
+          .css({ display: '', opacity: '', transform: '' })
           .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
           .addClass(activePanelClassName);
       }) :
       currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+        currentTarget.removeClass(activePanelClassName);
         currentTarget.hide();
         target
           .stop()
           .css({'opacity': 0, 'display': 'block'})
           .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
-            currentTarget.removeClass(activePanelClassName);
             target.addClass(activePanelClassName);
           });
       });
@@ -137,4 +140,27 @@ $(document).ready(function () {
       }
     }
   };
+
+  // 根据鼠标位置分配滚轮：在左侧栏内时只滚动侧栏，否则只滚动正文
+  (function () {
+    var sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+
+    document.addEventListener('wheel', function (e) {
+      var rect = sidebar.getBoundingClientRect();
+      var x = e.clientX;
+      var y = e.clientY;
+      var insideSidebar = rect.width > 0 && rect.height > 0 &&
+        x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+
+      if (!insideSidebar) return;
+
+      e.preventDefault();
+      var scrollable = document.querySelector('#sidebar .sidebar-panel-active .post-all-posts, #sidebar .sidebar-panel-active .post-toc');
+      if (scrollable) {
+        var nextTop = scrollable.scrollTop + e.deltaY;
+        scrollable.scrollTop = Math.max(0, Math.min(nextTop, scrollable.scrollHeight - scrollable.clientHeight));
+      }
+    }, { passive: false });
+  })();
 });

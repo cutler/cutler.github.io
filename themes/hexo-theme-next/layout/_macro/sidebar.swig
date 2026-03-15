@@ -14,13 +14,34 @@
 
       {% if display_toc %}
         <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-all-posts" data-target="post-all-posts-wrap">
+            {{ __('sidebar.all_posts') }}
+          </li>
           <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
             {{ __('sidebar.toc') }}
           </li>
-          <li class="sidebar-nav-overview" data-target="site-overview">
-            {{ __('sidebar.overview') }}
-          </li>
         </ul>
+      {% endif %}
+
+      {% if display_toc %}
+        <section class="post-all-posts-wrap motion-element sidebar-panel">
+          <div class="post-all-posts">
+            <ul class="post-all-posts-list">
+              {% for category in site.categories %}
+                <li class="post-all-posts-cat">
+                  <span class="post-all-posts-cat-name">{{ category.name }}</span>
+                  <ul class="post-all-posts-sublist">
+                    {% for post in category.posts %}
+                      <li class="post-all-posts-item">
+                                                <a class="post-all-posts-link {% if page.path === post.path %}post-all-posts-link-active{% endif %}" href="{{ url_for(post.path) }}" title="{{ post.title }}">{{ post.title }}</a>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </section>
       {% endif %}
 
       <section class="site-overview sidebar-panel {% if not display_toc %} sidebar-panel-active {% endif %}">

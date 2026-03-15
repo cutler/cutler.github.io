@@ -1,0 +1,78 @@
+// All Posts panel in sidebar (by category, with indent)
+// 滚动区域填满侧栏到底部（去掉 70vh 限制）
+
+.post-all-posts-wrap
+  overflow: hidden
+  height: calc(100vh - 100px)
+  // 缩小滚动条与侧栏右边框的间距（抵消 sidebar-inner 的右内边距）
+  margin-right: -8px
+  padding-right: 4px
+
+.post-all-posts
+  height: 100%
+  overflow: auto
+  // 滚动条与侧栏深色背景一致，不用白色
+  scrollbar-color: $black-light $black-deep
+  &::-webkit-scrollbar
+    width: 6px
+  &::-webkit-scrollbar-track
+    background: $black-deep
+  &::-webkit-scrollbar-thumb
+    background: $black-light
+    border-radius: 3px
+  &::-webkit-scrollbar-thumb:hover
+    background: $grey-dim
+
+// 与本文目录一致：字体、下划线、行距
+.post-all-posts-list
+  margin: 0
+  padding: 0 2px 5px 10px
+  list-style: none
+  font-size: 14px
+  text-align: left
+
+.post-all-posts-cat
+  margin: 0 0 10px
+
+.post-all-posts-cat-name
+  display: block
+  font-weight: bold
+  color: $sidebar-nav-hover-color
+  margin-bottom: 4px
+
+.post-all-posts-sublist
+  margin: 0
+  padding: 0 0 0 12px
+  list-style: none
+  border-left: 1px solid $black-light
+
+.post-all-posts-item
+  margin: 0 0 2px
+
+.post-all-posts-link
+  the-transition()
+  transition-property: all
+  display: inline-block
+  max-width: 100%
+  font-size: 14px
+  line-height: 1.8
+  padding: 0
+  color: $toc-link-color
+  border-bottom: 1px solid $toc-link-border-color
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+  &:hover
+    color: $toc-link-hover-color
+    border-bottom-color: $toc-link-hover-border-color
+
+// 选中态：仅改字体颜色与下划线颜色（与「所有文章」Tab 选中色一致）
+// 用 .sidebar 提高优先级，避免被 .sidebar a 覆盖
+.sidebar .post-all-posts-link-active
+  color: $sidebar-highlight !important
+  border-bottom-color: $sidebar-highlight !important
+
+  &:hover
+    color: $sidebar-highlight !important
+    border-bottom-color: $sidebar-highlight !important

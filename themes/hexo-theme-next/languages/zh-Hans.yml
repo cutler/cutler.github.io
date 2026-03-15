@@ -7,7 +7,7 @@ author: 博主
 
 menu:
   home: 首页
-  archives: 归档
+  archives: 文章
   categories: 分类
   tags: 标签
   about: 关于
@@ -18,7 +18,8 @@ menu:
 
 sidebar:
   overview: 站点概览
-  toc: 文章目录
+  toc: 本文目录
+  all_posts: 所有文章
 
 post:
   sticky: 置顶

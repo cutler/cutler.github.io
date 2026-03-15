@@ -16,6 +16,7 @@ menu:
 sidebar:
   overview: Overview
   toc: Table of Contents
+  all_posts: All Posts
 
 post:
   sticky: Sticky
