@@ -87,7 +87,7 @@
 <meta name="description" content="集大家之成，悟小家之道。">
 <meta property="og:type" content="website">
 <meta property="og:title" content="不只是看客">
-<meta property="og:url" content="https://cutler.github.io/archives/2025/index.html">
+<meta property="og:url" content="https://cutler.github.io/archives/2026/03/index.html">
 <meta property="og:site_name" content="不只是看客">
 <meta property="og:description" content="集大家之成，悟小家之道。">
 <meta property="og:locale" content="zh-Hans">
@@ -114,7 +114,7 @@
 
 
 
-  <link rel="canonical" href="https://cutler.github.io/archives/2025/">
+  <link rel="canonical" href="https://cutler.github.io/archives/2026/03/">
 
   <title> 归档 | 不只是看客 </title>
 </head>
@@ -231,7 +231,7 @@
       
         
         <div class="collection-title">
-          <h2 class="archive-year motion-element" id="archive-year-2025">2025</h2>
+          <h2 class="archive-year motion-element" id="archive-year-2026">2026</h2>
         </div>
       
       
@@ -245,15 +245,15 @@
         
             <a class="post-title-link" href="/ai-001/" itemprop="url">
               
-                <span itemprop="name">第一章 AI编程入门</span>
+                <span itemprop="name">第一章 AI入门</span>
               
             </a>
         
       </h1>
 
       <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2025-03-27T16:16:00+08:00" content="2025-03-27">
-          03-27
+        <time class="post-time" itemprop="dateCreated" datetime="2026-03-15T15:25:00+08:00" content="2026-03-15">
+          03-15
         </time>
       </div>
 
@@ -391,22 +391,6 @@
 
         
 
-<div class="busuanzi-count">
-
-  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-  
-    <span class="site-uv"><i class="fa fa-user"></i><span class="busuanzi-value" id="busuanzi_value_site_uv"></span></span>
-  
-
-  
-    <span class="site-pv"><i class="fa fa-eye"></i><span class="busuanzi-value" id="busuanzi_value_site_pv"></span></span>
-  
-  
-</div>
-
-
-
         
       </div>
     </footer>
@@ -517,113 +501,6 @@
   
 
   
-
-  
-  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
-  <script>AV.initialize("sGcgYofeKOFi2l1XvGrm0PcP-gzGzoHsz", "Sx0mWxj4pkXYm17zT0UnV5Ca");</script>
-  <script>
-    function showTime(Counter) {
-      var query = new AV.Query(Counter);
-      var entries = [];
-      var $visitors = $(".leancloud_visitors");
-
-      $visitors.each(function () {
-        entries.push( $(this).attr("id").trim() );
-      });
-
-      query.containedIn('url', entries);
-      query.find()
-        .done(function (results) {
-          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
-
-          if (results.length === 0) {
-            $visitors.find(COUNT_CONTAINER_REF).text(0);
-            return;
-          }
-
-          for (var i = 0; i < results.length; i++) {
-            var item = results[i];
-            var url = item.get('url');
-            var time = item.get('time');
-            var element = document.getElementById(url);
-
-            $(element).find(COUNT_CONTAINER_REF).text(time);
-          }
-          for(var i = 0; i < entries.length; i++) {
-            var url = entries[i];
-            var element = document.getElementById(url);
-            var countSpan = $(element).find(COUNT_CONTAINER_REF);
-            if( countSpan.text() == '') {
-              countSpan.text(0);
-            }
-          }
-        })
-        .fail(function (object, error) {
-          console.log("Error: " + error.code + " " + error.message);
-        });
-    }
-
-    function addCount(Counter) {
-      var $visitors = $(".leancloud_visitors");
-      var url = $visitors.attr('id').trim();
-      var title = $visitors.attr('data-flag-title').trim();
-      var query = new AV.Query(Counter);
-
-      query.equalTo("url", url);
-      query.find({
-        success: function(results) {
-          if (results.length > 0) {
-            var counter = results[0];
-            counter.fetchWhenSave(true);
-            counter.increment("time");
-            counter.save(null, {
-              success: function(counter) {
-                var $element = $(document.getElementById(url));
-                $element.find('.leancloud-visitors-count').text(counter.get('time'));
-              },
-              error: function(counter, error) {
-                console.log('Failed to save Visitor num, with error message: ' + error.message);
-              }
-            });
-          } else {
-            var newcounter = new Counter();
-            /* Set ACL */
-            var acl = new AV.ACL();
-            acl.setPublicReadAccess(true);
-            acl.setPublicWriteAccess(true);
-            newcounter.setACL(acl);
-            /* End Set ACL */
-            newcounter.set("title", title);
-            newcounter.set("url", url);
-            newcounter.set("time", 1);
-            newcounter.save(null, {
-              success: function(newcounter) {
-                var $element = $(document.getElementById(url));
-                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
-              },
-              error: function(newcounter, error) {
-                console.log('Failed to create');
-              }
-            });
-          }
-        },
-        error: function(error) {
-          console.log('Error:' + error.code + " " + error.message);
-        }
-      });
-    }
-
-    $(function() {
-      var Counter = AV.Object.extend("Counter");
-      if ($('.leancloud_visitors').length == 1) {
-        addCount(Counter);
-      } else if ($('.post-title-link').length > 1) {
-        showTime(Counter);
-      }
-    });
-  </script>
-
-
 
   
 
